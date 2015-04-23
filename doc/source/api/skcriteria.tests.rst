@@ -1,6 +1,6 @@
 skcriteria.tests package
 ========================
 
-.. automodule:: skcriteria.test
+.. automodule:: skcriteria.tests
     :members:
     :show-inheritance:

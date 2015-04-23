@@ -4,10 +4,10 @@ skcriteria.common package
 Submodules
 ----------
 
-skcriteria.common.cons module
+skcriteria.common.util module
 -----------------------------
 
-.. automodule:: skcriteria.common.cons
+.. automodule:: skcriteria.common.util
     :members:
     :show-inheritance:
 

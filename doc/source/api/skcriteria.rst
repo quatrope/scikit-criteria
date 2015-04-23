@@ -15,6 +15,7 @@ Submodules
 .. toctree::
 
     skcriteria.moora
+    skcriteria.ahp
 
 
 Module contents
