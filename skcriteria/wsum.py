@@ -32,9 +32,9 @@ from .common import norm, util, rank
 
 def wsum(mtx, criteria, weights=None):
 
-    nmtx = norm.colsum(mtx, axis=0)
+    nmtx = norm.sum(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.colsum(weights) if weights is not None else 1
+    nweights = norm.sum(weights) if weights is not None else 1
 
     # add criteria to weights
     cweights = nweights * ncriteria

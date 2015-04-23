@@ -92,32 +92,32 @@ class NormTest(core.SKCriteriaTestCase):
         self.assertAllClose(mtx_result, mtx_func_result, **kwargs)
         self.assertAllClose(arr_result, arr_func_result, **kwargs)
 
-    def test_ColSumNormalizer(self):
-        colsums = collections.defaultdict(float)
+    def test_SumNormalizer(self):
+        sums = collections.defaultdict(float)
         for row in self.mtx:
             for coln, col in enumerate(row):
-                colsums[coln] += col
+                sums[coln] += col
         mtx_result = [
-            [(col / colsums[coln]) for coln, col in enumerate(row)]
+            [(col / sums[coln]) for coln, col in enumerate(row)]
             for row in self.mtx
         ]
         arr_sum = float(sum(self.arr))
         arr_result = [(col / arr_sum) for col in self.arr]
-        self._test_normalizer(norm.colsum, mtx_result, arr_result)
+        self._test_normalizer(norm.sum, mtx_result, arr_result)
 
-    def test_ColMaxNormalizer(self):
-        colmaxes = collections.defaultdict(lambda: None)
+    def test_MaxNormalizer(self):
+        maxes = collections.defaultdict(lambda: None)
         for row in self.mtx:
             for coln, col in enumerate(row):
-                if colmaxes[coln] is None or colmaxes[coln] < col:
-                    colmaxes[coln] = col
+                if maxes[coln] is None or maxes[coln] < col:
+                    maxes[coln] = col
         mtx_result = [
-            [(float(col) / colmaxes[coln]) for coln, col in enumerate(row)]
+            [(float(col) / maxes[coln]) for coln, col in enumerate(row)]
             for row in self.mtx
         ]
         arr_max = float(max(self.arr))
         arr_result = [(col / arr_max) for col in self.arr]
-        self._test_normalizer(norm.colmax, mtx_result, arr_result)
+        self._test_normalizer(norm.max, mtx_result, arr_result)
 
     def test_VectorNormalizer(self):
         colsums = collections.defaultdict(float)

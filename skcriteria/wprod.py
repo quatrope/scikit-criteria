@@ -50,7 +50,7 @@ def wprod(mtx, criteria, weights=None):
 
     # normalize
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.colsum(weights) if weights is not None else 1
+    nweights = norm.sum(weights) if weights is not None else 1
 
     if util.MIN in ncriteria:
         mtx = np.asarray(mtx)
@@ -59,7 +59,7 @@ def wprod(mtx, criteria, weights=None):
         mtx = mtx.astype(mincrits_inverted.dtype.type)
         mtx[:, mincrits] = mincrits_inverted
 
-    nmtx = norm.colsum(
+    nmtx = norm.sum(
         norm.push_negatives(norm.eps(mtx, axis=0), axis=0), axis=0
     )
 

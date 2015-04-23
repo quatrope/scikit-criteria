@@ -203,7 +203,7 @@ def ahp(crit_n, alt_n, crit_vs_crit, alt_vs_alt_by_crit):
 
     # criteria
     validate_ahp_matrix(crit_n, crit_vs_crit, mtxtype=MTX_TYPE_CRITERIA)
-    n_cvsc = norm.colsum(crit_vs_crit, axis=0)
+    n_cvsc = norm.sum(crit_vs_crit, axis=0)
     pvector = np.average(n_cvsc, axis=1)
 
     # alternatives
@@ -217,7 +217,7 @@ def ahp(crit_n, alt_n, crit_vs_crit, alt_vs_alt_by_crit):
     pmatrix = np.empty((crit_n, alt_n))
     for cidx, altmtx in enumerate(alt_vs_alt_by_crit):
         validate_ahp_matrix(alt_n, altmtx, mtxtype=MTX_TYPE_ALTERNATIVES)
-        n_altmtx = norm.colsum(altmtx, axis=0)
+        n_altmtx = norm.sum(altmtx, axis=0)
         pmatrix[:, cidx] = np.average(n_altmtx, axis=1)
 
     points = np.dot(pmatrix, pvector)

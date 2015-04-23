@@ -134,7 +134,7 @@ def ratio(mtx, criteria, weights=1):
     """
     nmtx = norm.vector(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.colsum(weights) if weights is not None else 1
+    nweights = norm.sum(weights) if weights is not None else 1
     return _ratio(nmtx, ncriteria, nweights)
 
 
@@ -156,7 +156,7 @@ def _refpoint(nmtx, criteria, weights):
 def refpoint(mtx, criteria, weights=None):
     nmtx = norm.vector(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.colsum(weights) if weights is not None else 1
+    nweights = norm.sum(weights) if weights is not None else 1
     return _refpoint(nmtx, ncriteria, nweights)
 
 

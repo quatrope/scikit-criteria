@@ -19,7 +19,7 @@ from __future__ import unicode_literals
 # DOCS
 #==============================================================================
 
-"""Several implementations of normalization methods
+__doc__  = """Several implementations of normalization methods
 
 """
 
@@ -35,12 +35,12 @@ import numpy as np
 # IMPLEMENTATIONS
 #==============================================================================
 
-def colsum(arr, axis=None):
+def sum(arr, axis=None):
     colsum = np.sum(arr, axis=axis)
     return np.divide(arr, colsum, dtype="f")
 
 
-def colmax(arr, axis=None):
+def max(arr, axis=None):
     colmax = np.max(arr, axis=axis)
     return np.divide(arr, colmax, dtype="f")
 
