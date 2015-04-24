@@ -14,8 +14,12 @@ Submodules
 
 .. toctree::
 
-    skcriteria.moora
+    skcriteria.wprod
+    skcriteria.wsum
+
     skcriteria.ahp
+
+    skcriteria.moora
 
 
 Module contents
