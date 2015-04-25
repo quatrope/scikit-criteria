@@ -204,18 +204,18 @@ class RankTest(core.SKCriteriaTestCase):
         b = [14, 16, 15]
         c = [15, 19, 12]
 
-        self.assertEqual(rank.dominance(a, b), (0, 2))
-        self.assertEqual(rank.dominance(b, a), (1, 2))
+        self.assertEqual(rank.dominance(a, b), 2)
+        self.assertEqual(rank.dominance(b, a), -2)
 
-        self.assertEqual(rank.dominance(b, c), (0, 2))
-        self.assertEqual(rank.dominance(c, b), (1, 2))
+        self.assertEqual(rank.dominance(b, c), 2)
+        self.assertEqual(rank.dominance(c, b), -2)
 
-        self.assertEqual(rank.dominance(c, a), (0, 2))
-        self.assertEqual(rank.dominance(a, c), (1, 2))
+        self.assertEqual(rank.dominance(c, a), 2)
+        self.assertEqual(rank.dominance(a, c), -2)
 
-        self.assertEqual(rank.dominance(a, a), (None, 0))
-        self.assertEqual(rank.dominance(b, b), (None, 0))
-        self.assertEqual(rank.dominance(c, c), (None, 0))
+        self.assertEqual(rank.dominance(a, a), 0)
+        self.assertEqual(rank.dominance(b, b), 0)
+        self.assertEqual(rank.dominance(c, c), 0)
 
     def test_equality(self):
         """Data from Brauers et al, 2010 [BRAUERS2012]_

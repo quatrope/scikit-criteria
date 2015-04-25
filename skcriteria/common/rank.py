@@ -94,13 +94,13 @@ def dominance(r0, r1):
     N = len(r0)
     r0_lt_r1 = np.count_nonzero(np.less(r0, r1))
     if r0_lt_r1 > N - r0_lt_r1:
-        return 0, r0_lt_r1
+        return r0_lt_r1
 
     r1_lt_r0 = np.count_nonzero(np.less(r1, r0))
     if r1_lt_r0 > N - r1_lt_r0:
-        return 1, r1_lt_r0
+        return -r1_lt_r0
 
-    return None, 0
+    return 0
 
 
 def equality(r0, r1):

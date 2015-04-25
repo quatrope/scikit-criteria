@@ -206,8 +206,8 @@ def multimoora(mtx, criteria):
     points = np.zeros(alternatives)
     for idx0, idx1 in itertools.combinations(range(alternatives), 2):
         alt0, alt1 = rank_mtx[idx0], rank_mtx[idx1]
-        dom = rank.dominance(alt0, alt1)[0]
-        dom_idx = idx0 if dom == 0 else idx1
+        dom = rank.dominance(alt0, alt1)
+        dom_idx = idx0 if dom > 0 else idx1
         points[dom_idx] += 1
 
     return rank.rankdata(points, reverse=True), rank_mtx
