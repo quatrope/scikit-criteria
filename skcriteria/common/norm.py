@@ -258,7 +258,7 @@ def eps(arr, axis=None):
     >>> norm.eps(mtx) # not afected
     array([[1, 2],
            [3, 4]])
-    >>> # added a value ~0,00000000000000002, ans id only perceptible in the
+    >>> # added a value ~0,00000000000000002, and is only perceptible in the
     >>> # mtx_w0[0][0] element
     >>> norm.eps(mtx_w0)
     array([[  2.22044605e-16,   1.00000000e+00],

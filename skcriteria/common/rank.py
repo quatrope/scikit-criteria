@@ -19,7 +19,8 @@ from __future__ import unicode_literals
 # DOCS
 #==============================================================================
 
-"""Several implementations of normalization methods
+"""This module contains functions for calculate and compare ranks (ordinal
+series)
 
 """
 
@@ -38,6 +39,42 @@ from scipy import stats
 # =============================================================================
 
 def rankdata(arr, reverse=False):
+    """Evaluate an array and return a 1 based ranking.
+
+
+    Parameters
+    ----------
+
+    arr : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        A array with values
+
+    reverse : :py:class:`bool` default *False*
+        By default (*False*) the lesser values are ranked first (like in time
+        lapse in a race or Golf scoring) if is *True* the data is highest
+        values are the first.
+
+    Returns
+    -------
+
+    narray : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        array when the i-nth element has the ranking of the i-nth element of
+        the original array.
+
+
+    Examples
+    --------
+
+    >>> from skcriteria.common import rank
+    >>> # the fastest (the lowes value) goest first
+    >>> time_laps = [0.59, 1.2, 0.3]
+    >>> rank.rankdata(time_laps)
+    array([2, 3, 1])
+    >>> # highest is better
+    >>> scores = [140, 200, 98]
+    >>> rank.rankdata(scores, reverse=True)
+    array([2, 1, 3])
+
+    """
     if reverse:
         arr = np.multiply(arr, -1)
     return stats.rankdata(arr, "ordinal").astype(int)
