@@ -30,7 +30,7 @@ from .common import norm, util, rank
 # FUNCTIONS
 # =============================================================================
 
-def wsum(mtx, criteria, weights=None):
+def mdwsum(mtx, criteria, weights=None):
 
     nmtx = norm.sum(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
