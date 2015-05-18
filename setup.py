@@ -32,7 +32,7 @@ if __name__ == "__main__":
 
     setup(
         name="scikit-criteria",
-        version="0.1dev",
+        version="0.0.1",
         description="Multiple-criteria decision analysis package",
         author="JuanBC - NadiaAL",
         author_email="jbc.develop@gmail.com",
