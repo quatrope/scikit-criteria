@@ -24,6 +24,11 @@ sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
 # on_rtd is whether we are on readthedocs.org
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
+
+# modules to mock in readthedocs
+MOCK_MODULES = ["numpy", "scipy"]
+
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -121,6 +126,15 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
     import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+else:
+    from mock import Mock as MagicMock
+    class Mock(MagicMock):
+        @classmethod
+        def __getattr__(cls, name):
+                return Mock()
+    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+
+
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
