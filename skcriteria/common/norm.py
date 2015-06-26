@@ -29,6 +29,7 @@ __doc__ = """Several implementations of normalization methods
 #==============================================================================
 
 import numpy as np
+from numpy import linalg
 
 
 #==============================================================================
@@ -167,8 +168,8 @@ def vector(arr, axis=None):
            [ 0.60000002,  0.80000001]], dtype=float32)
 
     """
-    sqrt = np.sqrt(np.power(arr, 2).sum(axis=axis, keepdims=True))
-    return np.divide(arr, sqrt, dtype="f")
+    frob = linalg.norm(arr, None, axis=axis)
+    return np.divide(arr, frob, dtype="f")
 
 
 def push_negatives(arr, axis=None):
