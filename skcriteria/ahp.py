@@ -153,7 +153,7 @@ def validate_ahp_matrix(rows_and_columns, mtx, mtxtype=None):
         raise ValueError("The matix is not symmetric with reciprocal values")
 
 
-def t(arr, dtype=float):
+def t(arr, dtype=np.float64):
     shape = len(arr), len(arr[-1])
 
     if shape[0] != shape[1]:
@@ -190,7 +190,7 @@ def saaty_ri(size):
 def saaty_cr(size, mtx):
     validate_ahp_matrix(size, mtx)
     colsum = np.sum(mtx, axis=0)
-    nmtx = np.divide(mtx, colsum, dtype="f")
+    nmtx = np.divide(mtx, colsum, dtype=np.float64)
     avg = np.average(nmtx, axis=1)
     lambda_max = np.dot(colsum, avg)
     ci = (lambda_max - size) / (size - 1)

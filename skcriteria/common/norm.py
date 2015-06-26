@@ -70,17 +70,17 @@ def sum(arr, axis=None):
     >>> mtx = [[1, 2], [3, 4]]
     >>> norm.sum(mtx) # ratios with the sum of the array
     aarray([[ 0.1       ,  0.2       ],
-            [ 0.30000001,  0.40000001]], dtype=float32)
+            [ 0.30000001,  0.40000001]], dtype=float64)
     >>> norm.sum(mtx, axis=0) # ratios with the sum of the array by column
     array([[ 0.25      ,  0.33333334],
-           [ 0.75      ,  0.66666669]], dtype=float32)
+           [ 0.75      ,  0.66666669]], dtype=float64)
     >>> norm.sum(mtx, axis=1) # ratios with the sum of the array by row
     array([[ 0.33333334,  0.66666669],
-           [ 0.42857143,  0.5714286 ]], dtype=float32)
+           [ 0.42857143,  0.5714286 ]], dtype=float64)
 
     """
     colsum = np.sum(arr, axis=axis, keepdims=True)
-    return np.divide(arr, colsum, dtype="f")
+    return np.divide(arr, colsum, dtype=np.float64)
 
 
 def max(arr, axis=None):
@@ -112,17 +112,17 @@ def max(arr, axis=None):
     >>> mtx = [[1, 2], [3, 4]]
     >>> norm.max(mtx) # ratios with the max value of the array
     array([[ 0.25,  0.5 ],
-           [ 0.75,  1.  ]], dtype=float32)
+           [ 0.75,  1.  ]], dtype=float64)
     >>> norm.max(mtx, axis=0) # ratios with the max value of the arr by column
     array([[ 0.33333334,  0.5       ],
-           [ 1.        ,  1.        ]], dtype=float32)
+           [ 1.        ,  1.        ]], dtype=float64)
     >>> norm.max(mtx, axis=1) # ratios with the max value of the array by row
     array([[ 0.5 ,  1.  ],
-           [ 0.75,  1.  ]], dtype=float32)
+           [ 0.75,  1.  ]], dtype=float64)
 
     """
     colmax = np.max(arr, axis=axis, keepdims=True)
-    return np.divide(arr, colmax, dtype="f")
+    return np.divide(arr, colmax, dtype=np.float64)
 
 
 def vector(arr, axis=None):
@@ -159,17 +159,17 @@ def vector(arr, axis=None):
     >>> mtx = [[1, 2], [3, 4]]
     >>> norm.vector(mtx) # ratios with the vector value of the array
     array([[ 0.18257418,  0.36514837],
-       [ 0.54772252,  0.73029673]], dtype=float32)
+       [ 0.54772252,  0.73029673]], dtype=float64)
     >>> norm.vector(mtx, axis=0) # ratios by column
     array([[ 0.31622776,  0.44721359],
-           [ 0.94868326,  0.89442718]], dtype=float32)
+           [ 0.94868326,  0.89442718]], dtype=float64)
     >>> norm.vector(mtx, axis=1) # ratios by row
     array([[ 0.44721359,  0.89442718],
-           [ 0.60000002,  0.80000001]], dtype=float32)
+           [ 0.60000002,  0.80000001]], dtype=float64)
 
     """
     frob = linalg.norm(arr, None, axis=axis)
-    return np.divide(arr, frob, dtype="f")
+    return np.divide(arr, frob, dtype=np.float64)
 
 
 def push_negatives(arr, axis=None):
