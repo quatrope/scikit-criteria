@@ -171,8 +171,8 @@ def _fmf(nmtx, criteria):
         points = 1 / np.prod(nmtx, axis=1)
     else:
         # min max
-        min_mask = np.squeeze(np.argwhere(criteria == util.MAX))
-        max_mask = np.squeeze(np.argwhere(criteria == util.MIN))
+        min_mask = np.ravel(np.argwhere(criteria == util.MAX))
+        max_mask = np.ravel(np.argwhere(criteria == util.MIN))
 
         # remove invalid values
         min_arr = np.delete(nmtx, min_mask, axis=1)
