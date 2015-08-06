@@ -1,0 +1,22 @@
+
+.wy-side-nav-search {
+    background-color: #7b8e2d;
+}
+
+a {
+    color: #48531e;
+}
+
+.rst-content dl:not(.docutils) dt {
+    color: #48531e;
+    background-color: #b2ce41;
+    border-top: 3px solid #7b8e2d;
+}
+
+.rst-content .viewcode-link,
+.rst-content .viewcode-back {
+    color: black;
+}
+
+
+

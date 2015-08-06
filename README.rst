@@ -19,3 +19,10 @@ Test
     $ python -m skcriteria.tests
 
 
+Legal
+-----
+
+- The scikit-criteria logo is a dereived work of
+  https://openclipart.org/detail/170778/retro-diamonds-abstract-009
+
+
