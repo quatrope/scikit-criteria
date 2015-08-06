@@ -1,39 +1,45 @@
-import numpy
-from numpy.linalg import norm
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+import numpy as np
+
+from skcriteria.common import norm, util, rank
 
 
-def topsis(matrix, weights, has_positiv_effect):
-    # 1
-    normalized_matrix = vector_normalization(matrix)
+# =============================================================================
+# TOPSIS
+# =============================================================================
 
-    # 2
-    weighted_matrix = vector_normalization(weights) * normalized_matrix
+def topsis(mtx, criteria, weights=1):
 
-    # 3
-    # if positiv_effect max value for ideal_action, else min
-    ideal_action = []
-    anti_ideal_action = []
-    for index in range(weighted_matrix.shape[1]):
-        column = weighted_matrix[:, index]
+    # This guarantee the criteria array consistency
+    ncriteria = util.criteriarr(criteria)
 
-        if has_positiv_effect[index] == 1:
-            ideal_action.append(numpy.amax(column))
-            anti_ideal_action.append(numpy.amin(column))
-        elif has_positiv_effect[index] == 0:
-            ideal_action.append(numpy.amin(column))
-            anti_ideal_action.append(numpy.amax(column))
-        else:
-            raise ArithmeticError('Wrongfull input for has_positiv_effect')
+    # normalize mtx
+    nmtx = norm.vector(mtx, axis=0)
 
-    # 4
-    distance_ideal_action = norm(weighted_matrix - ideal_action, axis=1)
-    distance_anti_ideal_action = norm(weighted_matrix - anti_ideal_action, axis=1)
+    # apply weights
+    nweights = norm.vector(weights) if weights is not None else 1
+    wmtx = np.multiply(nmtx, nweights)
 
-    # 5
-    relative_closness = (distance_anti_ideal_action / (distance_ideal_action + distance_anti_ideal_action))
+    # extract mins and maxes
+    mins = np.min(wmtx, axis=0)
+    maxs = np.max(wmtx, axis=0)
 
-    return relative_closness
+    # create the ideal and the anti ideal arrays
+    ideal = np.where(ncriteria == util.MAX, maxs, mins)
+    anti_ideal = np.where(ncriteria == util.MIN, maxs, mins)
 
+    # calculate distances
+    d_better = np.sqrt(np.sum(np.power(wmtx - ideal, 2), axis=1))
+    d_worst = np.sqrt(np.sum(np.power(wmtx - anti_ideal, 2), axis=1))
 
-def vector_normalization(matrix):
-    return matrix / norm(matrix, axis=0)
+    # relative closeness
+    closeness = d_worst / (d_better + d_worst)
+
+    # compute the rank and return the result
+    return rank.rankdata(closeness, reverse=True), closeness
