@@ -135,7 +135,7 @@ else:
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 
 
-html_style = "css/skcriteria.css"
+#~ html_style = "css/skcriteria.css"
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
