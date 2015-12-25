@@ -16,7 +16,7 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-"""test moora methods"""
+__doc__ = """test moora methods"""
 
 
 # =============================================================================
@@ -81,11 +81,3 @@ class WSumTest(core.SKCriteriaTestCase):
 
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)
-
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-if __name__ == "__main__":
-    print(__doc__)

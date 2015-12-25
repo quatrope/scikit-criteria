@@ -6,6 +6,13 @@
 
 
 # =============================================================================
+# FUTURE
+# =============================================================================
+
+from __future__ import unicode_literals
+
+
+# =============================================================================
 # IMPORTS
 # =============================================================================
 
@@ -43,10 +50,10 @@ def create_parser():
     group = parser.add_mutually_exclusive_group()
 
     group.add_argument(
-        "-v", "--verbose", dest='verbosity',  default=1, const=2,
+        "-v", "--verbose", dest='verbosity',  default=0, const=1,
         help='Verbose output', action='store_const')
     group.add_argument(
-        "-vv", "--vverbose", dest='verbosity', const=3,
+        "-vv", "--vverbose", dest='verbosity', const=2,
         help='Verbose output', action='store_const')
 
     return parser

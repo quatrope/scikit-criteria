@@ -22,11 +22,3 @@ from __future__ import unicode_literals
 __doc__ = """This package contains common algorithms for all scikit-criteria
 
 """
-
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-if __name__ == "__main__":
-    print(__doc__)

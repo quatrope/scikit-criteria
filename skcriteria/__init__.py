@@ -16,8 +16,8 @@ from __future__ import unicode_literals
 # DOCS
 # =============================================================================
 
-"""Scikit-Criteria is a collections of algorithms, methods and techniques for
-multiple-criteria decision analysis [].
+__doc__ = """Scikit-Criteria is a collections of algorithms, methods and
+techniques for multiple-criteria decision analysis [].
 
 """
 

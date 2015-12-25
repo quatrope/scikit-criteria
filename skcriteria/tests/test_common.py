@@ -16,7 +16,7 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-"""Test common functionalities"""
+__doc__ = """Test common functionalities"""
 
 
 # =============================================================================
@@ -306,11 +306,3 @@ class RankTest(core.SKCriteriaTestCase):
 
         self.assertEqual(rank.spearmanr(caos, caos), 1)
         self.assertTrue(rank.spearmanr(caos, list(reversed(caos))) < -1)
-
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-if __name__ == "__main__":
-    print(__doc__)
