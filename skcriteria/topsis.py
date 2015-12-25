@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# License: 3 Clause BSD
+# http://scikit-criteria.org/
+
+
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -43,4 +47,3 @@ def topsis(mtx, criteria, weights=1):
 
     # compute the rank and return the result
     return rank.rankdata(closeness, reverse=True), closeness
-

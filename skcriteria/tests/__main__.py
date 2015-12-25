@@ -1,13 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# License: 3 Clause BSD
+# http://scikit-criteria.org/
+
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
 import os
 import sys
 import argparse
 import unittest
 import glob
 import importlib
-import logging
 
 from . import core
 
@@ -88,7 +95,6 @@ def run_tests(verbosity=1, failfast=False):
 def main(argv):
     parser = create_parser()
     arguments = parser.parse_args(argv)
-
 
     # RUN THE TESTS
     result = run_tests(

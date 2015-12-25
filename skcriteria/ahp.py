@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# "THE WISKEY-WARE LICENSE":
-# <jbc.develop@gmail.com> wrote this file. As long as you retain this notice
-# you can do whatever you want with this stuff. If we meet some day, and you
-# think this stuff is worth it, you can buy me a WISKEY in return Juan BC
+# License: 3 Clause BSD
+# http://scikit-criteria.org/
 
 
 # =============================================================================
@@ -111,7 +109,7 @@ def validate_values(values):
 def validate_ahp_matrix(rows_and_columns, mtx, mtxtype=None):
 
     if mtxtype is not None and \
-        mtxtype not in [MTX_TYPE_CRITERIA, MTX_TYPE_ALTERNATIVES]:
+       mtxtype not in [MTX_TYPE_CRITERIA, MTX_TYPE_ALTERNATIVES]:
             msg = "'mtxtype must be 'None', '{}' or '{}'. Found '{}'".format(
                 MTX_TYPE_ALTERNATIVES, MTX_TYPE_CRITERIA, mtxtype)
             raise ValueError(msg)
@@ -223,11 +221,3 @@ def ahp(crit_n, alt_n, crit_vs_crit, alt_vs_alt_by_crit):
     points = np.dot(pmatrix, pvector)
 
     return rank.rankdata(points, reverse=True), points
-
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-if __name__ == "__main__":
-    print(__doc__)

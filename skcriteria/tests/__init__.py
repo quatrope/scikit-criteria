@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# License: 3 Clause BSD
+# http://scikit-criteria.org/
+
 
 # =============================================================================
 # FUTURE

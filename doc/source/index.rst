@@ -12,11 +12,8 @@
 
 
 scikit-criteria is a collection of Multiple-criteria decision analysis (MCDA_)
-methods integrated into scientific python stack.
-
-
-    - Built on NumPy, SciPy, and matplotlib
-    - Open source, commercially usable - BSD license
+methods integrated into scientific python stack. Is Open source and
+commercially usable - `BSD license`_
 
 
 

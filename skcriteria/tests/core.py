@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# License: 3 Clause BSD
+# http://scikit-criteria.org/
+
 # =============================================================================
 # DOC
 # =============================================================================
@@ -15,6 +18,7 @@
 import unittest
 import random
 
+import numpy as np
 import numpy.testing as npt
 
 import six
@@ -42,10 +46,3 @@ class SKCriteriaTestCase(unittest.TestCase):
     if six.PY2:
         assertRaisesRegex = six.assertRaisesRegex
         assertCountEqual = six.assertCountEqual
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-if __name__ == "__main__":
-    print(__doc__)

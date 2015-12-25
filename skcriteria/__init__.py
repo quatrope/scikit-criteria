@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# "THE WISKEY-WARE LICENSE":
-# <jbc.develop@gmail.com> and <nluczywo@gmail.com>
-# wrote this file. As long as you retain this notice you can do whatever you
-# want with this stuff. If we meet some day, and you think this stuff is worth
-# it, you can buy me a WISKEY in return Juan BC and Nadia AL.
+# License: 3 Clause BSD
+# http://scikit-criteria.org/
 
 
 # =============================================================================
@@ -24,15 +21,27 @@ multiple-criteria decision analysis [].
 
 """
 
-
 # =============================================================================
-# IMPORTS
+# CONSTANTS
 # =============================================================================
 
-# flake8: noqa
+__version__ = ("0", "0", "2")
 
-from .common.util import MAX, MIN
-from .common import rank, norm, util
+NAME = "scikit-criteria"
+
+DOC = __doc__
+
+VERSION = ".".join(__version__)
+
+AUTHORS = "Cabral & Luczywo"
+
+EMAIL = "jbc.develop@gmail.com"
+
+URL = "http://scikit-criteria.org/"
+
+LICENSE = "3 Clause BSD"
+
+KEYWORDS = "mcda mcdm ahp moora muti criteria".split()
 
 
 # =============================================================================

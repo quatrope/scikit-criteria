@@ -1,48 +1,84 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# "THE WISKEY-WARE LICENSE":
-# <jbc.develop@gmail.com> and <nluczywo@gmail.com>
-# wrote this file. As long as you retain this notice you can do whatever you
-# want with this stuff. If we meet some day, and you think this stuff is worth
-# it, you can buy me a WISKEY in return Juan BC and Nadia AL.
+# License: 3 Clause BSD
+# http://scikit-criteria.org/
 
 
-#==============================================================================
+# =============================================================================
 # DOCS
-#==============================================================================
+# =============================================================================
 
-"""This file is for distribute scikit-criteria with distutils
+"""This file is for distribute scikit-criteria
 
 """
 
 
-#==============================================================================
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+import sys
+
+from ez_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup, find_packages
+
+import skcriteria
+
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+REQUIREMENTS = [
+    "numpy", "scipy", "six"
+]
+
+
+# =============================================================================
 # FUNCTIONS
-#==============================================================================
+# =============================================================================
 
-if __name__ == "__main__":
-    import os
-    import sys
-
-    from ez_setup import use_setuptools
-    use_setuptools()
-
-    from setuptools import setup, find_packages
-
+def do_setup():
     setup(
-        name="scikit-criteria",
-        version="0.0.1",
-        description="Multiple-criteria decision analysis package",
-        author="JuanBC - NadiaAL",
-        author_email="jbc.develop@gmail.com",
-        url="http://scikit-criteria.org/",
-        license="WISKEY-WARE",
-        keywords="mcda mcdm ahp moora muti criteria".split(),
-        classifiers=[],
+        name=skcriteria.NAME,
+        version=skcriteria.VERSION,
+        description=skcriteria.DOC,
+        author=skcriteria.AUTHORS,
+        author_email=skcriteria.EMAIL,
+        url=skcriteria.URL,
+        license=skcriteria.LICENSE,
+        keywords=skcriteria.KEYWORDS,
+        classifiers=(
+            "Development Status :: 4 - Beta",
+            "Intended Audience :: Education",
+            "Intended Audience :: Science/Research",
+            "License :: OSI Approved :: BSD License",
+            "Operating System :: OS Independent",
+            "Programming Language :: Python",
+            "Programming Language :: Python :: 2",
+            "Programming Language :: Python :: 2.7",
+            "Programming Language :: Python :: 3",
+            "Programming Language :: Python :: 3.4",
+            "Programming Language :: Python :: 3.5",
+            "Programming Language :: Python :: Implementation :: CPython",
+            "Topic :: Scientific/Engineering",
+        ),
         packages=[
             pkg for pkg in find_packages() if pkg.startswith("skcriteria")],
-        include_package_data=True,
         py_modules=["ez_setup"],
-        install_requires=["numpy", "scipy"],
+        install_requires=REQUIREMENTS,
     )
+
+
+def do_publish():
+    pass
+
+
+if __name__ == "__main__":
+    if sys.argv[-1] == 'publish':
+        do_publish()
+    else:
+        do_setup()
