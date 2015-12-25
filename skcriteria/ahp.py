@@ -55,7 +55,7 @@ SAATY_RI = np.array(
      (5, 1.12), (6, 1.24), (7, 1.32), (8, 1.41),
      (9, 1.45), (10, 1.49), (11, 1.51), (12, 1.48),
      (13, 1.56), (14, 1.57), (15, 1.59)],
-    dtype=[('size', 'i'), ('ri', 'f2')]
+    dtype=[(b'size', b'i'), (b'ri', b'f2')]
 )
 
 
@@ -81,8 +81,8 @@ def _resolve_saaty_intensity():
          "dominance demonstrated in practice")),
         (9, "9", "Extreme importance",
          "The evidence favouring one activity over another")],
-        dtype=[('value', 'f2'), ('label', 'a5'),
-               ('definition', 'a255'), ('explanation', 'a255')]
+        dtype=[(b'value', b'f2'), (b'label', b'a5'),
+               (b'definition', b'a255'), (b'explanation', b'a255')]
     )
 
     rec_def = ("If activity i has one of the above non-zero numbers assigned "
