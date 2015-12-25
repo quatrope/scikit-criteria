@@ -53,16 +53,16 @@ class WProdTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria, self.weights
         )
 
-        self.assertIsClose(
+        self.assertAllClose(
             points_result[0]/points_result[1], 1.007, atol=1.e-3
         )
-        self.assertIsClose(
+        self.assertAllClose(
             points_result[0]/points_result[2], 1.067, atol=1.e-3
         )
-        self.assertIsClose(
+        self.assertAllClose(
             points_result[1]/points_result[2], 1.059, atol=1.e-3
         )
-        self.assertIsClose(rank_result, [1, 2, 3])
+        self.assertAllClose(rank_result, [1, 2, 3])
 
     def test_wprod_min(self):
         self.criteria[0] = util.MIN
@@ -71,8 +71,8 @@ class WProdTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria, self.weights
         )
 
-        self.assertIsClose(rank_result, [2, 1, 3])
-        self.assertIsClose(points_result, [0.2847, 0.4079, 0.248], atol=1.e-3)
+        self.assertAllClose(rank_result, [2, 1, 3])
+        self.assertAllClose(points_result, [0.2847, 0.4079, 0.248], atol=1.e-3)
 
     def test_wprod_negative(self):
         self.mtx[0][0] = -self.mtx[0][0]
@@ -81,8 +81,8 @@ class WProdTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria, self.weights
         )
 
-        self.assertIsClose(rank_result, [3, 1, 2])
-        self.assertIsClose(points_result, [0, 0.3768, 0.3125], atol=1.e-3)
+        self.assertAllClose(rank_result, [3, 1, 2])
+        self.assertAllClose(points_result, [0, 0.3768, 0.3125], atol=1.e-3)
 
     def test_wprod_zero(self):
         self.mtx[0][0] = 0
@@ -91,8 +91,8 @@ class WProdTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria, self.weights
         )
 
-        self.assertIsClose(rank_result, [3, 1, 2])
-        self.assertIsClose(points_result, [0.0001, 0.3449, 0.3256], atol=1.e-3)
+        self.assertAllClose(rank_result, [3, 1, 2])
+        self.assertAllClose(points_result, [0.0001, 0.3449, 0.3256], atol=1.e-3)
 
 
 # =============================================================================

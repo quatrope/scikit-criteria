@@ -70,8 +70,8 @@ class WSumTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria, weights
         )
 
-        self.assertIsClose(points_result, points, atol=1.e-3)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-3)
+        self.assertAllClose(rank_result, result)
 
     def test_mdwsum(self):
         result = [5,  1,  3,  6,  4,  2]
@@ -79,8 +79,8 @@ class WSumTest(core.SKCriteriaTestCase):
 
         rank_result, points_result = wsum.mdwsum(self.mtx, self.criteria)
 
-        self.assertIsClose(points_result, points, atol=1.e-3)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-3)
+        self.assertAllClose(rank_result, result)
 
 
 # =============================================================================

@@ -75,8 +75,8 @@ class MooraTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria, weights
         )
 
-        self.assertIsClose(points_result, points, atol=1.e-4)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(rank_result, result)
 
     def test_ratio(self):
         result = [5, 1, 3, 6, 4, 2]
@@ -84,8 +84,8 @@ class MooraTest(core.SKCriteriaTestCase):
 
         rank_result, points_result = moora.ratio(self.mtx, self.criteria)
 
-        self.assertIsClose(points_result, points, atol=1.e-4)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(rank_result, result)
 
     def test_refpoint(self):
         result = [4, 5, 1, 6, 2, 3]
@@ -93,8 +93,8 @@ class MooraTest(core.SKCriteriaTestCase):
 
         rank_result, points_result = moora.refpoint(self.mtx, self.criteria)
 
-        self.assertIsClose(points_result, points, atol=1.e-3)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-3)
+        self.assertAllClose(rank_result, result)
 
     def test_refpoint_with_weights(self):
         weights = [1, 1, 1, 1, 1, 1, 1]
@@ -105,8 +105,8 @@ class MooraTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria, weights
         )
 
-        self.assertIsClose(points_result, points, atol=1.e-3)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-3)
+        self.assertAllClose(rank_result, result)
 
     def test_fmf(self):
         result = [5, 1, 3, 6, 4, 2]
@@ -114,8 +114,8 @@ class MooraTest(core.SKCriteriaTestCase):
 
         rank_result, points_result = moora.fmf(self.mtx, self.criteria)
 
-        self.assertIsClose(points_result, points, atol=1.e-4)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(rank_result, result)
 
         # some zeroes
         zeros = set()
@@ -138,8 +138,8 @@ class MooraTest(core.SKCriteriaTestCase):
 
         rank_result, points_result = moora.fmf(self.mtx, self.criteria)
 
-        self.assertIsClose(points_result, points, atol=1.e-4)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(rank_result, result)
 
         # some zeroes
         zeros = set()
@@ -164,8 +164,8 @@ class MooraTest(core.SKCriteriaTestCase):
 
         rank_result, points_result = moora.fmf(self.mtx, self.criteria)
 
-        self.assertIsClose(points_result, points, atol=1.e-4)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(rank_result, result)
 
         # some zeroes
         zeros = set()
@@ -195,8 +195,8 @@ class MooraTest(core.SKCriteriaTestCase):
             self.mtx, self.criteria
         )
 
-        self.assertIsClose(mmora_mtx_result, mmora_mtx, atol=1.e-4)
-        self.assertIsClose(rank_result, result)
+        self.assertAllClose(mmora_mtx_result, mmora_mtx, atol=1.e-4)
+        self.assertAllClose(rank_result, result)
 
 
 # =============================================================================

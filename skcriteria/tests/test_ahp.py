@@ -63,15 +63,15 @@ class AHPTest(core.SKCriteriaTestCase):
             self.assertEqual(value, scale["value"])
 
         scale, delta = ahp.saaty_closest_intensity(9.1)
-        self.assertIsClose(delta, 0.1, atol=1e-1)
+        self.assertAllClose(delta, 0.1, atol=1e-1)
         self.assertEqual(9, scale["value"])
 
         scale, delta = ahp.saaty_closest_intensity(8.6)
-        self.assertIsClose(delta, 0.3, atol=1e-1)
+        self.assertAllClose(delta, 0.3, atol=1e-1)
         self.assertEqual(9, scale["value"])
 
         scale, delta = ahp.saaty_closest_intensity(8.5)
-        self.assertIsClose(delta, 0.5, atol=1e-1)
+        self.assertAllClose(delta, 0.5, atol=1e-1)
         self.assertEqual(8, scale["value"])
 
         with self.assertRaises(ValueError):
@@ -178,8 +178,8 @@ class AHPTest(core.SKCriteriaTestCase):
         rank_result, points_result = ahp.ahp(
             3, 3, crit_vs_crit, alt_vs_alt_by_crit)
 
-        self.assertIsClose(points_result, points, atol=1.e-3)
-        self.assertIsClose(rank_result, rank)
+        self.assertAllClose(points_result, points, atol=1.e-3)
+        self.assertAllClose(rank_result, rank)
 
         rx = (
             "The number 'alt_vs_alt_by_crit' must be "
@@ -196,5 +196,5 @@ class AHPTest(core.SKCriteriaTestCase):
             [1.], [1./3., 1.], [1./3., 1./2., 1.]
         ])
         ic_result, cr_result = ahp.saaty_cr(3, crit_vs_crit)
-        self.assertIsClose(ic, ic_result, atol=1.e-3)
-        self.assertIsClose(cr, cr_result, atol=1.e-3)
+        self.assertAllClose(ic, ic_result, atol=1.e-3)
+        self.assertAllClose(cr, cr_result, atol=1.e-3)

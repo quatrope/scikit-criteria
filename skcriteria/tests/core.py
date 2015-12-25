@@ -31,9 +31,6 @@ from six.moves import range
 
 class SKCriteriaTestCase(unittest.TestCase):
 
-    def assertIsClose(self, a, b, **kwargs):
-        return npt.assert_allclose(a, b, **kwargs)
-
     def assertAllClose(self, a, b, **kwargs):
         return npt.assert_allclose(a, b, **kwargs)
 
