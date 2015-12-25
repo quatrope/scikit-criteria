@@ -43,3 +43,4 @@ def topsis(mtx, criteria, weights=1):
 
     # compute the rank and return the result
     return rank.rankdata(closeness, reverse=True), closeness
+

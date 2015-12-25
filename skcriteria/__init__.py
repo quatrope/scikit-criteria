@@ -32,7 +32,7 @@ multiple-criteria decision analysis [].
 # flake8: noqa
 
 from .common.util import MAX, MIN
-from .common import rank
+from .common import rank, norm, util
 
 
 # =============================================================================

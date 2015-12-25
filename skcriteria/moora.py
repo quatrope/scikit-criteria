@@ -105,7 +105,6 @@ def ratio(mtx, criteria, weights=1):
     References
     ----------
 
-
     .. [BRAUERS2006] BRAUERS, W. K.; ZAVADSKAS, Edmundas Kazimieras. The MOORA
        method and its application to privatization in a transition economy.
        Control and Cybernetics, 2006, vol. 35, p. 445-469.`

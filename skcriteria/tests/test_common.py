@@ -31,6 +31,8 @@ import random
 
 import numpy as np
 
+from six.moves import range
+
 from . import core
 
 from ..common import util, norm, rank
