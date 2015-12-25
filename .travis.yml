@@ -1,0 +1,11 @@
+language: python
+sudo: false
+install:
+  - pip install tox
+script:
+  - tox -r
+env:
+  - TOXENV=style
+  - TOXENV=coverage
+  - TOXENV=py27
+  - TOXENV=py34
