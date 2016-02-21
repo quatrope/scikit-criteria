@@ -23,8 +23,6 @@ __doc__ = """test electre methods"""
 # IMPORTS
 # =============================================================================
 
-import random
-
 import numpy as np
 
 from . import core

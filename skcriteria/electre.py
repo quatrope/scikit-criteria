@@ -31,7 +31,7 @@ References
 
 import numpy as np
 
-from skcriteria.common import norm, util, rank
+from skcriteria.common import norm, util
 
 
 # =============================================================================
@@ -64,7 +64,6 @@ def concordance(nmtx, ncriteria, nweights):
 def discordance(nmtx, ncriteria, nweights):
 
     mtx_criteria = np.tile(ncriteria, (len(nmtx), 1))
-    mtx_weight = np.tile(nweights, (len(nmtx), 1))
     mtx_discordance = np.empty((len(nmtx), len(nmtx)))
     ranges = np.max(nmtx, axis=0) - np.min(nmtx, axis=0)
 
@@ -109,7 +108,6 @@ def electre1(mtx, criteria, weights=1):
 
     better_than = np.sum(outrank, axis=1)
 
-    kernel = np.where(better_than==len(nmtx)-1)[0]
+    kernel = np.where(better_than == len(nmtx) - 1)[0]
 
     return kernel, outrank, mtx_concordance, mtx_discordance, p, q
-
