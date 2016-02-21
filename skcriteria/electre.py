@@ -95,14 +95,21 @@ def electre1(mtx, criteria, weights=1):
     # This guarantee the criteria array consistency
     ncriteria = util.criteriarr(criteria)
 
-    # validate the matrix is the matrix
-    nmtx = np.asarray(mtx)
-    if not util.is_mtx(nmtx):
-        raise ValueError("'mtx' is not a matrix")
-
-    # normalize weights
+    # normalize
+    nmtx = norm.sum(mtx)
     nweights = norm.sum(weights) if weights is not None else 1
 
-    # get the concordance matrix
-    mtx_concordance = concordance(nmtx, nweights)
+    # get the concordance and discordance info
+    mtx_concordance, _, p = concordance(nmtx, ncriteria, nweights)
+    mtx_discordance, _, q = discordance(nmtx, ncriteria, nweights)
+
+    with np.errstate(invalid='ignore'):
+        outrank = (
+            (mtx_concordance >= p) & (mtx_discordance <= q))
+
+    better_than = np.sum(outrank, axis=1)
+
+    kernel = np.where(better_than==len(nmtx)-1)[0]
+
+    return kernel, outrank, mtx_concordance, mtx_discordance, p, q
 

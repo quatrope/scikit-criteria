@@ -51,7 +51,7 @@ def criteriarr(criteria):
 
 def is_mtx(mtx, size=None):
     try:
-        a, b = mtx.shapeW
+        a, b = mtx.shape
         if size and (a, b) != size:
             return False
     except:
