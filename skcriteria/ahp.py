@@ -51,12 +51,11 @@ MTX_TYPE_ALTERNATIVES = "alternatives"
 
 SAATY_MIN, SAATY_MAX = 0, 10
 
-#: Random indexes [SATTY1980]_
+#: Random indexes [CHANGSHENG2013]_
 SAATY_RI = np.array(
-    [(1, 0.), (2, 0.), (3, 0.58), (4, 0.90),
-     (5, 1.12), (6, 1.24), (7, 1.32), (8, 1.41),
-     (9, 1.45), (10, 1.49), (11, 1.51), (12, 1.48),
-     (13, 1.56), (14, 1.57), (15, 1.59)],
+    [(1, 0.0), (2, 0.0), (3, 0.52), (4, 0.89), (5, 1.12),
+     (6, 1.26), (7, 1.36), (8, 1.41), (9, 1.46), (10, 1.49),
+     (11, 1.52), (12, 1.54), (13, 1.56), (14, 1.58), (15, 1.59)],
     dtype=[(b'size', b'i'), (b'ri', b'f2')]
 )
 
@@ -196,26 +195,20 @@ def saaty_ri(size):
     return SAATY_RI["ri"][idx]
 
 
-def saaty_cr(size, mtx):
-    validate_ahp_matrix(size, mtx)
-    colsum = np.sum(mtx, axis=0)
-    nmtx = np.divide(mtx, colsum, dtype=np.float64)
-    avg = np.average(nmtx, axis=1)
-    lambda_max = np.dot(colsum, avg)
+def saaty_cr(mtx):
+    size = len(mtx)
+    nmtx = norm.sum(mtx, axis=0)
+    weights = np.average(nmtx, axis=1)
+    lambda_max = np.sum(np.dot(mtx, weights) / weights) / size
     ci = (lambda_max - size) / (size - 1)
-    ri = saaty_ri(size)
-    return ci, ci/ri
+    cr = ci / saaty_ri(size)
+    return ci, cr, weights
 
 
-def ahp(crit_n, alt_n, crit_vs_crit, alt_vs_alt_by_crit):
+def ahp(crit_vs_crit, alt_vs_alt_by_crit):
     """ """
+    crit_n = len(crit_vs_crit)
 
-    # criteria
-    validate_ahp_matrix(crit_n, crit_vs_crit, mtxtype=MTX_TYPE_CRITERIA)
-    n_cvsc = norm.sum(crit_vs_crit, axis=0)
-    pvector = np.average(n_cvsc, axis=1)
-
-    # alternatives
     if len(alt_vs_alt_by_crit) != crit_n:
         msg = (
             "The number 'alt_vs_alt_by_crit' must be "
@@ -223,12 +216,18 @@ def ahp(crit_n, alt_n, crit_vs_crit, alt_vs_alt_by_crit):
         ).format(crit_n, len(alt_vs_alt_by_crit))
         raise ValueError(msg)
 
-    pmatrix = np.empty((crit_n, alt_n))
+    # criteria
+    crit_ci, crit_cr, wvector = saaty_cr(crit_vs_crit)
+    alt_n = len(alt_vs_alt_by_crit[0])
+
+    wmatrix = np.empty((crit_n, alt_n))
+    avabc_ci, avabc_cr = np.empty(crit_n), np.empty(crit_n)
     for cidx, altmtx in enumerate(alt_vs_alt_by_crit):
-        validate_ahp_matrix(alt_n, altmtx, mtxtype=MTX_TYPE_ALTERNATIVES)
-        n_altmtx = norm.sum(altmtx, axis=0)
-        pmatrix[:, cidx] = np.average(n_altmtx, axis=1)
+        ava_ci, ava_cr, ava_weights = saaty_cr(altmtx)
+        avabc_ci[cidx], avabc_cr[cidx] = ava_ci, ava_cr
+        wmatrix[:, cidx] = ava_weights
 
-    points = np.dot(pmatrix, pvector)
+    points = np.dot(wmatrix, wvector)
+    ranked = rank.rankdata(points, reverse=True)
 
-    return rank.rankdata(points, reverse=True), points
+    return ranked, points, crit_ci, avabc_ci, crit_cr, avabc_cr
