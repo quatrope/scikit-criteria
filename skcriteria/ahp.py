@@ -27,6 +27,8 @@ __doc__ = """AHP
 
 import numpy as np
 
+import six
+
 from .common import norm, rank
 
 
@@ -114,12 +116,14 @@ def validate_values(values):
 
 
 def validate_ahp_matrix(rows_and_columns, mtx, mtxtype=None):
+    type_validation = mtxtype is None or (
+       isinstance(mtxtype, six.string_types) and
+       mtxtype in [MTX_TYPE_CRITERIA, MTX_TYPE_ALTERNATIVES])
 
-    if mtxtype is not None and \
-       mtxtype not in [MTX_TYPE_CRITERIA, MTX_TYPE_ALTERNATIVES]:
-            msg = "'mtxtype must be 'None', '{}' or '{}'. Found '{}'".format(
-                MTX_TYPE_ALTERNATIVES, MTX_TYPE_CRITERIA, mtxtype)
-            raise ValueError(msg)
+    if not type_validation:
+        msg = "'mtxtype must be 'None', '{}' or '{}'. Found '{}'".format(
+            MTX_TYPE_ALTERNATIVES, MTX_TYPE_CRITERIA, mtxtype)
+        raise ValueError(msg)
 
     if rows_and_columns > AHP_LIMIT:
         if mtxtype:

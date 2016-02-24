@@ -38,7 +38,7 @@ from skcriteria.common import norm, util
 # UTILS
 # =============================================================================
 
-def concordance(nmtx, ncriteria, nweights):
+def concordance(nmtx, ncriteria, nweights=1):
 
     mtx_criteria = np.tile(ncriteria, (len(nmtx), 1))
     mtx_weight = np.tile(nweights, (len(nmtx), 1))
@@ -61,7 +61,7 @@ def concordance(nmtx, ncriteria, nweights):
     return mtx_concordance, mean, p
 
 
-def discordance(nmtx, ncriteria, nweights):
+def discordance(nmtx, ncriteria):
 
     mtx_criteria = np.tile(ncriteria, (len(nmtx), 1))
     mtx_discordance = np.empty((len(nmtx), len(nmtx)))
@@ -100,7 +100,7 @@ def electre1(mtx, criteria, weights=1):
 
     # get the concordance and discordance info
     mtx_concordance, _, p = concordance(nmtx, ncriteria, nweights)
-    mtx_discordance, _, q = discordance(nmtx, ncriteria, nweights)
+    mtx_discordance, _, q = discordance(nmtx, ncriteria)
 
     with np.errstate(invalid='ignore'):
         outrank = (

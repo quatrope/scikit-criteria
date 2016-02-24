@@ -87,7 +87,6 @@ class ElectreTest(core.SKCriteriaTestCase):
             [5, 6, 26, 4, 8]
         ], axis=0)
         ncriteria = util.criteriarr([1, 1, -1, 1, 1])
-        nweights = norm.sum([0.25, 0.25, 0.1, 0.2, 0.2])
         results = [
             [np.nan, 1.0000, 0.6667, 0.5000, 1.0000, 0.7500],
             [1.0000, np.nan, 0.7143, 1.0000, 1.0000, 0.5714],
@@ -97,7 +96,7 @@ class ElectreTest(core.SKCriteriaTestCase):
             [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
         ]
         result_mean, result_q = 0.7076, 0.70
-        discordance, mean, q = electre.discordance(nmtx, ncriteria, nweights)
+        discordance, mean, q = electre.discordance(nmtx, ncriteria)
         self.assertAllClose(discordance, results, atol=1.e-3)
         self.assertAllClose(mean, result_mean, atol=1.e-3)
         self.assertAllClose(q, result_q, atol=1.e-3)

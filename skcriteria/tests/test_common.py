@@ -189,16 +189,10 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEquals(manual, sorted(self.arr, reverse=True))
 
     def test_dominance(self):
-        """Data from Brauers et al, 2010 [BRAUERS2012]_
+        # Data from Brauers, W. K. M., & Zavadskas, E. K. (2012).
+        # Robustness of MULTIMOORA: a method for multi-objective optimization.
+        # Informatica, 23(1), 1-25.
 
-        References
-        ----------
-
-        .. [BRAUERS2012] Brauers, W. K. M., & Zavadskas, E. K. (2012).
-           Robustness of MULTIMOORA: a method for multi-objective optimization.
-           Informatica, 23(1), 1-25.
-
-        """
         a = [11, 20, 14]
         b = [14, 16, 15]
         c = [15, 19, 12]
