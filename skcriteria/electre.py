@@ -104,10 +104,14 @@ def electre1(mtx, criteria, weights=1):
 
     with np.errstate(invalid='ignore'):
         outrank = (
-            (mtx_concordance >= p) & (mtx_discordance <= q))
+            (mtx_concordance > p) & (mtx_discordance < q))
 
-    better_than = np.sum(outrank, axis=1)
+    bt_rows = np.sum(outrank, axis=1)
+    bt_columns = np.sum(outrank, axis=0)
 
-    kernel = np.where(better_than == len(nmtx) - 1)[0]
+    diff = bt_rows - bt_columns
+    max_value = np.max(diff)
+
+    kernel = np.where((diff == max_value) & (diff > 0))[0]
 
     return kernel, outrank, mtx_concordance, mtx_discordance, p, q

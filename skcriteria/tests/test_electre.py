@@ -125,10 +125,10 @@ class ElectreTest(core.SKCriteriaTestCase):
         result_outrank = [
             [False, False, False, False, False, False],
             [False, False, False, False, False, False],
-            [True, False, False, False, False, False],
+            [False, False, False, False, False, False],
             [True, False, False, False, False, False],
             [True, True, True, True, False, True],
-            [True, False, False, True, False, False],
+            [False, False, False, False, False, False]
         ]
         result_concordance = [
             [np.nan, 0.5000, 0.3500, 0.5000, 0.3500, 0.4500],
