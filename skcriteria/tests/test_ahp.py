@@ -16,7 +16,7 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """test weighted product model"""
+__doc__ = """test AHP"""
 
 
 # =============================================================================
@@ -59,21 +59,17 @@ class AHPTest(core.SKCriteriaTestCase):
 
     def test_saaty_closest_intensity(self):
         for value in range(1, 10):
-            scale, delta = ahp.saaty_closest_intensity(value)
-            self.assertEqual(delta, 0)
-            self.assertEqual(value, scale["value"])
+            scale = ahp.saaty_closest_intensity(value)
+            self.assertEqual(value, scale.value)
 
-        scale, delta = ahp.saaty_closest_intensity(9.1)
-        self.assertAllClose(delta, 0.1, atol=1e-1)
-        self.assertEqual(9, scale["value"])
+        scale = ahp.saaty_closest_intensity(9.1)
+        self.assertEqual(9, scale.value)
 
-        scale, delta = ahp.saaty_closest_intensity(8.6)
-        self.assertAllClose(delta, 0.3, atol=1e-1)
-        self.assertEqual(9, scale["value"])
+        scale = ahp.saaty_closest_intensity(8.6)
+        self.assertEqual(9, scale.value)
 
-        scale, delta = ahp.saaty_closest_intensity(8.5)
-        self.assertAllClose(delta, 0.5, atol=1e-1)
-        self.assertEqual(8, scale["value"])
+        scale = ahp.saaty_closest_intensity(8.5)
+        self.assertEqual(8, scale.value)
 
         with self.assertRaises(ValueError):
             ahp.saaty_closest_intensity(10)
@@ -119,8 +115,8 @@ class AHPTest(core.SKCriteriaTestCase):
             ahp.validate_ahp_matrix(3, mtx, mtxtype)
 
         mtx = np.asarray([[1, 2, 3], [4, 1, 6], [100, 8, 1]])
-        rx = "All values must > {} and < {}".format(ahp.SAATY_MIN,
-                                                    ahp.SAATY_MAX)
+        rx = "All values must >= {} and <= {}".format(ahp.SAATY_MIN + 1,
+                                                      ahp.SAATY_MAX - 1)
         with self.assertRaisesRegexp(ValueError, rx):
             ahp.validate_ahp_matrix(3, mtx, mtxtype)
 
@@ -137,9 +133,9 @@ class AHPTest(core.SKCriteriaTestCase):
     def test_saaty_ri(self):
         for size in range(1, 16):
             ahp.saaty_ri(size)
-        with self.assertRaises(IndexError):
+        with self.assertRaises(KeyError):
             ahp.saaty_ri(0)
-        with self.assertRaises(IndexError):
+        with self.assertRaises(KeyError):
             ahp.saaty_ri(16)
 
     def test_t(self):
@@ -176,8 +172,8 @@ class AHPTest(core.SKCriteriaTestCase):
             ahp.t([[1.], [1/2., 1.], [5., 7., 1.]]),
         ]
 
-        rank_result, points_result = ahp.ahp(
-            3, 3, crit_vs_crit, alt_vs_alt_by_crit)
+        result = ahp.ahp(crit_vs_crit, alt_vs_alt_by_crit)
+        rank_result, points_result = result[:2]
 
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, rank)
@@ -188,7 +184,7 @@ class AHPTest(core.SKCriteriaTestCase):
         ).format(3, len(alt_vs_alt_by_crit))
         rx = rx.replace("(", r"\(").replace(")", r"\)").replace(".", r"\.")
         with self.assertRaisesRegexp(ValueError, rx):
-            ahp.ahp(3, 3, crit_vs_crit, alt_vs_alt_by_crit[1:])
+            ahp.ahp(crit_vs_crit, alt_vs_alt_by_crit[1:])
 
     def test_cr(self):
         ic = 0.0352
@@ -196,6 +192,7 @@ class AHPTest(core.SKCriteriaTestCase):
         crit_vs_crit = ahp.t([
             [1.], [1./3., 1.], [1./3., 1./2., 1.]
         ])
-        ic_result, cr_result = ahp.saaty_cr(3, crit_vs_crit)
+        ic_result, cr_result = ahp.saaty_cr(crit_vs_crit)[:2]
+
         self.assertAllClose(ic, ic_result, atol=1.e-3)
         self.assertAllClose(cr, cr_result, atol=1.e-3)

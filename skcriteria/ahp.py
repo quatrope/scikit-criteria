@@ -25,6 +25,8 @@ __doc__ = """AHP
 # IMPORTS
 # =============================================================================
 
+from collections import namedtuple
+
 import numpy as np
 
 import six
@@ -52,16 +54,31 @@ MTX_TYPE_ALTERNATIVES = "alternatives"
 SAATY_MIN, SAATY_MAX = 0, 10
 
 #: Random indexes [CHANGSHENG2013]_
-SAATY_RI = np.array(
-    [(1, 0.0), (2, 0.0), (3, 0.52), (4, 0.89), (5, 1.12),
-     (6, 1.26), (7, 1.36), (8, 1.41), (9, 1.46), (10, 1.49),
-     (11, 1.52), (12, 1.54), (13, 1.56), (14, 1.58), (15, 1.59)],
-    dtype=[(b'size', b'i'), (b'ri', b'f2')]
-)
+SAATY_RI = {
+    k: np.float16(v) for k, v in {
+        1: 0.0,
+        2: 0.0,
+        3: 0.52,
+        4: 0.89,
+        5: 1.12,
+        6: 1.26,
+        7: 1.36,
+        8: 1.41,
+        9: 1.46,
+        10: 1.49,
+        11: 1.52,
+        12: 1.54,
+        13: 1.56,
+        14: 1.58,
+        15: 1.59
+    }.items()
+}
 
 
 def _resolve_saaty_intensity():
-    saaty_direct = np.array([
+    Intensity = namedtuple(
+        "Intensity", ["value", "label", "definition", "explanation"])
+    saaty_direct = (
         (1, "1", "Equal Importance",
             "Two activities contribute equally to the objective"),
         (2, "2", "Weak or slight",
@@ -81,24 +98,26 @@ def _resolve_saaty_intensity():
          "An activity is favoured very strongly over another; its "
          "dominance demonstrated in practice")),
         (9, "9", "Extreme importance",
-         "The evidence favouring one activity over another")],
-        dtype=[(b'value', b'f2'), (b'label', b'a5'),
-               (b'definition', b'a255'), (b'explanation', b'a255')]
+         "The evidence favouring one activity over another"),
     )
 
-    rec_def = ("If activity i has one of the above non-zero numbers assigned "
-               "to it when compared with activity j, then j has the "
-               "reciprocal value when compared with i")
-    rec_exp = "A reasonable assumption"
+    rec_defn = ("If activity i has one of the above non-zero numbers assigned "
+                "to it when compared with activity j, then j has the "
+                "reciprocal value when compared with i")
+    rec_expl = "A reasonable assumption"
 
-    saaty_rec = np.array([
-        (1/v["value"], "1/{}".format(v["label"]), rec_def, rec_exp)
-        for v in saaty_direct], dtype=saaty_direct.dtype
-    )
-
-    return np.concatenate([saaty_direct, saaty_rec])
+    saaty_intensity = {}
+    for value, label, defn, expl in saaty_direct:
+        saaty_intensity[value] = Intensity(value, label, defn, expl)
+        rec_value = 1/float(value)
+        rec_label = "1/{}".format(label)
+        saaty_intensity[rec_value] = Intensity(
+            rec_value, rec_label, rec_defn, rec_expl)
+    return saaty_intensity
 
 SAATY_INTENSITY = _resolve_saaty_intensity()
+
+SAATY_INTENSITY_VALUES = np.array(SAATY_INTENSITY.keys())
 
 del _resolve_saaty_intensity
 
@@ -110,8 +129,8 @@ del _resolve_saaty_intensity
 def validate_values(values):
     values = np.asarray(values)
     if not np.all((values > SAATY_MIN) & (values < SAATY_MAX)):
-        msg = "All values must > {} and < {}".format(SAATY_MIN, SAATY_MAX)
-        raise ValueError(msg)
+        msg = "All values must >= {} and <= {}"
+        raise ValueError(msg.format(SAATY_MIN+1, SAATY_MAX-1))
 
 
 def validate_ahp_matrix(rows_and_columns, mtx, mtxtype=None):
@@ -184,15 +203,14 @@ def t(arr, dtype=np.float64):
 
 def saaty_closest_intensity(value):
     validate_values(value)
-    deltas = np.abs(SAATY_INTENSITY["value"] - value)
+    deltas = np.abs(SAATY_INTENSITY_VALUES - value)
     idx = np.argmin(deltas)
-    return SAATY_INTENSITY[idx], deltas[idx]
+    closest = SAATY_INTENSITY_VALUES[idx]
+    return SAATY_INTENSITY[closest]
 
 
 def saaty_ri(size):
-    sizes = SAATY_RI["size"]
-    idx = np.where(sizes == size)[0][0]
-    return SAATY_RI["ri"][idx]
+    return SAATY_RI[size]
 
 
 def saaty_cr(mtx):
