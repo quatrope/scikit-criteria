@@ -36,17 +36,12 @@ from ..common import util
 class WSumTest(core.SKCriteriaTestCase):
 
     def setUp(self):
-        """Data from Kracka et al, 2010 [KRACKA2010]_
+        # Data From:
+        # KRACKA, M; BRAUERS, W. K. M.; ZAVADSKAS, E. K. Ranking
+        # Heating Losses in a Building by Applying the MULTIMOORA . -
+        # ISSN 1392 – 2785 Inzinerine Ekonomika-Engineering Economics, 2010,
+        # 21(4), 352-359.
 
-        References
-        ----------
-
-        .. [KRACKA2010] KRACKA, M; BRAUERS, W. K. M.; ZAVADSKAS, E. K. Ranking
-           Heating Losses in a Building by Applying the MULTIMOORA . -
-           ISSN 1392 – 2785 Inzinerine Ekonomika-Engineering Economics, 2010,
-           21(4), 352-359.
-
-        """
         self.mtx = [
             [33.95, 23.78, 11.45, 39.97, 29.44, 167.10, 3.852],
             [38.9, 4.17, 6.32, 0.01, 4.29, 132.52, 25.184],
@@ -57,8 +52,7 @@ class WSumTest(core.SKCriteriaTestCase):
         ]
         self.criteria = [
             util.MIN, util.MIN, util.MIN, util.MIN,
-            util.MAX, util.MIN, util.MAX
-        ]
+            util.MAX, util.MIN, util.MAX]
 
     def test_mdwsum_with_weights(self):
         weights = [20, 20, 20, 20, 20, 20, 20]
@@ -67,8 +61,7 @@ class WSumTest(core.SKCriteriaTestCase):
         points = [-0.1075, -0.0037, -0.0468, -0.1560, -0.0732, -0.0413]
 
         rank_result, points_result = wsum.mdwsum(
-            self.mtx, self.criteria, weights
-        )
+            self.mtx, self.criteria, weights)
 
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)

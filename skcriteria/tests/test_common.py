@@ -189,7 +189,8 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEquals(manual, sorted(self.arr, reverse=True))
 
     def test_dominance(self):
-        # Data from Brauers, W. K. M., & Zavadskas, E. K. (2012).
+        # Data from:
+        # Brauers, W. K. M., & Zavadskas, E. K. (2012).
         # Robustness of MULTIMOORA: a method for multi-objective optimization.
         # Informatica, 23(1), 1-25.
 
@@ -211,16 +212,11 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEqual(rank.dominance(c, c), 0)
 
     def test_equality(self):
-        """Data from Brauers et al, 2010 [BRAUERS2012]_
+        # Data from:
+        # Brauers, W. K. M., & Zavadskas, E. K. (2012).
+        # Robustness of MULTIMOORA: a method for multi-objective optimization.
+        # Informatica, 23(1), 1-25.
 
-        References
-        ----------
-
-        .. [BRAUERS2012] Brauers, W. K. M., & Zavadskas, E. K. (2012).
-           Robustness of MULTIMOORA: a method for multi-objective optimization.
-           Informatica, 23(1), 1-25.
-
-        """
         e, f = random.randint(0, 100), random.randint(0, 100)
 
         while e in (5, 7) or f in (5, 7) or e == f:
@@ -244,16 +240,11 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEqual(rank.equality(c, a), 0)
 
     def test_kendall_dominance(self):
-        """Data from Brauers et al, 2010 [BRAUERS2012]_
+        # Data from:
+        # Brauers, W. K. M., & Zavadskas, E. K. (2012).
+        # Robustness of MULTIMOORA: a method for multi-objective optimization.
+        # Informatica, 23(1), 1-25.
 
-        References
-        ----------
-
-        .. [BRAUERS2012] Brauers, W. K. M., & Zavadskas, E. K. (2012).
-           Robustness of MULTIMOORA: a method for multi-objective optimization.
-           Informatica, 23(1), 1-25.
-
-        """
         a = [1, 1, 3]
         b = [3, 3, 1]
         c = [2, 2, 2]
@@ -272,16 +263,11 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEqual(rank.kendall_dominance(c, c), (None, (6, 6)))
 
     def test_spearmanr(self):
-        """Data from Brauers et al, 2010 [BRAUERS2012]_
+        # Data from:
+        # Brauers, W. K. M., & Zavadskas, E. K. (2012).
+        # Robustness of MULTIMOORA: a method for multi-objective optimization.
+        # Informatica, 23(1), 1-25.
 
-        References
-        ----------
-
-        .. [BRAUERS2012] Brauers, W. K. M., & Zavadskas, E. K. (2012).
-           Robustness of MULTIMOORA: a method for multi-objective optimization.
-           Informatica, 23(1), 1-25.
-
-        """
         expert_0 = [1, 2, 3, 4, 5, 6, 7]
         expert_1 = [7, 6, 5, 4, 3, 2, 1]
         caos = [random.randint(7, 100) for _ in range(len(expert_0))]

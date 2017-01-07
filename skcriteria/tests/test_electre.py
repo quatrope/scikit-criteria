@@ -38,7 +38,6 @@ from .. import electre
 class ElectreTest(core.SKCriteriaTestCase):
 
     def test_concordance(self):
-
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -46,6 +45,7 @@ class ElectreTest(core.SKCriteriaTestCase):
         # obtenidos.
         # Revista de Métodos Cuantitativos para la Economía y la Empresa,
         # (7), 31-56.
+
         nmtx = norm.sum([
             [6, 5, 28, 5, 5],
             [4, 2, 25, 10, 9],
@@ -78,6 +78,7 @@ class ElectreTest(core.SKCriteriaTestCase):
         # obtenidos.
         # Revista de Métodos Cuantitativos para la Economía y la Empresa,
         # (7), 31-56.
+
         nmtx = norm.sum([
             [6, 5, 28, 5, 5],
             [4, 2, 25, 10, 9],
@@ -110,6 +111,7 @@ class ElectreTest(core.SKCriteriaTestCase):
         # obtenidos.
         # Revista de Métodos Cuantitativos para la Economía y la Empresa,
         # (7), 31-56.
+
         mtx = [
             [6, 5, 28, 5, 5],
             [4, 2, 25, 10, 9],

@@ -36,10 +36,10 @@ from ..common import util
 class WProdTest(core.SKCriteriaTestCase):
 
     def setUp(self):
-        """Data from
-         `Wikipedia <http://en.wikipedia.org/wiki/Weighted_product_model>`_
+        # Data From:
+        # Weighted product model. (n.d.). Retrieved January 07, 2017,
+        # from http://en.wikipedia.org/wiki/Weighted_product_model
 
-        """
         self.mtx = [
             [25, 20, 15, 30],
             [10, 30, 20, 30],
@@ -49,28 +49,27 @@ class WProdTest(core.SKCriteriaTestCase):
         self.weights = [20, 15, 40, 25]
 
     def test_wprod(self):
+        # Data From:
+        # Weighted product model. (n.d.). Retrieved January 07, 2017,
+        # from http://en.wikipedia.org/wiki/Weighted_product_model
         # this is the wikipedia example
+
         rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights
-        )
+            self.mtx, self.criteria, self.weights)
 
         self.assertAllClose(
-            points_result[0]/points_result[1], 1.007, atol=1.e-3
-        )
+            points_result[0]/points_result[1], 1.007, atol=1.e-3)
         self.assertAllClose(
-            points_result[0]/points_result[2], 1.067, atol=1.e-3
-        )
+            points_result[0]/points_result[2], 1.067, atol=1.e-3)
         self.assertAllClose(
-            points_result[1]/points_result[2], 1.059, atol=1.e-3
-        )
+            points_result[1]/points_result[2], 1.059, atol=1.e-3)
         self.assertAllClose(rank_result, [1, 2, 3])
 
     def test_wprod_min(self):
         self.criteria[0] = util.MIN
 
         rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights
-        )
+            self.mtx, self.criteria, self.weights)
 
         self.assertAllClose(rank_result, [2, 1, 3])
         self.assertAllClose(points_result, [0.2847, 0.4079, 0.248], atol=1.e-3)
@@ -79,8 +78,7 @@ class WProdTest(core.SKCriteriaTestCase):
         self.mtx[0][0] = -self.mtx[0][0]
 
         rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights
-        )
+            self.mtx, self.criteria, self.weights)
 
         self.assertAllClose(rank_result, [3, 1, 2])
         self.assertAllClose(points_result, [0, 0.3768, 0.3125], atol=1.e-3)
@@ -89,8 +87,7 @@ class WProdTest(core.SKCriteriaTestCase):
         self.mtx[0][0] = 0
 
         rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights
-        )
+            self.mtx, self.criteria, self.weights)
 
         self.assertAllClose(rank_result, [3, 1, 2])
         self.assertAllClose(
