@@ -34,7 +34,7 @@ def topsis(mtx, criteria, weights=1):
     nmtx = norm.vector(mtx, axis=0)
 
     # apply weights
-    nweights = norm.vector(weights) if weights is not None else 1
+    nweights = norm.sum(weights) if weights is not None else 1
     wmtx = np.multiply(nmtx, nweights)
 
     # extract mins and maxes
