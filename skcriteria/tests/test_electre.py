@@ -97,6 +97,7 @@ class ElectreTest(core.SKCriteriaTestCase):
         ]
         result_mean, result_q = 0.7076, 0.70
         discordance, mean, q = electre.discordance(nmtx, ncriteria)
+
         self.assertAllClose(discordance, results, atol=1.e-3)
         self.assertAllClose(mean, result_mean, atol=1.e-3)
         self.assertAllClose(q, result_q, atol=1.e-3)

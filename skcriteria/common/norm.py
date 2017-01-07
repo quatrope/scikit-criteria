@@ -76,8 +76,9 @@ def sum(arr, axis=None):
            [ 0.42857143,  0.5714286 ]], dtype=float64)
 
     """
-    colsum = np.sum(arr, axis=axis, keepdims=True)
-    return np.divide(arr, colsum, dtype=np.float64)
+    arr = np.asarray(arr, dtype=float)
+    sumval = np.sum(arr, axis=axis, keepdims=True)
+    return arr / sumval
 
 
 def max(arr, axis=None):
@@ -118,8 +119,9 @@ def max(arr, axis=None):
            [ 0.75,  1.  ]], dtype=float64)
 
     """
-    colmax = np.max(arr, axis=axis, keepdims=True)
-    return np.divide(arr, colmax, dtype=np.float64)
+    arr = np.asarray(arr, dtype=float)
+    maxval = np.max(arr, axis=axis, keepdims=True)
+    return arr / maxval
 
 
 def vector(arr, axis=None):
@@ -165,8 +167,9 @@ def vector(arr, axis=None):
            [ 0.60000002,  0.80000001]], dtype=float64)
 
     """
+    arr = np.asarray(arr, dtype=float)
     frob = linalg.norm(arr, None, axis=axis)
-    return np.divide(arr, frob, dtype=np.float64)
+    return arr / frob
 
 
 def push_negatives(arr, axis=None):
@@ -219,9 +222,10 @@ def push_negatives(arr, axis=None):
            [3, 4]])
 
     """
+    arr = np.asarray(arr)
     mins = np.min(arr, axis=axis, keepdims=True)
     delta = (mins < 0) * mins
-    return np.subtract(arr, delta)
+    return arr - delta
 
 
 def eps(arr, axis=None):
@@ -263,8 +267,7 @@ def eps(arr, axis=None):
            [  2.00000000e+00,   3.00000000e+00]])
 
     """
-    eps = 0
-    arr = np.asarray(arr)
+    eps, arr = 0, np.asarray(arr)
     if np.any(arr == 0):
         if issubclass(arr.dtype.type, (np.inexact, float)):
             eps = np.finfo(arr.dtype.type).eps

@@ -3,7 +3,7 @@ sudo: false
 install:
   - pip install tox
 script:
-  - tox -r
+  - tox -r -- -vv
 env:
   - TOXENV=style
   - TOXENV=coverage
