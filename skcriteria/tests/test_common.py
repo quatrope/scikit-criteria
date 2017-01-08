@@ -80,10 +80,10 @@ class NormTest(core.SKCriteriaTestCase):
         cols = random.randint(100, 1000)
         rows = random.randint(100, 1000)
         self.mtx = [
-            [random.randint(-1000, 1000) for _ in range(cols)]
+            [random.randint(1, 1000) for _ in range(cols)]
             for _ in range(rows)
         ]
-        self.arr = [random.randint(-1000, 1000) for _ in range(cols)]
+        self.arr = [random.randint(1, 1000) for _ in range(cols)]
 
     def _test_normalizer(self, normfunc, mtx_result, arr_result, **kwargs):
         mtx_func_result = normfunc(self.mtx, axis=0)
