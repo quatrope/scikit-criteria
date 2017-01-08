@@ -39,6 +39,15 @@ def wprod(mtx, criteria, weights=None):
     instead of addition in the main mathematical operation now there is
     multiplication.
 
+    Notes
+    -----
+
+    - If we have some minimzation criteria we shift all the values
+      to be > 0 and then we invert all the minimiaton values.
+    - If we have some 0 in the values we replace them by an $$\epsilon$$
+    - Instead the multiplication of the values we add the
+      logarithms of the values to avoid underflow.
+
     References
     ----------
 
@@ -48,26 +57,33 @@ def wprod(mtx, criteria, weights=None):
     Miller, D.W.; M.K. Starr (1969). Executive Decisions and Operations
     Research. Englewood Cliffs, NJ, U.S.A.: Prentice-Hall, Inc.
 
+    Wen, Y. (2007, September 16). Using log-transform to avoid underflow
+    problem in computing posterior probabilities. Retrieved January 7, 2017,
+    from http://web.mit.edu/wenyang/www/log_transform_for_underflow.pdf
+
     """
 
     # normalize
     ncriteria = util.criteriarr(criteria)
     nweights = norm.sum(weights) if weights is not None else 1
 
-    if util.MIN in ncriteria:
-        mtx = np.asarray(mtx)
-        mincrits = np.squeeze(np.where(ncriteria == util.MIN))
-        mincrits_inverted = 1.0 / mtx[:, mincrits]
-        mtx = mtx.astype(mincrits_inverted.dtype.type)
-        mtx[:, mincrits] = mincrits_inverted
+    # push all negative values to be > 0 by criteria
+    non_negative = norm.push_negatives(mtx, axis=0)
+    non_zero = norm.add1to0(non_negative, axis=0)
+    nmtx = norm.sum(non_zero, axis=0)
 
-    nmtx = norm.sum(
-        norm.push_negatives(norm.eps(mtx, axis=0), axis=0), axis=0
-    )
+    # invert the minimization criteria
+    if util.MIN in ncriteria:
+        mincrits = np.squeeze(np.where(ncriteria == util.MIN))
+        mincrits_inverted = 1.0 / nmtx[:, mincrits]
+        nmtx = nmtx.astype(mincrits_inverted.dtype.type)
+        nmtx[:, mincrits] = mincrits_inverted
 
     # calculate raning by inner prodcut
-    rank_mtx = np.power(nmtx, nweights)
-    points = np.prod(rank_mtx, axis=1)
+    lmtx = np.log(nmtx)
+    rank_mtx = np.multiply(lmtx, nweights)
+
+    points = np.sum(rank_mtx, axis=1)
 
     return rank.rankdata(points, reverse=True), points
 

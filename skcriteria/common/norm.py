@@ -228,13 +228,13 @@ def push_negatives(arr, axis=None):
     return arr - delta
 
 
-def eps(arr, axis=None):
-    r"""If a value in the array is 0, then an :math:`\epsilon` is added to
+def add1to0(arr, axis=None):
+    r"""If a value in the array is 0, then an :math:`1` is added to
     all the values
 
     .. math::
 
-        \overline{X}_{ij} = X_{ij} + \epsilon
+        \overline{X}_{ij} = X_{ij} + 1
 
     Parameters
     ----------
@@ -243,7 +243,7 @@ def eps(arr, axis=None):
         A array with values
 
     axis : :py:class:`int` optional
-        Is not used, only exist for maintain API uniformity
+        Axis along which to operate.  By default, flattened input is used.
 
     Returns
     -------
@@ -257,20 +257,22 @@ def eps(arr, axis=None):
     >>> from skcriteria.common import norm
     >>> mtx = [[1, 2], [3, 4]]
     >>> mtx_w0 = [[0,1], [2,3]]
-    >>> norm.eps(mtx) # not afected
+    >>> norm.add1to0(mtx)
     array([[1, 2],
            [3, 4]])
-    >>> # added a value ~0,00000000000000002, and is only perceptible in the
-    >>> # mtx_w0[0][0] element
-    >>> norm.eps(mtx_w0)
-    array([[  2.22044605e-16,   1.00000000e+00],
-           [  2.00000000e+00,   3.00000000e+00]])
+    >>> # added 1
+    >>> norm.add1to0(mtx_w0)
+    array([[  1, 2],
+           [  3, 4]])
 
     """
-    eps, arr = 0, np.asarray(arr)
-    if np.any(arr == 0):
-        if issubclass(arr.dtype.type, (np.inexact, float)):
-            eps = np.finfo(arr.dtype.type).eps
+    arr = np.asarray(arr)
+    if 0 in arr:
+        if len(arr.shape) == 1 or axis is None:
+            return arr + 1
         else:
-            eps = np.finfo(np.float).eps
-    return arr + eps
+            zeros = np.any(arr == 0, axis=axis)
+            increment = np.zeros(zeros.shape[0])
+            increment[zeros] = 1
+            return arr + increment
+    return arr

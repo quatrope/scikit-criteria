@@ -143,26 +143,22 @@ class NormTest(core.SKCriteriaTestCase):
 
         self.arr = [1, -2, 3]
         arr_result = [3, 0, 5]
-
         self._test_normalizer(norm.push_negatives, mtx_result, arr_result)
 
-    def test_epsilon(self):
+    def test_add1to0(self):
         self.mtx = [
             [1, 0, 3],
             [4, 5, 0]
         ]
 
-        eps = np.finfo(float).eps
-
         mtx_result = [
-            [1, eps, 3 + eps],
-            [4, 5 + eps, eps],
+            [1, 1, 4],
+            [4, 6, 1],
         ]
 
         self.arr = [1, 0, 0]
-        arr_result = [1 + eps, 0 + eps, eps]
-
-        self._test_normalizer(norm.eps, mtx_result, arr_result, atol=1)
+        arr_result = [1, 1, 1]
+        self._test_normalizer(norm.add1to0, mtx_result, arr_result, atol=1)
 
 
 # =============================================================================
