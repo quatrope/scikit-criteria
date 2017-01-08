@@ -103,7 +103,7 @@ class MooraTest(core.SKCriteriaTestCase):
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)
 
-    def _test_fmf(self):
+    def test_fmf(self):
         result = [5, 1, 3, 6, 4, 2]
         points = [3.4343, 148689.356, 120.3441, 0.7882, 16.2917, 252.9155]
 
