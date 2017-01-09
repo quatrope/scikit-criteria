@@ -157,32 +157,35 @@ def refpoint(mtx, criteria, weights=None):
 
 
 def _fmf(nmtx, criteria):
-    nmtx = norm.eps(norm.push_negatives(np.asarray(nmtx)))
+    lmtx = np.log(nmtx)
 
     if not np.setdiff1d(criteria, [util.MAX]):
         # only max
-        points = np.prod(nmtx, axis=1)
+        points = np.sum(lmtx, axis=1)
     elif not np.setdiff1d(criteria, [util.MIN]):
         # only min
-        points = 1 / np.prod(nmtx, axis=1)
+        points = 1 - np.sum(lmtx, axis=1)
     else:
         # min max
         min_mask = np.ravel(np.argwhere(criteria == util.MAX))
         max_mask = np.ravel(np.argwhere(criteria == util.MIN))
 
         # remove invalid values
-        min_arr = np.delete(nmtx, min_mask, axis=1)
-        max_arr = np.delete(nmtx, max_mask, axis=1)
+        min_arr = np.delete(lmtx, min_mask, axis=1)
+        max_arr = np.delete(lmtx, max_mask, axis=1)
 
-        min_mult = np.prod(min_arr, axis=1)
-        max_mult = np.prod(max_arr, axis=1)
-        points = max_mult / min_mult
+        mins = np.sum(min_arr, axis=1)
+        maxs = np.sum(max_arr, axis=1)
+        points = maxs - mins
 
     return rank.rankdata(points, reverse=True), points
 
 
 def fmf(mtx, criteria):
-    nmtx = norm.vector(mtx, axis=0)
+    non_negative = norm.push_negatives(mtx, axis=0)
+    non_zero = norm.add1to0(non_negative, axis=0)
+    nmtx = norm.vector(non_zero, axis=0)
+
     ncriteria = util.criteriarr(criteria)
     return _fmf(nmtx, ncriteria)
 

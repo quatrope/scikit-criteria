@@ -39,14 +39,18 @@ def wprod(mtx, criteria, weights=None):
     instead of addition in the main mathematical operation now there is
     multiplication.
 
+
     Notes
     -----
 
-    - If we have some minimzation criteria we shift all the values
-      to be > 0 and then we invert all the minimiaton values.
-    - If we have some 0 in the values we replace them by an $$\epsilon$$
+    The implementation works as follow:
+
+    - If we have some values of any criteria < 0 in the alternative-matrix
+      we add the minimimun value of this criteria to all the criteria.
+    - If we have some 0 in some criteria all the criteria is incremented by 1.
     - Instead the multiplication of the values we add the
       logarithms of the values to avoid underflow.
+
 
     References
     ----------

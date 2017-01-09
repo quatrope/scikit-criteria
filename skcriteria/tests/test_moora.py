@@ -25,6 +25,8 @@ __doc__ = """test moora methods"""
 
 import random
 
+import numpy as np
+
 from . import core
 
 from .. import moora
@@ -97,19 +99,20 @@ class MooraTest(core.SKCriteriaTestCase):
         points = [0.09847, 0.0999, 0.0854, 0.1227, 0.0857, 0.0878]
 
         rank_result, points_result = moora.refpoint(
-            self.mtx, self.criteria, weights
-        )
+            self.mtx, self.criteria, weights)
 
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)
 
     def test_fmf(self):
         result = [5, 1, 3, 6, 4, 2]
+
+        # the result is the logarithm of this values
         points = [3.4343, 148689.356, 120.3441, 0.7882, 16.2917, 252.9155]
 
         rank_result, points_result = moora.fmf(self.mtx, self.criteria)
 
-        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(points_result, np.log(points), atol=1.e-4)
         self.assertAllClose(rank_result, result)
 
         # some zeroes
@@ -117,23 +120,23 @@ class MooraTest(core.SKCriteriaTestCase):
         while len(zeros) < 3:
             zero = (
                 random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1)
-            )
+                random.randint(0, self.columns-1))
             zeros.add(zero)
         for row, column in zeros:
             self.mtx[row][column] = 0
 
         moora.fmf(self.mtx, self.criteria)
 
-    def _test_fmf_only_max(self):
+    def test_fmf_only_max(self):
         self.criteria = [util.MAX] * len(self.criteria)
 
         result = [2, 6, 4, 1, 3, 5]
+        # the result is the logarithm of this values
         points = [0.0011, 2.411e-08, 3.135e-05, 0.0037, 0.0002, 1.48e-05]
 
         rank_result, points_result = moora.fmf(self.mtx, self.criteria)
 
-        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(points_result, np.log(points), rtol=1.e-1)
         self.assertAllClose(rank_result, result)
 
         # some zeroes
@@ -141,25 +144,25 @@ class MooraTest(core.SKCriteriaTestCase):
         while len(zeros) < 3:
             zero = (
                 random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1)
-            )
+                random.randint(0, self.columns-1))
             zeros.add(zero)
         for row, column in zeros:
             self.mtx[row][column] = 0
 
         moora.fmf(self.mtx, self.criteria)
 
-    def _test_fmf_only_min(self):
+    def test_fmf_only_min(self):
         self.criteria = [util.MIN] * len(self.criteria)
 
         result = [5, 1, 3, 6, 4, 2]
+
+        # the result is the logarithm of this values
         points = [
-            869.5146, 41476540.2, 31897.0622, 264.0502, 4171.5128, 67566.8851
-        ]
+            869.5146, 41476540.2, 31897.0622, 264.0502, 4171.5128, 67566.8851]
 
         rank_result, points_result = moora.fmf(self.mtx, self.criteria)
 
-        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(points_result, 1+np.log(points), atol=1.e-4)
         self.assertAllClose(rank_result, result)
 
         # some zeroes
@@ -167,15 +170,14 @@ class MooraTest(core.SKCriteriaTestCase):
         while len(zeros) < 3:
             zero = (
                 random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1)
-            )
+                random.randint(0, self.columns-1))
             zeros.add(zero)
         for row, column in zeros:
             self.mtx[row][column] = 0
 
         moora.fmf(self.mtx, self.criteria)
 
-    def _test_multimoora(self):
+    def test_multimoora(self):
         result = [5, 1, 3, 6, 4, 2]
         mmora_mtx = [
             [5, 4, 5],

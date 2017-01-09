@@ -88,4 +88,4 @@ class WProdTest(core.SKCriteriaTestCase):
 
         self.assertAllClose(rank_result, [3, 1, 2])
         self.assertAllClose(
-            points_result, [-1.715391, -1.05992 , -1.12996], atol=1.e-3)
+            points_result, [-1.715391, -1.05992, -1.12996], atol=1.e-3)
