@@ -25,7 +25,7 @@ __doc__ = ""
 
 import numpy as np
 
-from .common import norm, util, rank
+from .. import norm, util, rank
 
 
 # =============================================================================

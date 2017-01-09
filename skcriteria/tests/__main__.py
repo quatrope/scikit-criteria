@@ -9,7 +9,7 @@
 # FUTURE
 # =============================================================================
 
-from __future__ import unicode_literals
+from __future__ import unicode_literals, absolute_import
 
 
 # =============================================================================
@@ -20,7 +20,6 @@ import os
 import sys
 import argparse
 import unittest
-import glob
 import importlib
 
 from . import core
@@ -31,8 +30,6 @@ from . import core
 # =============================================================================
 
 PATH = os.path.abspath(os.path.dirname(__file__))
-
-GLOB_FILTER = os.path.join(PATH, "*.py")
 
 
 # =============================================================================
@@ -70,14 +67,19 @@ def collect_subclasses(cls):
 
 
 def load_test_modules():
-    test_modules_names = [
-        os.path.splitext(os.path.basename(fn))[0]
-        for fn in glob.glob(GLOB_FILTER)
-        if os.path.basename(fn).startswith("test_")]
+    base_pkg, test_modules_names = ".".join(["skcriteria", "tests"]), []
+    for dirpath, dirnames, filenames in os.walk(PATH):
+        pkg = [] if dirpath == PATH else [os.path.basename(dirpath)]
+        for fname in filenames:
+            name, ext = os.path.splitext(fname)
+            if name.startswith("test_") and ext == ".py":
+                modname = ".".join(pkg + [name])
+                test_modules_names.append((base_pkg, modname))
+
     test_modules = set()
-    for modname in test_modules_names:
+    for pkg, modname in test_modules_names:
         dot_modname = ".{}".format(modname)
-        module = importlib.import_module(dot_modname, "skcriteria.tests")
+        module = importlib.import_module(dot_modname, pkg)
         test_modules.add(module)
     return tuple(test_modules)
 

@@ -27,10 +27,9 @@ import random
 
 import numpy as np
 
-from . import core
-
-from .. import moora
-from ..common import util
+from .. import core
+from ... import util
+from ...madm import moora
 
 
 # =============================================================================

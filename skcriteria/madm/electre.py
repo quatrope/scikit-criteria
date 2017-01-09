@@ -31,7 +31,7 @@ References
 
 import numpy as np
 
-from skcriteria.common import norm, util
+from .. import norm, util
 
 
 # =============================================================================

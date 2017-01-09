@@ -25,10 +25,9 @@ __doc__ = """test electre methods"""
 
 import numpy as np
 
-from . import core
-
-from ..common import norm, util
-from .. import electre
+from .. import core
+from ... import util, norm
+from ...madm import electre
 
 
 # =============================================================================

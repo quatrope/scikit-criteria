@@ -23,10 +23,9 @@ from __future__ import unicode_literals
 # IMPORTS
 # =============================================================================
 
-from . import core
-
-from .. import wprod
-from ..common import util
+from .. import core
+from ... import util
+from ...madm import wprod
 
 
 # =============================================================================

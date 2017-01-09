@@ -18,7 +18,7 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from skcriteria.common import norm, util, rank
+from ..import norm, util, rank
 
 
 # =============================================================================

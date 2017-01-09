@@ -23,10 +23,9 @@ __doc__ = """test topsis methods"""
 # IMPORTS
 # =============================================================================
 
-from . import core
-
-from .. import topsis
-from ..common import util
+from .. import core
+from ... import util
+from ...madm import topsis
 
 
 # =============================================================================

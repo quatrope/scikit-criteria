@@ -23,10 +23,9 @@ __doc__ = """test moora methods"""
 # IMPORTS
 # =============================================================================
 
-from . import core
-
-from .. import wsum
-from ..common import util
+from .. import core
+from ... import util
+from ...madm import wsum
 
 
 # =============================================================================
