@@ -22,7 +22,7 @@ class _Decision(object):
     mtx_ = attr.ib()
     criteria_ = attr.ib()
     weights_ = attr.ib()
-    efficients_ = attr.ib()
+    efficience_ = attr.ib()
     rank_ = attr.ib()
     points_ = attr.ib()
 
@@ -41,7 +41,7 @@ class _Decision(object):
 
     @property
     def beta_solution_(self):
-        return self.efficients_ is not None
+        return self.efficience_ is not None
 
     @property
     def gamma_solution_(self):
@@ -62,9 +62,9 @@ class DecisionMaker(object):
     def decide(self, mtx, criteria, weights=None):
         mtx, criteria = np.asarray(mtx), util.criteriarr(criteria)
         weights = np.asarray(weights) if weights is not None else None
-        efficients, rank, points = self.solve(
+        efficience, rank, points = self.solve(
             mtx=mtx, criteria=criteria, weights=weights)
         return _Decision(
             decision_maker_=self,
             mtx_=mtx, criteria_=criteria, weights_=weights,
-            efficients_=efficients, rank_=rank, points_=points)
+            efficience_=efficience, rank_=rank, points_=points)

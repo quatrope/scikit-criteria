@@ -71,6 +71,3 @@ class TopsisTest(core.SKCriteriaTestCase):
 
         self.assertAllClose(decision.points_, points, atol=1.e-4)
         self.assertAllClose(decision.rank_, result)
-
-
-

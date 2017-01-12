@@ -26,7 +26,7 @@ from ..dmaker import DecisionMaker
 # Function
 # =============================================================================
 
-def topsis(mtx, criteria, weights=1):
+def topsis(mtx, criteria, weights=None):
 
     # This guarantee the criteria array consistency
     ncriteria = util.criteriarr(criteria)
@@ -66,4 +66,3 @@ class TOPSIS(DecisionMaker):
     def solve(self, *args, **kwargs):
         rank, closeness = topsis(*args, **kwargs)
         return None, rank, closeness
-
