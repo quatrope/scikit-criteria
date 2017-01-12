@@ -26,6 +26,7 @@ __doc__ = """Most basic method of multi-criteria"""
 import numpy as np
 
 from .. import norm, util, rank
+from ..dmaker import DecisionMaker
 
 
 # =============================================================================
@@ -46,6 +47,17 @@ def mdwsum(mtx, criteria, weights=None):
     points = np.squeeze(np.asarray(rank_mtx))
 
     return rank.rankdata(points, reverse=True), points
+
+
+# =============================================================================
+# OO
+# =============================================================================
+
+class MDWeightedSum(DecisionMaker):
+
+    def solve(self, *args, **kwargs):
+        rank, closeness = mdwsum(*args, **kwargs)
+        return None, rank, closeness
 
 
 # =============================================================================

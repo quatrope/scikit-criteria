@@ -26,6 +26,7 @@ __doc__ = ""
 import numpy as np
 
 from .. import norm, util, rank
+from ..dmaker import DecisionMaker
 
 
 # =============================================================================
@@ -93,8 +94,11 @@ def wprod(mtx, criteria, weights=None):
 
 
 # =============================================================================
-# MAIN
+# OO
 # =============================================================================
 
-if __name__ == "__main__":
-    print(__doc__)
+class WeightedProduct(DecisionMaker):
+
+    def solve(self, *args, **kwargs):
+        rank, points = wprod(*args, **kwargs)
+        return None, rank, points

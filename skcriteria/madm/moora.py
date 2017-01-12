@@ -39,6 +39,7 @@ import itertools
 import numpy as np
 
 from .. import norm, util, rank
+from ..dmaker import DecisionMaker
 
 
 # =============================================================================
@@ -55,7 +56,7 @@ def _ratio(nmtx, criteria, nweights):
     return rank.rankdata(points, reverse=True), points
 
 
-def ratio(mtx, criteria, weights=1):
+def ratio(mtx, criteria, weights=None):
     r"""The method refers to a matrix of responses of alternatives to
     objectives, to which ratios are applied.
 
@@ -210,3 +211,35 @@ def multimoora(mtx, criteria):
         points[dom_idx] += 1
 
     return rank.rankdata(points, reverse=True), rank_mtx
+
+
+# =============================================================================
+# OO
+# =============================================================================
+
+class RatioMOORA(DecisionMaker):
+
+    def solve(self, mtx, criteria, weights):
+        rank, points = ratio(mtx, criteria, weights)
+        return None, rank, points
+
+
+class RefPointMOORA(DecisionMaker):
+
+    def solve(self, mtx, criteria, weights):
+        rank, points = refpoint(mtx, criteria, weights)
+        return None, rank, points
+
+
+class FMFMOORA(DecisionMaker):
+
+    def solve(self, mtx, criteria, weights):
+        rank, points = fmf(mtx, criteria)
+        return None, rank, points
+
+
+class MultiMOORA(DecisionMaker):
+
+    def solve(self, mtx, criteria, weights):
+        rank, rank_mtx = multimoora(mtx, criteria)
+        return None, rank, rank_mtx
