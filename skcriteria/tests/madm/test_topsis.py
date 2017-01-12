@@ -58,3 +58,19 @@ class TopsisTest(core.SKCriteriaTestCase):
 
         self.assertAllClose(points_result, points, atol=1.e-4)
         self.assertAllClose(rank_result, result)
+
+    def test_topsis_dm(self):
+        dm = topsis.TOPSIS()
+
+        weights = [.3, .4, .3]
+
+        result = [3, 2, 1, 4]
+        points = [0.5037, 0.6581, 0.7482, 0.3340]
+
+        decision = dm.decide(self.mtx, self.criteria, weights)
+
+        self.assertAllClose(decision.points_, points, atol=1.e-4)
+        self.assertAllClose(decision.rank_, result)
+
+
+

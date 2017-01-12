@@ -19,10 +19,11 @@ from __future__ import unicode_literals
 import numpy as np
 
 from ..import norm, util, rank
+from ..dmaker import DecisionMaker
 
 
 # =============================================================================
-# TOPSIS
+# Function
 # =============================================================================
 
 def topsis(mtx, criteria, weights=1):
@@ -54,3 +55,15 @@ def topsis(mtx, criteria, weights=1):
 
     # compute the rank and return the result
     return rank.rankdata(closeness, reverse=True), closeness
+
+
+# =============================================================================
+# OO
+# =============================================================================
+
+class TOPSIS(DecisionMaker):
+
+    def solve(self, *args, **kwargs):
+        rank, closeness = topsis(*args, **kwargs)
+        return None, rank, closeness
+
