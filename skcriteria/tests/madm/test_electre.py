@@ -157,3 +157,61 @@ class ElectreTest(core.SKCriteriaTestCase):
         self.assertAllClose(discordance, result_discordance, atol=1.e-3)
         self.assertAllClose(p, result_p, atol=1.e-3)
         self.assertAllClose(q, result_q, atol=1.e-3)
+
+    def test_electre1_dm(self):
+        # Data From:
+        # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
+        # en Aragón: Una aplicación empírica de la ayuda a la decisión
+        # multicriterio tipo ELECTRE I y III. Robustez de los resultados
+        # obtenidos.
+        # Revista de Métodos Cuantitativos para la Economía y la Empresa,
+        # (7), 31-56.
+
+        mtx = [
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8]
+        ]
+        criteria = [1, 1, -1, 1, 1]
+        weights = [0.25, 0.25, 0.1, 0.2, 0.2]
+
+        result_kernel, result_p, result_q = [4], 0.55, 0.70
+        result_outrank = [
+            [False, False, False, False, False, False],
+            [False, False, False, False, False, False],
+            [False, False, False, False, False, False],
+            [True, False, False, False, False, False],
+            [True, True, True, True, False, True],
+            [False, False, False, False, False, False]
+        ]
+        result_concordance = [
+            [np.nan, 0.5000, 0.3500, 0.5000, 0.3500, 0.4500],
+            [0.5000, np.nan, 0.5000, 0.7500, 0.5000, 0.5000],
+            [0.6500, 0.5000, np.nan, 0.4500, 0.2000, 0.7000],
+            [0.7500, 0.2500, 0.5500, np.nan, 0.3500, 0.4500],
+            [0.9000, 0.7000, 0.8000, 0.9000, np.nan, 0.9000],
+            [0.5500, 0.5000, 0.5500, 0.5500, 0.1000, np.nan]
+        ]
+        result_discordance = [
+            [np.nan, 1.0000, 0.6667, 0.5000, 1.0000, 0.7500],
+            [1.0000, np.nan, 0.7143, 1.0000, 1.0000, 0.5714],
+            [0.7000, 1.0000, np.nan, 0.8000, 0.7500, 0.9000],
+            [0.5714, 0.6667, 0.8571, np.nan, 1.0000, 0.7143],
+            [0.2000, 0.5000, 0.3333, 0.3000, np.nan, 0.4000],
+            [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
+        ]
+
+        dm = electre.ELECTRE1()
+        decision = dm.decide(mtx, criteria, weights)
+
+        self.assertCountEqual(decision.efficients_, result_kernel)
+        self.assertArrayEqual(decision.e.outrank, result_outrank)
+        self.assertAllClose(
+            decision.e.mtx_concordance, result_concordance, atol=1.e-3)
+        self.assertAllClose(
+            decision.e.mtx_discordance, result_discordance, atol=1.e-3)
+        self.assertAllClose(decision.e.p, result_p, atol=1.e-3)
+        self.assertAllClose(decision.e.q, result_q, atol=1.e-3)

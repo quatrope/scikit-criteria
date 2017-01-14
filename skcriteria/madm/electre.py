@@ -32,7 +32,7 @@ References
 import numpy as np
 
 from .. import norm, util
-# from ..dmaker import DecisionMaker
+from ..dmaker import DecisionMaker
 
 
 # =============================================================================
@@ -90,7 +90,7 @@ def discordance(nmtx, ncriteria):
 # ELECTRE
 # =============================================================================
 
-def electre1(mtx, criteria, weights=1):
+def electre1(mtx, criteria, weights=None):
 
     # This guarantee the criteria array consistency
     ncriteria = util.criteriarr(criteria)
@@ -116,3 +116,22 @@ def electre1(mtx, criteria, weights=1):
     kernel = np.where((diff == max_value) & (diff > 0))[0]
 
     return kernel, outrank, mtx_concordance, mtx_discordance, p, q
+
+
+# =============================================================================
+# OO
+# =============================================================================
+
+class ELECTRE1(DecisionMaker):
+
+    def solve(self, *args, **kwargs):
+        kernel, outrank, mtx_concordance, mtx_discordance, p, q = electre1(
+            *args, **kwargs)
+
+        extra = {
+            "outrank": outrank,
+            "mtx_concordance": mtx_concordance,
+            "mtx_discordance": mtx_discordance,
+            "p": p, "q": q}
+
+        return kernel, None, extra
