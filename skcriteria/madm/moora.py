@@ -221,25 +221,25 @@ class RatioMOORA(DecisionMaker):
 
     def solve(self, mtx, criteria, weights):
         rank, points = ratio(mtx, criteria, weights)
-        return None, rank, points
+        return None, rank, {"points": points}
 
 
 class RefPointMOORA(DecisionMaker):
 
     def solve(self, mtx, criteria, weights):
         rank, points = refpoint(mtx, criteria, weights)
-        return None, rank, points
+        return None, rank, {"points": points}
 
 
 class FMFMOORA(DecisionMaker):
 
     def solve(self, mtx, criteria, weights):
         rank, points = fmf(mtx, criteria)
-        return None, rank, points
+        return None, rank, {"points": points}
 
 
 class MultiMOORA(DecisionMaker):
 
     def solve(self, mtx, criteria, weights):
         rank, rank_mtx = multimoora(mtx, criteria)
-        return None, rank, rank_mtx
+        return None, rank, {"rank_mtx": rank_mtx}

@@ -101,4 +101,4 @@ class WeightedProduct(DecisionMaker):
 
     def solve(self, *args, **kwargs):
         rank, points = wprod(*args, **kwargs)
-        return None, rank, points
+        return None, rank, {"points": points}

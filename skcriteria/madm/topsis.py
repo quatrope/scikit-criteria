@@ -65,4 +65,4 @@ class TOPSIS(DecisionMaker):
 
     def solve(self, *args, **kwargs):
         rank, closeness = topsis(*args, **kwargs)
-        return None, rank, closeness
+        return None, rank, {"closeness": closeness}

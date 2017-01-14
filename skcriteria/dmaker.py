@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import abc
+from collections import Mapping
 
 import six
 
@@ -13,8 +14,32 @@ from . import util
 
 
 # =============================================================================
-# RESULT
+# RESULT Structure
 # =============================================================================
+
+class _Extra(Mapping):
+    def __init__(self, data):
+        self._data = dict(data)
+
+    def __getitem__(self, k):
+        return self._data[k]
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def __getattr__(self, k):
+        try:
+            return self[k]
+        except KeyError:
+            msg = "'_Extra' object has no attribute '{}'".format(k)
+            raise AttributeError(msg)
+
+    def __repr__(self):
+        return "_Extra({})".format(", ".join(self._data))
+
 
 @attr.s(frozen=True, repr=False, cmp=False)
 class _Decision(object):
@@ -22,9 +47,10 @@ class _Decision(object):
     mtx_ = attr.ib()
     criteria_ = attr.ib()
     weights_ = attr.ib()
-    efficience_ = attr.ib()
+    efficients_ = attr.ib()
     rank_ = attr.ib()
-    points_ = attr.ib()
+
+    e = attr.ib(convert=_Extra)
 
     def __repr__(self):
         decision_maker = type(self.decision_maker_).__name__
@@ -41,7 +67,7 @@ class _Decision(object):
 
     @property
     def beta_solution_(self):
-        return self.efficience_ is not None
+        return self.efficients_ is not None
 
     @property
     def gamma_solution_(self):
@@ -62,9 +88,9 @@ class DecisionMaker(object):
     def decide(self, mtx, criteria, weights=None):
         mtx, criteria = np.asarray(mtx), util.criteriarr(criteria)
         weights = np.asarray(weights) if weights is not None else None
-        efficience, rank, points = self.solve(
+        efficients, rank, extra = self.solve(
             mtx=mtx, criteria=criteria, weights=weights)
         return _Decision(
             decision_maker_=self,
             mtx_=mtx, criteria_=criteria, weights_=weights,
-            efficience_=efficience, rank_=rank, points_=points)
+            efficients_=efficients, rank_=rank, e=extra)

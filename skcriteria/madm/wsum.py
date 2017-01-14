@@ -56,8 +56,8 @@ def mdwsum(mtx, criteria, weights=None):
 class MDWeightedSum(DecisionMaker):
 
     def solve(self, *args, **kwargs):
-        rank, closeness = mdwsum(*args, **kwargs)
-        return None, rank, closeness
+        rank, points = mdwsum(*args, **kwargs)
+        return None, rank, {"points": points}
 
 
 # =============================================================================
