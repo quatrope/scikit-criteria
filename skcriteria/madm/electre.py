@@ -71,8 +71,8 @@ def discordance(nmtx, ncriteria):
     for idx, row in enumerate(nmtx):
         difference = nmtx - row
         worsts = (
-            ((mtx_criteria == util.MAX) & (difference >= 0)) |
-            ((mtx_criteria == util.MIN) & (difference <= 0))
+            ((mtx_criteria == util.MAX) & (difference > 0)) |
+            ((mtx_criteria == util.MIN) & (difference < 0))
         )
         filter_difference = np.abs(difference * worsts)
         delta = filter_difference / ranges
