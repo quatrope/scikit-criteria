@@ -61,7 +61,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Scikit-Criteria'
-copyright = u'2015, Juan B. Cabral - Nadia A. Luczywo'
+copyright = u'2015-2016-2017, Juan B. Cabral - Nadia A. Luczywo'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
