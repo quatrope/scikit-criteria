@@ -3,10 +3,16 @@ sudo: false
 install:
   - pip install tox
 script:
-  - tox --skip-missing-interpreters -r -- -vv
-env:
-  - TOXENV=style
-  - TOXENV=coverage
-  - TOXENV=py27
-  - TOXENV=py34
-  - TOXENV=py35
+  - tox -r
+matrix:
+    include:
+        - python: 2.7
+          env: TOXENV=py27
+        - python: 3.4
+          env: TOXENV=py34
+        - python: 3.5
+          env: TOXENV=py35
+        - python: 2.7
+          env: TOXENV=style
+        - python: 2.7
+          env: TOXENV=coverage
