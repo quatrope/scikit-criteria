@@ -4,6 +4,10 @@
 
 **Multiple-criteria decision analysis**
 
+.. image:: https://travis-ci.org/leliel12/scikit-criteria.svg?branch=master
+    :target: https://travis-ci.org/leliel12/scikit-criteria
+    :alt: Build-Status
+
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://opensource.org/licenses/BSD-3-Clause
    :alt: License

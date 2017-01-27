@@ -13,6 +13,13 @@ Scikit-Criteria
         :align: center
         :scale: 100 %
 
+.. image:: https://travis-ci.org/leliel12/scikit-criteria.svg?branch=master
+    :target: https://travis-ci.org/leliel12/scikit-criteria
+    :alt: Build-Status
+
+.. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
+   :target: https://opensource.org/licenses/BSD-3-Clause
+   :alt: License
 
 scikit-criteria is a collection of Multiple-criteria decision analysis (MCDA_)
 methods integrated into scientific python stack. Is Open source and
