@@ -11,7 +11,7 @@
 Support
 -------
 
--   **Full Documentation and Tutorial:** scikit-criteria.org
+-   **Full Documentation and Tutorial:** http://scikit-criteria.org
 -   **Contact:** jbc.develop@gmail.com
 -   **Issues:** If you have issues please report them as a issue
     here: https://github.com/leliel12/scikit-criteria/issues
