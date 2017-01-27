@@ -4,7 +4,18 @@
 
 **Multiple-criteria decision analysis**
 
-[![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+.. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
+   :target: https://opensource.org/licenses/BSD-3-Clause
+   :alt: License
+
+Support
+-------
+
+-   **Full Documentation and Tutorial:** scikit-criteria.org
+-   **Contact:** jbc.develop@gmail.com
+-   **Issues:** If you have issues please report them as a issue
+    here: https://github.com/leliel12/scikit-criteria/issues
+
 
 Install
 -------
@@ -20,14 +31,6 @@ Test
 .. code-block:: bash
 
     $ python -m skcriteria.tests
-
-Support
--------
-
--   **Full Documentation and Tutorial:** scikit-criteria.org
--   **Contact:** jbc.develop@gmail.com
--   **Issues:** If you have issues please report them as a issue
-    here: https://github.com/leliel12/scikit-criteria/issues
 
 
 LOGO
