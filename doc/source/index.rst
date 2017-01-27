@@ -50,29 +50,31 @@ If you are using Scikit-Criteria in your research, please cite:
 If you use scikit-learn in a scientific publication, we would appreciate
 citations to the following paper:
 
-  `Scikit-learn: Machine Learning in Python
-  <http://45jaiio.sadio.org.ar/sites/default/files/Sio-23.pdf>`_, Cabral
-  *et al.*, SIO 12, pp. 2825-2830, 2011.
-
-  Scikit-Criteria: Colección de métodos de
-análisis multi-criterio integrado al stack
-científico de Python
+    Cabral, Juan B., Nadia Ayelen Luczywo, and José Luis Zanazzi 2016
+    Scikit-Criteria: Colección de Métodos de Análisis Multi-Criterio Integrado
+    Al Stack Científico de Python. In XLV Jornadas Argentinas de Informática E
+    Investigación Operativa (45JAIIO)-XIV Simposio Argentino de Investigación
+    Operativa (SIO) (Buenos Aires, 2016) Pp. 59–66.
+    http://45jaiio.sadio.org.ar/sites/default/files/Sio-23.pdf.
 
 
 Bibtex entry::
 
-    @article{scikit-learn,
-     title={Scikit-learn: Machine Learning in {P}ython},
-     author={Pedregosa, F. and Varoquaux, G. and Gramfort, A. and Michel, V.
-             and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.
-             and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and
-             Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},
-     journal={Journal of Machine Learning Research},
-     volume={12},
-     pages={2825--2830},
-     year={2011}
+    @inproceedings{scikit-criteria,
+        author={
+            Juan B Cabral and Nadia Ayelen Luczywo and Jos\'{e} Luis Zanazzi},
+        title={
+            Scikit-Criteria: Colecci\'{o}n de m\'{e}todos de an\'{a}lisis
+            multi-criterio integrado al stack cient\'{i}fico de {P}ython},
+        booktitle = {
+            XLV Jornadas Argentinas de Inform{\'a}tica
+            e Investigaci{\'o}n Operativa (45JAIIO)-
+            XIV Simposio Argentino de Investigaci\'{o}n Operativa (SIO)
+            (Buenos Aires, 2016)},
+        year={2016},
+        pages = {59--66},
+        url={http://45jaiio.sadio.org.ar/sites/default/files/Sio-23.pdf}
     }
-
 
 
 Contents:
