@@ -21,16 +21,15 @@ Scikit-Criteria
    :target: https://opensource.org/licenses/BSD-3-Clause
    :alt: License
 
-scikit-criteria is a collection of Multiple-criteria decision analysis (MCDA_)
+**Scikit-Criteria** is a collection of Multiple-criteria decision analysis (MCDA_)
 methods integrated into scientific python stack. Is Open source and
 commercially usable - `BSD license`_
 
 Support
 -------
 
-You can contact me at jbc.develop@gmail.com
-
-Code Repository & Issues: https://github.com/leliel12/scikit-criteria
+-   **You can contact me at:** jbc.develop@gmail.com
+-   **Code Repository & Issues:** https://github.com/leliel12/scikit-criteria
 
 
 License
