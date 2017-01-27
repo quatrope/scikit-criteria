@@ -69,5 +69,5 @@ class TopsisTest(core.SKCriteriaTestCase):
 
         decision = dm.decide(self.mtx, self.criteria, weights)
 
-        self.assertAllClose(decision.e.closeness, points, atol=1.e-4)
+        self.assertAllClose(decision.e_.closeness, points, atol=1.e-4)
         self.assertAllClose(decision.rank_, result)

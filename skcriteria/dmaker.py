@@ -43,14 +43,14 @@ class _Extra(Mapping):
 
 @attr.s(frozen=True, repr=False, cmp=False)
 class _Decision(object):
-    decision_maker_ = attr.ib()
-    mtx_ = attr.ib()
-    criteria_ = attr.ib()
-    weights_ = attr.ib()
+    decision_maker = attr.ib()
+    mtx = attr.ib()
+    criteria = attr.ib()
+    weights = attr.ib()
     efficients_ = attr.ib()
     rank_ = attr.ib()
 
-    e = attr.ib(convert=_Extra)
+    e_ = attr.ib(convert=_Extra)
 
     def __repr__(self):
         decision_maker = type(self.decision_maker_).__name__
@@ -91,6 +91,6 @@ class DecisionMaker(object):
         efficients, rank, extra = self.solve(
             mtx=mtx, criteria=criteria, weights=weights)
         return _Decision(
-            decision_maker_=self,
-            mtx_=mtx, criteria_=criteria, weights_=weights,
-            efficients_=efficients, rank_=rank, e=extra)
+            decision_maker=self,
+            mtx=mtx, criteria=criteria, weights=weights,
+            efficients_=efficients, rank_=rank, e_=extra)

@@ -63,11 +63,8 @@ class ElectreTest(core.SKCriteriaTestCase):
             [0.9000, 0.7000, 0.8000, 0.9000, np.nan, 0.9000],
             [0.5500, 0.5000, 0.5500, 0.5500, 0.1000, np.nan]
         ]
-        result_mean, result_p = 0.5400, 0.5500
-        concordance, mean, p = electre.concordance(nmtx, ncriteria, nweights)
+        concordance = electre.concordance(nmtx, ncriteria, nweights)
         self.assertAllClose(concordance, results, atol=1.e-3)
-        self.assertAllClose(mean, result_mean, atol=1.e-3)
-        self.assertAllClose(p, result_p, atol=1.e-3)
 
     def test_discordance(self):
         # Data From:
@@ -95,12 +92,9 @@ class ElectreTest(core.SKCriteriaTestCase):
             [0.2000, 0.5000, 0.3333, 0.3000, np.nan, 0.4000],
             [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
         ]
-        result_mean, result_q = 0.7076, 0.70
-        discordance, mean, q = electre.discordance(nmtx, ncriteria)
 
+        discordance = electre.discordance(nmtx, ncriteria)
         self.assertAllClose(discordance, results, atol=1.e-3)
-        self.assertAllClose(mean, result_mean, atol=1.e-3)
-        self.assertAllClose(q, result_q, atol=1.e-3)
 
     def test_electre1(self):
         # Data From:
@@ -122,7 +116,7 @@ class ElectreTest(core.SKCriteriaTestCase):
         criteria = [1, 1, -1, 1, 1]
         weights = [0.25, 0.25, 0.1, 0.2, 0.2]
 
-        result_kernel, result_p, result_q = [4], 0.55, 0.70
+        result_kernel = [4]
         result_outrank = [
             [False, False, False, False, False, False],
             [False, False, False, False, False, False],
@@ -148,15 +142,13 @@ class ElectreTest(core.SKCriteriaTestCase):
             [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
         ]
 
-        kernel, outrank, concordance, discordance, p, q = electre.electre1(
-            mtx, criteria, weights)
+        kernel, outrank, concordance, discordance = electre.electre1(
+            mtx, criteria, weights=weights, p=0.5500, q=0.699)
 
         self.assertCountEqual(kernel, result_kernel)
         self.assertArrayEqual(outrank, result_outrank)
         self.assertAllClose(concordance, result_concordance, atol=1.e-3)
         self.assertAllClose(discordance, result_discordance, atol=1.e-3)
-        self.assertAllClose(p, result_p, atol=1.e-3)
-        self.assertAllClose(q, result_q, atol=1.e-3)
 
     def test_electre1_dm(self):
         # Data From:
@@ -178,7 +170,7 @@ class ElectreTest(core.SKCriteriaTestCase):
         criteria = [1, 1, -1, 1, 1]
         weights = [0.25, 0.25, 0.1, 0.2, 0.2]
 
-        result_kernel, result_p, result_q = [4], 0.55, 0.70
+        result_kernel = [4]
         result_outrank = [
             [False, False, False, False, False, False],
             [False, False, False, False, False, False],
@@ -204,14 +196,12 @@ class ElectreTest(core.SKCriteriaTestCase):
             [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
         ]
 
-        dm = electre.ELECTRE1()
+        dm = electre.ELECTRE1(p=0.55, q=0.699)
         decision = dm.decide(mtx, criteria, weights)
 
         self.assertCountEqual(decision.efficients_, result_kernel)
-        self.assertArrayEqual(decision.e.outrank, result_outrank)
+        self.assertArrayEqual(decision.e_.outrank, result_outrank)
         self.assertAllClose(
-            decision.e.mtx_concordance, result_concordance, atol=1.e-3)
+            decision.e_.mtx_concordance, result_concordance, atol=1.e-3)
         self.assertAllClose(
-            decision.e.mtx_discordance, result_discordance, atol=1.e-3)
-        self.assertAllClose(decision.e.p, result_p, atol=1.e-3)
-        self.assertAllClose(decision.e.q, result_q, atol=1.e-3)
+            decision.e_.mtx_discordance, result_discordance, atol=1.e-3)

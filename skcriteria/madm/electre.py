@@ -39,14 +39,14 @@ from ..dmaker import DecisionMaker
 # UTILS
 # =============================================================================
 
-def concordance(nmtx, ncriteria, nweights=1):
+def concordance(mtx, criteria, weights):
 
-    mtx_criteria = np.tile(ncriteria, (len(nmtx), 1))
-    mtx_weight = np.tile(nweights, (len(nmtx), 1))
-    mtx_concordance = np.empty((len(nmtx), len(nmtx)))
+    mtx_criteria = np.tile(criteria, (len(mtx), 1))
+    mtx_weight = np.tile(weights, (len(mtx), 1))
+    mtx_concordance = np.empty((len(mtx), len(mtx)))
 
-    for idx, row in enumerate(nmtx):
-        difference = row - nmtx
+    for idx, row in enumerate(mtx):
+        difference = row - mtx
         outrank = (
             ((mtx_criteria == util.MAX) & (difference >= 0)) |
             ((mtx_criteria == util.MIN) & (difference <= 0))
@@ -56,20 +56,17 @@ def concordance(nmtx, ncriteria, nweights=1):
         mtx_concordance[idx] = new_row
 
     np.fill_diagonal(mtx_concordance, np.nan)
-    mean = np.nanmean(mtx_concordance)
-    p = util.nearest(mtx_concordance, mean, side="gt")
-
-    return mtx_concordance, mean, p
+    return mtx_concordance
 
 
-def discordance(nmtx, ncriteria):
+def discordance(mtx, criteria):
 
-    mtx_criteria = np.tile(ncriteria, (len(nmtx), 1))
-    mtx_discordance = np.empty((len(nmtx), len(nmtx)))
-    ranges = np.max(nmtx, axis=0) - np.min(nmtx, axis=0)
+    mtx_criteria = np.tile(criteria, (len(mtx), 1))
+    mtx_discordance = np.empty((len(mtx), len(mtx)))
+    ranges = np.max(mtx, axis=0) - np.min(mtx, axis=0)
 
-    for idx, row in enumerate(nmtx):
-        difference = nmtx - row
+    for idx, row in enumerate(mtx):
+        difference = mtx - row
         worsts = (
             ((mtx_criteria == util.MAX) & (difference > 0)) |
             ((mtx_criteria == util.MIN) & (difference < 0))
@@ -80,17 +77,14 @@ def discordance(nmtx, ncriteria):
         mtx_discordance[idx] = new_row
 
     np.fill_diagonal(mtx_discordance, np.nan)
-    mean = np.nanmean(mtx_discordance)
-    q = util.nearest(mtx_discordance, mean, side="lt")
-
-    return mtx_discordance, mean, q
+    return mtx_discordance
 
 
 # =============================================================================
 # ELECTRE
 # =============================================================================
 
-def electre1(mtx, criteria, weights=None):
+def electre1(mtx, criteria, p, q, weights=None):
 
     # This guarantee the criteria array consistency
     ncriteria = util.criteriarr(criteria)
@@ -100,8 +94,8 @@ def electre1(mtx, criteria, weights=None):
     nweights = norm.sum(weights) if weights is not None else 1
 
     # get the concordance and discordance info
-    mtx_concordance, _, p = concordance(nmtx, ncriteria, nweights)
-    mtx_discordance, _, q = discordance(nmtx, ncriteria)
+    mtx_concordance = concordance(nmtx, ncriteria, nweights)
+    mtx_discordance = discordance(nmtx, ncriteria)
 
     with np.errstate(invalid='ignore'):
         outrank = (
@@ -115,7 +109,7 @@ def electre1(mtx, criteria, weights=None):
 
     kernel = np.where((diff == max_value) & (diff > 0))[0]
 
-    return kernel, outrank, mtx_concordance, mtx_discordance, p, q
+    return kernel, outrank, mtx_concordance, mtx_discordance
 
 
 # =============================================================================
@@ -124,14 +118,19 @@ def electre1(mtx, criteria, weights=None):
 
 class ELECTRE1(DecisionMaker):
 
-    def solve(self, *args, **kwargs):
-        kernel, outrank, mtx_concordance, mtx_discordance, p, q = electre1(
-            *args, **kwargs)
+    def __init__(self, p=.65, q=.35, *args, **kwargs):
+        super(ELECTRE1, self).__init__(*args, **kwargs)
+        self.p = p
+        self.q = q
+
+    def solve(self, mtx, criteria, weights=None):
+        kernel, outrank, mtx_concordance, mtx_discordance = electre1(
+            mtx=mtx, criteria=criteria, weights=weights, p=self.p, q=self.q)
 
         extra = {
             "outrank": outrank,
             "mtx_concordance": mtx_concordance,
             "mtx_discordance": mtx_discordance,
-            "p": p, "q": q}
+            "p": self.p, "q": self.q}
 
         return kernel, None, extra
