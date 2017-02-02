@@ -42,8 +42,6 @@ import six
 
 import attr
 
-import numpy as np
-
 from . import util, norm
 
 

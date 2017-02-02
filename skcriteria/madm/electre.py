@@ -57,7 +57,7 @@ References
 
 import numpy as np
 
-from .. import norm, util
+from .. import util
 from ..dmaker import DecisionMaker
 
 

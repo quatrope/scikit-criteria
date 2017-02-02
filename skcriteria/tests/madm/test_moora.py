@@ -330,4 +330,3 @@ class MultiMOORATest(MOORATestBase):
         for row, column in zeros:
             self.mtx[row][column] = 0
         dm.decide(self.mtx, self.criteria)
-
