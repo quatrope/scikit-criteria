@@ -51,6 +51,7 @@ def criteriarr(criteria):
 
 def is_mtx(mtx, size=None):
     try:
+        mtx = np.asarray(mtx)
         a, b = mtx.shape
         if size and (a, b) != size:
             return False
