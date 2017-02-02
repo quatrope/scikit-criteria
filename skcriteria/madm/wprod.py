@@ -59,7 +59,28 @@ from ..dmaker import DecisionMaker
 # FUNCTIONS
 # =============================================================================
 
-def wprod(mtx, criteria, weights=None, mnorm=norm.sum, wnorm=norm.sum):
+def wprod(nmtx, ncriteria, nweights):
+    # invert the minimization criteria
+    if util.MIN in ncriteria:
+        mincrits = np.squeeze(np.where(ncriteria == util.MIN))
+        mincrits_inverted = 1.0 / nmtx[:, mincrits]
+        nmtx = nmtx.astype(mincrits_inverted.dtype.type)
+        nmtx[:, mincrits] = mincrits_inverted
+
+    # calculate raning by inner prodcut
+    lmtx = np.log(nmtx)
+    rank_mtx = np.multiply(lmtx, nweights)
+
+    points = np.sum(rank_mtx, axis=1)
+
+    return rank.rankdata(points, reverse=True), points
+
+
+# =============================================================================
+# OO
+# =============================================================================
+
+class WeightedProduct(DecisionMaker):
     """The weighted product model (WPM) is a popular multi-criteria decision
     analysis (MCDA) / multi-criteria decision making (MCDM) method. It is
     similar to the weighted sum model (WSM). The main difference is that
@@ -94,36 +115,15 @@ def wprod(mtx, criteria, weights=None, mnorm=norm.sum, wnorm=norm.sum):
 
     """
 
-    # normalize
-    ncriteria = util.criteriarr(criteria)
-    nweights = wnorm(weights) if weights is not None else 1
+    def __init__(self, mnorm="sum", wnorm="sum"):
+        super(WeightedProduct, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
-    # push all negative values to be > 0 by criteria
-    non_negative = norm.push_negatives(mtx, axis=0)
-    non_zero = norm.add1to0(non_negative, axis=0)
-    nmtx = mnorm(non_zero, axis=0)
-
-    # invert the minimization criteria
-    if util.MIN in ncriteria:
-        mincrits = np.squeeze(np.where(ncriteria == util.MIN))
-        mincrits_inverted = 1.0 / nmtx[:, mincrits]
-        nmtx = nmtx.astype(mincrits_inverted.dtype.type)
-        nmtx[:, mincrits] = mincrits_inverted
-
-    # calculate raning by inner prodcut
-    lmtx = np.log(nmtx)
-    rank_mtx = np.multiply(lmtx, nweights)
-
-    points = np.sum(rank_mtx, axis=1)
-
-    return rank.rankdata(points, reverse=True), points
-
-
-# =============================================================================
-# OO
-# =============================================================================
-
-class WeightedProduct(DecisionMaker):
+    def normalize(self, mtx, criteria, weights):
+        # push all negative values to be > 0 by criteria
+        non_negative = norm.push_negatives(mtx, axis=0)
+        non_zero = norm.add1to0(non_negative, axis=0)
+        return super(WeightedProduct, self).normalize(
+            non_zero, criteria, weights)
 
     def solve(self, *args, **kwargs):
         rank, points = wprod(*args, **kwargs)

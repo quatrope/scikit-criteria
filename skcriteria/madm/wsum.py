@@ -59,11 +59,7 @@ from ..dmaker import DecisionMaker
 # FUNCTIONS
 # =============================================================================
 
-def mdwsum(mtx, criteria, weights=None, mnorm=norm.sum, wnorm=norm.sum):
-
-    nmtx = mnorm(mtx, axis=0)
-    ncriteria = util.criteriarr(criteria)
-    nweights = wnorm(weights) if weights is not None else 1
+def mdwsum(nmtx, ncriteria, nweights):
 
     # add criteria to weights
     cweights = nweights * ncriteria
@@ -80,6 +76,9 @@ def mdwsum(mtx, criteria, weights=None, mnorm=norm.sum, wnorm=norm.sum):
 # =============================================================================
 
 class MDWeightedSum(DecisionMaker):
+
+    def __init__(self, mnorm="sum", wnorm="sum"):
+        super(MDWeightedSum, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
     def solve(self, *args, **kwargs):
         rank, points = mdwsum(*args, **kwargs)

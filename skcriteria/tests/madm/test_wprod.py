@@ -50,15 +50,17 @@ from __future__ import unicode_literals
 # =============================================================================
 
 from .. import core
-from ... import util
+from ... import util, norm
 from ...madm import wprod
 
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
-@core.unittest.skip
+
 class WProdTest(core.SKCriteriaTestCase):
+    mnorm = "sum"
+    wnorm = "sum"
 
     def setUp(self):
         # Data From:
@@ -73,14 +75,20 @@ class WProdTest(core.SKCriteriaTestCase):
         self.criteria = [util.MAX, util.MAX, util.MAX, util.MAX]
         self.weights = [20, 15, 40, 25]
 
+    def normalize(self, mtx, criteria, weights):
+        non_negative = norm.push_negatives(mtx, axis=0)
+        non_zero = norm.add1to0(non_negative, axis=0)
+        return super(WProdTest, self).normalize(
+            non_zero, criteria, weights)
+
     def test_wprod(self):
         # Data From:
         # Weighted product model. (n.d.). Retrieved January 07, 2017,
         # from http://en.wikipedia.org/wiki/Weighted_product_model
         # this is the wikipedia example
 
-        rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights)
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = wprod.wprod(*normdata)
 
         self.assertAllClose(rank_result, [1, 2, 3])
         self.assertAllClose(
@@ -89,8 +97,8 @@ class WProdTest(core.SKCriteriaTestCase):
     def test_wprod_min(self):
         self.criteria[0] = util.MIN
 
-        rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights)
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = wprod.wprod(*normdata)
 
         self.assertAllClose(rank_result, [2, 1, 3])
         self.assertAllClose(
@@ -98,8 +106,8 @@ class WProdTest(core.SKCriteriaTestCase):
 
     def test_wprod_negative(self):
         self.mtx[0][0] = -self.mtx[0][0]
-        rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights)
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = wprod.wprod(*normdata)
 
         self.assertAllClose(rank_result, [3, 1, 2])
         self.assertAllClose(
@@ -108,9 +116,22 @@ class WProdTest(core.SKCriteriaTestCase):
     def test_wprod_zero(self):
         self.mtx[0][0] = 0
 
-        rank_result, points_result = wprod.wprod(
-            self.mtx, self.criteria, self.weights)
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = wprod.wprod(*normdata)
 
         self.assertAllClose(rank_result, [3, 1, 2])
         self.assertAllClose(
             points_result, [-1.715391, -1.05992, -1.12996], atol=1.e-3)
+
+    def test_wprod_dm(self):
+        # Data From:
+        # Weighted product model. (n.d.). Retrieved January 07, 2017,
+        # from http://en.wikipedia.org/wiki/Weighted_product_model
+        # this is the wikipedia example
+
+        dm = wprod.WeightedProduct()
+        decision = dm.decide(self.mtx, self.criteria, self.weights)
+
+        self.assertAllClose(decision.rank_, [1, 2, 3])
+        self.assertAllClose(
+            decision.e_.points, [-1.154253, -1.161619, -1.219155], atol=1.e-3)

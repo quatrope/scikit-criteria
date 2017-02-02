@@ -57,8 +57,10 @@ from ...madm import wsum
 # =============================================================================
 # BASE CLASS
 # =============================================================================
-@core.unittest.skip
+
 class WSumTest(core.SKCriteriaTestCase):
+    mnorm = "sum"
+    wnorm = "sum"
 
     def setUp(self):
         # Data From:
@@ -85,8 +87,8 @@ class WSumTest(core.SKCriteriaTestCase):
         result = [5,  1,  3,  6,  4,  2]
         points = [-0.1075, -0.0037, -0.0468, -0.1560, -0.0732, -0.0413]
 
-        rank_result, points_result = wsum.mdwsum(
-            self.mtx, self.criteria, weights)
+        normdata = self.normalize(self.mtx, self.criteria, weights)
+        rank_result, points_result = wsum.mdwsum(*normdata)
 
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)
@@ -95,7 +97,20 @@ class WSumTest(core.SKCriteriaTestCase):
         result = [5,  1,  3,  6,  4,  2]
         points = [-0.7526, -0.026, -0.3273, -1.092, -0.5127, -0.2894]
 
-        rank_result, points_result = wsum.mdwsum(self.mtx, self.criteria)
+        normdata = self.normalize(self.mtx, self.criteria, weights=None)
+        rank_result, points_result = wsum.mdwsum(*normdata)
 
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)
+
+    def test_mdwsum_dm(self):
+        weights = [20, 20, 20, 20, 20, 20, 20]
+
+        result = [5,  1,  3,  6,  4,  2]
+        points = [-0.1075, -0.0037, -0.0468, -0.1560, -0.0732, -0.0413]
+
+        dm = wsum.MDWeightedSum()
+        decision = dm.decide(self.mtx, self.criteria, weights)
+
+        self.assertAllClose(decision.e_.points, points, atol=1.e-3)
+        self.assertAllClose(decision.rank_, result)
