@@ -59,11 +59,11 @@ from ..dmaker import DecisionMaker
 # FUNCTIONS
 # =============================================================================
 
-def mdwsum(mtx, criteria, weights=None):
+def mdwsum(mtx, criteria, weights=None, mnorm=norm.sum, wnorm=norm.sum):
 
-    nmtx = norm.sum(mtx, axis=0)
+    nmtx = mnorm(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.sum(weights) if weights is not None else 1
+    nweights = wnorm(weights) if weights is not None else 1
 
     # add criteria to weights
     cweights = nweights * ncriteria

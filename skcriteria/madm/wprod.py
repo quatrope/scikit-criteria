@@ -59,7 +59,7 @@ from ..dmaker import DecisionMaker
 # FUNCTIONS
 # =============================================================================
 
-def wprod(mtx, criteria, weights=None):
+def wprod(mtx, criteria, weights=None, mnorm=norm.sum, wnorm=norm.sum):
     """The weighted product model (WPM) is a popular multi-criteria decision
     analysis (MCDA) / multi-criteria decision making (MCDM) method. It is
     similar to the weighted sum model (WSM). The main difference is that
@@ -96,12 +96,12 @@ def wprod(mtx, criteria, weights=None):
 
     # normalize
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.sum(weights) if weights is not None else 1
+    nweights = wnorm(weights) if weights is not None else 1
 
     # push all negative values to be > 0 by criteria
     non_negative = norm.push_negatives(mtx, axis=0)
     non_zero = norm.add1to0(non_negative, axis=0)
-    nmtx = norm.sum(non_zero, axis=0)
+    nmtx = mnorm(non_zero, axis=0)
 
     # invert the minimization criteria
     if util.MIN in ncriteria:

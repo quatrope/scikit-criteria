@@ -82,12 +82,12 @@ def _ratio(nmtx, criteria, nweights):
     return rank.rankdata(points, reverse=True), points
 
 
-def ratio(mtx, criteria, weights=None):
+def ratio(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
     r"""The method refers to a matrix of responses of alternatives to
     objectives, to which ratios are applied.
 
-    In MOORA the set of ratios has the square roots of the sum of squared
-    responses as denominators [BRAUERS2006]_ .
+    In MOORA the set of ratios (by default) has the square roots of the sum
+    of squared responses as denominators [BRAUERS2006]_ .
 
     .. math::
 
@@ -155,9 +155,9 @@ def ratio(mtx, criteria, weights=None):
     array([ 0.1021695 ,  0.74549924,  1.01261272])
 
     """
-    nmtx = norm.vector(mtx, axis=0)
+    nmtx = mnorm(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.sum(weights) if weights is not None else 1
+    nweights = wnorm(weights) if weights is not None else 1
     return _ratio(nmtx, ncriteria, nweights)
 
 
@@ -176,10 +176,10 @@ def _refpoint(nmtx, criteria, weights):
     return rank.rankdata(points), points
 
 
-def refpoint(mtx, criteria, weights=None):
-    nmtx = norm.vector(mtx, axis=0)
+def refpoint(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
+    nmtx = mnorm(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
-    nweights = norm.sum(weights) if weights is not None else 1
+    nweights = wnorm(weights) if weights is not None else 1
     return _refpoint(nmtx, ncriteria, nweights)
 
 
@@ -208,18 +208,18 @@ def _fmf(nmtx, criteria):
     return rank.rankdata(points, reverse=True), points
 
 
-def fmf(mtx, criteria):
+def fmf(mtx, criteria, mnorm=norm.vector):
     non_negative = norm.push_negatives(mtx, axis=0)
     non_zero = norm.add1to0(non_negative, axis=0)
-    nmtx = norm.vector(non_zero, axis=0)
+    nmtx = mnorm(non_zero, axis=0)
 
     ncriteria = util.criteriarr(criteria)
     return _fmf(nmtx, ncriteria)
 
 
-def multimoora(mtx, criteria):
+def multimoora(mtx, criteria, mnorm=norm.vector):
 
-    nmtx = norm.vector(mtx, axis=0)
+    nmtx = mnorm(mtx, axis=0)
     ncriteria = util.criteriarr(criteria)
 
     ratio_rank = _ratio(nmtx, ncriteria, 1)[0]

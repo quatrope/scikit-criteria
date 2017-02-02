@@ -110,14 +110,15 @@ def discordance(mtx, criteria):
 # ELECTRE
 # =============================================================================
 
-def electre1(mtx, criteria, p, q, weights=None):
+def electre1(mtx, criteria, p, q, weights=None,
+             mnorm=norm.sum, wnorm=norm.sum):
 
     # This guarantee the criteria array consistency
     ncriteria = util.criteriarr(criteria)
 
     # normalize
-    nmtx = norm.sum(mtx)
-    nweights = norm.sum(weights) if weights is not None else 1
+    nmtx = mnorm(mtx)
+    nweights = wnorm(weights) if weights is not None else 1
 
     # get the concordance and discordance info
     mtx_concordance = concordance(nmtx, ncriteria, nweights)
