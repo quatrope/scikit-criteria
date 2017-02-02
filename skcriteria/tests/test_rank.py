@@ -16,7 +16,7 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """Test common functionalities"""
+__doc__ = """Test ranking procedures"""
 
 
 # =============================================================================
@@ -25,51 +25,15 @@ __doc__ = """Test common functionalities"""
 
 import random
 
-import numpy as np
-
 from six.moves import range
 
 from . import core
 
-from .. import util, rank
+from .. import rank
 
 
 # =============================================================================
-# cons.py TEST
-# =============================================================================
-
-class UtilTest(core.SKCriteriaTestCase):
-
-    def setUp(self):
-        super(UtilTest, self).setUp()
-        self.min_max = (util.MIN, util.MAX)
-
-    def test_criteriarr(self):
-        # from list
-        arr = [random.choice(self.min_max) for _ in self.rrange(100, 1000)]
-        arr_result = util.criteriarr(arr)
-        self.assertAllClose(arr, arr_result)
-        self.assertIsInstance(arr_result, np.ndarray)
-
-        # from array
-        arr = np.array(
-            [random.choice(self.min_max) for _ in self.rrange(100, 1000)]
-        )
-        arr_result = util.criteriarr(arr)
-        self.assertAllClose(arr, arr_result)
-        self.assertIsInstance(arr_result, np.ndarray)
-        self.assertIs(arr, arr_result)
-
-        # some fail
-        arr = [
-            random.choice(self.min_max) for _ in self.rrange(100, 1000)
-        ] + [2]
-        with self.assertRaises(ValueError):
-            arr_result = util.criteriarr(arr)
-
-
-# =============================================================================
-# RANK TEST
+# TESTS
 # =============================================================================
 
 class RankTest(core.SKCriteriaTestCase):
@@ -90,6 +54,9 @@ class RankTest(core.SKCriteriaTestCase):
         for elem_idx, pos in enumerate(rank.rankdata(self.arr, reverse=True)):
             manual[int(pos) - 1] = self.arr[elem_idx]
         self.assertEquals(manual, sorted(self.arr, reverse=True))
+
+
+class Dominance(core.SKCriteriaTestCase):
 
     def test_dominance(self):
         # Data from:
@@ -113,6 +80,9 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEqual(rank.dominance(a, a), 0)
         self.assertEqual(rank.dominance(b, b), 0)
         self.assertEqual(rank.dominance(c, c), 0)
+
+
+class Equality(core.SKCriteriaTestCase):
 
     def test_equality(self):
         # Data from:
@@ -142,6 +112,9 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEqual(rank.equality(a, c), 0)
         self.assertEqual(rank.equality(c, a), 0)
 
+
+class KendalDominance(core.SKCriteriaTestCase):
+
     def test_kendall_dominance(self):
         # Data from:
         # Brauers, W. K. M., & Zavadskas, E. K. (2012).
@@ -164,6 +137,9 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEqual(rank.kendall_dominance(a, a), (None, (5, 5)))
         self.assertEqual(rank.kendall_dominance(b, b), (None, (7, 7)))
         self.assertEqual(rank.kendall_dominance(c, c), (None, (6, 6)))
+
+
+class SpearmianR(core.SKCriteriaTestCase):
 
     def test_spearmanr(self):
         # Data from:
