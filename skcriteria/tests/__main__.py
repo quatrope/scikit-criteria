@@ -104,7 +104,7 @@ def load_test_modules():
 
     test_modules = set()
     for pkg, modname in test_modules_names:
-        if "topsis" not in modname:
+        if "electre" not in modname:
             continue
         dot_modname = ".{}".format(modname)
         module = importlib.import_module(dot_modname, pkg)
