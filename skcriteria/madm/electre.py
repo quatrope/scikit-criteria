@@ -110,15 +110,7 @@ def discordance(mtx, criteria):
 # ELECTRE
 # =============================================================================
 
-def electre1(mtx, criteria, p, q, weights=None,
-             mnorm=norm.sum, wnorm=norm.sum):
-
-    # This guarantee the criteria array consistency
-    ncriteria = util.criteriarr(criteria)
-
-    # normalize
-    nmtx = mnorm(mtx)
-    nweights = wnorm(weights) if weights is not None else 1
+def electre1(nmtx, ncriteria, nweights, p, q):
 
     # get the concordance and discordance info
     mtx_concordance = concordance(nmtx, ncriteria, nweights)
@@ -145,14 +137,15 @@ def electre1(mtx, criteria, p, q, weights=None,
 
 class ELECTRE1(DecisionMaker):
 
-    def __init__(self, p=.65, q=.35, *args, **kwargs):
-        super(ELECTRE1, self).__init__(*args, **kwargs)
-        self.p = p
-        self.q = q
+    def __init__(self, p=.65, q=.35, mnorm="sum", wnorm="sum"):
+        super(ELECTRE1, self).__init__(mnorm=mnorm, wnorm=wnorm)
+        self._p = float(p)
+        self._q = float(q)
 
-    def solve(self, mtx, criteria, weights=None):
+    def solve(self, nmtx, ncriteria, nweights):
         kernel, outrank, mtx_concordance, mtx_discordance = electre1(
-            mtx=mtx, criteria=criteria, weights=weights, p=self.p, q=self.q)
+            nmtx=nmtx, ncriteria=ncriteria, nweights=nweights,
+            p=self._p, q=self._q)
 
         extra = {
             "outrank": outrank,
@@ -161,3 +154,11 @@ class ELECTRE1(DecisionMaker):
             "p": self.p, "q": self.q}
 
         return kernel, None, extra
+
+    @property
+    def p(self):
+        return self._p
+
+    @property
+    def q(self):
+        return self._q

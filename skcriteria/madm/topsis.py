@@ -52,16 +52,9 @@ from ..dmaker import DecisionMaker
 # Function
 # =============================================================================
 
-def topsis(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
-
-    # This guarantee the criteria array consistency
-    ncriteria = util.criteriarr(criteria)
-
-    # normalize mtx
-    nmtx = mnorm(mtx, axis=0)
+def topsis(nmtx, ncriteria, nweights):
 
     # apply weights
-    nweights = wnorm(weights) if weights is not None else 1
     wmtx = np.multiply(nmtx, nweights)
 
     # extract mins and maxes
@@ -88,6 +81,9 @@ def topsis(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
 # =============================================================================
 
 class TOPSIS(DecisionMaker):
+
+    def __init__(self, mnorm="vector", wnorm="sum"):
+        super(TOPSIS, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
     def solve(self, *args, **kwargs):
         rank, closeness = topsis(*args, **kwargs)

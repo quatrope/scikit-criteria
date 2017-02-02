@@ -59,6 +59,8 @@ from ...madm import topsis
 # =============================================================================
 
 class TopsisTest(core.SKCriteriaTestCase):
+    mnorm = "vector"
+    wnorm = "sum"
 
     def setUp(self):
         # Data From:
@@ -79,8 +81,8 @@ class TopsisTest(core.SKCriteriaTestCase):
         result = [3, 2, 1, 4]
         points = [0.5037, 0.6581, 0.7482, 0.3340]
 
-        rank_result, points_result = topsis.topsis(
-            self.mtx, self.criteria, weights)
+        normdata = self.normalize(self.mtx, self.criteria, weights)
+        rank_result, points_result = topsis.topsis(*normdata)
 
         self.assertAllClose(points_result, points, atol=1.e-4)
         self.assertAllClose(rank_result, result)

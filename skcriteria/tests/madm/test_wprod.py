@@ -57,7 +57,7 @@ from ...madm import wprod
 # =============================================================================
 # BASE CLASS
 # =============================================================================
-
+@core.unittest.skip
 class WProdTest(core.SKCriteriaTestCase):
 
     def setUp(self):

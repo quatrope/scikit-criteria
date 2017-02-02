@@ -57,7 +57,7 @@ from ...madm import wsum
 # =============================================================================
 # BASE CLASS
 # =============================================================================
-
+@core.unittest.skip
 class WSumTest(core.SKCriteriaTestCase):
 
     def setUp(self):

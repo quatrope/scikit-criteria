@@ -86,11 +86,16 @@ def register(name, func=None):
         return func
 
 
-def norm(name, arr, axis=None):
+def get(name):
     try:
-        return NORMALIZERS[name](arr, axis=axis)
+        return NORMALIZERS[name]
     except KeyError:
         raise NormalizerNotFound(name)
+
+
+def norm(name, arr, axis=None):
+    normalizer = get(name)
+    return normalizer(arr, axis=axis)
 
 
 # =============================================================================

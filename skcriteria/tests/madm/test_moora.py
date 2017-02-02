@@ -61,7 +61,7 @@ from ...madm import moora
 # =============================================================================
 # BASE CLASS
 # =============================================================================
-
+@core.unittest.skip
 class MooraTest(core.SKCriteriaTestCase):
 
     def setUp(self):

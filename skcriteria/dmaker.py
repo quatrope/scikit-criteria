@@ -44,7 +44,7 @@ import attr
 
 import numpy as np
 
-from . import util
+from . import util, norm
 
 
 # =============================================================================
@@ -115,16 +115,40 @@ class _Decision(object):
 @six.add_metaclass(abc.ABCMeta)
 class DecisionMaker(object):
 
+    def __init__(self, mnorm, wnorm):
+        self._mnorm = mnorm if hasattr(mnorm, "__call__") else norm.get(mnorm)
+        self._wnorm = wnorm if hasattr(wnorm, "__call__") else norm.get(wnorm)
+
     @abc.abstractmethod
-    def solve(self, mtx, criteria, weights=None):
+    def solve(self, nmtx, ncriteria, nweights):
         return NotImplemented
 
-    def decide(self, mtx, criteria, weights=None):
-        mtx, criteria = np.asarray(mtx), util.criteriarr(criteria)
-        weights = np.asarray(weights) if weights is not None else None
-        efficients, rank, extra = self.solve(
-            mtx=mtx, criteria=criteria, weights=weights)
-        return _Decision(
+    def normalize(self, mtx, criteria, weights):
+        ncriteria = util.criteriarr(criteria)
+        nmtx = self._mnorm(mtx, axis=0)
+        nweights = self._wnorm(weights) if weights is not None else 1
+        return nmtx, ncriteria, nweights
+
+    def make_decision(self, mtx, criteria, weights, efficients, rank, extra):
+        desicion = _Decision(
             decision_maker=self,
             mtx=mtx, criteria=criteria, weights=weights,
             efficients_=efficients, rank_=rank, e_=extra)
+        return desicion
+
+    def decide(self, mtx, criteria, weights=None):
+        nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
+        efficients, rank, extra = self.solve(
+            nmtx=nmtx, ncriteria=ncriteria, nweights=nweights)
+        decision = self.make_decision(
+            mtx=mtx, criteria=criteria, weights=weights,
+            efficients=efficients, rank=rank, extra=extra)
+        return decision
+
+    @property
+    def mnorm(self):
+        return self._mnorm
+
+    @property
+    def wnorm(self):
+        return self._wnorm
