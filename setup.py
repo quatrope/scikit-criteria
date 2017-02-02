@@ -33,7 +33,7 @@ import skcriteria
 # =============================================================================
 
 REQUIREMENTS = [
-    "numpy", "scipy", "six", "attrs"
+    "numpy", "scipy", "six", "attrs", "mock"
 ]
 
 

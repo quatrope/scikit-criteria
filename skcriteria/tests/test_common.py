@@ -23,7 +23,6 @@ __doc__ = """Test common functionalities"""
 # IMPORTS
 # =============================================================================
 
-import collections
 import random
 
 import numpy as np
@@ -32,7 +31,7 @@ from six.moves import range
 
 from . import core
 
-from .. import util, norm, rank
+from .. import util, rank
 
 
 # =============================================================================
@@ -67,98 +66,6 @@ class UtilTest(core.SKCriteriaTestCase):
         ] + [2]
         with self.assertRaises(ValueError):
             arr_result = util.criteriarr(arr)
-
-
-# =============================================================================
-# norm.py TEST
-# =============================================================================
-
-class NormTest(core.SKCriteriaTestCase):
-
-    def setUp(self):
-        super(NormTest, self).setUp()
-        cols = random.randint(100, 1000)
-        rows = random.randint(100, 1000)
-        self.mtx = [
-            [random.randint(1, 1000) for _ in range(cols)]
-            for _ in range(rows)
-        ]
-        self.arr = [random.randint(1, 1000) for _ in range(cols)]
-
-    def _test_normalizer(self, normfunc, mtx_result, arr_result, **kwargs):
-        mtx_func_result = normfunc(self.mtx, axis=0)
-        arr_func_result = normfunc(self.arr)
-        self.assertAllClose(mtx_result, mtx_func_result, **kwargs)
-        self.assertAllClose(arr_result, arr_func_result, **kwargs)
-
-    def test_SumNormalizer(self):
-        sums = collections.defaultdict(float)
-        for row in self.mtx:
-            for coln, col in enumerate(row):
-                sums[coln] += col
-        mtx_result = [
-            [(col / sums[coln]) for coln, col in enumerate(row)]
-            for row in self.mtx
-        ]
-        arr_sum = float(sum(self.arr))
-        arr_result = [(col / arr_sum) for col in self.arr]
-        self._test_normalizer(norm.sum, mtx_result, arr_result)
-
-    def test_MaxNormalizer(self):
-        maxes = collections.defaultdict(lambda: None)
-        for row in self.mtx:
-            for coln, col in enumerate(row):
-                if maxes[coln] is None or maxes[coln] < col:
-                    maxes[coln] = col
-        mtx_result = [
-            [(float(col) / maxes[coln]) for coln, col in enumerate(row)]
-            for row in self.mtx
-        ]
-        arr_max = float(max(self.arr))
-        arr_result = [(col / arr_max) for col in self.arr]
-        self._test_normalizer(norm.max, mtx_result, arr_result)
-
-    def test_VectorNormalizer(self):
-        colsums = collections.defaultdict(float)
-        for row in self.mtx:
-            for coln, col in enumerate(row):
-                colsums[coln] += col ** 2
-        mtx_result = [
-            [(col / np.sqrt(colsums[coln])) for coln, col in enumerate(row)]
-            for row in self.mtx
-        ]
-        arr_sum = sum([col ** 2 for col in self.arr])
-        arr_result = [(col / np.sqrt(arr_sum)) for col in self.arr]
-        self._test_normalizer(norm.vector, mtx_result, arr_result)
-
-    def test_push_negatives(self):
-        self.mtx = [
-            [1, -2, 3],
-            [4,  5, 6]
-        ]
-        mtx_result = [
-            [1, 0, 3],
-            [4, 7, 6]
-        ]
-
-        self.arr = [1, -2, 3]
-        arr_result = [3, 0, 5]
-        self._test_normalizer(norm.push_negatives, mtx_result, arr_result)
-
-    def test_add1to0(self):
-        self.mtx = [
-            [1, 0, 3],
-            [4, 5, 0]
-        ]
-
-        mtx_result = [
-            [1, 1, 4],
-            [4, 6, 1],
-        ]
-
-        self.arr = [1, 0, 0]
-        arr_result = [1, 1, 1]
-        self._test_normalizer(norm.add1to0, mtx_result, arr_result, atol=1)
 
 
 # =============================================================================

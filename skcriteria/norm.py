@@ -20,7 +20,6 @@ __doc__ = """Several implementations of normalization methods
 
 """
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -30,9 +29,58 @@ from numpy import linalg
 
 
 # =============================================================================
+# EXCEPTIONS
+# =============================================================================
+
+class DuplicatedNameError(ValueError):
+    pass
+
+
+class NormalizerNotFound(AttributeError):
+    pass
+
+
+# =============================================================================
+# REGISTERS
+# =============================================================================
+
+NORMALIZERS = {}
+
+
+def register(name, func=None):
+    if name in NORMALIZERS:
+        raise DuplicatedNameError(name)
+    if func is None:
+        def _dec(func):
+            NORMALIZERS[name] = func
+            return func
+        return _dec
+    else:
+        NORMALIZERS[name] = func
+        return func
+
+
+def norm(name, arr, axis=None):
+    try:
+        return NORMALIZERS[name](arr, axis=axis)
+    except KeyError:
+        raise NormalizerNotFound(name)
+
+
+# =============================================================================
 # IMPLEMENTATIONS
 # =============================================================================
 
+@register("none")
+def none(arr, axis=None):
+    """This do not nothing and only try to return an numpy.ndarray
+    of the given data
+
+    """
+    return np.asarray(arr)
+
+
+@register("sum")
 def sum(arr, axis=None):
     r"""Divide of every value on the array by sum of values along an
     axis.
@@ -81,6 +129,7 @@ def sum(arr, axis=None):
     return arr / sumval
 
 
+@register("max")
 def max(arr, axis=None):
     r"""Divide of every value on the array by max value along an axis.
 
@@ -124,6 +173,7 @@ def max(arr, axis=None):
     return arr / maxval
 
 
+@register("vector")
 def vector(arr, axis=None):
     r"""Caculates the set of ratios as the square roots of the sum of squared
     responses of a given axis as denominators.  If *axis* is *None* sum all
@@ -172,6 +222,7 @@ def vector(arr, axis=None):
     return arr / frob
 
 
+@register("push_negatives")
 def push_negatives(arr, axis=None):
     r"""If an array has negative values this function increment the values
     proportionally to made all the array positive along an axis.
@@ -228,6 +279,7 @@ def push_negatives(arr, axis=None):
     return arr - delta
 
 
+@register("add1to0")
 def add1to0(arr, axis=None):
     r"""If a value in the array is 0, then an :math:`1` is added to
     all the values
