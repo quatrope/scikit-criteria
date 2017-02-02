@@ -235,7 +235,7 @@ class RefPointMOORA(DecisionMaker):
 class FMFMOORA(DecisionMaker):
 
     def __init__(self, mnorm="vector"):
-        super(RefPointMOORA, self).__init__(mnorm=mnorm, wnorm="none")
+        super(FMFMOORA, self).__init__(mnorm=mnorm, wnorm="none")
 
     def normalize(self, mtx, criteria, weights):
         non_negative = norm.push_negatives(mtx, axis=0)
