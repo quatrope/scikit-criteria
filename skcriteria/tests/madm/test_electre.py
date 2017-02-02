@@ -60,9 +60,7 @@ from ...madm import electre
 # BASE CLASS
 # =============================================================================
 
-class Electre1Test(core.SKCriteriaTestCase):
-    mnorm = "sum"
-    wnorm = "sum"
+class ConcordanceTest(core.SKCriteriaTestCase):
 
     def test_concordance(self):
         # Data From:
@@ -94,6 +92,9 @@ class Electre1Test(core.SKCriteriaTestCase):
         concordance = electre.concordance(nmtx, ncriteria, nweights)
         self.assertAllClose(concordance, results, atol=1.e-3)
 
+
+class DiscordanceTest(core.SKCriteriaTestCase):
+
     def test_discordance(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
@@ -123,6 +124,11 @@ class Electre1Test(core.SKCriteriaTestCase):
 
         discordance = electre.discordance(nmtx, ncriteria)
         self.assertAllClose(discordance, results, atol=1.e-3)
+
+
+class Electre1Test(core.SKCriteriaTestCase):
+    mnorm = "sum"
+    wnorm = "sum"
 
     def test_electre1(self):
         # Data From:
