@@ -59,8 +59,10 @@ from ...madm import electre
 # =============================================================================
 # BASE CLASS
 # =============================================================================
-@core.unittest.skip
+
 class Electre1Test(core.SKCriteriaTestCase):
+    mnorm = "sum"
+    wnorm = "sum"
 
     def test_concordance(self):
         # Data From:
@@ -168,8 +170,9 @@ class Electre1Test(core.SKCriteriaTestCase):
             [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
         ]
 
+        nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
         kernel, outrank, concordance, discordance = electre.electre1(
-            mtx, criteria, weights=weights, p=0.5500, q=0.699)
+            nmtx, ncriteria, nweights=nweights, p=0.5500, q=0.699)
 
         self.assertCountEqual(kernel, result_kernel)
         self.assertArrayEqual(outrank, result_outrank)
