@@ -54,15 +54,17 @@ import random
 import numpy as np
 
 from .. import core
-from ... import util
+from ... import util, norm
 from ...madm import moora
 
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
-@core.unittest.skip
-class MooraTest(core.SKCriteriaTestCase):
+
+class MOORATestBase(core.SKCriteriaTestCase):
+    mnorm = "vector"
+    wnorm = "sum"
 
     def setUp(self):
         # Data From:
@@ -86,48 +88,53 @@ class MooraTest(core.SKCriteriaTestCase):
         self.rows = len(self.mtx)
         self.columns = len(self.mtx[0]) if self.rows else 0
 
-    def test_ratio_with_weights(self):
+
+# =============================================================================
+# TESTS
+# =============================================================================
+
+class RatioMOORATest(MOORATestBase):
+
+    def test_ratio(self):
         weights = [1, 1, 1, 1, 1, 1, 1]
 
         result = [5, 1, 3, 6, 4, 2]
         points = [-0.23206838, -0.03604841, -0.1209072,
                   -0.31909074, -0.16956892, -0.11065173]
 
+        nmtx, ncriteria, nweights = self.normalize(
+            self.mtx, self.criteria, weights)
         rank_result, points_result = moora.ratio(
-            self.mtx, self.criteria, weights
+            nmtx, ncriteria, nweights
         )
 
         self.assertAllClose(points_result, points, atol=1.e-4)
         self.assertAllClose(rank_result, result)
 
-    def test_ratio(self):
-        result = [5, 1, 3, 6, 4, 2]
-        points = [-1.6245, -0.2523, -0.8464, -2.2336, -1.1870, -0.7746]
 
-        rank_result, points_result = moora.ratio(self.mtx, self.criteria)
-
-        self.assertAllClose(points_result, points, atol=1.e-4)
-        self.assertAllClose(rank_result, result)
+class RefPointMOORATest(MOORATestBase):
 
     def test_refpoint(self):
-        result = [4, 5, 1, 6, 2, 3]
-        points = [0.6893, 0.6999,  0.5982, 0.8597, 0.6002, 0.6148]
-
-        rank_result, points_result = moora.refpoint(self.mtx, self.criteria)
-
-        self.assertAllClose(points_result, points, atol=1.e-3)
-        self.assertAllClose(rank_result, result)
-
-    def test_refpoint_with_weights(self):
         weights = [1, 1, 1, 1, 1, 1, 1]
         result = [4, 5, 1, 6, 2, 3]
         points = [0.09847, 0.0999, 0.0854, 0.1227, 0.0857, 0.0878]
 
-        rank_result, points_result = moora.refpoint(
+        nmtx, ncriteria, nweights = self.normalize(
             self.mtx, self.criteria, weights)
+        rank_result, points_result = moora.refpoint(
+            nmtx, ncriteria, nweights)
 
         self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)
+
+class FMFMOORATest(MOORATestBase):
+
+    def normalize(self, mtx, criteria):
+        non_negative = norm.push_negatives(mtx, axis=0)
+        non_zero = norm.add1to0(non_negative, axis=0)
+        nmtx, ncriteria, nweights = super(FMFMOORATest, self).normalize(
+            non_zero, criteria, 1)
+        return nmtx, ncriteria
 
     def test_fmf(self):
         result = [5, 1, 3, 6, 4, 2]
@@ -135,22 +142,24 @@ class MooraTest(core.SKCriteriaTestCase):
         # the result is the logarithm of this values
         points = [3.4343, 148689.356, 120.3441, 0.7882, 16.2917, 252.9155]
 
-        rank_result, points_result = moora.fmf(self.mtx, self.criteria)
+        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
+        rank_result, points_result = moora.fmf(nmtx, ncriteria)
 
         self.assertAllClose(points_result, np.log(points), atol=1.e-4)
         self.assertAllClose(rank_result, result)
 
         # some zeroes
-        zeros = set()
-        while len(zeros) < 3:
-            zero = (
-                random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1))
-            zeros.add(zero)
-        for row, column in zeros:
-            self.mtx[row][column] = 0
+        #~ zeros = set()
+        #~ while len(zeros) < 3:
+            #~ zero = (
+                #~ random.randint(0, self.rows-1),
+                #~ random.randint(0, self.columns-1))
+            #~ zeros.add(zero)
+        #~ for row, column in zeros:
+            #~ self.mtx[row][column] = 0
 
-        moora.fmf(self.mtx, self.criteria)
+        #~ nmtx, ncriteria, nweights = self.normalize(
+            #~ self.mtx, self.criteria, weights)
 
     def test_fmf_only_max(self):
         self.criteria = [util.MAX] * len(self.criteria)
@@ -161,20 +170,23 @@ class MooraTest(core.SKCriteriaTestCase):
 
         rank_result, points_result = moora.fmf(self.mtx, self.criteria)
 
-        self.assertAllClose(points_result, np.log(points), rtol=1.e-1)
+        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
+        rank_result, points_result = moora.fmf(nmtx, ncriteria)
+
+        self.assertAllClose(points_result, np.log(points), atol=1.)
         self.assertAllClose(rank_result, result)
 
-        # some zeroes
-        zeros = set()
-        while len(zeros) < 3:
-            zero = (
-                random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1))
-            zeros.add(zero)
-        for row, column in zeros:
-            self.mtx[row][column] = 0
+        #~ # some zeroes
+        #~ zeros = set()
+        #~ while len(zeros) < 3:
+            #~ zero = (
+                #~ random.randint(0, self.rows-1),
+                #~ random.randint(0, self.columns-1))
+            #~ zeros.add(zero)
+        #~ for row, column in zeros:
+            #~ self.mtx[row][column] = 0
 
-        moora.fmf(self.mtx, self.criteria)
+        #~ moora.fmf(self.mtx, self.criteria)
 
     def test_fmf_only_min(self):
         self.criteria = [util.MIN] * len(self.criteria)
@@ -185,22 +197,32 @@ class MooraTest(core.SKCriteriaTestCase):
         points = [
             869.5146, 41476540.2, 31897.0622, 264.0502, 4171.5128, 67566.8851]
 
-        rank_result, points_result = moora.fmf(self.mtx, self.criteria)
+        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
+        rank_result, points_result = moora.fmf(nmtx, ncriteria)
 
-        self.assertAllClose(points_result, 1+np.log(points), atol=1.e-4)
+        self.assertAllClose(points_result, 1 + np.log(points), atol=1.e-4)
         self.assertAllClose(rank_result, result)
 
-        # some zeroes
-        zeros = set()
-        while len(zeros) < 3:
-            zero = (
-                random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1))
-            zeros.add(zero)
-        for row, column in zeros:
-            self.mtx[row][column] = 0
+        #~ # some zeroes
+        #~ zeros = set()
+        #~ while len(zeros) < 3:
+            #~ zero = (
+                #~ random.randint(0, self.rows-1),
+                #~ random.randint(0, self.columns-1))
+            #~ zeros.add(zero)
+        #~ for row, column in zeros:
+            #~ self.mtx[row][column] = 0
 
-        moora.fmf(self.mtx, self.criteria)
+        #~ moora.fmf(self.mtx, self.criteria)
+
+class MultiMOORATest(MOORATestBase):
+
+    def normalize(self, mtx, criteria):
+        non_negative = norm.push_negatives(mtx, axis=0)
+        non_zero = norm.add1to0(non_negative, axis=0)
+        nmtx, ncriteria, nweights = super(MultiMOORATest, self).normalize(
+            non_zero, criteria, 1)
+        return nmtx, ncriteria
 
     def test_multimoora(self):
         result = [5, 1, 3, 6, 4, 2]
@@ -213,9 +235,8 @@ class MooraTest(core.SKCriteriaTestCase):
             [2, 3, 2]
         ]
 
-        rank_result, mmora_mtx_result = moora.multimoora(
-            self.mtx, self.criteria
-        )
+        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
+        rank_result, mmora_mtx_result = moora.multimoora(nmtx, ncriteria)
 
         self.assertAllClose(mmora_mtx_result, mmora_mtx, atol=1.e-4)
         self.assertAllClose(rank_result, result)

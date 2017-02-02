@@ -72,7 +72,7 @@ from ..dmaker import DecisionMaker
 # FUNCTIONS
 # =============================================================================
 
-def _ratio(nmtx, criteria, nweights):
+def ratio(nmtx, criteria, nweights):
 
     cweights = nweights * criteria
 
@@ -82,7 +82,70 @@ def _ratio(nmtx, criteria, nweights):
     return rank.rankdata(points, reverse=True), points
 
 
-def ratio(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
+def refpoint(nmtx, criteria, weights):
+    # max and min reference points
+    rpmax = np.max(nmtx, axis=0)
+    rpmin = np.min(nmtx, axis=0)
+
+    # merge two reference points acoording criteria
+    mask = np.where(criteria == util.MAX, criteria, 0)
+    rpoints = np.where(mask, rpmax, rpmin)
+
+    # create rank matrix
+    rank_mtx = np.max(np.abs(weights * (nmtx - rpoints)), axis=1)
+    points = np.squeeze(np.asarray(rank_mtx))
+    return rank.rankdata(points), points
+
+
+def fmf(nmtx, criteria):
+    lmtx = np.log(nmtx)
+
+    if not np.setdiff1d(criteria, [util.MAX]):
+        # only max
+        points = np.sum(lmtx, axis=1)
+    elif not np.setdiff1d(criteria, [util.MIN]):
+        # only min
+        points = 1 - np.sum(lmtx, axis=1)
+    else:
+        # min max
+        min_mask = np.ravel(np.argwhere(criteria == util.MAX))
+        max_mask = np.ravel(np.argwhere(criteria == util.MIN))
+
+        # remove invalid values
+        min_arr = np.delete(lmtx, min_mask, axis=1)
+        max_arr = np.delete(lmtx, max_mask, axis=1)
+
+        mins = np.sum(min_arr, axis=1)
+        maxs = np.sum(max_arr, axis=1)
+        points = maxs - mins
+
+    return rank.rankdata(points, reverse=True), points
+
+
+def multimoora(nmtx, ncriteria):
+
+    ratio_rank = ratio(nmtx, ncriteria, 1)[0]
+    refpoint_rank = refpoint(nmtx, ncriteria, 1)[0]
+    fmf_rank = fmf(nmtx, ncriteria)[0]
+
+    rank_mtx = np.array([ratio_rank, refpoint_rank, fmf_rank]).T
+
+    alternatives = rank_mtx.shape[0]
+    points = np.zeros(alternatives)
+    for idx0, idx1 in itertools.combinations(range(alternatives), 2):
+        alt0, alt1 = rank_mtx[idx0], rank_mtx[idx1]
+        dom = rank.dominance(alt0, alt1)
+        dom_idx = idx0 if dom > 0 else idx1
+        points[dom_idx] += 1
+
+    return rank.rankdata(points, reverse=True), rank_mtx
+
+
+# =============================================================================
+# OO
+# =============================================================================
+
+class RatioMOORA(DecisionMaker):
     r"""The method refers to a matrix of responses of alternatives to
     objectives, to which ratios are applied.
 
@@ -119,12 +182,8 @@ def ratio(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
     Returns
     -------
 
-    rnk, points : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
-        *rnk* is a zero based rank of all alternatives. The values of the
-        *i-th* element of the array is the final rank of the *i-th*
-        alternative. The value of the *i-th* element of *points*
-        the array contains the points of the *i-th* alternative.
-
+    a Decision : (:py:class:`skcriteria.dmaker._Decision`)
+        # TODO
 
     References
     ----------
@@ -147,125 +206,61 @@ def ratio(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
     >>> mtx = [[1,2,3], [1,1,4], [2, 0, 1]]
     >>> criteria = [1, -1, 1]
     >>>
-    >>> rnk, points = moora.ratio(mtx, criteria)
-    >>>
-    >>> rnk
+    >>> dm = moora.RatioMOORA()
+    >>> decision = dm.decide(mtx, criteria)
+    >>> decision.rank_
     array([2, 1, 0])
-    >>> points
+    >>> decision.e_.points
     array([ 0.1021695 ,  0.74549924,  1.01261272])
 
     """
-    nmtx = mnorm(mtx, axis=0)
-    ncriteria = util.criteriarr(criteria)
-    nweights = wnorm(weights) if weights is not None else 1
-    return _ratio(nmtx, ncriteria, nweights)
+    def __init__(self, mnorm="vector", wnorm="sum"):
+        super(RatioMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
-
-def _refpoint(nmtx, criteria, weights):
-    # max and min reference points
-    rpmax = np.max(nmtx, axis=0)
-    rpmin = np.min(nmtx, axis=0)
-
-    # merge two reference points acoording criteria
-    mask = np.where(criteria == util.MAX, criteria, 0)
-    rpoints = np.where(mask, rpmax, rpmin)
-
-    # create rank matrix
-    rank_mtx = np.max(np.abs(weights * (nmtx - rpoints)), axis=1)
-    points = np.squeeze(np.asarray(rank_mtx))
-    return rank.rankdata(points), points
-
-
-def refpoint(mtx, criteria, weights=None, mnorm=norm.vector, wnorm=norm.sum):
-    nmtx = mnorm(mtx, axis=0)
-    ncriteria = util.criteriarr(criteria)
-    nweights = wnorm(weights) if weights is not None else 1
-    return _refpoint(nmtx, ncriteria, nweights)
-
-
-def _fmf(nmtx, criteria):
-    lmtx = np.log(nmtx)
-
-    if not np.setdiff1d(criteria, [util.MAX]):
-        # only max
-        points = np.sum(lmtx, axis=1)
-    elif not np.setdiff1d(criteria, [util.MIN]):
-        # only min
-        points = 1 - np.sum(lmtx, axis=1)
-    else:
-        # min max
-        min_mask = np.ravel(np.argwhere(criteria == util.MAX))
-        max_mask = np.ravel(np.argwhere(criteria == util.MIN))
-
-        # remove invalid values
-        min_arr = np.delete(lmtx, min_mask, axis=1)
-        max_arr = np.delete(lmtx, max_mask, axis=1)
-
-        mins = np.sum(min_arr, axis=1)
-        maxs = np.sum(max_arr, axis=1)
-        points = maxs - mins
-
-    return rank.rankdata(points, reverse=True), points
-
-
-def fmf(mtx, criteria, mnorm=norm.vector):
-    non_negative = norm.push_negatives(mtx, axis=0)
-    non_zero = norm.add1to0(non_negative, axis=0)
-    nmtx = mnorm(non_zero, axis=0)
-
-    ncriteria = util.criteriarr(criteria)
-    return _fmf(nmtx, ncriteria)
-
-
-def multimoora(mtx, criteria, mnorm=norm.vector):
-
-    nmtx = mnorm(mtx, axis=0)
-    ncriteria = util.criteriarr(criteria)
-
-    ratio_rank = _ratio(nmtx, ncriteria, 1)[0]
-    refpoint_rank = _refpoint(nmtx, ncriteria, 1)[0]
-    fmf_rank = _fmf(nmtx, ncriteria)[0]
-
-    rank_mtx = np.array([ratio_rank, refpoint_rank, fmf_rank]).T
-
-    alternatives = rank_mtx.shape[0]
-    points = np.zeros(alternatives)
-    for idx0, idx1 in itertools.combinations(range(alternatives), 2):
-        alt0, alt1 = rank_mtx[idx0], rank_mtx[idx1]
-        dom = rank.dominance(alt0, alt1)
-        dom_idx = idx0 if dom > 0 else idx1
-        points[dom_idx] += 1
-
-    return rank.rankdata(points, reverse=True), rank_mtx
-
-
-# =============================================================================
-# OO
-# =============================================================================
-
-class RatioMOORA(DecisionMaker):
-
-    def solve(self, mtx, criteria, weights):
-        rank, points = ratio(mtx, criteria, weights)
+    def solve(self, nmtx, ncriteria, nweights):
+        rank, points = ratio(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
 
 class RefPointMOORA(DecisionMaker):
 
-    def solve(self, mtx, criteria, weights):
-        rank, points = refpoint(mtx, criteria, weights)
+    def __init__(self, mnorm="vector", wnorm="sum"):
+        super(RefPointMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
+
+    def solve(self, nmtx, ncriteria, nweights):
+        rank, points = refpoint(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
 
 class FMFMOORA(DecisionMaker):
 
-    def solve(self, mtx, criteria, weights):
-        rank, points = fmf(mtx, criteria)
+    def __init__(self, mnorm="vector"):
+        super(RefPointMOORA, self).__init__(mnorm=mnorm, wnorm="none")
+
+    def normalize(self, mtx, criteria, weights):
+        non_negative = norm.push_negatives(mtx, axis=0)
+        non_zero = norm.add1to0(non_negative, axis=0)
+        nmtx = self.mnorm(non_zero, axis=0)
+        ncriteria = util.criteriarr(criteria)
+        return nmtx, ncriteria, None
+
+    def solve(self, nmtx, ncriteria, nweights):
+        rank, points = fmf(nmtx, ncriteria)
         return None, rank, {"points": points}
 
 
 class MultiMOORA(DecisionMaker):
 
-    def solve(self, mtx, criteria, weights):
-        rank, rank_mtx = multimoora(mtx, criteria)
+    def __init__(self, mnorm="vector"):
+        super(MultiMOORA, self).__init__(mnorm=mnorm, wnorm="none")
+
+    def normalize(self, mtx, criteria, weights):
+        non_negative = norm.push_negatives(mtx, axis=0)
+        non_zero = norm.add1to0(non_negative, axis=0)
+        nmtx = self.mnorm(non_zero, axis=0)
+        ncriteria = util.criteriarr(criteria)
+        return nmtx, ncriteria, None
+
+    def solve(self, nmtx, ncriteria, nweights):
+        rank, rank_mtx = multimoora(nmtx, ncriteria)
         return None, rank, {"rank_mtx": rank_mtx}
