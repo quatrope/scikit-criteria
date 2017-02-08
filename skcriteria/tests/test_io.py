@@ -32,80 +32,49 @@
 
 
 # =============================================================================
-# DOCS
+# FUTURE
 # =============================================================================
 
-"""This file is for distribute scikit-criteria
+from __future__ import unicode_literals
 
-"""
+
+# =============================================================================
+# DOC
+# =============================================================================
+
+__doc__ = """Test normalization functionalities"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import sys
+import collections
+import random
 
-from ez_setup import use_setuptools
-use_setuptools()
+import numpy as np
 
-from setuptools import setup, find_packages
+import mock
 
-import skcriteria
+from six.moves import range
 
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-REQUIREMENTS = [
-    "numpy", "scipy", "six", "attrs", "mock",
-    "json-tricks", "pytz"  # this is for io
-]
+from . import core, utils
+from .. import io, dmaker
 
 
 # =============================================================================
-# FUNCTIONS
+# BASE
 # =============================================================================
 
-def do_setup():
-    setup(
-        name=skcriteria.NAME,
-        version=skcriteria.VERSION,
-        description=skcriteria.DOC,
-        author=skcriteria.AUTHORS,
-        author_email=skcriteria.EMAIL,
-        url=skcriteria.URL,
-        license=skcriteria.LICENSE,
-        keywords=skcriteria.KEYWORDS,
-        classifiers=(
-            "Development Status :: 4 - Beta",
-            "Intended Audience :: Education",
-            "Intended Audience :: Science/Research",
-            "License :: OSI Approved :: BSD License",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.4",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: Implementation :: CPython",
-            "Topic :: Scientific/Engineering",
-        ),
-        packages=[
-            pkg for pkg in find_packages() if pkg.startswith("skcriteria")],
-        py_modules=["ez_setup"],
-        install_requires=REQUIREMENTS,
-    )
+class DumpLoadTest(core.SKCriteriaTestCase):
 
+    def setUp(self):
+        # if som test import a module with a decision maker
+        # this function will find it
+        self.dmakers = utils.collect_subclasses(dmaker.DecisionMaker)
 
-def do_publish():
-    pass
-
-
-if __name__ == "__main__":
-    if sys.argv[-1] == 'publish':
-        do_publish()
-    else:
-        do_setup()
+    def test_dm(self):
+        for dmcls in self.dmakers:
+            dm = dmcls()
+            stream = io.dumps(dm)
+            #~ import ipdb; ipdb.set_trace()

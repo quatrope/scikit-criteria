@@ -74,7 +74,7 @@ class _Extra(Mapping):
 
 
 @attr.s(frozen=True, repr=False, cmp=False)
-class _Decision(object):
+class Decision(object):
     decision_maker = attr.ib()
     mtx = attr.ib()
     criteria = attr.ib()
@@ -128,7 +128,7 @@ class DecisionMaker(object):
         return nmtx, ncriteria, nweights
 
     def make_decision(self, mtx, criteria, weights, efficients, rank, extra):
-        desicion = _Decision(
+        desicion = Decision(
             decision_maker=self,
             mtx=mtx, criteria=criteria, weights=weights,
             efficients_=efficients, rank_=rank, e_=extra)

@@ -48,7 +48,7 @@ import argparse
 import unittest
 import importlib
 
-from . import core
+from . import core, utils
 
 
 # =============================================================================
@@ -82,16 +82,6 @@ def create_parser():
     return parser
 
 
-def collect_subclasses(cls):
-    def collect(basecls):
-        collected = set()
-        for subcls in basecls.__subclasses__():
-            collected.add(subcls)
-            collected.update(collect(subcls))
-        return collected
-    return tuple(collect(cls))
-
-
 def load_test_modules():
     base_pkg, test_modules_names = ".".join(["skcriteria", "tests"]), []
     for dirpath, dirnames, filenames in os.walk(PATH):
@@ -120,7 +110,7 @@ def run_tests(verbosity=1, failfast=False):
 
     load_test_modules()
 
-    for testcase in collect_subclasses(core.SKCriteriaTestCase):
+    for testcase in utils.collect_subclasses(core.SKCriteriaTestCase):
         tests = loader.loadTestsFromTestCase(testcase)
         if tests.countTestCases():
                 suite.addTests(tests)

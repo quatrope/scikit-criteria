@@ -32,80 +32,64 @@
 
 
 # =============================================================================
-# DOCS
-# =============================================================================
-
-"""This file is for distribute scikit-criteria
-
-"""
-
-
-# =============================================================================
 # IMPORTS
 # =============================================================================
 
 import sys
+import datetime as dt
+import platform
 
-from ez_setup import use_setuptools
-use_setuptools()
+import six
 
-from setuptools import setup, find_packages
+import pytz
 
-import skcriteria
+import numpy as np
 
+import json_tricks as jt
+
+
+from . import util, norm, dmaker
 
 # =============================================================================
-# CONSTANTS
+# CONTANTS
 # =============================================================================
 
-REQUIREMENTS = [
-    "numpy", "scipy", "six", "attrs", "mock",
-    "json-tricks", "pytz"  # this is for io
-]
+SKCM_VERSION = 1
+
+CT_DECISION = "decision"
+
+CT_DMAKER = "decision-maker"
 
 
 # =============================================================================
 # FUNCTIONS
 # =============================================================================
 
-def do_setup():
-    setup(
-        name=skcriteria.NAME,
-        version=skcriteria.VERSION,
-        description=skcriteria.DOC,
-        author=skcriteria.AUTHORS,
-        author_email=skcriteria.EMAIL,
-        url=skcriteria.URL,
-        license=skcriteria.LICENSE,
-        keywords=skcriteria.KEYWORDS,
-        classifiers=(
-            "Development Status :: 4 - Beta",
-            "Intended Audience :: Education",
-            "Intended Audience :: Science/Research",
-            "License :: OSI Approved :: BSD License",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.4",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: Implementation :: CPython",
-            "Topic :: Scientific/Engineering",
-        ),
-        packages=[
-            pkg for pkg in find_packages() if pkg.startswith("skcriteria")],
-        py_modules=["ez_setup"],
-        install_requires=REQUIREMENTS,
-    )
+def dumps(obj, *args, **kwargs):
+    data = {}
 
-
-def do_publish():
-    pass
-
-
-if __name__ == "__main__":
-    if sys.argv[-1] == 'publish':
-        do_publish()
+    # check the content type
+    if isinstance(obj, dmaker.Decision):
+        data["content-type"] = CT_DECISION
+    elif isinstance(obj, dmaker.DecisionMaker):
+        data["content-type"] = CT_DMAKER
     else:
-        do_setup()
+        msg = ("'obj' must be an istance of Decision or DecisionMaker. "
+               "Found: {}").format(type(obj))
+        raise TypeError(msg)
+
+    # add the common data
+    data.update({
+        "data": obj,
+        "version": SKCM_VERSION,
+        "env": {
+            "python": sys.version,
+            "numpy": np.version.full_version,
+            "pytz": pytz.__version__,
+            "platform": platform.platform()
+        },
+        "created_at": dt.datetime.utcnow()})
+    return jt.dumps(data)
+
+
+
