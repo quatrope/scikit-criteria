@@ -100,11 +100,11 @@ def dump(obj, fp, *args, **kwargs):
     return jt.dump(data, fp, *args, **kwargs)
 
 
-def loads(string, preserve_order=False, *args, **kwargs):
-    data = jt.loads(string, preserve_order=preserve_order , *args, **kwargs)
-    return data["data"]
+def loads(string, skcm_metadata=False, preserve_order=False, *args, **kwargs):
+    data = jt.loads(string, preserve_order=preserve_order, *args, **kwargs)
+    return data if skcm_metadata else data["data"]
 
 
-def load(fp, preserve_order=False, *args, **kwargs):
-    data = jt.load(fp, preserve_order=preserve_order , *args, **kwargs)
-    return data["data"]
+def load(fp, skcm_metadata=False, preserve_order=False, *args, **kwargs):
+    data = jt.load(fp, preserve_order=preserve_order, *args, **kwargs)
+    return data if skcm_metadata else data["data"]

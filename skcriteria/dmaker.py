@@ -154,11 +154,11 @@ class DecisionMaker(object):
         return nmtx, ncriteria, nweights
 
     def make_decision(self, mtx, criteria, weights, efficients, rank, extra):
-        desicion = Decision(
+        decision = Decision(
             decision_maker=self,
             mtx=mtx, criteria=criteria, weights=weights,
             efficients_=efficients, rank_=rank, e_=extra)
-        return desicion
+        return decision
 
     def decide(self, mtx, criteria, weights=None):
         nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
