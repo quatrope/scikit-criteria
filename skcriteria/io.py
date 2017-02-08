@@ -63,7 +63,7 @@ CT_DMAKER = "decision-maker"
 # FUNCTIONS
 # =============================================================================
 
-def dumps(obj, *args, **kwargs):
+def dumpd(obj):
     data = {}
 
     # check the content type
@@ -87,9 +87,24 @@ def dumps(obj, *args, **kwargs):
             "platform": platform.platform()
         },
         "created_at": dt.datetime.utcnow()})
+    return data
+
+
+def dumps(obj, *args, **kwargs):
+    data = dumpd(obj)
     return jt.dumps(data, *args, **kwargs)
 
 
-def loads(string, *args, **kwargs):
-    data = jt.loads(string, *args, **kwargs)
+def dump(obj, fp, *args, **kwargs):
+    data = dumpd(obj)
+    return jt.dump(data, fp, *args, **kwargs)
+
+
+def loads(string, preserve_order=False, *args, **kwargs):
+    data = jt.loads(string, preserve_order=preserve_order , *args, **kwargs)
+    return data["data"]
+
+
+def load(fp, preserve_order=False, *args, **kwargs):
+    data = jt.load(fp, preserve_order=preserve_order , *args, **kwargs)
     return data["data"]
