@@ -117,6 +117,32 @@ class DecisionMaker(object):
         self._mnorm = mnorm if hasattr(mnorm, "__call__") else norm.get(mnorm)
         self._wnorm = wnorm if hasattr(wnorm, "__call__") else norm.get(wnorm)
 
+    def __eq__(self, obj):
+        return isinstance(obj, type(self)) and self.as_dict() == obj.as_dict()
+
+    def __ne__(self, obj):
+        # this is where jsontrick hangs on
+        return not self == obj
+
+    def __json_encode__(self):
+        # this is where jsontrick hangs on
+        return self.as_dict()
+
+    def __json_decode__(self, **attrs):
+        self.from_dict(attrs)
+
+    def as_dict(self):
+        try:
+            return {"mnorm": norm.nameof(self._mnorm),
+                    "wnorm": norm.nameof(self._wnorm)}
+        except norm.FunctionNotRegisteredAsNormalizer as err:
+            msg = ("All your normalization function must be registered with "
+                   "'norm.register()' function. Invalid Function: {}")
+            raise norm.FunctionNotRegisteredAsNormalizer(msg.format(err))
+
+    def from_dict(self, data):
+        self.__init__(**data)
+
     @abc.abstractmethod
     def solve(self, nmtx, ncriteria, nweights):
         return NotImplemented

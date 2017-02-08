@@ -237,6 +237,11 @@ class FMFMOORA(DecisionMaker):
     def __init__(self, mnorm="vector"):
         super(FMFMOORA, self).__init__(mnorm=mnorm, wnorm="none")
 
+    def as_dict(self):
+        data = super(FMFMOORA, self).as_dict()
+        del data["wnorm"]
+        return data
+
     def normalize(self, mtx, criteria, weights):
         non_negative = norm.push_negatives(mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
@@ -253,6 +258,11 @@ class MultiMOORA(DecisionMaker):
 
     def __init__(self, mnorm="vector"):
         super(MultiMOORA, self).__init__(mnorm=mnorm, wnorm="none")
+
+    def as_dict(self):
+        data = super(MultiMOORA, self).as_dict()
+        del data["wnorm"]
+        return data
 
     def normalize(self, mtx, criteria, weights):
         non_negative = norm.push_negatives(mtx, axis=0)

@@ -66,6 +66,10 @@ class NormalizerNotFound(AttributeError):
     pass
 
 
+class FunctionNotRegisteredAsNormalizer(ValueError):
+    pass
+
+
 # =============================================================================
 # REGISTERS
 # =============================================================================
@@ -91,6 +95,13 @@ def get(name):
         return NORMALIZERS[name]
     except KeyError:
         raise NormalizerNotFound(name)
+
+
+def nameof(normalizer):
+    for k, v in NORMALIZERS.items():
+        if v == normalizer:
+            return k
+    raise FunctionNotRegisteredAsNormalizer(str(normalizer))
 
 
 def norm(name, arr, axis=None):

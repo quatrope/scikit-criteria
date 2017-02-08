@@ -39,16 +39,14 @@ import sys
 import datetime as dt
 import platform
 
-import six
-
 import pytz
 
 import numpy as np
 
 import json_tricks as jt
 
+from . import dmaker
 
-from . import util, norm, dmaker
 
 # =============================================================================
 # CONTANTS
@@ -89,7 +87,9 @@ def dumps(obj, *args, **kwargs):
             "platform": platform.platform()
         },
         "created_at": dt.datetime.utcnow()})
-    return jt.dumps(data)
+    return jt.dumps(data, *args, **kwargs)
 
 
-
+def loads(string, *args, **kwargs):
+    data = jt.loads(string, *args, **kwargs)
+    return data["data"]

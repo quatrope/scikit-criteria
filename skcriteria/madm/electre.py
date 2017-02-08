@@ -155,6 +155,11 @@ class ELECTRE1(DecisionMaker):
 
         return kernel, None, extra
 
+    def as_dict(self):
+        base = super(ELECTRE1, self).as_dict()
+        base.update({"p": self._p, "q": self._q})
+        return base
+
     @property
     def p(self):
         return self._p

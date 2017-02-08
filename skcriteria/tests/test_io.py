@@ -42,21 +42,12 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """Test normalization functionalities"""
+__doc__ = """Test io functionalities"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
-
-import collections
-import random
-
-import numpy as np
-
-import mock
-
-from six.moves import range
 
 from . import core, utils
 from .. import io, dmaker
@@ -66,7 +57,7 @@ from .. import io, dmaker
 # BASE
 # =============================================================================
 
-class DumpLoadTest(core.SKCriteriaTestCase):
+class IOTest(core.SKCriteriaTestCase):
 
     def setUp(self):
         # if som test import a module with a decision maker
@@ -76,5 +67,5 @@ class DumpLoadTest(core.SKCriteriaTestCase):
     def test_dm(self):
         for dmcls in self.dmakers:
             dm = dmcls()
-            stream = io.dumps(dm)
-            #~ import ipdb; ipdb.set_trace()
+            result = io.loads(io.dumps(dm))
+            self.assertEquals(result, dm)
