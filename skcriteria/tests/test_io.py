@@ -49,10 +49,15 @@ __doc__ = """Test io functionalities"""
 # IMPORTS
 # =============================================================================
 
+import random
+
 from six import StringIO
 
-from . import core, utils
+import numpy as np
+
 from .. import io, dmaker
+
+from . import core, utils
 
 
 # =============================================================================
@@ -111,3 +116,62 @@ class DMIOTest(core.SKCriteriaTestCase):
             result = io.load(fp, skcm_metadata=True)
             fp.seek(0)
             self.assertEquals(result, io.jt.load(fp))
+
+
+class DecisionIOTest(core.SKCriteriaTestCase):
+
+    def setUp(self):
+        # if som test import a module with a decision maker
+        # this function will find it
+        self.dmakers = utils.collect_subclasses(dmaker.DecisionMaker)
+        self.mtx = np.random.rand(3, 10)
+        self.criteria = np.asarray([random.choice((1, -1)) for e in range(10)])
+        self.weights = np.random.randint(1, 100, 10)
+
+    def test_dumps_loads(self):
+        for dmcls in self.dmakers:
+            dm = dmcls()
+            dec = dm.decide(self.mtx, self.criteria, self.weights)
+
+            dumped = io.dumps(dec)
+            result = io.loads(dumped)
+            self.assertEquals(result, dec)
+
+            #~ result = io.loads(dumped, skcm_metadata=True)
+            #~ self.assertEquals(result, io.jt.loads(dumped))
+
+    #~ def test_dump_load(self):
+        #~ for dmcls in self.dmakers:
+            #~ dm, fp = dmcls(), StringIO()
+            #~ io.dump(dm, fp)
+            #~ fp.seek(0)
+            #~ result = io.load(fp)
+            #~ self.assertEquals(result, dm)
+
+            #~ fp.seek(0)
+            #~ result = io.load(fp, skcm_metadata=True)
+            #~ fp.seek(0)
+            #~ self.assertEquals(result, io.jt.load(fp))
+
+    #~ def test_dump_loads(self):
+        #~ for dmcls in self.dmakers:
+            #~ dm, fp = dmcls(), StringIO()
+            #~ io.dump(dm, fp)
+            #~ result = io.loads(fp.getvalue())
+            #~ self.assertEquals(result, dm)
+
+            #~ result = io.loads(fp.getvalue(), skcm_metadata=True)
+            #~ self.assertEquals(result, io.jt.loads(fp.getvalue()))
+
+    #~ def test_dumps_load(self):
+        #~ for dmcls in self.dmakers:
+            #~ dm = dmcls()
+            #~ dumped = io.dumps(dm)
+            #~ fp = StringIO(dumped)
+            #~ result = io.load(fp)
+            #~ self.assertEquals(result, dm)
+
+            #~ fp.seek(0)
+            #~ result = io.load(fp, skcm_metadata=True)
+            #~ fp.seek(0)
+            #~ self.assertEquals(result, io.jt.load(fp))

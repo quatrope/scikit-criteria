@@ -42,6 +42,8 @@ import six
 
 import attr
 
+import numpy as np
+
 from . import util, norm
 
 
@@ -73,37 +75,102 @@ class _Extra(Mapping):
         return "_Extra({})".format(", ".join(self._data))
 
 
-@attr.s(frozen=True, repr=False, cmp=False)
 class Decision(object):
-    decision_maker = attr.ib()
-    mtx = attr.ib()
-    criteria = attr.ib()
-    weights = attr.ib()
-    efficients_ = attr.ib()
-    rank_ = attr.ib()
 
-    e_ = attr.ib(convert=_Extra)
+
+    def __init__(self, decision_maker, mtx, criteria, weights,
+                 efficients_, rank_, e_):
+            self._decision_maker = decision_maker
+            self._mtx = mtx
+            self._criteria = criteria
+            self._weights = weights
+
+            self._efficients = efficients_
+            self._rank = rank_
+            self._e = _Extra(e_)
 
     def __repr__(self):
-        decision_maker = type(self.decision_maker_).__name__
-        return "<Decision of '{}'{}>".format(decision_maker, self.mtx_.shape)
+        decision_maker = type(self.decision_maker).__name__
+        return "<Decision of '{}'{}>".format(decision_maker, self.mtx.shape)
+
+    def __eq__(self, obj):
+        return  (
+            isinstance(obj, Decision) and
+            self._decision_maker == obj._decision_maker and
+            np.array_equal(self._mtx, obj._mtx) and
+            np.array_equal(self._criteria, obj._criteria) and
+            np.array_equal(self._weights, obj._weights) and
+            np.array_equal(self._efficients, obj._efficients) and
+            np.array_equal(self._rank, obj._rank) and
+            self._e == obj._e)
+
+    def __ne__(self):
+        return not self == obj
+
+    def __json_encode__(self):
+        return self.as_dict()
+
+    def __json_decode__(self, **attrs):
+        decision_maker = attrs.pop("decision_maker")
+        data = decision_maker.decision_from_dict(attrs)
+        data.update({"decision_maker": decision_maker})
+        self.__init__(**data)
+
+    def as_dict(self):
+        data = {
+            "mtx": self._mtx,
+            "criteria": self._criteria,
+            "weights": self._weights,
+            "efficients_": self._efficients,
+            "rank_": self._rank, "e_": self._e}
+        data = self.decision_maker.decision_as_dict(data)
+        data.update({"decision_maker": self._decision_maker})
+        return data
+
+    @property
+    def decision_maker(self):
+        return self._decision_maker
+
+    @property
+    def mtx(self):
+        return self._mtx
+
+    @property
+    def criteria(self):
+        return self._criteria
+
+    @property
+    def weights(self):
+        return self._weights
+
+    @property
+    def efficients_(self):
+        return self._efficients
+
+    @property
+    def rank_(self):
+        return self._rank
+
+    @property
+    def e_(self):
+        return self._e
 
     @property
     def best_alternative_(self):
-        if self.rank_ is not None:
-            return self._rank_[0]
+        if self._rank is not None:
+            return self._rank[0]
 
     @property
     def alpha_solution_(self):
-        return self.rank_ is not None
+        return self._rank is not None
 
     @property
     def beta_solution_(self):
-        return self.efficients_ is not None
+        return self._efficients is not None
 
     @property
     def gamma_solution_(self):
-        return self.rank_ is not None
+        return self._rank is not None
 
 
 # =============================================================================
@@ -121,7 +188,6 @@ class DecisionMaker(object):
         return isinstance(obj, type(self)) and self.as_dict() == obj.as_dict()
 
     def __ne__(self, obj):
-        # this is where jsontrick hangs on
         return not self == obj
 
     def __json_encode__(self):
@@ -129,7 +195,15 @@ class DecisionMaker(object):
         return self.as_dict()
 
     def __json_decode__(self, **attrs):
-        self.from_dict(attrs)
+        # this is where jsontrick hangs on
+        data = self.from_dict(attrs)
+        self.__init__(**data)
+
+    def decision_as_dict(self, attrs):
+        return attrs
+
+    def decision_from_dict(self, data):
+        return data
 
     def as_dict(self):
         try:
@@ -141,7 +215,7 @@ class DecisionMaker(object):
             raise norm.FunctionNotRegisteredAsNormalizer(msg.format(err))
 
     def from_dict(self, data):
-        self.__init__(**data)
+        return data
 
     @abc.abstractmethod
     def solve(self, nmtx, ncriteria, nweights):
