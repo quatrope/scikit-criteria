@@ -59,8 +59,8 @@ import skcriteria
 # =============================================================================
 
 REQUIREMENTS = [
-    "numpy", "scipy", "six", "attrs", "mock",
-    "json-tricks", # this is for io
+    "numpy", "scipy", "six", "mock",
+    "json-tricks"  # this is for io
 ]
 
 

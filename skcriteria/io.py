@@ -39,8 +39,6 @@ import sys
 import datetime as dt
 import platform
 
-import pytz
-
 import numpy as np
 
 import json_tricks as jt

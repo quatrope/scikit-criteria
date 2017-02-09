@@ -41,8 +41,6 @@ from collections import Mapping
 
 import six
 
-import attr
-
 import numpy as np
 
 from . import util, norm
@@ -55,6 +53,12 @@ from . import util, norm
 class _Extra(Mapping):
     def __init__(self, data):
         self._data = dict(data)
+
+    def __json_encode__(self):
+        return {"data": self._data}
+
+    def __json_decode__(self, data):
+        self.__init__(data)
 
     def __eq__(self, obj):
         if not isinstance(obj, _Extra):
@@ -84,7 +88,7 @@ class _Extra(Mapping):
 
     def __getattr__(self, k):
         try:
-            return self[k]
+            return self._data[k]
         except KeyError:
             msg = "'_Extra' object has no attribute '{}'".format(k)
             raise AttributeError(msg)
@@ -94,7 +98,6 @@ class _Extra(Mapping):
 
 
 class Decision(object):
-
 
     def __init__(self, decision_maker, mtx, criteria, weights,
                  efficients_, rank_, e_):
@@ -112,7 +115,7 @@ class Decision(object):
         return "<Decision of '{}'{}>".format(decision_maker, self.mtx.shape)
 
     def __eq__(self, obj):
-        return  (
+        return (
             isinstance(obj, Decision) and
             self._decision_maker == obj._decision_maker and
             util.iter_equal(self._mtx, obj._mtx) and
@@ -122,7 +125,7 @@ class Decision(object):
             util.iter_equal(self._rank, obj._rank) and
             self._e == obj._e)
 
-    def __ne__(self):
+    def __ne__(self, obj):
         return not self == obj
 
     def __json_encode__(self):
