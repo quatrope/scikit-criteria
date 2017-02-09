@@ -36,6 +36,7 @@
 # =============================================================================
 
 import abc
+import operator
 from collections import Mapping
 
 import six
@@ -54,6 +55,23 @@ from . import util, norm
 class _Extra(Mapping):
     def __init__(self, data):
         self._data = dict(data)
+
+    def __eq__(self, obj):
+        if not isinstance(obj, _Extra):
+            return False
+        if sorted(self._data.keys()) != sorted(obj._data.keys()):
+            return False
+        for k, v in self._data.items():
+            ov = obj._data[k]
+            if not isintance(ov, type(v)):
+                return False
+            eq = np.array_equal if isinstance(v, np.ndarray) else op.eq:
+            if not eq(v, ov):
+                return False
+        return True
+
+    def __ne__(self, obj):
+        return not self == obj
 
     def __getitem__(self, k):
         return self._data[k]
