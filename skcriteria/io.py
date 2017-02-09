@@ -43,14 +43,13 @@ import numpy as np
 
 import json_tricks as jt
 
-from . import dmaker
-
+from . import dmaker, VERSION
 
 # =============================================================================
 # CONTANTS
 # =============================================================================
 
-SKCM_VERSION = 1
+SKCF_VERSION = 1
 
 CT_DECISION = "decision"
 
@@ -77,8 +76,9 @@ def dumpd(obj):
     # add the common data
     data.update({
         "data": obj,
-        "version": SKCM_VERSION,
+        "version": SKCF_VERSION,
         "env": {
+            "skcriteria": VERSION,
             "python": sys.version,
             "numpy": np.version.full_version,
             "platform": platform.platform()
@@ -87,21 +87,31 @@ def dumpd(obj):
     return data
 
 
-def dumps(obj, allow_nan=True, *args, **kwargs):
+def dumps(obj, **kwargs):
+    kwargs.setdefault("allow_nan", True)
+    kwargs.setdefault("indent", 2)
+
     data = dumpd(obj)
-    return jt.dumps(data, allow_nan=allow_nan, *args, **kwargs)
+    return jt.dumps(data, **kwargs)
 
 
-def dump(obj, fp, allow_nan=True, *args, **kwargs):
+def dump(obj, fp, **kwargs):
+    kwargs.setdefault("allow_nan", True)
+    kwargs.setdefault("indent", 2)
+
     data = dumpd(obj)
-    return jt.dump(data, fp, allow_nan=allow_nan, *args, **kwargs)
+    return jt.dump(data, fp, **kwargs)
 
 
-def loads(string, skcm_metadata=False, preserve_order=False, *args, **kwargs):
-    data = jt.loads(string, preserve_order=preserve_order, *args, **kwargs)
+def loads(string, skcm_metadata=False, **kwargs):
+    kwargs.setdefault("preserve_order", False)
+
+    data = jt.loads(string, **kwargs)
     return data if skcm_metadata else data["data"]
 
 
-def load(fp, skcm_metadata=False, preserve_order=False, *args, **kwargs):
-    data = jt.load(fp, preserve_order=preserve_order, *args, **kwargs)
+def load(fp, skcm_metadata=False, preserve_order=False, **kwargs):
+    kwargs.setdefault("preserve_order", False)
+
+    data = jt.load(fp, **kwargs)
     return data if skcm_metadata else data["data"]
