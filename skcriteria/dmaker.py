@@ -100,19 +100,19 @@ class _Extra(Mapping):
 class Decision(object):
 
     def __init__(self, decision_maker, mtx, criteria, weights,
-                 efficients_, rank_, e_):
+                 kernel_, rank_, e_):
             self._decision_maker = decision_maker
             self._mtx = mtx
             self._criteria = criteria
             self._weights = weights
 
-            self._efficients = efficients_
+            self._kernel = kernel_
             self._rank = rank_
             self._e = _Extra(e_)
 
     def __repr__(self):
-        decision_maker = type(self.decision_maker).__name__
-        return "<Decision of '{}'{}>".format(decision_maker, self.mtx.shape)
+        decision_maker = type(self._decision_maker).__name__
+        return "<Decision of '{}'{}>".format(decision_maker, self._mtx.shape)
 
     def __eq__(self, obj):
         return (
@@ -121,7 +121,7 @@ class Decision(object):
             util.iter_equal(self._mtx, obj._mtx) and
             util.iter_equal(self._criteria, obj._criteria) and
             util.iter_equal(self._weights, obj._weights) and
-            util.iter_equal(self._efficients, obj._efficients) and
+            util.iter_equal(self._kernel, obj._kernel) and
             util.iter_equal(self._rank, obj._rank) and
             self._e == obj._e)
 
@@ -142,7 +142,7 @@ class Decision(object):
             "mtx": self._mtx,
             "criteria": self._criteria,
             "weights": self._weights,
-            "efficients_": self._efficients,
+            "kernel_": self._kernel,
             "rank_": self._rank, "e_": self._e}
         data = self.decision_maker.decision_as_dict(data)
         data.update({"decision_maker": self._decision_maker})
@@ -165,8 +165,8 @@ class Decision(object):
         return self._weights
 
     @property
-    def efficients_(self):
-        return self._efficients
+    def kernel_(self):
+        return self._kernel
 
     @property
     def rank_(self):
@@ -187,7 +187,7 @@ class Decision(object):
 
     @property
     def beta_solution_(self):
-        return self._efficients is not None
+        return self._kernel is not None
 
     @property
     def gamma_solution_(self):
@@ -248,20 +248,20 @@ class DecisionMaker(object):
         nweights = self._wnorm(weights) if weights is not None else 1
         return nmtx, ncriteria, nweights
 
-    def make_decision(self, mtx, criteria, weights, efficients, rank, extra):
+    def make_decision(self, mtx, criteria, weights, kernel, rank, extra):
         decision = Decision(
             decision_maker=self,
             mtx=mtx, criteria=criteria, weights=weights,
-            efficients_=efficients, rank_=rank, e_=extra)
+            kernel_=kernel, rank_=rank, e_=extra)
         return decision
 
     def decide(self, mtx, criteria, weights=None):
         nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
-        efficients, rank, extra = self.solve(
+        kernel, rank, extra = self.solve(
             nmtx=nmtx, ncriteria=ncriteria, nweights=nweights)
         decision = self.make_decision(
             mtx=mtx, criteria=criteria, weights=weights,
-            efficients=efficients, rank=rank, extra=extra)
+            kernel=kernel, rank=rank, extra=extra)
         return decision
 
     @property

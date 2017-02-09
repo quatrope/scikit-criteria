@@ -234,7 +234,7 @@ class Electre1Test(core.SKCriteriaTestCase):
         dm = electre.ELECTRE1(p=0.55, q=0.699)
         decision = dm.decide(mtx, criteria, weights)
 
-        self.assertCountEqual(decision.efficients_, result_kernel)
+        self.assertCountEqual(decision.kernel_, result_kernel)
         self.assertArrayEqual(decision.e_.outrank, result_outrank)
         self.assertAllClose(
             decision.e_.mtx_concordance, result_concordance, atol=1.e-3)
