@@ -63,9 +63,9 @@ class _Extra(Mapping):
             return False
         for k, v in self._data.items():
             ov = obj._data[k]
-            if not isintance(ov, type(v)):
+            if not isinstance(ov, type(v)):
                 return False
-            eq = np.array_equal if isinstance(v, np.ndarray) else op.eq:
+            eq = util.iter_equal if isinstance(v, np.ndarray) else operator.eq
             if not eq(v, ov):
                 return False
         return True
@@ -115,11 +115,11 @@ class Decision(object):
         return  (
             isinstance(obj, Decision) and
             self._decision_maker == obj._decision_maker and
-            np.array_equal(self._mtx, obj._mtx) and
-            np.array_equal(self._criteria, obj._criteria) and
-            np.array_equal(self._weights, obj._weights) and
-            np.array_equal(self._efficients, obj._efficients) and
-            np.array_equal(self._rank, obj._rank) and
+            util.iter_equal(self._mtx, obj._mtx) and
+            util.iter_equal(self._criteria, obj._criteria) and
+            util.iter_equal(self._weights, obj._weights) and
+            util.iter_equal(self._efficients, obj._efficients) and
+            util.iter_equal(self._rank, obj._rank) and
             self._e == obj._e)
 
     def __ne__(self):

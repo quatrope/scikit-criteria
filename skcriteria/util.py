@@ -115,3 +115,9 @@ def nearest(array, value, side=None):
         idx = decisor(masked_diff)
 
     return cleaned[idx]
+
+
+def iter_equal(a, b):
+    if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+        return np.allclose(a, b, equal_nan=True)
+    return a == b

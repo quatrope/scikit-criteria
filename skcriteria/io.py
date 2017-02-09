@@ -83,10 +83,9 @@ def dumpd(obj):
         "env": {
             "python": sys.version,
             "numpy": np.version.full_version,
-            "pytz": pytz.__version__,
             "platform": platform.platform()
         },
-        "created_at": dt.datetime.utcnow().isoformat()})
+        "utc_created_at": dt.datetime.utcnow().isoformat()})
     return data
 
 
@@ -97,7 +96,7 @@ def dumps(obj, allow_nan=True, *args, **kwargs):
 
 def dump(obj, fp, allow_nan=True, *args, **kwargs):
     data = dumpd(obj)
-    return jt.dump(data, fp, allow_nan=allow_nan *args, **kwargs)
+    return jt.dump(data, fp, allow_nan=allow_nan, *args, **kwargs)
 
 
 def loads(string, skcm_metadata=False, preserve_order=False, *args, **kwargs):

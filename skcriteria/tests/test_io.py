@@ -137,41 +137,46 @@ class DecisionIOTest(core.SKCriteriaTestCase):
             result = io.loads(dumped)
             self.assertEquals(result, dec)
 
-            #~ result = io.loads(dumped, skcm_metadata=True)
-            #~ self.assertEquals(result, io.jt.loads(dumped))
+            result = io.loads(dumped, skcm_metadata=True)
+            self.assertEquals(result, io.jt.loads(dumped))
 
-    #~ def test_dump_load(self):
-        #~ for dmcls in self.dmakers:
-            #~ dm, fp = dmcls(), StringIO()
-            #~ io.dump(dm, fp)
-            #~ fp.seek(0)
-            #~ result = io.load(fp)
-            #~ self.assertEquals(result, dm)
+    def test_dump_load(self):
+        for dmcls in self.dmakers:
+            dm, fp = dmcls(), StringIO()
+            dec = dm.decide(self.mtx, self.criteria, self.weights)
 
-            #~ fp.seek(0)
-            #~ result = io.load(fp, skcm_metadata=True)
-            #~ fp.seek(0)
-            #~ self.assertEquals(result, io.jt.load(fp))
+            io.dump(dec, fp)
+            fp.seek(0)
+            result = io.load(fp)
+            self.assertEquals(result, dec)
 
-    #~ def test_dump_loads(self):
-        #~ for dmcls in self.dmakers:
-            #~ dm, fp = dmcls(), StringIO()
-            #~ io.dump(dm, fp)
-            #~ result = io.loads(fp.getvalue())
-            #~ self.assertEquals(result, dm)
+            fp.seek(0)
+            result = io.load(fp, skcm_metadata=True)
+            fp.seek(0)
+            self.assertEquals(result, io.jt.load(fp))
 
-            #~ result = io.loads(fp.getvalue(), skcm_metadata=True)
-            #~ self.assertEquals(result, io.jt.loads(fp.getvalue()))
+    def test_dump_loads(self):
+        for dmcls in self.dmakers:
+            dm, fp = dmcls(), StringIO()
+            dec = dm.decide(self.mtx, self.criteria, self.weights)
 
-    #~ def test_dumps_load(self):
-        #~ for dmcls in self.dmakers:
-            #~ dm = dmcls()
-            #~ dumped = io.dumps(dm)
-            #~ fp = StringIO(dumped)
-            #~ result = io.load(fp)
-            #~ self.assertEquals(result, dm)
+            io.dump(dec, fp)
+            result = io.loads(fp.getvalue())
+            self.assertEquals(result, dec)
 
-            #~ fp.seek(0)
-            #~ result = io.load(fp, skcm_metadata=True)
-            #~ fp.seek(0)
-            #~ self.assertEquals(result, io.jt.load(fp))
+            result = io.loads(fp.getvalue(), skcm_metadata=True)
+            self.assertEquals(result, io.jt.loads(fp.getvalue()))
+
+    def test_dumps_load(self):
+        for dmcls in self.dmakers:
+            dm = dmcls()
+            dec = dm.decide(self.mtx, self.criteria, self.weights)
+            dumped = io.dumps(dec)
+            fp = StringIO(dumped)
+            result = io.load(fp)
+            self.assertEquals(result, dec)
+
+            fp.seek(0)
+            result = io.load(fp, skcm_metadata=True)
+            fp.seek(0)
+            self.assertEquals(result, io.jt.load(fp))
