@@ -47,10 +47,10 @@ from . import util, norm
 
 
 # =============================================================================
-# RESULT Structure
+# CLASSES
 # =============================================================================
 
-class _Extra(Mapping):
+class Extra(Mapping):
     def __init__(self, data):
         self._data = dict(data)
 
@@ -61,7 +61,7 @@ class _Extra(Mapping):
         self.__init__(data)
 
     def __eq__(self, obj):
-        if not isinstance(obj, _Extra):
+        if not isinstance(obj, Extra):
             return False
         if sorted(self._data.keys()) != sorted(obj._data.keys()):
             return False
@@ -90,11 +90,11 @@ class _Extra(Mapping):
         try:
             return self._data[k]
         except KeyError:
-            msg = "'_Extra' object has no attribute '{}'".format(k)
+            msg = "'Extra' object has no attribute '{}'".format(k)
             raise AttributeError(msg)
 
     def __repr__(self):
-        return "_Extra({})".format(", ".join(self._data))
+        return "Extra({})".format(", ".join(self._data))
 
 
 class Decision(object):
@@ -108,7 +108,7 @@ class Decision(object):
 
             self._kernel = kernel_
             self._rank = rank_
-            self._e = _Extra(e_)
+            self._e = Extra(e_)
 
     def __repr__(self):
         decision_maker = type(self._decision_maker).__name__
