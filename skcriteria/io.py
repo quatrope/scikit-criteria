@@ -55,6 +55,12 @@ CT_DECISION = "decision"
 
 CT_DMAKER = "decision-maker"
 
+DEFAULT_ALLOW_NAN = True
+
+DEFAULT_INDENT = None
+
+DEFAULT_PRESERVE_ORDER = False
+
 
 # =============================================================================
 # FUNCTIONS
@@ -88,30 +94,30 @@ def dumpd(obj):
 
 
 def dumps(obj, **kwargs):
-    kwargs.setdefault("allow_nan", True)
-    kwargs.setdefault("indent", 2)
+    kwargs.setdefault("allow_nan", DEFAULT_ALLOW_NAN)
+    kwargs.setdefault("indent", DEFAULT_INDENT)
 
     data = dumpd(obj)
     return jt.dumps(data, **kwargs)
 
 
 def dump(obj, fp, **kwargs):
-    kwargs.setdefault("allow_nan", True)
-    kwargs.setdefault("indent", 2)
+    kwargs.setdefault("allow_nan", DEFAULT_ALLOW_NAN)
+    kwargs.setdefault("indent", DEFAULT_INDENT)
 
     data = dumpd(obj)
     return jt.dump(data, fp, **kwargs)
 
 
 def loads(string, skcm_metadata=False, **kwargs):
-    kwargs.setdefault("preserve_order", False)
+    kwargs.setdefault("preserve_order", DEFAULT_PRESERVE_ORDER)
 
     data = jt.loads(string, **kwargs)
     return data if skcm_metadata else data["data"]
 
 
-def load(fp, skcm_metadata=False, preserve_order=False, **kwargs):
-    kwargs.setdefault("preserve_order", False)
+def load(fp, skcm_metadata=False, **kwargs):
+    kwargs.setdefault("preserve_order", DEFAULT_PRESERVE_ORDER)
 
     data = jt.load(fp, **kwargs)
     return data if skcm_metadata else data["data"]
