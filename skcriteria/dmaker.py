@@ -75,7 +75,7 @@ class Data(object):
             anames if anames else
             ["A{}".format(idx) for idx in range(len(mtx))])
 
-    def iter_rows(self):
+    def _iter_rows(self):
         direction = map(CRITERIA_AS_ATR.get, self._criteria)
         title = ["ALT./CRIT."]
         if self._weights is None:
@@ -100,11 +100,11 @@ class Data(object):
         return not self == obj
 
     def to_str(self):
-        rows = self.iter_rows()
+        rows = self._iter_rows()
         return tabulate(rows, headers="firstrow")
 
     def to_html(self):
-        rows = self.iter_rows()
+        rows = self._iter_rows()
         return tabulate(rows, headers="firstrow", tablefmt="html")
 
     def __str__(self):
