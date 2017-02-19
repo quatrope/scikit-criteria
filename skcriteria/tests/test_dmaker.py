@@ -32,80 +32,44 @@
 
 
 # =============================================================================
-# DOCS
+# FUTURE
 # =============================================================================
 
-"""This file is for distribute scikit-criteria
+from __future__ import unicode_literals
 
-"""
+
+# =============================================================================
+# DOC
+# =============================================================================
+
+__doc__ = """Test io functionalities"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import sys
+import random
 
-from ez_setup import use_setuptools
-use_setuptools()
+import numpy as np
 
-from setuptools import setup, find_packages
+from .. import dmaker
 
-import skcriteria
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-REQUIREMENTS = [
-    "numpy", "scipy", "six", "mock", "tabulate",
-    "json-tricks"  # this is for io
-]
+from . import core
 
 
 # =============================================================================
-# FUNCTIONS
+# BASE
 # =============================================================================
 
-def do_setup():
-    setup(
-        name=skcriteria.NAME,
-        version=skcriteria.VERSION,
-        description=skcriteria.DOC,
-        author=skcriteria.AUTHORS,
-        author_email=skcriteria.EMAIL,
-        url=skcriteria.URL,
-        license=skcriteria.LICENSE,
-        keywords=skcriteria.KEYWORDS,
-        classifiers=(
-            "Development Status :: 4 - Beta",
-            "Intended Audience :: Education",
-            "Intended Audience :: Science/Research",
-            "License :: OSI Approved :: BSD License",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.4",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: Implementation :: CPython",
-            "Topic :: Scientific/Engineering",
-        ),
-        packages=[
-            pkg for pkg in find_packages() if pkg.startswith("skcriteria")],
-        py_modules=["ez_setup"],
-        install_requires=REQUIREMENTS,
-    )
+class TestData(core.SKCriteriaTestCase):
 
+    def setUp(self):
+        self.mtx = np.random.rand(3, 3)
+        self.criteria = np.asarray([random.choice((1, -1)) for e in range(3)])
+        self.weights = np.random.randint(1, 100, 3)
 
-def do_publish():
-    pass
-
-
-if __name__ == "__main__":
-    if sys.argv[-1] == 'publish':
-        do_publish()
-    else:
-        do_setup()
+    def test_trivial(self):
+        data = dmaker.Data(self.mtx, self.criteria, self.weights)
+        other = dmaker.Data(self.mtx, self.criteria, self.weights)
+        self.assertEqual(data, other)

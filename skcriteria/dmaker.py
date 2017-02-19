@@ -43,12 +43,91 @@ import six
 
 import numpy as np
 
+from tabulate import tabulate
+
 from . import util, norm
+
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+CRITERIA_AS_ATR = {
+    util.MIN: "min",
+    util.MAX: "max"
+}
 
 
 # =============================================================================
 # CLASSES
 # =============================================================================
+
+class Data(object):
+
+    def __init__(self, mtx, criteria, weights=None, anames=None, cnames=None):
+        self._mtx = mtx
+        self._criteria = criteria
+        self._weights = weights
+        self._cnames = (
+            cnames if cnames else
+            ["C{}".format(idx) for idx in range(len(criteria))])
+        self._anames = (
+            anames if anames else
+            ["A{}".format(idx) for idx in range(len(mtx))])
+
+    def iter_rows(self):
+        direction = map(CRITERIA_AS_ATR.get, self._criteria)
+        title = ["ALT./CRIT."]
+        if self._weights is None:
+            cstr = zip(self._cnames, direction)
+            criteria = ["{} ({})".format(n, c) for n, c in cstr]
+        else:
+            cstr = zip(self._cnames, direction, self._weights)
+            criteria = ["{} ({}) W.{}".format(n, c, w) for n, c, w in cstr]
+        yield title + criteria
+
+        for an, row in zip(self._anames, self._mtx):
+            yield [an] + list(row)
+
+    def __eq__(self, obj):
+        return (
+            isinstance(obj, Data) and
+            util.iter_equal(self._mtx, obj._mtx) and
+            util.iter_equal(self._criteria, obj._criteria) and
+            util.iter_equal(self._weights, obj._weights))
+
+    def __ne__(self, obj):
+        return not self == obj
+
+    def to_str(self):
+        rows = self.iter_rows()
+        return tabulate(rows, headers="firstrow")
+
+    def to_html(self):
+        rows = self.iter_rows()
+        return tabulate(rows, headers="firstrow", tablefmt="html")
+
+    def __str__(self):
+        return self.to_str()
+
+    def __repr__(self):
+        return str(self)
+
+    def _repr_html_(self):
+        return self.to_html()
+
+    @property
+    def mtx(self):
+        return self._mtx
+
+    @property
+    def criteria(self):
+        return self._criteria
+
+    @property
+    def weights(self):
+        return self._weights
+
 
 class Extra(Mapping):
     def __init__(self, data):
@@ -102,25 +181,21 @@ class Decision(object):
     def __init__(self, decision_maker, mtx, criteria, weights,
                  kernel_, rank_, e_):
             self._decision_maker = decision_maker
-            self._mtx = mtx
-            self._criteria = criteria
-            self._weights = weights
-
+            self._data = Data(mtx, criteria, weights)
             self._kernel = kernel_
             self._rank = rank_
             self._e = Extra(e_)
 
     def __repr__(self):
         decision_maker = type(self._decision_maker).__name__
-        return "<Decision of '{}'{}>".format(decision_maker, self._mtx.shape)
+        mtx = self._data.mtx
+        return "<Decision of '{}'{}>".format(decision_maker, mtx.shape)
 
     def __eq__(self, obj):
         return (
             isinstance(obj, Decision) and
             self._decision_maker == obj._decision_maker and
-            util.iter_equal(self._mtx, obj._mtx) and
-            util.iter_equal(self._criteria, obj._criteria) and
-            util.iter_equal(self._weights, obj._weights) and
+            self._data == obj._data and
             util.iter_equal(self._kernel, obj._kernel) and
             util.iter_equal(self._rank, obj._rank) and
             self._e == obj._e)
@@ -135,13 +210,16 @@ class Decision(object):
         decision_maker = attrs.pop("decision_maker")
         data = decision_maker.decision_from_dict(attrs)
         data.update({"decision_maker": decision_maker})
+
+        data_instance = attrs.pop("data")
+        data.update({"mtx": data_instance.mtx,
+                     "criteria": data_instance.criteria,
+                     "weights": data_instance.weights})
         self.__init__(**data)
 
     def as_dict(self):
         data = {
-            "mtx": self._mtx,
-            "criteria": self._criteria,
-            "weights": self._weights,
+            "data": self._data,
             "kernel_": self._kernel,
             "rank_": self._rank, "e_": self._e}
         data = self.decision_maker.decision_as_dict(data)
@@ -153,16 +231,8 @@ class Decision(object):
         return self._decision_maker
 
     @property
-    def mtx(self):
-        return self._mtx
-
-    @property
-    def criteria(self):
-        return self._criteria
-
-    @property
-    def weights(self):
-        return self._weights
+    def data(self):
+        return self._data
 
     @property
     def kernel_(self):
@@ -255,7 +325,16 @@ class DecisionMaker(object):
             kernel_=kernel, rank_=rank, e_=extra)
         return decision
 
-    def decide(self, mtx, criteria, weights=None):
+    def decide(self, data, criteria, weights=None):
+        if isinstance(data, Data):
+            if criteria or weights:
+                msg = (
+                    "If 'data' is instance of Data, 'criteria' and 'weights' "
+                    "must be empty")
+                raise ValueError(msg)
+            mtx, criteria, weights = data.mtx, data.criteria, data.weights
+        else:
+            mtx = data
         nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
         kernel, rank, extra = self.solve(
             nmtx=nmtx, ncriteria=ncriteria, nweights=nweights)
