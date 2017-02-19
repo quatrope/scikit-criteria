@@ -235,6 +235,18 @@ class Decision(object):
         return self._data
 
     @property
+    def mtx(self):
+        return self._data.mtx
+
+    @property
+    def criteria(self):
+        return self._data.criteria
+
+    @property
+    def weights(self):
+        return self._data.weights
+
+    @property
     def kernel_(self):
         return self._kernel
 
