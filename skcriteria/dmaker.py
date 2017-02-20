@@ -37,6 +37,7 @@
 
 import abc
 import operator
+import uuid
 from collections import Mapping
 
 import six
@@ -57,6 +58,12 @@ CRITERIA_AS_ATR = {
     util.MAX: "max"
 }
 
+TABULATE_PARAMS = {
+    "headers": "firstrow",
+    "numalign": "center",
+    "stralign": "center",
+}
+
 
 # =============================================================================
 # CLASSES
@@ -65,15 +72,26 @@ CRITERIA_AS_ATR = {
 class Data(object):
 
     def __init__(self, mtx, criteria, weights=None, anames=None, cnames=None):
-        self._mtx = mtx
-        self._criteria = criteria
-        self._weights = weights
-        self._cnames = (
-            cnames if cnames else
-            ["C{}".format(idx) for idx in range(len(criteria))])
+        self._mtx = np.asarray(mtx)
+        self._criteria = util.criteriarr(criteria)
+        self._weights = np.asarray(weights) if weights is not None else None
+        util.validate_data(self._mtx, self._criteria, self._weights)
+
         self._anames = (
             anames if anames else
             ["A{}".format(idx) for idx in range(len(mtx))])
+        if len(self._anames) != len(self._mtx):
+            msg = "{} names given for {} alternatives".format(
+                len(self._anames), len(self._mtx))
+            raise util.DataValidationError(msg)
+
+        self._cnames = (
+            cnames if cnames else
+            ["C{}".format(idx) for idx in range(len(criteria))])
+        if len(self._cnames) != len(self._criteria):
+            msg = "{} names for given {} criteria".format(
+                len(self._cnames), len(self._criteria))
+            raise util.DataValidationError(msg)
 
     def _iter_rows(self):
         direction = map(CRITERIA_AS_ATR.get, self._criteria)
@@ -99,14 +117,6 @@ class Data(object):
     def __ne__(self, obj):
         return not self == obj
 
-    def to_str(self):
-        rows = self._iter_rows()
-        return tabulate(rows, headers="firstrow")
-
-    def to_html(self):
-        rows = self._iter_rows()
-        return tabulate(rows, headers="firstrow", tablefmt="html")
-
     def __str__(self):
         return self.to_str()
 
@@ -114,7 +124,21 @@ class Data(object):
         return str(self)
 
     def _repr_html_(self):
-        return self.to_html()
+        return self.to_str(tablefmt="html")
+
+    def to_str(self, **params):
+        params.update({
+            k: v for k, v in TABULATE_PARAMS.items() if k not in params})
+        rows = self._iter_rows()
+        return tabulate(rows, **params)
+
+    @property
+    def anames(self):
+        return tuple(self._anames)
+
+    @property
+    def cnames(self):
+        return tuple(self._cnames)
 
     @property
     def mtx(self):
@@ -179,17 +203,31 @@ class Extra(Mapping):
 class Decision(object):
 
     def __init__(self, decision_maker, mtx, criteria, weights,
-                 kernel_, rank_, e_):
+                 anames, cnames, kernel_, rank_, e_,):
             self._decision_maker = decision_maker
-            self._data = Data(mtx, criteria, weights)
+            self._data = Data(mtx, criteria, weights,
+                              anames=anames, cnames=cnames)
             self._kernel = kernel_
             self._rank = rank_
             self._e = Extra(e_)
 
-    def __repr__(self):
-        decision_maker = type(self._decision_maker).__name__
-        mtx = self._data.mtx
-        return "<Decision of '{}'{}>".format(decision_maker, mtx.shape)
+    def _iter_rows(self):
+        title = []
+        if self._rank is not None:
+            title.append("Rank")
+        if self._kernel is not None:
+            title.append("Kernel")
+        for idx, row in enumerate(self._data._iter_rows()):
+            if idx == 0:
+                extra = title
+            else:
+                aidx = idx - 1
+                extra = []
+                if self._rank is not None:
+                    extra.append(self._rank[aidx])
+                if self._kernel is not None:
+                    extra.append("  @" if idx in self._kernel else "")
+            yield row + extra
 
     def __eq__(self, obj):
         return (
@@ -214,8 +252,30 @@ class Decision(object):
         data_instance = attrs.pop("data")
         data.update({"mtx": data_instance.mtx,
                      "criteria": data_instance.criteria,
-                     "weights": data_instance.weights})
+                     "weights": data_instance.weights,
+                     "anames": data_instance.anames,
+                     "cnames": data_instance.cnames})
         self.__init__(**data)
+
+    def __str__(self):
+        return "{} - Solution:\n{}".format(
+            repr(self._decision_maker)[1: -1], self.to_str())
+
+    def __repr__(self):
+        return str(self)
+
+    def _repr_html_(self):
+        uid = "dec-" + str(uuid.uuid1())
+        table = self.to_str(tablefmt="html")
+        dm = repr(self._decision_maker)[1: -1]
+        return "<div id='{}'><p><b>{} - Solution:</b></p>{}</div>".format(
+            uid, dm, table)
+
+    def to_str(self, **params):
+        params.update({
+            k: v for k, v in TABULATE_PARAMS.items() if k not in params})
+        rows = self._iter_rows()
+        return tabulate(rows, **params)
 
     def as_dict(self):
         data = {
@@ -302,6 +362,13 @@ class DecisionMaker(object):
         data = self.from_dict(attrs)
         self.__init__(**data)
 
+    def __repr__(self):
+        cls_name = type(self).__name__
+        data = sorted(self.as_dict().items())
+        data = ", ".join(
+            "{}={}".format(k, v) for k, v in data)
+        return "<{} ({})>".format(cls_name, data)
+
     def decision_as_dict(self, attrs):
         return attrs
 
@@ -320,40 +387,49 @@ class DecisionMaker(object):
     def from_dict(self, data):
         return data
 
-    @abc.abstractmethod
-    def solve(self, nmtx, ncriteria, nweights):
-        return NotImplemented
-
     def normalize(self, mtx, criteria, weights):
         ncriteria = util.criteriarr(criteria)
         nmtx = self._mnorm(mtx, axis=0)
         nweights = self._wnorm(weights) if weights is not None else 1
         return nmtx, ncriteria, nweights
 
-    def make_decision(self, mtx, criteria, weights, kernel, rank, extra):
+    def make_decision(self, mtx, criteria, weights,
+                      kernel, rank, extra, anames, cnames):
         decision = Decision(
             decision_maker=self,
             mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames,
             kernel_=kernel, rank_=rank, e_=extra)
         return decision
 
-    def decide(self, data, criteria, weights=None):
+    def decide(self, data, criteria=None, weights=None):
         if isinstance(data, Data):
             if criteria or weights:
                 msg = (
                     "If 'data' is instance of Data, 'criteria' and 'weights' "
                     "must be empty")
                 raise ValueError(msg)
+            anames, cnames = data.anames, data.cnames
             mtx, criteria, weights = data.mtx, data.criteria, data.weights
         else:
-            mtx = data
+            if criteria is None:
+                msg = (
+                    "If 'data' is not instance of Data you must provide a "
+                    "'criteria' array")
+                raise ValueError(msg)
+            anames, cnames, mtx = None, None, data
         nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
         kernel, rank, extra = self.solve(
             nmtx=nmtx, ncriteria=ncriteria, nweights=nweights)
         decision = self.make_decision(
             mtx=mtx, criteria=criteria, weights=weights,
-            kernel=kernel, rank=rank, extra=extra)
+            kernel=kernel, rank=rank, extra=extra,
+            anames=anames, cnames=cnames)
         return decision
+
+    @abc.abstractmethod
+    def solve(self, nmtx, ncriteria, nweights):
+        return NotImplemented
 
     @property
     def mnorm(self):

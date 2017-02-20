@@ -69,6 +69,17 @@ LICENSE = "3 Clause BSD"
 
 KEYWORDS = "mcda mcdm ahp moora muti criteria".split()
 
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+import os
+
+if os.getenv("SKCRITERIA_IN_SETUP") != "True":
+    from .dmaker import Data  # noqa
+    from .util import MAX, MIN  # noqa
+
+del os
 
 # =============================================================================
 # MAIN

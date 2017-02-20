@@ -45,12 +45,14 @@
 # =============================================================================
 
 import sys
+import os
 
 from ez_setup import use_setuptools
 use_setuptools()
 
 from setuptools import setup, find_packages
 
+os.environ["SKCRITERIA_IN_SETUP"] = "True"
 import skcriteria
 
 

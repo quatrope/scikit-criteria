@@ -64,6 +64,14 @@ MAX = 1
 
 
 # =============================================================================
+# EXCEPTIONS
+# =============================================================================
+
+class DataValidationError(ValueError):
+    pass
+
+
+# =============================================================================
 # FUNCTIONS
 # =============================================================================
 
@@ -71,7 +79,7 @@ def criteriarr(criteria):
     criteria = np.asarray(criteria)
     if np.setdiff1d(criteria, [MIN, MAX]):
         msg = "Criteria Array only accept '{}' or '{}' Values. Found {}"
-        raise ValueError(msg.format(MAX, MIN, criteria))
+        raise DataValidationError(msg.format(MAX, MIN, criteria))
     return criteria
 
 
@@ -121,3 +129,19 @@ def iter_equal(a, b):
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         return np.allclose(a, b, equal_nan=True)
     return a == b
+
+
+def validate_data(mtx, criteria, weights=None):
+    if not is_mtx(mtx):
+        msg = "'mtx' must be a 2 dimensional array"
+        raise DataValidationError(msg)
+    criteria = criteriarr(criteria)
+    if len(criteria) != np.shape(mtx)[1]:
+        msg = "{} senses of optimality given but mtx has {} criteria".format(
+            len(criteria), np.shape(mtx)[1])
+        raise DataValidationError(msg)
+    if weights is not None:
+        if len(weights) != len(criteria):
+            msg = "{} weights given for {} criteria".format(
+                len(weights), len(criteria))
+            raise DataValidationError(msg)
