@@ -39,7 +39,7 @@ Citation
 
 If you are using Scikit-Criteria in your research, please cite:
 
-If you use scikit-learn in a scientific publication, we would appreciate
+If you use scikit-criteria in a scientific publication, we would appreciate
 citations to the following paper:
 
     Cabral, Juan B., Nadia Ayelen Luczywo, and José Luis Zanazzi 2016
