@@ -418,6 +418,7 @@ class DecisionMaker(object):
                     "'criteria' array")
                 raise ValueError(msg)
             anames, cnames, mtx = None, None, data
+            util.validate_data(mtx, criteria, weights)
         nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
         kernel, rank, extra = self.solve(
             nmtx=nmtx, ncriteria=ncriteria, nweights=nweights)
