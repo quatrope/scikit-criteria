@@ -35,6 +35,8 @@
 # IMPORTS
 # =============================================================================
 
+from __future__ import unicode_literals
+
 import abc
 import operator
 import uuid
@@ -78,7 +80,7 @@ class Data(object):
         util.validate_data(self._mtx, self._criteria, self._weights)
 
         self._anames = (
-            anames if anames else
+            anames if anames is not None else
             ["A{}".format(idx) for idx in range(len(mtx))])
         if len(self._anames) != len(self._mtx):
             msg = "{} names given for {} alternatives".format(
@@ -86,7 +88,7 @@ class Data(object):
             raise util.DataValidationError(msg)
 
         self._cnames = (
-            cnames if cnames else
+            cnames if cnames is not None else
             ["C{}".format(idx) for idx in range(len(criteria))])
         if len(self._cnames) != len(self._criteria):
             msg = "{} names for given {} criteria".format(

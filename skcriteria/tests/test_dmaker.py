@@ -73,3 +73,11 @@ class TestData(core.SKCriteriaTestCase):
         data = dmaker.Data(self.mtx, self.criteria, self.weights)
         other = dmaker.Data(self.mtx, self.criteria, self.weights)
         self.assertEqual(data, other)
+
+    def test_unicode_string(self):
+        cnames = anames = u"ñññ"
+        data = dmaker.Data(
+            self.mtx, self.criteria, self.weights,
+            anames=anames, cnames=cnames)
+        data.to_str()
+        data.to_str(tablefmt="html")
