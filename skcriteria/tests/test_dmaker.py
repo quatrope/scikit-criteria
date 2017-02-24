@@ -81,3 +81,6 @@ class TestData(core.SKCriteriaTestCase):
             anames=anames, cnames=cnames)
         data.to_str()
         data.to_str(tablefmt="html")
+
+        repr(data)
+        str(data)

@@ -37,6 +37,7 @@
 
 from __future__ import unicode_literals
 
+import sys
 import abc
 import operator
 import uuid
@@ -68,7 +69,7 @@ TABULATE_PARAMS = {
 
 
 # =============================================================================
-# CLASSES
+# DATA PROXY
 # =============================================================================
 
 class Data(object):
@@ -119,8 +120,22 @@ class Data(object):
     def __ne__(self, obj):
         return not self == obj
 
-    def __str__(self):
+    def __unicode__(self):
         return self.to_str()
+
+    def __bytes__(self):
+        encoding = sys.getdefaultencoding()
+        return self.__unicode__().encode(encoding, 'replace')
+
+    def __str__(self):
+        """Return a string representation for a particular Object
+
+        Invoked by str(df) in both py2/py3.
+        Yields Bytestring in Py2, Unicode String in py3.
+        """
+        if six.PY3:
+            return self.__unicode__()
+        return self.__bytes__()
 
     def __repr__(self):
         return str(self)
@@ -154,6 +169,10 @@ class Data(object):
     def weights(self):
         return self._weights
 
+
+# =============================================================================
+# EXTRA
+# =============================================================================
 
 class Extra(Mapping):
     def __init__(self, data):
@@ -198,9 +217,30 @@ class Extra(Mapping):
             msg = "'Extra' object has no attribute '{}'".format(k)
             raise AttributeError(msg)
 
-    def __repr__(self):
+    def __unicode__(self):
+        return self.to_str()
+
+    def __bytes__(self):
+        encoding = sys.getdefaultencoding()
+        return self.__unicode__().encode(encoding, 'replace')
+
+    def __str__(self):
+        """Return a string representation for a particular Object
+
+        Invoked by str(df) in both py2/py3.
+        Yields Bytestring in Py2, Unicode String in py3.
+        """
+        if six.PY3:
+            return self.__unicode__()
+        return self.__bytes__()
+
+    def to_str(self):
         return "Extra({})".format(", ".join(self._data))
 
+
+# =============================================================================
+# DECISION
+# =============================================================================
 
 class Decision(object):
 
@@ -259,9 +299,23 @@ class Decision(object):
                      "cnames": data_instance.cnames})
         self.__init__(**data)
 
-    def __str__(self):
+    def __unicode__(self):
         return "{} - Solution:\n{}".format(
             repr(self._decision_maker)[1: -1], self.to_str())
+
+    def __bytes__(self):
+        encoding = sys.getdefaultencoding()
+        return self.__unicode__().encode(encoding, 'replace')
+
+    def __str__(self):
+        """Return a string representation for a particular Object
+
+        Invoked by str(df) in both py2/py3.
+        Yields Bytestring in Py2, Unicode String in py3.
+        """
+        if six.PY3:
+            return self.__unicode__()
+        return self.__bytes__()
 
     def __repr__(self):
         return str(self)
