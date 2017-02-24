@@ -1,5 +1,5 @@
 
-.. image:: ./doc/source/_static/logo_medium.png
+.. image:: https://github.com/leliel12/scikit-criteria/raw/master/res/logo_small.png
     :scale: 100 %
 
 **Multiple-criteria decision analysis**
