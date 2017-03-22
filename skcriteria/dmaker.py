@@ -234,6 +234,9 @@ class Extra(Mapping):
             return self.__unicode__()
         return self.__bytes__()
 
+    def __repr__(self):
+        return str(self)
+
     def to_str(self):
         return "Extra({})".format(", ".join(self._data))
 
@@ -268,7 +271,7 @@ class Decision(object):
                 if self._rank is not None:
                     extra.append(self._rank[aidx])
                 if self._kernel is not None:
-                    extra.append("  @" if idx in self._kernel else "")
+                    extra.append("  @" if idx - 1 in self._kernel else "")
             yield row + extra
 
     def __eq__(self, obj):

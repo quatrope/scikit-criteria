@@ -90,6 +90,7 @@ def discordance(mtx, criteria):
     mtx_criteria = np.tile(criteria, (len(mtx), 1))
     mtx_discordance = np.empty((len(mtx), len(mtx)))
     ranges = np.max(mtx, axis=0) - np.min(mtx, axis=0)
+    max_range = ranges.max()
 
     for idx, row in enumerate(mtx):
         difference = mtx - row
@@ -98,7 +99,7 @@ def discordance(mtx, criteria):
             ((mtx_criteria == util.MIN) & (difference < 0))
         )
         filter_difference = np.abs(difference * worsts)
-        delta = filter_difference / ranges
+        delta = filter_difference / max_range
         new_row = np.max(delta, axis=1)
         mtx_discordance[idx] = new_row
 
@@ -118,16 +119,10 @@ def electre1(nmtx, ncriteria, nweights, p, q):
 
     with np.errstate(invalid='ignore'):
         outrank = (
-            (mtx_concordance > p) & (mtx_discordance < q))
+            (mtx_concordance >= p) & (mtx_discordance <= q))
 
-    bt_rows = np.sum(outrank, axis=1)
-    bt_columns = np.sum(outrank, axis=0)
-
-    diff = bt_rows - bt_columns
-    max_value = np.max(diff)
-
-    kernel = np.where((diff == max_value) & (diff > 0))[0]
-
+    kernel_mask = ~outrank.any(axis=0)
+    kernel = np.where(kernel_mask)[0]
     return kernel, outrank, mtx_concordance, mtx_discordance
 
 

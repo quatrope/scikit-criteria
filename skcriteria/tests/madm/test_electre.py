@@ -52,7 +52,7 @@ __doc__ = """test electre methods"""
 import numpy as np
 
 from .. import core
-from ... import util, norm
+from ... import util, norm, Data
 from ...madm import electre
 
 
@@ -62,7 +62,7 @@ from ...madm import electre
 
 class ConcordanceTest(core.SKCriteriaTestCase):
 
-    def test_concordance(self):
+    def _test_concordance(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -95,7 +95,7 @@ class ConcordanceTest(core.SKCriteriaTestCase):
 
 class DiscordanceTest(core.SKCriteriaTestCase):
 
-    def test_discordance(self):
+    def _test_discordance(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -130,7 +130,7 @@ class Electre1Test(core.SKCriteriaTestCase):
     mnorm = "sum"
     wnorm = "sum"
 
-    def test_electre1(self):
+    def _test_electre1(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -185,7 +185,7 @@ class Electre1Test(core.SKCriteriaTestCase):
         self.assertAllClose(concordance, result_concordance, atol=1.e-3)
         self.assertAllClose(discordance, result_discordance, atol=1.e-3)
 
-    def test_electre1_dm(self):
+    def _test_electre1_dm(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -240,3 +240,33 @@ class Electre1Test(core.SKCriteriaTestCase):
             decision.e_.mtx_concordance, result_concordance, atol=1.e-3)
         self.assertAllClose(
             decision.e_.mtx_discordance, result_discordance, atol=1.e-3)
+
+    def test_kernel_sensibility(self):
+        # Barba-Romero, S., & Pomerol, J. C. (1997).
+        # Decisiones multicriterio: fundamentos teóricos y utilización
+        # práctica. P.216
+        mtx = [
+            [0.188, 0.172, 0.168, 0.122, 0.114],
+            [0.125, 0.069, 0.188, 0.244, 0.205],
+            [0.156, 0.241, 0.134, 0.220, 0.136],
+            [0.188, 0.034, 0.174, 0.146, 0.159],
+            [0.188, 0.276, 0.156, 0.171, 0.205],
+            [0.156, 0.207, 0.180, 0.098, 0.182]]
+        weights = [0.25, 0.25, 0.10, 0.20, 0.20]
+        criteria = [1, 1, 1, 1, 1]
+        anames = ["A", "B", "D", "E", "G", "H"]
+
+        data = Data(mtx, criteria, weights, anames)
+        ps = [0.50, 0.60, 0.70, 0.80, 0.89, 0.89, 0.89, 0.94, 1]
+        qs = [0.50, 0.40, 0.30, 0.20, 0.10, 0.08, 0.05, 0.05, 0]
+
+        kernels_len = []
+        for p, q in zip(ps, qs):
+            dm = electre.ELECTRE1(mnorm="none", wnorm="none", p=p, q=q)
+            dec = dm.decide(data)
+            klen = len(dec.kernel_)
+
+            if kernels_len and klen < kernels_len[-1]:
+                self.fail("less sensitive electre must have more "
+                          "alternatives in kernel. {}".format(kernels_len))
+            kernels_len.append(klen)

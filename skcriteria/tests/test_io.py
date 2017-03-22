@@ -67,7 +67,7 @@ from . import core, utils
 class DMIOTest(core.SKCriteriaTestCase):
 
     def setUp(self):
-        # if som test import a module with a decision maker
+        # if some test import a module with a decision maker
         # this function will find it
         self.dmakers = utils.collect_subclasses(dmaker.DecisionMaker)
 
