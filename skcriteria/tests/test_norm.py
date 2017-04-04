@@ -194,7 +194,8 @@ class PushNegatives(NormTestBase):
             norm.push_negatives, "push_negatives", mtx_result, arr_result)
 
 
-class Ass1to0(NormTestBase):
+class Add1to0(NormTestBase):
+
     def test_add1to0(self):
         self.mtx = [
             [1, 0, 3],
@@ -216,3 +217,32 @@ class NoneNorm(NormTestBase):
 
     def test_none(self):
         self._test_normalizer(norm.none, "none", self.mtx, self.arr)
+
+
+class IdealPoint(NormTestBase):
+
+    def test_ideal_point(self):
+        self.mtx = [
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98]
+        ]
+        mtx_result = [
+            [1., 0.21243523, 0.99702381],
+            [0.57845188, 0., 1.],
+            [0.53242678, 0.44559585, 0.46130952],
+            [0.45606695, 0.78497409, 0.19940476],
+            [0.41841004, 0.65025907, 0.40178571],
+            [0.40376569, 1., 0.06845238],
+            [0.29811715, 0.84455959, 0.33333333],
+            [0., 0.79015544, 0.]
+        ]
+        self.arr = [61, 1.08, 4.33]
+        arr_result = [1., 0., 0.05423899]
+        self._test_normalizer(
+            norm.ideal_point, "ideal_point", mtx_result, arr_result)

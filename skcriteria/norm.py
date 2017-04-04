@@ -153,7 +153,7 @@ def sum(arr, axis=None):
     Examples
     --------
 
-    >>> from skcriteria.common import norm
+    >>> from skcriteria import norm
     >>> mtx = [[1, 2], [3, 4]]
     >>> norm.sum(mtx) # ratios with the sum of the array
     aarray([[ 0.1       ,  0.2       ],
@@ -197,7 +197,7 @@ def max(arr, axis=None):
     Examples
     --------
 
-    >>> from skcriteria.common import norm
+    >>> from skcriteria import norm
     >>> mtx = [[1, 2], [3, 4]]
     >>> norm.max(mtx) # ratios with the max value of the array
     array([[ 0.25,  0.5 ],
@@ -246,7 +246,7 @@ def vector(arr, axis=None):
     Examples
     --------
 
-    >>> from skcriteria.common import norm
+    >>> from skcriteria import norm
     >>> mtx = [[1, 2], [3, 4]]
     >>> norm.vector(mtx) # ratios with the vector value of the array
     array([[ 0.18257418,  0.36514837],
@@ -295,7 +295,7 @@ def push_negatives(arr, axis=None):
     Examples
     --------
 
-    >>> from skcriteria.common import norm
+    >>> from skcriteria import norm
     >>> mtx = [[1, 2], [3, 4]]
     >>> mtx_lt0 = [[-1, 2], [3, 4]] # has a negative value
     >>> norm.push_negatives(mtx) # array without negatives don't be affected
@@ -348,7 +348,7 @@ def add1to0(arr, axis=None):
     Examples
     --------
 
-    >>> from skcriteria.common import norm
+    >>> from skcriteria import norm
     >>> mtx = [[1, 2], [3, 4]]
     >>> mtx_w0 = [[0,1], [2,3]]
     >>> norm.add1to0(mtx)
@@ -370,3 +370,51 @@ def add1to0(arr, axis=None):
             increment[zeros] = 1
             return arr + increment
     return arr
+
+
+@register("ideal_point")
+def ideal_point(arr, axis=None):
+    """This transformation is based on the concept of the ideal
+    point. So, the value :math:`x_{aj}` below, expresses the degree to which
+    the  alternative a is close to the ideal value :math:`f_j^*`, which is the
+    best performance in criterion :math:`j`, and far from the anti-ideal
+    value :math:`f_{j^*}`., which is the worst performance in criterion
+    :math:`j`. Both :math:`f_j^*` and :math:`f_{j^*}`, are achieved by at
+    least one of the alternatives under consideration.
+
+    .. math::
+
+        x_{aj} = \frac{ f_j(a) - f_{j^*} }{ f_j^* - f_{j^*} }
+
+
+    Parameters
+    ----------
+
+    arr : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        A array with values
+
+    axis : :py:class:`int` optional
+        Axis along which to operate.  By default, flattened input is used.
+
+
+    Returns
+    -------
+
+    narray : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        array of ratios
+
+
+    Examples
+    --------
+
+    >>> from skcriteria import norm
+    >>> mtx = [[1, 2], [3, 4]]
+    >>> norm.ideal_point(mtx, axis=0)
+    array([[ 0.,  0.],
+           [ 1.,  1.]])
+
+    """
+    arr = np.asarray(arr, dtype=float)
+    minc = arr.min(axis=axis)
+    maxc = arr.max(axis=axis)
+    return (arr - minc) / (maxc - minc)
