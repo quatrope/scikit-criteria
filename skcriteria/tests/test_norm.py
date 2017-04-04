@@ -222,6 +222,11 @@ class NoneNorm(NormTestBase):
 class IdealPoint(NormTestBase):
 
     def test_ideal_point(self):
+        # Data from:
+        # Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
+        # Determining objective weights in multiple criteria problems:
+        # The critic method. Computers & Operations Research, 22(7), 763-770.
+
         self.mtx = [
             [61, 1.08, 4.33],
             [20.7, 0.26, 4.34],
