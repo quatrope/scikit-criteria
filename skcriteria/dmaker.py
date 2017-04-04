@@ -178,12 +178,6 @@ class Extra(Mapping):
     def __init__(self, data):
         self._data = dict(data)
 
-    def __json_encode__(self):
-        return {"data": self._data}
-
-    def __json_decode__(self, data):
-        self.__init__(data)
-
     def __eq__(self, obj):
         if not isinstance(obj, Extra):
             return False
@@ -286,22 +280,6 @@ class Decision(object):
     def __ne__(self, obj):
         return not self == obj
 
-    def __json_encode__(self):
-        return self.as_dict()
-
-    def __json_decode__(self, **attrs):
-        decision_maker = attrs.pop("decision_maker")
-        data = decision_maker.decision_from_dict(attrs)
-        data.update({"decision_maker": decision_maker})
-
-        data_instance = attrs.pop("data")
-        data.update({"mtx": data_instance.mtx,
-                     "criteria": data_instance.criteria,
-                     "weights": data_instance.weights,
-                     "anames": data_instance.anames,
-                     "cnames": data_instance.cnames})
-        self.__init__(**data)
-
     def __unicode__(self):
         return "{} - Solution:\n{}".format(
             repr(self._decision_maker)[1: -1], self.to_str())
@@ -335,15 +313,6 @@ class Decision(object):
             k: v for k, v in TABULATE_PARAMS.items() if k not in params})
         rows = self._iter_rows()
         return tabulate(rows, **params)
-
-    def as_dict(self):
-        data = {
-            "data": self._data,
-            "kernel_": self._kernel,
-            "rank_": self._rank, "e_": self._e}
-        data = self.decision_maker.decision_as_dict(data)
-        data.update({"decision_maker": self._decision_maker})
-        return data
 
     @property
     def decision_maker(self):
@@ -412,39 +381,12 @@ class DecisionMaker(object):
     def __ne__(self, obj):
         return not self == obj
 
-    def __json_encode__(self):
-        # this is where jsontrick hangs on
-        return self.as_dict()
-
-    def __json_decode__(self, **attrs):
-        # this is where jsontrick hangs on
-        data = self.from_dict(attrs)
-        self.__init__(**data)
-
     def __repr__(self):
         cls_name = type(self).__name__
         data = sorted(self.as_dict().items())
         data = ", ".join(
             "{}={}".format(k, v) for k, v in data)
         return "<{} ({})>".format(cls_name, data)
-
-    def decision_as_dict(self, attrs):
-        return attrs
-
-    def decision_from_dict(self, data):
-        return data
-
-    def as_dict(self):
-        try:
-            return {"mnorm": norm.nameof(self._mnorm),
-                    "wnorm": norm.nameof(self._wnorm)}
-        except norm.FunctionNotRegisteredAsNormalizer as err:
-            msg = ("All your normalization function must be registered with "
-                   "'norm.register()' function. Invalid Function: {}")
-            raise norm.FunctionNotRegisteredAsNormalizer(msg.format(err))
-
-    def from_dict(self, data):
-        return data
 
     def normalize(self, mtx, criteria, weights):
         ncriteria = util.criteriarr(criteria)
