@@ -62,7 +62,7 @@ from ...madm import electre
 
 class ConcordanceTest(core.SKCriteriaTestCase):
 
-    def _test_concordance(self):
+    def test_concordance(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -95,7 +95,7 @@ class ConcordanceTest(core.SKCriteriaTestCase):
 
 class DiscordanceTest(core.SKCriteriaTestCase):
 
-    def _test_discordance(self):
+    def test_discordance(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -114,14 +114,12 @@ class DiscordanceTest(core.SKCriteriaTestCase):
         ], axis=0)
         ncriteria = util.criteriarr([1, 1, -1, 1, 1])
         results = [
-            [np.nan, 1.0000, 0.6667, 0.5000, 1.0000, 0.7500],
-            [1.0000, np.nan, 0.7143, 1.0000, 1.0000, 0.5714],
-            [0.7000, 1.0000, np.nan, 0.8000, 0.7500, 0.9000],
-            [0.5714, 0.6667, 0.8571, np.nan, 1.0000, 0.7143],
-            [0.2000, 0.5000, 0.3333, 0.3000, np.nan, 0.4000],
-            [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
-        ]
-
+            [np.nan, 0.5052, 0.4042, 0.1883, 0.42857, 0.2825],
+            [0.4286, np.nan, 0.7143, 0.2589, 0.8571, 0.5714],
+            [0.1696, 0.2825, np.nan, 0.1938, 0.2825, 0.2180],
+            [0.5714, 0.4042, 0.8571, np.nan, 1.0, 0.7143],
+            [0.0485, 0.3031, 0.2021, 0.0727, np.nan, 0.0969],
+            [0.1295, 0.6063, 0.5052, 0.2021, 0.3031, np.nan]]
         discordance = electre.discordance(nmtx, ncriteria)
         self.assertAllClose(discordance, results, atol=1.e-3)
 
@@ -130,7 +128,7 @@ class Electre1Test(core.SKCriteriaTestCase):
     mnorm = "sum"
     wnorm = "sum"
 
-    def _test_electre1(self):
+    def test_electre1(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -151,41 +149,12 @@ class Electre1Test(core.SKCriteriaTestCase):
         weights = [0.25, 0.25, 0.1, 0.2, 0.2]
 
         result_kernel = [4]
-        result_outrank = [
-            [False, False, False, False, False, False],
-            [False, False, False, False, False, False],
-            [False, False, False, False, False, False],
-            [True, False, False, False, False, False],
-            [True, True, True, True, False, True],
-            [False, False, False, False, False, False]
-        ]
-        result_concordance = [
-            [np.nan, 0.5000, 0.3500, 0.5000, 0.3500, 0.4500],
-            [0.5000, np.nan, 0.5000, 0.7500, 0.5000, 0.5000],
-            [0.6500, 0.5000, np.nan, 0.4500, 0.2000, 0.7000],
-            [0.7500, 0.2500, 0.5500, np.nan, 0.3500, 0.4500],
-            [0.9000, 0.7000, 0.8000, 0.9000, np.nan, 0.9000],
-            [0.5500, 0.5000, 0.5500, 0.5500, 0.1000, np.nan]
-        ]
-        result_discordance = [
-            [np.nan, 1.0000, 0.6667, 0.5000, 1.0000, 0.7500],
-            [1.0000, np.nan, 0.7143, 1.0000, 1.0000, 0.5714],
-            [0.7000, 1.0000, np.nan, 0.8000, 0.7500, 0.9000],
-            [0.5714, 0.6667, 0.8571, np.nan, 1.0000, 0.7143],
-            [0.2000, 0.5000, 0.3333, 0.3000, np.nan, 0.4000],
-            [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
-        ]
-
         nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
-        kernel, outrank, concordance, discordance = electre.electre1(
-            nmtx, ncriteria, nweights=nweights, p=0.5500, q=0.699)
-
+        kernel = electre.electre1(
+            nmtx, ncriteria, nweights=nweights, p=0.5500, q=0.699)[0]
         self.assertCountEqual(kernel, result_kernel)
-        self.assertArrayEqual(outrank, result_outrank)
-        self.assertAllClose(concordance, result_concordance, atol=1.e-3)
-        self.assertAllClose(discordance, result_discordance, atol=1.e-3)
 
-    def _test_electre1_dm(self):
+    def test_electre1_dm(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión
@@ -206,40 +175,9 @@ class Electre1Test(core.SKCriteriaTestCase):
         weights = [0.25, 0.25, 0.1, 0.2, 0.2]
 
         result_kernel = [4]
-        result_outrank = [
-            [False, False, False, False, False, False],
-            [False, False, False, False, False, False],
-            [False, False, False, False, False, False],
-            [True, False, False, False, False, False],
-            [True, True, True, True, False, True],
-            [False, False, False, False, False, False]
-        ]
-        result_concordance = [
-            [np.nan, 0.5000, 0.3500, 0.5000, 0.3500, 0.4500],
-            [0.5000, np.nan, 0.5000, 0.7500, 0.5000, 0.5000],
-            [0.6500, 0.5000, np.nan, 0.4500, 0.2000, 0.7000],
-            [0.7500, 0.2500, 0.5500, np.nan, 0.3500, 0.4500],
-            [0.9000, 0.7000, 0.8000, 0.9000, np.nan, 0.9000],
-            [0.5500, 0.5000, 0.5500, 0.5500, 0.1000, np.nan]
-        ]
-        result_discordance = [
-            [np.nan, 1.0000, 0.6667, 0.5000, 1.0000, 0.7500],
-            [1.0000, np.nan, 0.7143, 1.0000, 1.0000, 0.5714],
-            [0.7000, 1.0000, np.nan, 0.8000, 0.7500, 0.9000],
-            [0.5714, 0.6667, 0.8571, np.nan, 1.0000, 0.7143],
-            [0.2000, 0.5000, 0.3333, 0.3000, np.nan, 0.4000],
-            [0.5000, 1.0000, 0.8333, 0.5000, 0.5000, np.nan]
-        ]
-
         dm = electre.ELECTRE1(p=0.55, q=0.699)
         decision = dm.decide(mtx, criteria, weights)
-
         self.assertCountEqual(decision.kernel_, result_kernel)
-        self.assertArrayEqual(decision.e_.outrank, result_outrank)
-        self.assertAllClose(
-            decision.e_.mtx_concordance, result_concordance, atol=1.e-3)
-        self.assertAllClose(
-            decision.e_.mtx_discordance, result_discordance, atol=1.e-3)
 
     def test_kernel_sensibility(self):
         # Barba-Romero, S., & Pomerol, J. C. (1997).
