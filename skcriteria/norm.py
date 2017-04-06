@@ -146,6 +146,8 @@ def sum(arr, criteria=None, axis=None):
     axis : :py:class:`int` optional
         Axis along which to operate.  By default, flattened input is used.
 
+    criteria : Not used
+
     Returns
     -------
 
@@ -189,6 +191,8 @@ def max(arr, criteria=None, axis=None):
 
     axis : :py:class:`int` optional
         Axis along which to operate.  By default, flattened input is used.
+
+    criteria : Not used
 
     Returns
     -------
@@ -239,6 +243,8 @@ def vector(arr, criteria=None, axis=None):
     axis : :py:class:`int` optional
         Axis along which to operate.  By default, flattened input is used.
 
+    criteria : Not used
+
     Returns
     -------
 
@@ -287,6 +293,8 @@ def push_negatives(arr, criteria=None, axis=None):
 
     axis : :py:class:`int` optional
         Axis along which to operate.  By default, flattened input is used.
+
+    criteria : Not used
 
     Returns
     -------
@@ -340,6 +348,8 @@ def add1to0(arr, criteria=None, axis=None):
 
     axis : :py:class:`int` optional
         Axis along which to operate.  By default, flattened input is used.
+
+    criteria : Not used
 
     Returns
     -------
@@ -398,6 +408,9 @@ def ideal_point(arr, criteria=None, axis=None):
     axis : :py:class:`int` optional
         Axis along which to operate.  By default, flattened input is used.
 
+    criteria : :py:class:`numpy.ndarray`
+        Criteria array to determine the ideal and nadir points of every
+        criteria.
 
     Returns
     -------
@@ -448,4 +461,5 @@ def ideal_point(arr, criteria=None, axis=None):
 
     if axis == 1:
         result = result.T
+
     return result
