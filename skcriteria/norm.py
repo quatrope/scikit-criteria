@@ -437,12 +437,12 @@ def ideal_point(arr, criteria=None, axis=None):
         ideal, nadir = idealf(arr), nadirf(arr)
     elif axis == 1:
         arr = arr.T
-    else:  # axis 0
-        maxs = np.max(arr, axis=0)
-        mins = np.min(arr, axis=0)
 
-        ideal = np.where(criteria == util.MAX, maxs, mins)
-        nadir = np.where(criteria == util.MAX, mins, maxs)
+    maxs = np.max(arr, axis=0)
+    mins = np.min(arr, axis=0)
+
+    ideal = np.where(criteria == util.MAX, maxs, mins)
+    nadir = np.where(criteria == util.MAX, mins, maxs)
 
     result = (arr - nadir) / (ideal - nadir)
 
