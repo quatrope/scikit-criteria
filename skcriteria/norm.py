@@ -53,6 +53,8 @@ __doc__ = """Several implementations of normalization methods
 import numpy as np
 from numpy import linalg
 
+from . import util
+
 
 # =============================================================================
 # EXCEPTIONS
@@ -104,9 +106,9 @@ def nameof(normalizer):
     raise FunctionNotRegisteredAsNormalizer(str(normalizer))
 
 
-def norm(name, arr, axis=None):
+def norm(name, arr, *args, **kwargs):
     normalizer = get(name)
-    return normalizer(arr, axis=axis)
+    return normalizer(arr, *args, **kwargs)
 
 
 # =============================================================================
@@ -114,7 +116,7 @@ def norm(name, arr, axis=None):
 # =============================================================================
 
 @register("none")
-def none(arr, axis=None):
+def none(arr, criteria=None, axis=None):
     """This do not nothing and only try to return an numpy.ndarray
     of the given data
 
@@ -123,7 +125,7 @@ def none(arr, axis=None):
 
 
 @register("sum")
-def sum(arr, axis=None):
+def sum(arr, criteria=None, axis=None):
     r"""Divide of every value on the array by sum of values along an
     axis.
 
@@ -172,7 +174,7 @@ def sum(arr, axis=None):
 
 
 @register("max")
-def max(arr, axis=None):
+def max(arr, criteria=None, axis=None):
     r"""Divide of every value on the array by max value along an axis.
 
     .. math::
@@ -216,7 +218,7 @@ def max(arr, axis=None):
 
 
 @register("vector")
-def vector(arr, axis=None):
+def vector(arr, criteria=None, axis=None):
     r"""Caculates the set of ratios as the square roots of the sum of squared
     responses of a given axis as denominators.  If *axis* is *None* sum all
     the array.
@@ -265,7 +267,7 @@ def vector(arr, axis=None):
 
 
 @register("push_negatives")
-def push_negatives(arr, axis=None):
+def push_negatives(arr, criteria=None, axis=None):
     r"""If an array has negative values this function increment the values
     proportionally to made all the array positive along an axis.
 
@@ -322,7 +324,7 @@ def push_negatives(arr, axis=None):
 
 
 @register("add1to0")
-def add1to0(arr, axis=None):
+def add1to0(arr, criteria=None, axis=None):
     r"""If a value in the array is 0, then an :math:`1` is added to
     all the values
 
@@ -373,7 +375,7 @@ def add1to0(arr, axis=None):
 
 
 @register("ideal_point")
-def ideal_point(arr, axis=None):
+def ideal_point(arr, criteria=None, axis=None):
     """This transformation is based on the concept of the ideal
     point. So, the value :math:`x_{aj}` below, expresses the degree to which
     the  alternative a is close to the ideal value :math:`f_j^*`, which is the
@@ -414,7 +416,36 @@ def ideal_point(arr, axis=None):
            [ 1.,  1.]])
 
     """
+    if criteria is None:
+        raise TypeError("you must provide criteria")
+
+    if axis not in (0, 1, None):
+        msg = "'axis' must be 0, 1 or None. Found: {}"
+        raise ValueError(msg.format(axis))
+
     arr = np.asarray(arr, dtype=float)
-    minc = arr.min(axis=axis)
-    maxc = arr.max(axis=axis)
-    return (arr - minc) / (maxc - minc)
+    criteria = util.criteriarr(criteria)
+    if axis is None:
+        if len(set(criteria)) != 1:
+            msg = "If 'axis' is None all the 'criteria' must be the same"
+            raise ValueError(msg)
+        criteria = criteria[0]
+        idealf, nadirf = (
+            (np.max, np.min)
+            if criteria == util.MAX
+            else (np.min, np.max))
+        ideal, nadir = idealf(arr), nadirf(arr)
+    elif axis == 1:
+        arr = arr.T
+    else:  # axis 0
+        maxs = np.max(arr, axis=0)
+        mins = np.min(arr, axis=0)
+
+        ideal = np.where(criteria == util.MAX, maxs, mins)
+        nadir = np.where(criteria == util.MAX, mins, maxs)
+
+    result = (arr - nadir) / (ideal - nadir)
+
+    if axis == 1:
+        result = result.T
+    return result

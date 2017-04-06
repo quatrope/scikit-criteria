@@ -76,7 +76,7 @@ class Divergence(core.SKCriteriaTestCase):
             [4, 4.12, 1.21],
             [-6.1, 3.52, 2.10],
             [-34.6, 3.31, 0.98]
-        ], axis=0)
+        ], criteria=[1, 1, 1], axis=0)
         self.expected = [0.27908306,  0.34092628,  0.37999065]
 
     def test_divergence(self):
@@ -114,7 +114,7 @@ class Critic(core.SKCriteriaTestCase):
             [4, 4.12, 1.21],
             [-6.1, 3.52, 2.10],
             [-34.6, 3.31, 0.98]
-        ], axis=0)
+        ], [1, 1, 1], axis=0)
         self.expected = [0.20222554, 0.48090173, 0.31687273]
 
     def test_equal(self):

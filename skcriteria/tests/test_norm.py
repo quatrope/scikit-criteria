@@ -80,14 +80,15 @@ class NormTestBase(core.SKCriteriaTestCase):
         self.arr = [random.randint(1, 1000) for _ in range(cols)]
 
     def _test_normalizer(self, normfunc, normname,
-                         mtx_result, arr_result, **kwargs):
-        mtx_func_result = normfunc(self.mtx, axis=0)
-        arr_func_result = normfunc(self.arr)
+                         mtx_result, arr_result, criteria=None, **kwargs):
+        mtx_func_result = normfunc(self.mtx, axis=0, criteria=criteria)
+        arr_func_result = normfunc(self.arr, criteria=criteria)
         self.assertAllClose(mtx_result, mtx_func_result, **kwargs)
         self.assertAllClose(arr_result, arr_func_result, **kwargs)
 
-        mtx_func_result = norm.norm(normname, self.mtx, axis=0)
-        arr_func_result = norm.norm(normname, self.arr)
+        mtx_func_result = norm.norm(
+            normname, self.mtx, axis=0, criteria=criteria)
+        arr_func_result = norm.norm(normname, self.arr, criteria=criteria)
         self.assertAllClose(mtx_result, mtx_func_result, **kwargs)
         self.assertAllClose(arr_result, arr_func_result, **kwargs)
 
@@ -250,4 +251,18 @@ class IdealPoint(NormTestBase):
         self.arr = [61, 1.08, 4.33]
         arr_result = [1., 0., 0.05423899]
         self._test_normalizer(
-            norm.ideal_point, "ideal_point", mtx_result, arr_result)
+            norm.ideal_point, "ideal_point",
+            mtx_result, arr_result, criteria=[1, 1, 1])
+
+    def test_ideal_point_None(self):
+        mtx = [1., 2., 3.]
+        expected = [0, 0.5, 1]
+        result = norm.ideal_point(mtx, criteria=[1, 1, 1], axis=None)
+        self.assertAllClose(result, expected)
+
+        expected = [1., 0.5, 0.]
+        result = norm.ideal_point(mtx, criteria=[-1, -1, -1], axis=None)
+        self.assertAllClose(result, expected)
+
+        with self.assertRaises(ValueError):
+            norm.ideal_point(mtx, criteria=[-1, -1, 1], axis=None)

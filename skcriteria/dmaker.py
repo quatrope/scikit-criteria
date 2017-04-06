@@ -390,8 +390,10 @@ class DecisionMaker(object):
 
     def normalize(self, mtx, criteria, weights):
         ncriteria = util.criteriarr(criteria)
-        nmtx = self._mnorm(mtx, axis=0)
-        nweights = self._wnorm(weights) if weights is not None else 1
+        nmtx = self._mnorm(mtx, criteria=criteria, axis=0)
+        nweights = (
+            self._wnorm(weights, criteria=criteria)
+            if weights is not None else 1)
         return nmtx, ncriteria, nweights
 
     def make_decision(self, mtx, criteria, weights,
