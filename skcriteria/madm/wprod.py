@@ -53,7 +53,7 @@ import numpy as np
 
 from .. import norm, util, rank
 from .._oop import Data
-from ._core import DecisionMaker
+from ._dmaker import DecisionMaker
 
 
 # =============================================================================

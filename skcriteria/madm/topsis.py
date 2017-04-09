@@ -45,7 +45,7 @@ from __future__ import unicode_literals
 import numpy as np
 
 from ..import util, rank
-from ._core import DecisionMaker
+from ._dmaker import DecisionMaker
 
 
 # =============================================================================

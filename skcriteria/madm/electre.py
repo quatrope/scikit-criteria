@@ -58,7 +58,7 @@ References
 import numpy as np
 
 from .. import util
-from ._core import DecisionMaker
+from ._dmaker import DecisionMaker
 
 
 # =============================================================================

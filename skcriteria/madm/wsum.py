@@ -52,7 +52,7 @@ __doc__ = """Most basic method of multi-criteria"""
 import numpy as np
 
 from .. import rank
-from ._core import DecisionMaker
+from ._dmaker import DecisionMaker
 
 
 # =============================================================================
