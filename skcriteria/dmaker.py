@@ -314,6 +314,15 @@ class Decision(object):
         rows = self._iter_rows()
         return tabulate(rows, **params)
 
+    def as_dict(self):
+        data = {
+            "data": self._data,
+            "kernel_": self._kernel,
+            "rank_": self._rank, "e_": self._e}
+        data = self.decision_maker.decision_as_dict(data)
+        data.update({"decision_maker": self._decision_maker})
+        return data
+
     @property
     def decision_maker(self):
         return self._decision_maker
@@ -387,6 +396,15 @@ class DecisionMaker(object):
         data = ", ".join(
             "{}={}".format(k, v) for k, v in data)
         return "<{} ({})>".format(cls_name, data)
+
+    def as_dict(self):
+        try:
+            return {"mnorm": norm.nameof(self._mnorm),
+                    "wnorm": norm.nameof(self._wnorm)}
+        except norm.FunctionNotRegisteredAsNormalizer as err:
+            msg = ("All your normalization function must be registered with "
+                   "'norm.register()' function. Invalid Function: {}")
+            raise norm.FunctionNotRegisteredAsNormalizer(msg.format(err))
 
     def normalize(self, mtx, criteria, weights):
         ncriteria = util.criteriarr(criteria)
