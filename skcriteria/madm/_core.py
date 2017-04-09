@@ -38,7 +38,6 @@
 from __future__ import unicode_literals
 
 import sys
-import abc
 import operator
 import uuid
 from collections import Mapping
@@ -140,8 +139,7 @@ class Extra(Mapping):
 
 class Decision(object):
 
-    def __init__(self, data, mtx, criteria, weights,
-                 anames, cnames, kernel_, rank_, e_,):
+    def __init__(self, decision_maker, data, kernel_, rank_, e_):
             self._decision_maker = decision_maker
             self._data = data
             self._kernel = kernel_
@@ -285,10 +283,10 @@ class DecisionMaker(BaseSolver):
         return {"mnorm": norm.nameof(self._mnorm),
                 "wnorm": norm.nameof(self._wnorm)}
 
-    def preprocess(self, data)
-        ncriteria = util.criteriarr(criteria)
-        nmtx = self._mnorm(mtx, axis=0)
-        nweights = self._wnorm(weights) if weights is not None else 1
+    def preprocess(self, data):
+        ncriteria = util.criteriarr(data.criteria)
+        nmtx = self._mnorm(data.mtx, axis=0)
+        nweights = self._wnorm(data.weights) if data.weights is not None else 1
         return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
                     anames=data.anames, cnames=data.cnames)
 

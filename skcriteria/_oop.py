@@ -39,9 +39,6 @@ from __future__ import unicode_literals
 
 import sys
 import abc
-import operator
-import uuid
-from collections import Mapping
 
 import six
 
@@ -49,7 +46,7 @@ import numpy as np
 
 from tabulate import tabulate
 
-from . import util, norm
+from . import util
 
 
 # =============================================================================

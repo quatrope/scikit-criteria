@@ -219,7 +219,7 @@ class RatioMOORA(DecisionMaker):
         super(RatioMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
     def solve(self, ndata):
-        nmtx, ncriteria = ndata.mtx, ndata.criteria
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, points = ratio(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
@@ -230,7 +230,7 @@ class RefPointMOORA(DecisionMaker):
         super(RefPointMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
     def solve(self, ndata):
-        nmtx, ncriteria = ndata.mtx, ndata.criteria
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, points = refpoint(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
