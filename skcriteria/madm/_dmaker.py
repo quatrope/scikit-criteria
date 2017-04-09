@@ -48,8 +48,8 @@ import numpy as np
 
 from tabulate import tabulate
 
-from .. import util, norm
-from .._oop import Data, BaseSolver
+from .. import util
+from .._oop import BaseSolver
 
 
 # =============================================================================
@@ -275,31 +275,8 @@ class Decision(object):
 
 class DecisionMaker(BaseSolver):
 
-    def __init__(self, mnorm, wnorm):
-        self._mnorm = mnorm if hasattr(mnorm, "__call__") else norm.get(mnorm)
-        self._wnorm = wnorm if hasattr(wnorm, "__call__") else norm.get(wnorm)
-
-    def as_dict(self):
-        return {"mnorm": norm.nameof(self._mnorm),
-                "wnorm": norm.nameof(self._wnorm)}
-
-    def preprocess(self, data):
-        ncriteria = util.criteriarr(data.criteria)
-        nmtx = self._mnorm(data.mtx, axis=0)
-        nweights = self._wnorm(data.weights) if data.weights is not None else 1
-        return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
-                    anames=data.anames, cnames=data.cnames)
-
     def make_result(self, data, kernel, rank, extra):
         decision = Decision(
             decision_maker=self, data=data,
             kernel_=kernel, rank_=rank, e_=extra)
         return decision
-
-    @property
-    def mnorm(self):
-        return self._mnorm
-
-    @property
-    def wnorm(self):
-        return self._wnorm

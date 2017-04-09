@@ -46,7 +46,7 @@ import numpy as np
 
 from tabulate import tabulate
 
-from . import util
+from . import util, norm
 
 
 # =============================================================================
@@ -174,6 +174,16 @@ class Data(object):
 @six.add_metaclass(abc.ABCMeta)
 class BaseSolver(object):
 
+    def __init__(self, mnorm, wnorm):
+        self._mnorm = norm.get(mnorm, mnorm)
+        self._wnorm = norm.get(wnorm, wnorm)
+        if not hasattr(self._mnorm, "__call__"):
+            msg = "'mnorm' must be a callable or a string in {}. Found {}"
+            raise TypeError(msg.format(norm.NORMALIZERS.keys(), mnorm))
+        if not hasattr(self._wnorm, "__call__"):
+            msg = "'wnorm' must be a callable or a string in {}. Found {}"
+            raise TypeError(msg.format(norm.NORMALIZERS.keys(), wnorm))
+
     def __eq__(self, obj):
         return isinstance(obj, type(self)) and self.as_dict() == obj.as_dict()
 
@@ -190,9 +200,9 @@ class BaseSolver(object):
     def __repr__(self):
         return str(self)
 
-    @abc.abstractmethod
     def as_dict(self):
-        return NotImplemented
+        return {"mnorm": self._mnorm,
+                "wnorm": self._wnorm}
 
     def decide(self, data, criteria=None, weights=None):
         if isinstance(data, Data):
@@ -208,9 +218,12 @@ class BaseSolver(object):
         result = self.solve(pdata)
         return self.make_result(data, *result)
 
-    @abc.abstractmethod
     def preprocess(self, data):
-        return NotImplemented
+        ncriteria = util.criteriarr(data.criteria)
+        nmtx = self._mnorm(data.mtx, axis=0)
+        nweights = self._wnorm(data.weights) if data.weights is not None else 1
+        return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
+                    anames=data.anames, cnames=data.cnames)
 
     @abc.abstractmethod
     def solve(self, pdata):
@@ -219,3 +232,11 @@ class BaseSolver(object):
     @abc.abstractmethod
     def make_result(self, rdata):
         return NotImplemented
+
+    @property
+    def mnorm(self):
+        return self._mnorm
+
+    @property
+    def wnorm(self):
+        return self._wnorm

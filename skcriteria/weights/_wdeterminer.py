@@ -32,69 +32,52 @@
 
 
 # =============================================================================
-# FUTURE
+# IMPORTS
 # =============================================================================
 
 from __future__ import unicode_literals
 
-
-# =============================================================================
-# DOCS
-# =============================================================================
-
-"""This module contains functions for calculate and compare ranks (ordinal
-series)
-
-"""
-
-
-# =============================================================================
-# IMPORTS
-# =============================================================================
-
 import numpy as np
 
-from ._wdeterminer import (
-    WeightDeterminer, DIVERGENCE_FUNCTIONS, CORRELATION_FUNCTIONS)
+from .._oop import Data, BaseSolver
+from ..util import corr_speaman
 
 
 # =============================================================================
-# WEIGHTS
+# CONSTANTS
 # =============================================================================
 
-def critic(nmtx, dfunction, cfunction):
-    dindex = dfunction(nmtx, axis=0)
-    corr_m1 = 1 - cfunction(nmtx.T)
-    uweights = dindex * np.sum(corr_m1, axis=0)
-    weights = uweights / np.sum(uweights)
-    return weights
+DIVERGENCE_FUNCTIONS = {
+    "std": np.std,
+    "var": np.var}
 
 
-class Critic(WeightDeterminer):
+CORRELATION_FUNCTIONS = {
+    "pearson": np.corrcoef,
+    "spearman": corr_speaman}
 
-    def __init__(self, dfunction="std", cfunction="pearson",
-                 wnorm="ideal_point"):
-        super(Critic, self).__init__(wnorm=wnorm)
 
-        self._dfunction = DIVERGENCE_FUNCTIONS.get(dfunction, dfunction)
-        self._cfunction = CORRELATION_FUNCTIONS.get(cfunction, cfunction)
+# =============================================================================
+# DECISION MAKER
+# =============================================================================
 
-        if not hasattr(self._dfunction, "__call__"):
-            msg = "'dfunction' must be a callable or a string in {}. Found {}"
-            raise TypeError(msg.format(DIVERGENCE_FUNCTIONS.keys(), dfunction))
-        if not hasattr(self._cfunction, "__call__"):
-            msg = "'cfunction' must be a callable or a string in {}. Found {}"
-            raise TypeError(
-                msg.format(CORRELATION_FUNCTIONS.keys(), cfunction))
+class WeightDeterminer(BaseSolver):
+
+    def __init__(self, mnorm="sum"):
+        super(WeightDeterminer, self).__init__(wnorm="none", mnorm=mnorm)
 
     def as_dict(self):
-        data = super(Critic, self).as_dict()
-        data.update({
-            "dfunction": self._dfunction,
-            "cfunction": self._cfunction})
+        data = super(WeightDeterminer, self).as_dict()
+        del data["wnorm"]
         return data
 
-    def solve(self, ndata):
-        nmtx = ndata.mtx
-        weights = critic(nmtx, self._dfunction, self._cfunction)
-        return weights
+    def preprocess(self, data):
+        nmtx = self._mnorm(data.mtx, axis=0)
+        return Data(mtx=nmtx, criteria=data.criteria, weights=data.weights,
+                    anames=data.anames, cnames=data.cnames)
+
+    def make_result(self, data, new_weights):
+        ndata = Data(
+            mtx=data.mtx, criteria=data.criteria, weights=new_weights,
+            anames=data.anames, cnames=data.cnames)
+        return ndata

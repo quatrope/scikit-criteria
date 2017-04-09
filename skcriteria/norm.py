@@ -92,10 +92,12 @@ def register(name, func=None):
         return func
 
 
-def get(name):
+def get(name, d=None):
     try:
         return NORMALIZERS[name]
     except KeyError:
+        if d is not None:
+            return d
         raise NormalizerNotFound(name)
 
 
