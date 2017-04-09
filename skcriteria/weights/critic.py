@@ -70,11 +70,11 @@ def critic(nmtx, dfunction, cfunction):
     return weights
 
 
-class Critic(WeightDeterminer):
+class CriticWeights(WeightDeterminer):
 
     def __init__(self, dfunction="std", cfunction="pearson",
                  mnorm="ideal_point"):
-        super(Critic, self).__init__(mnorm=mnorm)
+        super(CriticWeights, self).__init__(mnorm=mnorm)
 
         self._dfunction = DIVERGENCE_FUNCTIONS.get(dfunction, dfunction)
         self._cfunction = CORRELATION_FUNCTIONS.get(cfunction, cfunction)
@@ -88,7 +88,7 @@ class Critic(WeightDeterminer):
                 msg.format(CORRELATION_FUNCTIONS.keys(), cfunction))
 
     def as_dict(self):
-        data = super(Critic, self).as_dict()
+        data = super(CriticWeights, self).as_dict()
         data.update({
             "dfunction": self._dfunction.__name__,
             "cfunction": self._cfunction.__name__})

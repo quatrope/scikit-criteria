@@ -86,6 +86,6 @@ class CriticTest(core.SKCriteriaTestCase):
 
     def test_critic_oop(self):
         data = Data(self.mtx, [1, 1, 1])
-        wd = critic.Critic()
+        wd = critic.CriticWeights()
         rdata = wd.decide(data)
         self.assertAllClose(rdata.weights, self.expected)

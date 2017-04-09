@@ -54,7 +54,7 @@ import numpy as np
 from .. import core
 
 from ...weights import divergence
-from ... import norm
+from ... import norm, Data
 
 
 # =============================================================================
@@ -68,7 +68,7 @@ class DivergenceTest(core.SKCriteriaTestCase):
         # Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
         # Determining objective weights in multiple criteria problems:
         # The critic method. Computers & Operations Research, 22(7), 763-770.
-        self.nmtx = norm.ideal_point([
+        self.mtx = [
             [61, 1.08, 4.33],
             [20.7, 0.26, 4.34],
             [16.3, 1.98, 2.53],
@@ -77,9 +77,16 @@ class DivergenceTest(core.SKCriteriaTestCase):
             [4, 4.12, 1.21],
             [-6.1, 3.52, 2.10],
             [-34.6, 3.31, 0.98]
-        ], criteria=[1, 1, 1], axis=0)
+        ]
+        self.nmtx = norm.ideal_point(self.mtx, criteria=[1, 1, 1], axis=0)
         self.expected = [0.27908306,  0.34092628,  0.37999065]
 
     def test_divergence(self):
         result = divergence.divergence(self.nmtx, np.std)
         self.assertAllClose(result, self.expected)
+
+    def test_divergence_oop(self):
+        data = Data(self.mtx, [1, 1, 1])
+        wd = divergence.DivergenceWeights()
+        rdata = wd.decide(data)
+        self.assertAllClose(rdata.weights, self.expected)

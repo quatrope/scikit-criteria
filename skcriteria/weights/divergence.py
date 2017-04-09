@@ -42,8 +42,7 @@ from __future__ import unicode_literals
 # DOCS
 # =============================================================================
 
-"""This module contains functions for calculate and compare ranks (ordinal
-series)
+"""Estimate the weights of every criteria bye some kind of divergence index
 
 """
 
@@ -54,6 +53,8 @@ series)
 
 import numpy as np
 
+from ._wdeterminer import WeightDeterminer, DIVERGENCE_FUNCTIONS
+
 
 # =============================================================================
 # WEIGHTS
@@ -62,3 +63,23 @@ import numpy as np
 def divergence(nmtx, dfunction):
     dindex = dfunction(nmtx, axis=0)
     return dindex / np.sum(dindex)
+
+
+class DivergenceWeights(WeightDeterminer):
+
+    def __init__(self, dfunction="std", mnorm="ideal_point"):
+        super(DivergenceWeights, self).__init__(mnorm=mnorm)
+        self._dfunction = DIVERGENCE_FUNCTIONS.get(dfunction, dfunction)
+        if not hasattr(self._dfunction, "__call__"):
+            msg = "'dfunction' must be a callable or a string in {}. Found {}"
+            raise TypeError(msg.format(DIVERGENCE_FUNCTIONS.keys(), dfunction))
+
+    def as_dict(self):
+        data = super(DivergenceWeights, self).as_dict()
+        data.update({"dfunction": self._dfunction.__name__})
+        return data
+
+    def solve(self, ndata):
+        nmtx = ndata.mtx
+        weights = divergence(nmtx, self._dfunction)
+        return weights,
