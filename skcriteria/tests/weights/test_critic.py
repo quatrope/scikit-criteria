@@ -54,7 +54,7 @@ import numpy as np
 from .. import core
 
 from ...weights import critic
-from ... import norm
+from ... import norm, Data
 
 
 # =============================================================================
@@ -68,7 +68,7 @@ class CriticTest(core.SKCriteriaTestCase):
         # Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
         # Determining objective weights in multiple criteria problems:
         # The critic method. Computers & Operations Research, 22(7), 763-770.
-        self.nmtx = norm.ideal_point([
+        self.mtx = [
             [61, 1.08, 4.33],
             [20.7, 0.26, 4.34],
             [16.3, 1.98, 2.53],
@@ -76,10 +76,16 @@ class CriticTest(core.SKCriteriaTestCase):
             [5.4, 2.77, 2.33],
             [4, 4.12, 1.21],
             [-6.1, 3.52, 2.10],
-            [-34.6, 3.31, 0.98]
-        ], [1, 1, 1], axis=0)
+            [-34.6, 3.31, 0.98]]
+        self.nmtx = norm.ideal_point(self.mtx, [1, 1, 1], axis=0)
         self.expected = [0.20222554, 0.48090173, 0.31687273]
 
-    def test_equal(self):
+    def test_critic(self):
         result = critic.critic(self.nmtx, np.std, np.corrcoef)
         self.assertAllClose(result, self.expected)
+
+    def test_critic_oop(self):
+        data = Data(self.mtx, [1, 1, 1])
+        wd = critic.Critic()
+        rdata = wd.decide(data)
+        self.assertAllClose(rdata.weights, self.expected)

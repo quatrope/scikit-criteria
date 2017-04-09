@@ -74,7 +74,7 @@ class Data(object):
     def __init__(self, mtx, criteria, weights=None, anames=None, cnames=None):
         self._mtx = np.asarray(mtx)
         self._criteria = util.criteriarr(criteria)
-        self._weights = np.asarray(weights) if weights is not None else None
+        self._weights = (np.asarray(weights) if weights is not None else None)
         util.validate_data(self._mtx, self._criteria, self._weights)
 
         self._anames = (
@@ -201,8 +201,17 @@ class BaseSolver(object):
         return str(self)
 
     def as_dict(self):
-        return {"mnorm": self._mnorm,
-                "wnorm": self._wnorm}
+        return {"mnorm": self._mnorm.__name__,
+                "wnorm": self._wnorm.__name__}
+
+    def preprocess(self, data):
+        nmtx = self._mnorm(data.mtx, criteria=data.criteria, axis=0)
+        nweights = (
+            self._wnorm(data.weights, criteria=data.criteria)
+            if data.weights is not None else
+            np.ones(data.criteria.shape))
+        return Data(mtx=nmtx, criteria=data.criteria, weights=nweights,
+                    anames=data.anames, cnames=data.cnames)
 
     def decide(self, data, criteria=None, weights=None):
         if isinstance(data, Data):
@@ -217,13 +226,6 @@ class BaseSolver(object):
         pdata = self.preprocess(data)
         result = self.solve(pdata)
         return self.make_result(data, *result)
-
-    def preprocess(self, data):
-        ncriteria = util.criteriarr(data.criteria)
-        nmtx = self._mnorm(data.mtx, axis=0)
-        nweights = self._wnorm(data.weights) if data.weights is not None else 1
-        return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
-                    anames=data.anames, cnames=data.cnames)
 
     @abc.abstractmethod
     def solve(self, pdata):

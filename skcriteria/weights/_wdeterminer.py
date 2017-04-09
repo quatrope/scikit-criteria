@@ -71,11 +71,6 @@ class WeightDeterminer(BaseSolver):
         del data["wnorm"]
         return data
 
-    def preprocess(self, data):
-        nmtx = self._mnorm(data.mtx, axis=0)
-        return Data(mtx=nmtx, criteria=data.criteria, weights=data.weights,
-                    anames=data.anames, cnames=data.cnames)
-
     def make_result(self, data, new_weights):
         ndata = Data(
             mtx=data.mtx, criteria=data.criteria, weights=new_weights,
