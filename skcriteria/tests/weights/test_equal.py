@@ -54,6 +54,7 @@ import numpy as np
 from .. import core
 
 from ...weights import equal
+from ... import Data
 
 
 # =============================================================================
@@ -72,3 +73,9 @@ class EqualTest(core.SKCriteriaTestCase):
     def test_equal(self):
         result = equal.equal(self.nmtx)
         self.assertAllClose(result, self.expected)
+
+    def test_equal_oop(self):
+        data = Data(self.nmtx, [1, 1])
+        wd = equal.EqualWeights()
+        rdata = wd.decide(data)
+        self.assertAllClose(rdata.weights, self.expected)

@@ -54,6 +54,8 @@ series)
 
 import numpy as np
 
+from ._wdeterminer import WeightDeterminer
+
 
 # =============================================================================
 # WEIGHTS
@@ -63,3 +65,11 @@ def equal(nmtx):
     m = nmtx.shape[1]
     weights = 1. / m
     return np.tile(weights, m)
+
+
+class EqualWeights(WeightDeterminer):
+
+    def solve(self, ndata):
+        nmtx = ndata.mtx
+        weights = equal(nmtx)
+        return weights,
