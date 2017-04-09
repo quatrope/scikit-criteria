@@ -49,7 +49,8 @@ import numpy as np
 
 from tabulate import tabulate
 
-from . import util, norm
+from .. import util, norm
+from .._oop import Data, BaseSolver
 
 
 # =============================================================================
@@ -66,108 +67,6 @@ TABULATE_PARAMS = {
     "numalign": "center",
     "stralign": "center",
 }
-
-
-# =============================================================================
-# DATA PROXY
-# =============================================================================
-
-class Data(object):
-
-    def __init__(self, mtx, criteria, weights=None, anames=None, cnames=None):
-        self._mtx = np.asarray(mtx)
-        self._criteria = util.criteriarr(criteria)
-        self._weights = np.asarray(weights) if weights is not None else None
-        util.validate_data(self._mtx, self._criteria, self._weights)
-
-        self._anames = (
-            anames if anames is not None else
-            ["A{}".format(idx) for idx in range(len(mtx))])
-        if len(self._anames) != len(self._mtx):
-            msg = "{} names given for {} alternatives".format(
-                len(self._anames), len(self._mtx))
-            raise util.DataValidationError(msg)
-
-        self._cnames = (
-            cnames if cnames is not None else
-            ["C{}".format(idx) for idx in range(len(criteria))])
-        if len(self._cnames) != len(self._criteria):
-            msg = "{} names for given {} criteria".format(
-                len(self._cnames), len(self._criteria))
-            raise util.DataValidationError(msg)
-
-    def _iter_rows(self):
-        direction = map(CRITERIA_AS_ATR.get, self._criteria)
-        title = ["ALT./CRIT."]
-        if self._weights is None:
-            cstr = zip(self._cnames, direction)
-            criteria = ["{} ({})".format(n, c) for n, c in cstr]
-        else:
-            cstr = zip(self._cnames, direction, self._weights)
-            criteria = ["{} ({}) W.{}".format(n, c, w) for n, c, w in cstr]
-        yield title + criteria
-
-        for an, row in zip(self._anames, self._mtx):
-            yield [an] + list(row)
-
-    def __eq__(self, obj):
-        return (
-            isinstance(obj, Data) and
-            util.iter_equal(self._mtx, obj._mtx) and
-            util.iter_equal(self._criteria, obj._criteria) and
-            util.iter_equal(self._weights, obj._weights))
-
-    def __ne__(self, obj):
-        return not self == obj
-
-    def __unicode__(self):
-        return self.to_str()
-
-    def __bytes__(self):
-        encoding = sys.getdefaultencoding()
-        return self.__unicode__().encode(encoding, 'replace')
-
-    def __str__(self):
-        """Return a string representation for a particular Object
-
-        Invoked by str(df) in both py2/py3.
-        Yields Bytestring in Py2, Unicode String in py3.
-        """
-        if six.PY3:
-            return self.__unicode__()
-        return self.__bytes__()
-
-    def __repr__(self):
-        return str(self)
-
-    def _repr_html_(self):
-        return self.to_str(tablefmt="html")
-
-    def to_str(self, **params):
-        params.update({
-            k: v for k, v in TABULATE_PARAMS.items() if k not in params})
-        rows = self._iter_rows()
-        return tabulate(rows, **params)
-
-    @property
-    def anames(self):
-        return tuple(self._anames)
-
-    @property
-    def cnames(self):
-        return tuple(self._cnames)
-
-    @property
-    def mtx(self):
-        return self._mtx
-
-    @property
-    def criteria(self):
-        return self._criteria
-
-    @property
-    def weights(self):
-        return self._weights
 
 
 # =============================================================================
@@ -241,11 +140,10 @@ class Extra(Mapping):
 
 class Decision(object):
 
-    def __init__(self, decision_maker, mtx, criteria, weights,
+    def __init__(self, data, mtx, criteria, weights,
                  anames, cnames, kernel_, rank_, e_,):
             self._decision_maker = decision_maker
-            self._data = Data(mtx, criteria, weights,
-                              anames=anames, cnames=cnames)
+            self._data = data
             self._kernel = kernel_
             self._rank = rank_
             self._e = Extra(e_)
@@ -316,11 +214,11 @@ class Decision(object):
 
     def as_dict(self):
         data = {
-            "data": self._data,
+            "data": self._data.as_dict(),
             "kernel_": self._kernel,
             "rank_": self._rank, "e_": self._e}
-        data = self.decision_maker.decision_as_dict(data)
-        data.update({"decision_maker": self._decision_maker})
+        dm = self._decision_maker.as_dict()
+        data.update({"decision_maker": dm})
         return data
 
     @property
@@ -377,81 +275,28 @@ class Decision(object):
 # DECISION MAKER
 # =============================================================================
 
-@six.add_metaclass(abc.ABCMeta)
-class DecisionMaker(object):
+class DecisionMaker(BaseSolver):
 
     def __init__(self, mnorm, wnorm):
         self._mnorm = mnorm if hasattr(mnorm, "__call__") else norm.get(mnorm)
         self._wnorm = wnorm if hasattr(wnorm, "__call__") else norm.get(wnorm)
 
-    def __eq__(self, obj):
-        return isinstance(obj, type(self)) and self.as_dict() == obj.as_dict()
-
-    def __ne__(self, obj):
-        return not self == obj
-
-    def __repr__(self):
-        cls_name = type(self).__name__
-        data = sorted(self.as_dict().items())
-        data = ", ".join(
-            "{}={}".format(k, v) for k, v in data)
-        return "<{} ({})>".format(cls_name, data)
-
     def as_dict(self):
-        try:
-            return {"mnorm": norm.nameof(self._mnorm),
-                    "wnorm": norm.nameof(self._wnorm)}
-        except norm.FunctionNotRegisteredAsNormalizer as err:
-            msg = ("All your normalization function must be registered with "
-                   "'norm.register()' function. Invalid Function: {}")
-            raise norm.FunctionNotRegisteredAsNormalizer(msg.format(err))
+        return {"mnorm": norm.nameof(self._mnorm),
+                "wnorm": norm.nameof(self._wnorm)}
 
-    def normalize(self, mtx, criteria, weights):
+    def preprocess(self, data)
         ncriteria = util.criteriarr(criteria)
-        nmtx = self._mnorm(mtx, criteria=criteria, axis=0)
-        nweights = (
-            self._wnorm(weights, criteria=criteria)
-            if weights is not None else 1)
-        return nmtx, ncriteria, nweights
+        nmtx = self._mnorm(mtx, axis=0)
+        nweights = self._wnorm(weights) if weights is not None else 1
+        return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
+                    anames=data.anames, cnames=data.cnames)
 
-    def make_decision(self, mtx, criteria, weights,
-                      kernel, rank, extra, anames, cnames):
+    def make_result(self, data, kernel, rank, extra):
         decision = Decision(
-            decision_maker=self,
-            mtx=mtx, criteria=criteria, weights=weights,
-            anames=anames, cnames=cnames,
+            decision_maker=self, data=data,
             kernel_=kernel, rank_=rank, e_=extra)
         return decision
-
-    def decide(self, data, criteria=None, weights=None):
-        if isinstance(data, Data):
-            if criteria or weights:
-                msg = (
-                    "If 'data' is instance of Data, 'criteria' and 'weights' "
-                    "must be empty")
-                raise ValueError(msg)
-            anames, cnames = data.anames, data.cnames
-            mtx, criteria, weights = data.mtx, data.criteria, data.weights
-        else:
-            if criteria is None:
-                msg = (
-                    "If 'data' is not instance of Data you must provide a "
-                    "'criteria' array")
-                raise ValueError(msg)
-            anames, cnames, mtx = None, None, data
-            util.validate_data(mtx, criteria, weights)
-        nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
-        kernel, rank, extra = self.solve(
-            nmtx=nmtx, ncriteria=ncriteria, nweights=nweights)
-        decision = self.make_decision(
-            mtx=mtx, criteria=criteria, weights=weights,
-            kernel=kernel, rank=rank, extra=extra,
-            anames=anames, cnames=cnames)
-        return decision
-
-    @abc.abstractmethod
-    def solve(self, nmtx, ncriteria, nweights):
-        return NotImplemented
 
     @property
     def mnorm(self):

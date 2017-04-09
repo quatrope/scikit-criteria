@@ -45,7 +45,7 @@ from __future__ import unicode_literals
 import numpy as np
 
 from ..import util, rank
-from ..dmaker import DecisionMaker
+from ._core import DecisionMaker
 
 
 # =============================================================================
@@ -85,6 +85,7 @@ class TOPSIS(DecisionMaker):
     def __init__(self, mnorm="vector", wnorm="sum"):
         super(TOPSIS, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
-    def solve(self, *args, **kwargs):
-        rank, closeness = topsis(*args, **kwargs)
+    def solve(self, ndata):
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
+        rank, closeness = topsis(nmtx, ncriteria, nweights)
         return None, rank, {"closeness": closeness}

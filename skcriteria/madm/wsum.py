@@ -52,7 +52,7 @@ __doc__ = """Most basic method of multi-criteria"""
 import numpy as np
 
 from .. import rank
-from ..dmaker import DecisionMaker
+from ._core import DecisionMaker
 
 
 # =============================================================================
@@ -80,8 +80,9 @@ class MDWeightedSum(DecisionMaker):
     def __init__(self, mnorm="sum", wnorm="sum"):
         super(MDWeightedSum, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
-    def solve(self, *args, **kwargs):
-        rank, points = mdwsum(*args, **kwargs)
+    def solve(self, ndata):
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
+        rank, points = mdwsum(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
 

@@ -175,42 +175,50 @@ class Data(object):
 # =============================================================================
 
 @six.add_metaclass(abc.ABCMeta)
-class Manipulator(object):
+class BaseSolver(object):
 
-    def __repr__(self):
+    def __eq__(self, obj):
+        return isinstance(obj, type(self)) and self.as_dict() == obj.as_dict()
+
+    def __ne__(self, obj):
+        return not self == obj
+
+    def __str__(self):
         cls_name = type(self).__name__
         data = sorted(self.as_dict().items())
         data = ", ".join(
             "{}={}".format(k, v) for k, v in data)
         return "<{} ({})>".format(cls_name, data)
 
+    def __repr__(self):
+        return str(self)
+
+    @abc.abstractmethod
+    def as_dict(self):
+        return NotImplemented
 
     def decide(self, data, criteria=None, weights=None):
         if isinstance(data, Data):
             if criteria or weights:
-                msg = (
-                    "If 'data' is instance of Data, 'criteria' and 'weights' "
-                    "must be empty")
-                raise ValueError(msg)
-            anames, cnames = data.anames, data.cnames
-            mtx, criteria, weights = data.mtx, data.criteria, data.weights
+                raise ValueError("If 'data' is instance of Data, 'criteria' "
+                                 "and 'weights' must be empty")
         else:
             if criteria is None:
-                msg = (
-                    "If 'data' is not instance of Data you must provide a "
-                    "'criteria' array")
-                raise ValueError(msg)
-            anames, cnames, mtx = None, None, data
-            util.validate_data(mtx, criteria, weights)
-        nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
-        kernel, rank, extra = self.solve(
-            nmtx=nmtx, ncriteria=ncriteria, nweights=nweights)
-        decision = self.make_decision(
-            mtx=mtx, criteria=criteria, weights=weights,
-            kernel=kernel, rank=rank, extra=extra,
-            anames=anames, cnames=cnames)
-        return decision
+                raise ValueError("If 'data' is not instance of Data you must "
+                                 "provide a 'criteria' array")
+            data = Data(data, criteria, weights)
+        pdata = self.preprocess(data)
+        result = self.solve(pdata)
+        return self.make_result(data, *result)
 
     @abc.abstractmethod
-    def process(self, nmtx, ncriteria, nweights):
+    def preprocess(self, data):
+        return NotImplemented
+
+    @abc.abstractmethod
+    def solve(self, pdata):
+        return NotImplemented
+
+    @abc.abstractmethod
+    def make_result(self, rdata):
         return NotImplemented

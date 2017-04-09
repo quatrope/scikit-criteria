@@ -58,7 +58,7 @@ References
 import numpy as np
 
 from .. import util
-from ..dmaker import DecisionMaker
+from ._core import DecisionMaker
 
 
 # =============================================================================
@@ -137,7 +137,13 @@ class ELECTRE1(DecisionMaker):
         self._p = float(p)
         self._q = float(q)
 
-    def solve(self, nmtx, ncriteria, nweights):
+    def as_dict(self):
+        base = super(ELECTRE1, self).as_dict()
+        base.update({"p": self._p, "q": self._q})
+        return base
+
+    def solve(self, ndata):
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         kernel, outrank, mtx_concordance, mtx_discordance = electre1(
             nmtx=nmtx, ncriteria=ncriteria, nweights=nweights,
             p=self._p, q=self._q)
@@ -149,11 +155,6 @@ class ELECTRE1(DecisionMaker):
             "p": self.p, "q": self.q}
 
         return kernel, None, extra
-
-    def as_dict(self):
-        base = super(ELECTRE1, self).as_dict()
-        base.update({"p": self._p, "q": self._q})
-        return base
 
     @property
     def p(self):

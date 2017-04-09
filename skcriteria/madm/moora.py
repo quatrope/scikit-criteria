@@ -65,7 +65,8 @@ import itertools
 import numpy as np
 
 from .. import norm, util, rank
-from ..dmaker import DecisionMaker
+from .._oop import Data
+from ._core import DecisionMaker
 
 
 # =============================================================================
@@ -217,7 +218,8 @@ class RatioMOORA(DecisionMaker):
     def __init__(self, mnorm="vector", wnorm="sum"):
         super(RatioMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
-    def solve(self, nmtx, ncriteria, nweights):
+    def solve(self, ndata):
+        nmtx, ncriteria = ndata.mtx, ndata.criteria
         rank, points = ratio(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
@@ -227,7 +229,8 @@ class RefPointMOORA(DecisionMaker):
     def __init__(self, mnorm="vector", wnorm="sum"):
         super(RefPointMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
-    def solve(self, nmtx, ncriteria, nweights):
+    def solve(self, ndata):
+        nmtx, ncriteria = ndata.mtx, ndata.criteria
         rank, points = refpoint(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
@@ -242,14 +245,16 @@ class FMFMOORA(DecisionMaker):
         del data["wnorm"]
         return data
 
-    def normalize(self, mtx, criteria, weights):
-        non_negative = norm.push_negatives(mtx, axis=0)
+    def preprocess(self, data):
+        non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
-        nmtx = self.mnorm(non_zero, axis=0)
-        ncriteria = util.criteriarr(criteria)
-        return nmtx, ncriteria, None
+        nmtx = self._mnorm(non_zero, axis=0)
+        ncriteria = util.criteriarr(data.criteria)
+        return Data(mtx=nmtx, criteria=ncriteria, weights=data.weights,
+                    anames=data.anames, cnames=data.cnames)
 
-    def solve(self, nmtx, ncriteria, nweights):
+    def solve(self, ndata):
+        nmtx, ncriteria = ndata.mtx, ndata.criteria
         rank, points = fmf(nmtx, ncriteria)
         return None, rank, {"points": points}
 
@@ -260,17 +265,19 @@ class MultiMOORA(DecisionMaker):
         super(MultiMOORA, self).__init__(mnorm=mnorm, wnorm="none")
 
     def as_dict(self):
-        data = super(MultiMOORA, self).as_dict()
+        data = super(FMFMOORA, self).as_dict()
         del data["wnorm"]
         return data
 
-    def normalize(self, mtx, criteria, weights):
-        non_negative = norm.push_negatives(mtx, axis=0)
+    def preprocess(self, data):
+        non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
-        nmtx = self.mnorm(non_zero, axis=0)
-        ncriteria = util.criteriarr(criteria)
-        return nmtx, ncriteria, None
+        nmtx = self._mnorm(non_zero, axis=0)
+        ncriteria = util.criteriarr(data.criteria)
+        return Data(mtx=nmtx, criteria=ncriteria, weights=data.weights,
+                    anames=data.anames, cnames=data.cnames)
 
-    def solve(self, nmtx, ncriteria, nweights):
+    def solve(self, ndata):
+        nmtx, ncriteria = ndata.mtx, ndata.criteria
         rank, rank_mtx = multimoora(nmtx, ncriteria)
         return None, rank, {"rank_mtx": rank_mtx}

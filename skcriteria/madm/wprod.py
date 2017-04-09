@@ -52,7 +52,8 @@ __doc__ = ""
 import numpy as np
 
 from .. import norm, util, rank
-from ..dmaker import DecisionMaker
+from .._oop import Data
+from ._core import DecisionMaker
 
 
 # =============================================================================
@@ -67,7 +68,7 @@ def wprod(nmtx, ncriteria, nweights):
         nmtx = nmtx.astype(mincrits_inverted.dtype.type)
         nmtx[:, mincrits] = mincrits_inverted
 
-    # calculate raning by inner prodcut
+    # calculate ranking by inner prodcut
     lmtx = np.log(nmtx)
     rank_mtx = np.multiply(lmtx, nweights)
 
@@ -118,13 +119,16 @@ class WeightedProduct(DecisionMaker):
     def __init__(self, mnorm="sum", wnorm="sum"):
         super(WeightedProduct, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
-    def normalize(self, mtx, criteria, weights):
-        # push all negative values to be > 0 by criteria
-        non_negative = norm.push_negatives(mtx, axis=0)
+    def preprocess(self, data):
+        non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
-        return super(WeightedProduct, self).normalize(
-            non_zero, criteria, weights)
+        nmtx = self._mnorm(non_zero, axis=0)
+        ncriteria = util.criteriarr(data.criteria)
+        nweights = self._wnorm(data.weights) if data.weights is not None else 1
+        return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
+                    anames=data.anames, cnames=data.cnames)
 
-    def solve(self, *args, **kwargs):
-        rank, points = wprod(*args, **kwargs)
+    def solve(self, ndata):
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
+        rank, points = wprod(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
