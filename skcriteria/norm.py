@@ -432,7 +432,7 @@ def ideal_point(arr, criteria=None, axis=None):
 
     """
     if criteria is None:
-        raise TypeError("you must provide criteria")
+        raise TypeError("you must provide a criteria")
 
     if axis not in (0, 1, None):
         msg = "'axis' must be 0, 1 or None. Found: {}"
