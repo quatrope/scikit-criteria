@@ -73,6 +73,7 @@ TABULATE_PARAMS = {
 # =============================================================================
 
 class Extra(Mapping):
+
     def __init__(self, data):
         self._data = dict(data)
 
