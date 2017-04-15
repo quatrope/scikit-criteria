@@ -53,8 +53,6 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from scipy import stats
-
 
 # =============================================================================
 # CONSTANTS
@@ -147,7 +145,3 @@ def validate_data(mtx, criteria, weights=None):
             msg = "{} weights given for {} criteria".format(
                 len(weights), len(criteria))
             raise DataValidationError(msg)
-
-
-def corr_speaman(arr):
-    return stats.spearmanr(arr.T, axis=0).correlation

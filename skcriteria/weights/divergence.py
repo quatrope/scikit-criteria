@@ -53,7 +53,8 @@ from __future__ import unicode_literals
 
 import numpy as np
 
-from ._wdeterminer import WeightDeterminer, DIVERGENCE_FUNCTIONS
+from ._wdeterminer import WeightDeterminer
+from ..divcorr import DIVERGENCE_FUNCTIONS
 
 
 # =============================================================================
@@ -61,7 +62,7 @@ from ._wdeterminer import WeightDeterminer, DIVERGENCE_FUNCTIONS
 # =============================================================================
 
 def divergence(nmtx, dfunction):
-    dindex = dfunction(nmtx, axis=0)
+    dindex = dfunction(nmtx)
     return dindex / np.sum(dindex)
 
 

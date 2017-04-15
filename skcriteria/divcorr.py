@@ -39,51 +39,75 @@ from __future__ import unicode_literals
 
 
 # =============================================================================
-# DOC
+# DOCS
 # =============================================================================
 
-__doc__ = """Test normalization functionalities"""
+"""Some wrapps around basic divergence and correlation functions to use with
+alternative matrix
+
+"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from .. import core
+import numpy as np
 
-from ...weights import critic
-from ... import norm, Data, divcorr
+from scipy import stats
 
 
 # =============================================================================
-# BASE
+# CONSTANTS
 # =============================================================================
 
-class CriticTest(core.SKCriteriaTestCase):
+DIVERGENCE_FUNCTIONS = {}
 
-    def setUp(self):
-        # Data from:
-        # Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
-        # Determining objective weights in multiple criteria problems:
-        # The critic method. Computers & Operations Research, 22(7), 763-770.
-        self.mtx = [
-            [61, 1.08, 4.33],
-            [20.7, 0.26, 4.34],
-            [16.3, 1.98, 2.53],
-            [9, 3.29, 1.65],
-            [5.4, 2.77, 2.33],
-            [4, 4.12, 1.21],
-            [-6.1, 3.52, 2.10],
-            [-34.6, 3.31, 0.98]]
-        self.nmtx = norm.ideal_point(self.mtx, [1, 1, 1], axis=0)
-        self.expected = [0.20222554, 0.48090173, 0.31687273]
+CORRELATION_FUNCTIONS = {}
 
-    def test_critic(self):
-        result = critic.critic(self.nmtx, divcorr.std, divcorr.corr_pearson)
-        self.assertAllClose(result, self.expected)
+FUNCTIONS_TYPES = {
+    "divergence": DIVERGENCE_FUNCTIONS,
+    "correlation": CORRELATION_FUNCTIONS}
 
-    def test_critic_oop(self):
-        data = Data(self.mtx, [1, 1, 1])
-        wd = critic.CriticWeights()
-        rdata = wd.decide(data)
-        self.assertAllClose(rdata.weights, self.expected)
+
+def register_stat(name, ftype):
+
+    if ftype not in FUNCTIONS_TYPES:
+        msg = "'ftype' must be one of {}. Found {}"
+        raise ValueError(msg.format(FUNCTIONS_TYPES.keys(), ftype))
+
+    def _dec(func):
+        if not hasattr(func, "__call__"):
+            raise TypeError("'func' must be callable")
+        fdict = FUNCTIONS_TYPES[ftype]
+        if name in fdict:
+            msg = "{} function '{}' already exist"
+            raise ValueError(msg.format(ftype, name))
+        fdict[name] = func
+        return func
+
+    return _dec
+
+
+# =============================================================================
+# FUNCTIONS
+# =============================================================================
+
+@register_stat("std", "divergence")
+def std(arr):
+    return np.std(arr, axis=0)
+
+
+@register_stat("var", "divergence")
+def var(arr):
+    return np.var(arr, axis=0)
+
+
+@register_stat("pearson", "correlation")
+def corr_pearson(arr):
+    return np.corrcoef(arr)
+
+
+@register_stat("spearman", "correlation")
+def corr_spearman(arr):
+    return stats.spearmanr(arr.T, axis=0).correlation

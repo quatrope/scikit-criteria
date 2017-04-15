@@ -37,24 +37,7 @@
 
 from __future__ import unicode_literals
 
-import numpy as np
-
 from .._oop import Data, BaseSolver
-from ..util import corr_speaman
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-DIVERGENCE_FUNCTIONS = {
-    "std": np.std,
-    "var": np.var}
-
-
-CORRELATION_FUNCTIONS = {
-    "pearson": np.corrcoef,
-    "spearman": corr_speaman}
 
 
 # =============================================================================

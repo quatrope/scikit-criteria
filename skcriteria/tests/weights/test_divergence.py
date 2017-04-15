@@ -49,12 +49,10 @@ __doc__ = """Test normalization functionalities"""
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
 from .. import core
 
 from ...weights import divergence
-from ... import norm, Data
+from ... import norm, Data, divcorr
 
 
 # =============================================================================
@@ -82,7 +80,7 @@ class DivergenceTest(core.SKCriteriaTestCase):
         self.expected = [0.27908306,  0.34092628,  0.37999065]
 
     def test_divergence(self):
-        result = divergence.divergence(self.nmtx, np.std)
+        result = divergence.divergence(self.nmtx, divcorr.std)
         self.assertAllClose(result, self.expected)
 
     def test_divergence_oop(self):

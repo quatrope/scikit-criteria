@@ -54,8 +54,8 @@ series)
 
 import numpy as np
 
-from ._wdeterminer import (
-    WeightDeterminer, DIVERGENCE_FUNCTIONS, CORRELATION_FUNCTIONS)
+from ._wdeterminer import WeightDeterminer
+from ..divcorr import DIVERGENCE_FUNCTIONS, CORRELATION_FUNCTIONS
 
 
 # =============================================================================
@@ -63,7 +63,7 @@ from ._wdeterminer import (
 # =============================================================================
 
 def critic(nmtx, dfunction, cfunction):
-    dindex = dfunction(nmtx, axis=0)
+    dindex = dfunction(nmtx)
     corr_m1 = 1 - cfunction(nmtx.T)
     uweights = dindex * np.sum(corr_m1, axis=0)
     weights = uweights / np.sum(uweights)
