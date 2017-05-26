@@ -124,7 +124,10 @@ class WeightedProduct(DecisionMaker):
         non_zero = norm.add1to0(non_negative, axis=0)
         nmtx = self._mnorm(non_zero, axis=0)
         ncriteria = util.criteriarr(data.criteria)
-        nweights = self._wnorm(data.weights) if data.weights is not None else 1
+        nweights = (
+            self._wnorm(data.weights, criteria=data.criteria)
+            if data.weights is not None else
+            np.ones(data.criteria.shape))
         return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
                     anames=data.anames, cnames=data.cnames)
 
