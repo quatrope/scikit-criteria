@@ -179,7 +179,9 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
     labels = [
         "{}\n(w.{:.2f})".format(cn, cw) for cn, cw in zip(cnames, weights)]
 
-    ax = ax or plt.gca()
+    if ax is None:
+        fig = plt.gcf()
+        ax =
     import ipdb; ipdb.set_trace()
     #~ fig, ax = plt.subplots(nrows=1, ncols=1,
                            #~ subplot_kw=dict(projection='radar'))
