@@ -46,7 +46,7 @@ import numpy as np
 
 from tabulate import tabulate
 
-from . import util, norm
+from . import util, norm, plot
 
 
 # =============================================================================
@@ -92,6 +92,8 @@ class Data(object):
             msg = "{} names for given {} criteria".format(
                 len(self._cnames), len(self._criteria))
             raise util.DataValidationError(msg)
+
+        self._plot = plot.PlotProxy(self)
 
     def _iter_rows(self):
         direction = map(CRITERIA_AS_ATR.get, self._criteria)
@@ -165,6 +167,10 @@ class Data(object):
     @property
     def weights(self):
         return self._weights
+
+    @property
+    def plot(self):
+        return self._plot
 
 
 # =============================================================================
