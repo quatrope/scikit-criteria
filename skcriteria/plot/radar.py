@@ -165,26 +165,30 @@ def unit_poly_verts(theta):
     return verts
 
 
-def radar_plot(mtx, criteria, weights, anames, cnames,
-               frame="polygon", cmap=None, ax=None):
+def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
+               frame="polygon", title=None, cmap=None, ax=None):
 
+    # register radar
+    theta = radar_factory(len(criteria), frame=frame)
+
+    # create ax if necesary
+    if ax is None:
+        ax = plt.subplots(subplot_kw=dict(projection='radar'))[-1]
+
+    # invert the miniun criteria
     mincrits = np.squeeze(np.where(criteria == util.MIN))
     if np.any(mincrits):
         mincrits_inverted = 1.0 / mtx[:, mincrits]
         pdata = mtx.astype(mincrits_inverted.dtype.type)
         pdata[:, mincrits] = mincrits_inverted
+    else:
+        pdata = mtx
 
-    theta = radar_factory(len(criteria), frame=frame)
-
-    labels = [
-        "{}\n(w.{:.2f})".format(cn, cw) for cn, cw in zip(cnames, weights)]
-
-    if ax is None:
-        fig = plt.gcf()
-        ax =
-    import ipdb; ipdb.set_trace()
-    #~ fig, ax = plt.subplots(nrows=1, ncols=1,
-                           #~ subplot_kw=dict(projection='radar'))
+    # weight the data
+    if weighted  and weights is not None:
+        wdata = np.multiply(pdata, weights)
+    else:
+        wdata = pdata
 
     # colors
     cmap = cm.get_cmap(name=cmap)
@@ -192,10 +196,24 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
 
     # Plot
     ax.set_rgrids([0.5])
-    for d, color in zip(norm.sum(pdata, axis=0), colors):
+    for d, color in zip(norm.sum(wdata, axis=0), colors):
         ax.plot(theta, d, color=color)
         ax.fill(theta, d, facecolor=color, alpha=0.25)
 
-    ax.set_varlabels(labels)
-    legend = ax.legend(anames, loc='center left', bbox_to_anchor=(1, 0.5))
-    plt.show()
+    # labels for criteria
+    if weights is not None:
+        clabels = [
+            "{}\n(w.{:.2f})".format(cn, cw)
+            for cn, cw in zip(cnames, weights)]
+    else:
+        clabels = ["{}".format(cn) for cn in cnames]
+    ax.set_varlabels(clabels)
+
+    # legend for alternatives
+    ax.legend(anames, loc='center left', bbox_to_anchor=(1, 0.5))
+
+    # title
+    if title:
+        ax.set_title(title)
+
+    return ax

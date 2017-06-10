@@ -51,6 +51,8 @@ __doc__ = """Plotting utilities
 # IMPORTS
 # =============================================================================
 
+import numpy as np
+
 from .. import norm
 
 from .radar import radar_plot
@@ -96,8 +98,7 @@ class PlotProxy(object):
         nmtx = norm.norm(mnorm, data.mtx, criteria=data.criteria, axis=0)
         nweights = (
             norm.norm(wnorm, data.weights, criteria=data.criteria)
-            if data.weights is not None else
-            np.ones(data.criteria.shape))
+            if data.weights is not None else None)
         return nmtx, data.criteria, nweights
 
     def plot(self, func, mnorm="none", wnorm="none", **kwargs):
