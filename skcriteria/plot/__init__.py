@@ -57,6 +57,7 @@ import six
 
 from .. import norm
 from .radar import radar_plot
+from .multihist import multihist_plot
 
 
 # =============================================================================
@@ -114,3 +115,6 @@ class PlotProxy(object):
 
     def radar(self, **kwargs):
         self.plot(radar_plot, **kwargs)
+
+    def hist(self, **kwargs):
+        self.plot(multihist_plot, **kwargs)
