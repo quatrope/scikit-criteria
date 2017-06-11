@@ -15,5 +15,5 @@ cnames = ["criteria {}".format(idx) for idx in range(c)]
 anames = ["alternative {}".format(idx) for idx in range(a)]
 weights = np.random.randint(1, 100, c)
 data = Data(mtx, criteria, weights)
-data.plot(labelrow=8, mnorm="sum")
+data.plot.hist()
 plt.show()

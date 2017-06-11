@@ -68,7 +68,7 @@ def multihist_plot(
 
     # colors
     cmap = cm.get_cmap(name=cmap)
-    colors = cmap(np.linspace(0, 1, mtx.shape[0]))
+    colors = cmap(np.linspace(0, 1, mtx.shape[1]))
 
     for arr, col in zip(mtx.T, colors):
         ax.hist(arr, color=col, histtype=histtype, alpha=alpha, **kwargs)
