@@ -6,9 +6,14 @@ import numpy as np
 
 from skcriteria import Data
 
-mtx = np.random.rand(10, 10)
-criteria = np.asarray([1,-1, 1, 1,1,1,1,1,1,1])
-weights = np.random.randint(1, 100, 10)
-data = Data(mtx, criteria, weights)
-data.plot(mnorm="sum", wnorm="sum", cmap="jet", frame="circle", title="foo")
+a,c = 50, 10
+
+
+mtx = np.random.rand(a, c)
+criteria = np.asarray([random.choice([1,-1]) for n in range(c)])
+cnames = ["criteria {}".format(idx) for idx in range(c)]
+anames = ["alternative {}".format(idx) for idx in range(a)]
+weights = np.random.randint(1, 100, c)
+data = Data(mtx, criteria, weights, cnames=cnames, anames=anames)
+data.plot(mnorm="sum", wnorm="sum", cmap="jet")
 plt.show()

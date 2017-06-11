@@ -166,7 +166,7 @@ def unit_poly_verts(theta):
 
 
 def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
-               frame="polygon", title=None, cmap=None, ax=None):
+               frame="polygon", cmap=None, ax=None):
 
     # register radar
     theta = radar_factory(len(criteria), frame=frame)
@@ -174,6 +174,7 @@ def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
     # create ax if necesary
     if ax is None:
         ax = plt.subplots(subplot_kw=dict(projection='radar'))[-1]
+    figure = ax.get_figure()
 
     # invert the miniun criteria
     mincrits = np.squeeze(np.where(criteria == util.MIN))
@@ -185,7 +186,7 @@ def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
         pdata = mtx
 
     # weight the data
-    if weighted  and weights is not None:
+    if weighted and weights is not None:
         wdata = np.multiply(pdata, weights)
     else:
         wdata = pdata
@@ -209,11 +210,16 @@ def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
         clabels = ["{}".format(cn) for cn in cnames]
     ax.set_varlabels(clabels)
 
-    # legend for alternatives
-    ax.legend(anames, loc='center left', bbox_to_anchor=(1, 0.5))
+    # legend
+    colfactor = 1
+    while int(len(anames) / colfactor) > 4:
+        colfactor += 1
 
-    # title
-    if title:
-        ax.set_title(title)
+    ax.legend(
+        anames, loc='upper center',
+        bbox_to_anchor=(0.5, -0.08),
+        fancybox=True, ncol=int(len(anames)/colfactor))
+
+    figure.tight_layout(rect=[0, 0.2, 1, 1])
 
     return ax

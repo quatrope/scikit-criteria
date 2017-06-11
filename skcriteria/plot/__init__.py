@@ -51,10 +51,11 @@ __doc__ = """Plotting utilities
 # IMPORTS
 # =============================================================================
 
-import numpy as np
+import sys
+
+import six
 
 from .. import norm
-
 from .radar import radar_plot
 
 
@@ -106,8 +107,9 @@ class PlotProxy(object):
         nmtx, criteria, nweights = self.preprocess(data, mnorm, wnorm)
         kwargs.update({
             "mtx": nmtx, "criteria": criteria,
-            "weights": nweights, "anames": data.anames,
-            "cnames": data.cnames})
+            "weights": nweights,
+            "anames": kwargs.get("anames", data.anames),
+            "cnames": kwargs.get("cnames", data.cnames)})
         return func(**kwargs)
 
     def radar(self, **kwargs):
