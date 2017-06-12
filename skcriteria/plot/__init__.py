@@ -58,6 +58,7 @@ import six
 from .. import norm
 from .radar import radar_plot
 from .multihist import multihist_plot
+from .scmtx import scmtx_plot
 
 
 # =============================================================================
@@ -89,7 +90,7 @@ class PlotProxy(object):
     def __repr__(self):
         return str(self)
 
-    def __call__(self, plotname="radar", **kwargs):
+    def __call__(self, plotname="scatter_matrix", **kwargs):
         method = getattr(self, plotname)
         return method(**kwargs)
 
@@ -118,3 +119,6 @@ class PlotProxy(object):
 
     def hist(self, **kwargs):
         self.plot(multihist_plot, **kwargs)
+
+    def scatter_matrix(self, **kwargs):
+        self.plot(scmtx_plot, **kwargs)

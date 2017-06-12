@@ -31,66 +31,61 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-"""
-Extracted from: http://matplotlib.org/examples/style_sheets/plot_bmh.html
+# =============================================================================
+# FUTURE
+# =============================================================================
 
-"""
+from __future__ import unicode_literals
+
+
+# =============================================================================
+# DOC
+# =============================================================================
+
+__doc__ = """Test normalization functionalities"""
+
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
+import random
+
 import numpy as np
 
-import matplotlib.pyplot as plt
-from matplotlib import cm
+import mock
 
-from six.moves import zip
+from six.moves import range
+
+from . import core
+
+from .. import Data
 
 
 # =============================================================================
-# FUNCTIONS
+# BASE
 # =============================================================================
 
-def multihist_plot(
-        mtx, criteria, weights, anames, cnames,
-        weighted=True, cmap=None, ax=None,
-        subplots_kwargs=None, hist_kwargs=None):
+@mock.patch("matplotlib.pyplot.show")
+class PlotTestCase(core.SKCriteriaTestCase):
 
-    # create ax if necesary
-    if ax is None:
-        subplots_kwargs = subplots_kwargs or {}
-        ax = plt.subplots(**subplots_kwargs)[-1]
+    def setUp(self):
+        self.alternative_n, self.criteria_n = 5, 3
+        self.mtx = np.random.rand(self.alternative_n, self.criteria_n)
+        self.criteria = np.asarray([
+            random.choice([1, -1]) for n in range(self.criteria_n)])
+        self.weights = np.random.randint(1, 100, self.criteria_n)
+        self.data = Data(self.mtx, self.criteria, self.weights)
 
-    # colors
-    cmap = cm.get_cmap(name=cmap)
-    colors = cmap(np.linspace(0, 1, mtx.shape[1]))
+    def test_scattermatrix(self, *args):
+        self.data.plot()
+        self.data.plot("scatter_matrix")
+        self.data.plot.scatter_matrix()
 
-    # weight the data
-    if weighted and weights is not None:
-        wdata = np.multiply(mtx, weights)
-    else:
-        wdata = mtx
+    def test_radar(self, *args):
+        self.data.plot("radar")
+        self.data.plot.radar()
 
-    # histogram
-    hist_kwargs = hist_kwargs or {}
-    hist_kwargs.setdefault("histtype", "stepfilled")
-    hist_kwargs.setdefault("alpha", 0.8)
-
-    for arr, col in zip(wdata.T, colors):
-        ax.hist(arr, color=col, **hist_kwargs)
-
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-
-    # labels for criteria
-    if weights is not None:
-        clabels = [
-            "{} (w.{:.2f})".format(cn, cw)
-            for cn, cw in zip(cnames, weights)]
-    else:
-        clabels = ["{}".format(cn) for cn in cnames]
-
-    ax.legend(clabels, loc="best")
-
-    return ax
+    def test_hist(self, *args):
+        self.data.plot("hist")
+        self.data.plot.hist()

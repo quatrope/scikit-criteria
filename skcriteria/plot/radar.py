@@ -166,14 +166,17 @@ def unit_poly_verts(theta):
 
 
 def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
-               frame="polygon", cmap=None, ax=None, labelrow=5):
+               frame="polygon", cmap=None, ax=None, labelrow=5,
+               subplots_kwargs=None):
 
     # register radar
     theta = radar_factory(len(criteria), frame=frame)
 
     # create ax if necesary
     if ax is None:
-        ax = plt.subplots(subplot_kw=dict(projection='radar'))[-1]
+        subplots_kwargs = subplots_kwargs or {}
+        subplots_kwargs.setdefault("subplot_kw", {"projection": "radar"})
+        ax = plt.subplots(**subplots_kwargs)[-1]
     figure = ax.get_figure()
 
     # invert the miniun criteria
