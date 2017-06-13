@@ -51,7 +51,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 
-from six.moves import range, zip
+from six.moves import range
 
 
 # =============================================================================
@@ -61,7 +61,7 @@ from six.moves import range, zip
 def scatter_plot_matrix(
         data, labels, colors, axes=None,
         subplots_kwargs=None, scatter_kwargs=None, hist_kwargs=None):
-    """ Create a scatter plot matrix from the given data.
+    """Create a scatter plot matrix from the given data.
 
         Parameters
         ----------
@@ -153,25 +153,11 @@ def scatter_plot_matrix(
     return axes
 
 
-def scmtx_plot(mtx, criteria, weights, anames, cnames, weighted=True,
+def scmtx_plot(mtx, criteria, weights, anames, cnames,
                frame="polygon", cmap=None, ax=None, **kwargs):
 
     cmap = cm.get_cmap(name=cmap)
     colors = cmap(np.linspace(0, 1, mtx.shape[1] ** 2))
 
-    # weight the data
-    if weighted and weights is not None:
-        wdata = np.multiply(mtx, weights)
-    else:
-        wdata = mtx
-
-    # labels for criteria
-    if weights is not None:
-        clabels = [
-            "{} (w.{:.2f})".format(cn, cw)
-            for cn, cw in zip(cnames, weights)]
-    else:
-        clabels = ["{}".format(cn) for cn in cnames]
-
     return scatter_plot_matrix(
-        wdata.T, labels=clabels, colors=colors, axes=ax, **kwargs)
+        mtx.T, labels=cnames, colors=colors, axes=ax, **kwargs)

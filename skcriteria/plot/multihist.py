@@ -54,8 +54,7 @@ from six.moves import zip
 
 def multihist_plot(
         mtx, criteria, weights, anames, cnames,
-        weighted=True, cmap=None, ax=None,
-        subplots_kwargs=None, hist_kwargs=None):
+        cmap=None, ax=None, subplots_kwargs=None, hist_kwargs=None):
 
     # create ax if necesary
     if ax is None:
@@ -66,31 +65,17 @@ def multihist_plot(
     cmap = cm.get_cmap(name=cmap)
     colors = cmap(np.linspace(0, 1, mtx.shape[1]))
 
-    # weight the data
-    if weighted and weights is not None:
-        wdata = np.multiply(mtx, weights)
-    else:
-        wdata = mtx
-
     # histogram
     hist_kwargs = hist_kwargs or {}
     hist_kwargs.setdefault("histtype", "stepfilled")
     hist_kwargs.setdefault("alpha", 0.8)
 
-    for arr, col in zip(wdata.T, colors):
+    for arr, col in zip(mtx.T, colors):
         ax.hist(arr, color=col, **hist_kwargs)
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
 
-    # labels for criteria
-    if weights is not None:
-        clabels = [
-            "{} (w.{:.2f})".format(cn, cw)
-            for cn, cw in zip(cnames, weights)]
-    else:
-        clabels = ["{}".format(cn) for cn in cnames]
-
-    ax.legend(clabels, loc="best")
+    ax.legend(cnames, loc="best")
 
     return ax

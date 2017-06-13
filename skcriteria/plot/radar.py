@@ -165,7 +165,7 @@ def unit_poly_verts(theta):
     return verts
 
 
-def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
+def radar_plot(mtx, criteria, weights, anames, cnames,
                frame="polygon", cmap=None, ax=None, labelrow=5,
                subplots_kwargs=None):
 
@@ -183,16 +183,10 @@ def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
     mincrits = np.squeeze(np.where(criteria == util.MIN))
     if np.any(mincrits):
         mincrits_inverted = 1.0 / mtx[:, mincrits]
-        pdata = mtx.astype(mincrits_inverted.dtype.type)
-        pdata[:, mincrits] = mincrits_inverted
+        pmtx = mtx.astype(mincrits_inverted.dtype.type)
+        pmtx[:, mincrits] = mincrits_inverted
     else:
-        pdata = mtx
-
-    # weight the data
-    if weighted and weights is not None:
-        wdata = np.multiply(pdata, weights)
-    else:
-        wdata = pdata
+        pmtx = mtx
 
     # colors
     cmap = cm.get_cmap(name=cmap)
@@ -200,18 +194,12 @@ def radar_plot(mtx, criteria, weights, anames, cnames, weighted=True,
 
     # Plot
     ax.set_rgrids([0.5])
-    for d, color in zip(norm.sum(wdata, axis=0), colors):
+    for d, color in zip(norm.sum(pmtx, axis=0), colors):
         ax.plot(theta, d, color=color)
         ax.fill(theta, d, facecolor=color, alpha=0.25)
 
     # labels for criteria
-    if weights is not None:
-        clabels = [
-            "{}\n(w.{:.2f})".format(cn, cw)
-            for cn, cw in zip(cnames, weights)]
-    else:
-        clabels = ["{}".format(cn) for cn in cnames]
-    ax.set_varlabels(clabels)
+    ax.set_varlabels(cnames)
 
     # legend
     colfactor = 1

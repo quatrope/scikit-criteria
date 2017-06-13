@@ -55,6 +55,10 @@ import sys
 
 import six
 
+import numpy as np
+
+from six.moves import zip
+
 from .. import norm
 from .radar import radar_plot
 from .multihist import multihist_plot
@@ -97,21 +101,38 @@ class PlotProxy(object):
     def to_str(self):
         return "PlotProxy for {}".format(self._data)
 
-    def preprocess(self, data, mnorm, wnorm):
+    def preprocess(self, data, mnorm, wnorm, weighted):
+        # normalization
         nmtx = norm.norm(mnorm, data.mtx, criteria=data.criteria, axis=0)
         nweights = (
             norm.norm(wnorm, data.weights, criteria=data.criteria)
             if data.weights is not None else None)
-        return nmtx, data.criteria, nweights
 
-    def plot(self, func, mnorm="none", wnorm="none", **kwargs):
-        data = self._data
-        nmtx, criteria, nweights = self.preprocess(data, mnorm, wnorm)
+        # weight the data
+        if weighted and nweights is not None:
+            wmtx = np.multiply(nmtx, nweights)
+        else:
+            wmtx = nmtx
+
+        # labels for criteria
+        if nweights is not None:
+            clabels = [
+                "{} (w.{:.2f})".format(cn, cw)
+                for cn, cw in zip(data.cnames, nweights)]
+        else:
+            clabels = ["{}".format(cn) for cn in data.cnames]
+
+        return wmtx, data.criteria, nweights, data.anames, clabels
+
+    def plot(self, func, mnorm="none", wnorm="none", weighted=True, **kwargs):
+        mtx, criteria, weights, anames, cnames, = self.preprocess(
+            self._data, mnorm, wnorm, weighted)
+
         kwargs.update({
-            "mtx": nmtx, "criteria": criteria,
-            "weights": nweights,
-            "anames": kwargs.get("anames", data.anames),
-            "cnames": kwargs.get("cnames", data.cnames)})
+            "mtx": mtx, "criteria": criteria,
+            "weights": weights,
+            "anames": kwargs.pop("anames", anames),
+            "cnames": kwargs.pop("cnames", cnames)})
         return func(**kwargs)
 
     def radar(self, **kwargs):
