@@ -176,6 +176,7 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
     if ax is None:
         subplots_kwargs = subplots_kwargs or {}
         subplots_kwargs.setdefault("subplot_kw", {"projection": "radar"})
+        subplots_kwargs.setdefault("figsize", (7, 5))
         ax = plt.subplots(**subplots_kwargs)[-1]
     figure = ax.get_figure()
 

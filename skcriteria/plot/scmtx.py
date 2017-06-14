@@ -91,6 +91,7 @@ def scatter_plot_matrix(
         skwargs = subplots_kwargs or {}
         skwargs.setdefault("sharex", False)
         skwargs.setdefault("sharey", False)
+        skwargs.setdefault("figsize", (7, 6))
         fig, axes = plt.subplots(M, M, **skwargs)
 
     sc_kwargs = scatter_kwargs or {}

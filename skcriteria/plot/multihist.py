@@ -59,6 +59,7 @@ def multihist_plot(
     # create ax if necesary
     if ax is None:
         subplots_kwargs = subplots_kwargs or {}
+        subplots_kwargs.setdefault("figsize", (7, 6))
         ax = plt.subplots(**subplots_kwargs)[-1]
 
     # colors
