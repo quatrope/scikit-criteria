@@ -49,7 +49,6 @@ __author__ = "adrn <adrn@astro.columbia.edu>"
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib import cm
 
 from six.moves import range
 
@@ -133,14 +132,14 @@ def scatter_plot_matrix(
 
             # first column
             if jj == 0:
-                ax.set_ylabel(labels[ii])
+                ax.set_ylabel(labels[ii], rotation=10, labelpad=10)
 
                 # Hack so ticklabels don't overlap
                 ax.yaxis.set_ticks(yticks)
 
             # last row
             if ii == M - 1:
-                ax.set_xlabel(labels[jj])
+                ax.set_xlabel(labels[jj], rotation=10)
 
                 # Hack so ticklabels don't overlap
                 ax.xaxis.set_ticks(xticks)
@@ -155,9 +154,8 @@ def scatter_plot_matrix(
 
 
 def scmtx_plot(mtx, criteria, weights, anames, cnames,
-               frame="polygon", cmap=None, ax=None, **kwargs):
+               cmap=None, ax=None, **kwargs):
 
-    cmap = cm.get_cmap(name=cmap)
     colors = cmap(np.linspace(0, 1, mtx.shape[1] ** 2))
 
     return scatter_plot_matrix(

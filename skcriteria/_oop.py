@@ -53,10 +53,6 @@ from . import util, norm, plot
 # CONSTANTS
 # =============================================================================
 
-CRITERIA_AS_ATR = {
-    util.MIN: "min",
-    util.MAX: "max"
-}
 
 TABULATE_PARAMS = {
     "headers": "firstrow",
@@ -96,7 +92,7 @@ class Data(object):
         self._plot = plot.PlotProxy(self)
 
     def _iter_rows(self):
-        direction = map(CRITERIA_AS_ATR.get, self._criteria)
+        direction = map(util.CRITERIA_STR.get, self._criteria)
         title = ["ALT./CRIT."]
         if self._weights is None:
             cstr = zip(self._cnames, direction)

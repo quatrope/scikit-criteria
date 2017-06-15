@@ -59,7 +59,9 @@ import numpy as np
 
 from six.moves import zip
 
-from .. import norm
+from matplotlib import cm
+
+from .. import norm, util
 from .radar import radar_plot
 from .multihist import multihist_plot
 from .scmtx import scmtx_plot
@@ -118,7 +120,8 @@ class PlotProxy(object):
     def to_str(self):
         return "PlotProxy for {}".format(self._data)
 
-    def preprocess(self, data, mnorm, wnorm, weighted):
+    def preprocess(self, data, mnorm, wnorm, weighted,
+                   show_criteria, **kwargs):
         # normalization
         nmtx = norm.norm(mnorm, data.mtx, criteria=data.criteria, axis=0)
         nweights = (
@@ -132,29 +135,39 @@ class PlotProxy(object):
             wmtx = nmtx
 
         # labels for criteria
+        criterias = (
+            [" ({})".format(util.CRITERIA_STR[c]) for c in data.criteria]
+            if show_criteria else
+            [""] * len(data.criteria))
+
         if nweights is not None:
             clabels = [
-                "{} (w.{:.2f})".format(cn, cw)
-                for cn, cw in zip(data.cnames, nweights)]
+                "{}{}\n(w.{:.2f})".format(cn, cr, cw)
+                for cn, cr, cw in zip(data.cnames, criterias, nweights)]
         else:
-            clabels = ["{}".format(cn) for cn in data.cnames]
+            clabels = [
+                "{}{}".format(cn, cr)
+                for cn, cr in zip(data.cnames, criterias)]
 
-        return wmtx, data.criteria, nweights, data.anames, clabels
-
-    def plot(self, func, mnorm="none", wnorm="none", weighted=True, **kwargs):
-        mtx, criteria, weights, anames, cnames, = self.preprocess(
-            self._data, mnorm, wnorm, weighted)
+        # color map parse
+        kwargs["cmap"] = cm.get_cmap(name=kwargs.get("cmap"))
 
         kwargs.update({
-            "mtx": mtx, "criteria": criteria,
-            "weights": weights,
-            "anames": kwargs.pop("anames", anames),
-            "cnames": kwargs.pop("cnames", cnames)})
+            "mtx": wmtx, "criteria": data.criteria, "weights": nweights,
+            "anames": kwargs.pop("anames", data.anames),
+            "cnames": kwargs.pop("cnames", clabels)})
+        return kwargs
+
+    def plot(self, func, mnorm="none", wnorm="none",
+             weighted=True, show_criteria=True, **kwargs):
+        ppkwargs = self.preprocess(
+            self._data, mnorm, wnorm, weighted, show_criteria, **kwargs)
+        kwargs.update(ppkwargs)
         return func(**kwargs)
 
     @_plot_type
     def radar(self, **kwargs):
-        return self.plot(radar_plot, **kwargs)
+        return self.plot(radar_plot, show_criteria=False, **kwargs)
 
     @_plot_type
     def hist(self, **kwargs):

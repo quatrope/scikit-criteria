@@ -43,7 +43,6 @@ Extracted from: http://matplotlib.org/examples/style_sheets/plot_bmh.html
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib import cm
 
 from six.moves import zip
 
@@ -63,7 +62,6 @@ def multihist_plot(
         ax = plt.subplots(**subplots_kwargs)[-1]
 
     # colors
-    cmap = cm.get_cmap(name=cmap)
     colors = cmap(np.linspace(0, 1, mtx.shape[1]))
 
     # histogram

@@ -60,7 +60,6 @@ from matplotlib.path import Path
 from matplotlib.spines import Spine
 from matplotlib.projections.polar import PolarAxes
 from matplotlib.projections import register_projection
-from matplotlib import cm
 
 from six.moves import zip
 
@@ -190,7 +189,6 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
         pmtx = mtx
 
     # colors
-    cmap = cm.get_cmap(name=cmap)
     colors = cmap(np.linspace(0, 1, mtx.shape[0]))
 
     # Plot

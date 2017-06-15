@@ -44,7 +44,6 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 from matplotlib import patches
-from matplotlib import cm
 
 from six.moves import zip
 
@@ -76,7 +75,6 @@ def box_plot(
     bp = ax.boxplot(mtx, **box_kwargs)
 
     # colors in boxes
-    cmap = cm.get_cmap(name=cmap)
     colors = cmap(np.linspace(0, 1, mtx.shape[1]))
     legends_patchs = []
     for box, color, cname in zip(bp['boxes'], colors, cnames):
