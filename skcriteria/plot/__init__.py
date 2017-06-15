@@ -64,6 +64,8 @@ from .radar import radar_plot
 from .multihist import multihist_plot
 from .scmtx import scmtx_plot
 from .box import box_plot
+from .violin import violin_plot
+
 
 # =============================================================================
 # DECORATOR
@@ -108,8 +110,8 @@ class PlotProxy(object):
 
     def __call__(self, plotname="radar", **kwargs):
         if plotname not in _plot_types:
-            msg = "Invalid plot type '{}'. Chooce from: {}"
-            raise NameError(msg.format(plotname, ", ".join(_plot_types)))
+            msg = "Invalid plotname '{}'. Chooce from: {}"
+            raise ValueError(msg.format(plotname, ", ".join(_plot_types)))
         method = getattr(self, plotname)
         return method(**kwargs)
 
@@ -165,3 +167,7 @@ class PlotProxy(object):
     @_plot_type
     def box(self, **kwargs):
         return self.plot(box_plot, **kwargs)
+
+    @_plot_type
+    def violin(self, **kwargs):
+        return self.plot(violin_plot, **kwargs)

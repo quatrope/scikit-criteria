@@ -78,7 +78,7 @@ class PlotTestCase(core.SKCriteriaTestCase):
         self.data = Data(self.mtx, self.criteria, self.weights)
 
     def test_invalid_name(self, *args):
-        with self.assertRaises(NameError):
+        with self.assertRaises(ValueError):
             self.data.plot("fooo")
 
     def test_scatter(self, *args):
@@ -96,4 +96,8 @@ class PlotTestCase(core.SKCriteriaTestCase):
 
     def test_box(self, *args):
         self.data.plot("box")
-        self.data.plot.hist()
+        self.data.plot.violin()
+
+    def test_violin(self, *args):
+        self.data.plot("violin")
+        self.data.plot.violin()
