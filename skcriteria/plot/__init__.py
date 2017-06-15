@@ -63,6 +63,18 @@ from .. import norm
 from .radar import radar_plot
 from .multihist import multihist_plot
 from .scmtx import scmtx_plot
+from .box import box_plot
+
+# =============================================================================
+# DECORATOR
+# =============================================================================
+
+_plot_types = set()
+
+
+def _plot_type(method):
+    _plot_types.add(method.__name__)
+    return method
 
 
 # =============================================================================
@@ -94,7 +106,10 @@ class PlotProxy(object):
     def __repr__(self):
         return str(self)
 
-    def __call__(self, plotname="scatter_matrix", **kwargs):
+    def __call__(self, plotname="radar", **kwargs):
+        if plotname not in _plot_types:
+            msg = "Invalid plot type '{}'. Chooce from: {}"
+            raise NameError(msg.format(plotname, ", ".join(_plot_types)))
         method = getattr(self, plotname)
         return method(**kwargs)
 
@@ -135,11 +150,18 @@ class PlotProxy(object):
             "cnames": kwargs.pop("cnames", cnames)})
         return func(**kwargs)
 
+    @_plot_type
     def radar(self, **kwargs):
-        self.plot(radar_plot, **kwargs)
+        return self.plot(radar_plot, **kwargs)
 
+    @_plot_type
     def hist(self, **kwargs):
-        self.plot(multihist_plot, **kwargs)
+        return self.plot(multihist_plot, **kwargs)
 
-    def scatter_matrix(self, **kwargs):
-        self.plot(scmtx_plot, **kwargs)
+    @_plot_type
+    def scatter(self, **kwargs):
+        return self.plot(scmtx_plot, **kwargs)
+
+    @_plot_type
+    def box(self, **kwargs):
+        return self.plot(box_plot, **kwargs)

@@ -31,69 +31,65 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-# =============================================================================
-# FUTURE
-# =============================================================================
+"""
+https://matplotlib.org/examples/pylab_examples/boxplot_demo2.html
 
-from __future__ import unicode_literals
-
-
-# =============================================================================
-# DOC
-# =============================================================================
-
-__doc__ = """Test normalization functionalities"""
-
+"""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import random
-
 import numpy as np
 
-import mock
+import matplotlib.pyplot as plt
+from matplotlib import patches
+from matplotlib import cm
 
-from six.moves import range
-
-from . import core
-
-from .. import Data
+from six.moves import zip
 
 
 # =============================================================================
-# BASE
+# FUNCTIONS
 # =============================================================================
 
-@mock.patch("matplotlib.pyplot.show")
-class PlotTestCase(core.SKCriteriaTestCase):
+def box_plot(
+        mtx, criteria, weights, anames, cnames,
+        cmap=None, ax=None, subplots_kwargs=None, box_kwargs=None):
 
-    def setUp(self):
-        self.alternative_n, self.criteria_n = 5, 3
-        self.mtx = np.random.rand(self.alternative_n, self.criteria_n)
-        self.criteria = np.asarray([
-            random.choice([1, -1]) for n in range(self.criteria_n)])
-        self.weights = np.random.randint(1, 100, self.criteria_n)
-        self.data = Data(self.mtx, self.criteria, self.weights)
+    # create ax if necesary
+    if ax is None:
+        subplots_kwargs = subplots_kwargs or {}
+        subplots_kwargs.setdefault("figsize", (9, 6))
+        ax = plt.subplots(**subplots_kwargs)[-1]
 
-    def test_invalid_name(self, *args):
-        with self.assertRaises(NameError):
-            self.data.plot("fooo")
+    # boxplot
+    box_kwargs = box_kwargs or {}
+    box_kwargs.setdefault("notch", 0)
+    box_kwargs.setdefault("sym", "o")
+    box_kwargs.setdefault("vert", 1)
+    box_kwargs.setdefault("whis", 1.5)
+    box_kwargs.setdefault("medianprops", {"linewidth": 2, "color": 'black'})
+    box_kwargs.setdefault("flierprops", {'linestyle': 'none',
+                                         'marker': 'o',
+                                         'markerfacecolor': 'red'})
+    bp = ax.boxplot(mtx, **box_kwargs)
 
-    def test_scatter(self, *args):
-        self.data.plot("scatter")
-        self.data.plot.scatter()
+    # colors in boxes
+    cmap = cm.get_cmap(name=cmap)
+    colors = cmap(np.linspace(0, 1, mtx.shape[1]))
+    legends_patchs = []
+    for box, color, cname in zip(bp['boxes'], colors, cnames):
+        boxCoords = list(zip(box.get_xdata()[:5], box.get_ydata()[:5]))
+        boxPolygon = patches.Polygon(boxCoords, facecolor=color)
+        ax.add_patch(boxPolygon)
 
-    def test_radar(self, *args):
-        self.data.plot()
-        self.data.plot("radar")
-        self.data.plot.radar()
+        legend_patch = patches.Patch(color=color, label=cname)
+        legends_patchs.append(legend_patch)
 
-    def test_hist(self, *args):
-        self.data.plot("hist")
-        self.data.plot.hist()
+    ax.legend(loc="best", handles=legends_patchs)
 
-    def test_box(self, *args):
-        self.data.plot("box")
-        self.data.plot.hist()
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+    return ax
