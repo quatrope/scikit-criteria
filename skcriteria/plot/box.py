@@ -54,7 +54,7 @@ from six.moves import zip
 # =============================================================================
 
 def box_plot(
-        mtx, criteria, weights, anames, cnames,
+        mtx, criteria, weights, anames, cnames, show_labels=False,
         cmap=None, ax=None, subplots_kwargs=None, box_kwargs=None):
 
     # create ax if necesary
@@ -87,7 +87,11 @@ def box_plot(
         legend_patch = patches.Patch(color=color, label=cname)
         legends_patchs.append(legend_patch)
 
-    ax.legend(loc="best", handles=legends_patchs)
+    if show_labels:
+        ax.legend(loc="best", handles=legends_patchs)
+
+    # ticks
+    ax.set_xticklabels(cnames, rotation=10, size="small")
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)

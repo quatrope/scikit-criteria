@@ -166,7 +166,7 @@ def unit_poly_verts(theta):
 
 
 def radar_plot(mtx, criteria, weights, anames, cnames,
-               frame="polygon", cmap=None, ax=None, labelrow=5,
+               frame="polygon", cmap=None, ax=None, legendcol=5,
                subplots_kwargs=None):
 
     # register radar
@@ -204,7 +204,7 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
 
     # legend
     colfactor = 1
-    while int(len(anames) / colfactor) > labelrow:
+    while int(len(anames) / colfactor) > legendcol:
         colfactor += 1
 
     ax.legend(
