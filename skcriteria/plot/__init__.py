@@ -67,6 +67,7 @@ from .multihist import multihist_plot
 from .scmtx import scmtx_plot
 from .box import box_plot
 from .violin import violin_plot
+from .bars import bars_plot
 
 
 # =============================================================================
@@ -184,3 +185,7 @@ class PlotProxy(object):
     @_plot_type
     def violin(self, **kwargs):
         return self.plot(violin_plot, **kwargs)
+
+    @_plot_type
+    def bars(self, **kwargs):
+        self.plot(bars_plot, **kwargs)

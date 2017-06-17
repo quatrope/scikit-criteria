@@ -53,7 +53,7 @@ from six.moves import zip
 # =============================================================================
 
 def violin_plot(
-        mtx, criteria, weights, anames, cnames, show_labels=False,
+        mtx, criteria, weights, anames, cnames, show_legend=False,
         cmap=None, ax=None, subplots_kwargs=None, violin_kwargs=None):
 
     # create ax if necesary
@@ -74,7 +74,7 @@ def violin_plot(
         legend_patch = patches.Patch(color=color, label=cname)
         legends_patchs.append(legend_patch)
 
-    if show_labels:
+    if show_legend:
         ax.legend(loc="best", handles=legends_patchs)
 
     # ticks

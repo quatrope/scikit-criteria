@@ -43,7 +43,6 @@ https://matplotlib.org/examples/pylab_examples/boxplot_demo2.html
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib import patches
 
 from six.moves import zip
 
@@ -52,9 +51,9 @@ from six.moves import zip
 # FUNCTIONS
 # =============================================================================
 
-def box_plot(
-        mtx, criteria, weights, anames, cnames, show_legend=False,
-        cmap=None, ax=None, subplots_kwargs=None, box_kwargs=None):
+def bars_plot(
+        mtx, criteria, weights, anames, cnames, show_legend=True,
+        cmap=None, ax=None, subplots_kwargs=None, bars_kwargs=None):
 
     # create ax if necesary
     if ax is None:
@@ -63,30 +62,25 @@ def box_plot(
         ax = plt.subplots(**subplots_kwargs)[-1]
 
     # boxplot
-    box_kwargs = box_kwargs or {}
-    box_kwargs.setdefault("notch", False)
-    box_kwargs.setdefault("vert", True)
-    box_kwargs.setdefault("patch_artist", True)
-    box_kwargs.setdefault("sym", "o")
-    box_kwargs.setdefault("flierprops", {'linestyle': 'none',
-                                         'marker': 'o',
-                                         'markerfacecolor': 'red'})
-    bp = ax.boxplot(mtx, **box_kwargs)
+    bars_kwargs = bars_kwargs or {}
+    bars_kwargs.setdefault("width", 1. / (mtx.shape[1] + 1))
 
-    # colors in boxes
+    indexes = np.arange(mtx.shape[0])
     colors = cmap(np.linspace(0, 1, mtx.shape[1]))
-    legends_patchs = []
-    for box, color, cname in zip(bp['boxes'], colors, cnames):
-        box.set_facecolor(color)
 
-        legend_patch = patches.Patch(color=color, label=cname)
-        legends_patchs.append(legend_patch)
+    idx, rects, width = indexes, [], bars_kwargs["width"]
+    for color, crit in zip(colors, mtx.T):
+        rect = ax.bar(idx, crit, color=color, **bars_kwargs)
+        rects.append(rect[0])
+        idx = idx + width
 
     if show_legend:
-        ax.legend(loc="best", handles=legends_patchs)
+        ax.legend(rects, cnames, loc="best")
 
     # ticks
-    ax.set_xticklabels(cnames, rotation=10, size="small")
+    ax.set_xlabel("Alternatives")
+    ax.set_xticks(indexes + width * (mtx.shape[1] - 1) / 2.)
+    ax.set_xticklabels(anames, rotation=10, size="small")
 
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)

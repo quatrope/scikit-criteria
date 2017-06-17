@@ -179,7 +179,7 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
         ax = plt.subplots(**subplots_kwargs)[-1]
     figure = ax.get_figure()
 
-    # invert the miniun criteria
+    # invert the minimun criteria
     mincrits = np.squeeze(np.where(criteria == util.MIN))
     if np.any(mincrits):
         mincrits_inverted = 1.0 / mtx[:, mincrits]

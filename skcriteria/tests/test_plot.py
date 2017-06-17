@@ -101,3 +101,7 @@ class PlotTestCase(core.SKCriteriaTestCase):
     def test_violin(self, *args):
         self.data.plot("violin")
         self.data.plot.violin()
+
+    def test_bars(self, *args):
+        self.data.plot("bars")
+        self.data.plot.bars()
