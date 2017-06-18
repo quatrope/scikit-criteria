@@ -179,21 +179,12 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
         ax = plt.subplots(**subplots_kwargs)[-1]
     figure = ax.get_figure()
 
-    # invert the minimun criteria
-    mincrits = np.squeeze(np.where(criteria == util.MIN))
-    if np.any(mincrits):
-        mincrits_inverted = 1.0 / mtx[:, mincrits]
-        pmtx = mtx.astype(mincrits_inverted.dtype.type)
-        pmtx[:, mincrits] = mincrits_inverted
-    else:
-        pmtx = mtx
-
     # colors
     colors = cmap(np.linspace(0, 1, mtx.shape[0]))
 
     # Plot
     ax.set_rgrids([0.5])
-    for d, color in zip(norm.sum(pmtx, axis=0), colors):
+    for d, color in zip(norm.sum(mtx, axis=0), colors):
         ax.plot(theta, d, color=color)
         ax.fill(theta, d, facecolor=color, alpha=0.25)
 

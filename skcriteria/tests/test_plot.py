@@ -71,9 +71,10 @@ class PlotTestCase(core.SKCriteriaTestCase):
 
     def setUp(self):
         self.alternative_n, self.criteria_n = 5, 3
-        self.mtx = np.random.rand(self.alternative_n, self.criteria_n)
-        self.criteria = np.asarray([
-            random.choice([1, -1]) for n in range(self.criteria_n)])
+        self.mtx = (
+            np.random.rand(self.alternative_n, self.criteria_n) *
+            np.random.choice([1, -1], (self.alternative_n, self.criteria_n)))
+        self.criteria = np.random.choice([1, -1], self.criteria_n)
         self.weights = np.random.randint(1, 100, self.criteria_n)
         self.data = Data(self.mtx, self.criteria, self.weights)
 

@@ -121,54 +121,80 @@ class PlotProxy(object):
     def to_str(self):
         return "PlotProxy for {}".format(self._data)
 
-    def preprocess(self, data, mnorm, wnorm, weighted,
-                   show_criteria, **kwargs):
+    def preprocess(self, data, mnorm, wnorm,
+                   weighted, show_criteria,
+                   min2max, pull_negatives, **kwargs):
+
+        # extract all the data
+        mtx, criteria, weights, cnames, anames = (
+            data.mtx, data.criteria, data.weights, data.cnames, data.anames)
+
+        # pull negatives
+        if pull_negatives:
+            negativecrits = np.sum(mtx < 0, axis=0) != 0
+            if np.any(negativecrits):
+                to_pull = mtx[:,negativecrits]
+                pull_value = np.abs(np.min(to_pull, axis=0))
+                pulled = to_pull + pull_value
+                mtx[:,negativecrits] = to_pull + pull_value
+
+        # convert all minimun criteria to max
+        if min2max:
+            mincrits = np.squeeze(np.where(criteria == util.MIN))
+            if np.any(mincrits):
+                mincrits_inverted = 1.0 / mtx[:, mincrits]
+                mtx = mtx.astype(mincrits_inverted.dtype.type)
+                mtx[:, mincrits] = mincrits_inverted
+
         # normalization
-        nmtx = norm.norm(mnorm, data.mtx, criteria=data.criteria, axis=0)
-        nweights = (
-            norm.norm(wnorm, data.weights, criteria=data.criteria)
-            if data.weights is not None else None)
+        mtx = norm.norm(mnorm, mtx, criteria=criteria, axis=0)
+        weights = (
+            norm.norm(wnorm, weights, criteria=criteria)
+            if weights is not None else None)
 
         # weight the data
-        if weighted and nweights is not None:
-            wmtx = np.multiply(nmtx, nweights)
-        else:
-            wmtx = nmtx
+        if weighted and weights is not None:
+            mtx = np.multiply(mtx, weights)
 
         # labels for criteria
         criterias = (
-            [" ({})".format(util.CRITERIA_STR[c]) for c in data.criteria]
+            [" ({})".format(util.CRITERIA_STR[c]) for c in criteria]
             if show_criteria else
-            [""] * len(data.criteria))
+            [""] * len(criteria))
 
-        if nweights is not None:
-            clabels = [
+        if weights is not None:
+            cnames = [
                 "{}{}\n(w.{:.2f})".format(cn, cr, cw)
-                for cn, cr, cw in zip(data.cnames, criterias, nweights)]
+                for cn, cr, cw in zip(cnames, criterias, weights)]
         else:
-            clabels = [
-                "{}{}".format(cn, cr)
-                for cn, cr in zip(data.cnames, criterias)]
+            cnames = [
+                "{}{}".format(cn, cr) for cn, cr in zip(cnames, criterias)]
 
         # color map parse
         kwargs["cmap"] = cm.get_cmap(name=kwargs.get("cmap"))
 
         kwargs.update({
-            "mtx": wmtx, "criteria": data.criteria, "weights": nweights,
-            "anames": kwargs.pop("anames", data.anames),
-            "cnames": kwargs.pop("cnames", clabels)})
+            "mtx": mtx, "criteria": criteria, "weights": weights,
+            "anames": kwargs.pop("anames", anames),
+            "cnames": kwargs.pop("cnames", cnames)})
         return kwargs
 
     def plot(self, func, mnorm="none", wnorm="none",
-             weighted=True, show_criteria=True, **kwargs):
+             weighted=True, show_criteria=True,
+             min2max=False, pull_negatives=False, **kwargs):
         ppkwargs = self.preprocess(
-            self._data, mnorm, wnorm, weighted, show_criteria, **kwargs)
+            data=self._data, mnorm=mnorm, wnorm=wnorm,
+            weighted=weighted, show_criteria=show_criteria,
+            min2max=min2max, pull_negatives=pull_negatives, **kwargs)
         kwargs.update(ppkwargs)
         return func(**kwargs)
 
     @_plot_type
     def radar(self, **kwargs):
-        return self.plot(radar_plot, show_criteria=False, **kwargs)
+        kwargs.setdefault("show_criteria", False)
+        kwargs.setdefault("min2max", True)
+        kwargs.setdefault("pull_negatives", True)
+        return self.plot(radar_plot, **kwargs)
 
     @_plot_type
     def hist(self, **kwargs):
