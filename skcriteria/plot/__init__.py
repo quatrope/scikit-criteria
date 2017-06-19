@@ -123,20 +123,20 @@ class PlotProxy(object):
 
     def preprocess(self, data, mnorm, wnorm,
                    weighted, show_criteria,
-                   min2max, pull_negatives, **kwargs):
+                   min2max, push_negatives,
+                   addepsto0, **kwargs):
 
         # extract all the data
         mtx, criteria, weights, cnames, anames = (
             data.mtx, data.criteria, data.weights, data.cnames, data.anames)
 
-        # pull negatives
-        if pull_negatives:
-            negativecrits = np.sum(mtx < 0, axis=0) != 0
-            if np.any(negativecrits):
-                to_pull = mtx[:,negativecrits]
-                pull_value = np.abs(np.min(to_pull, axis=0))
-                pulled = to_pull + pull_value
-                mtx[:,negativecrits] = to_pull + pull_value
+        # push negatives
+        if push_negatives:
+            mtx = norm.push_negatives(mtx, axis=0)
+
+        # prevent zeroes
+        if addepsto0:
+            mtx = norm.addepsto0(mtx, axis=0)
 
         # convert all minimun criteria to max
         if min2max:
@@ -180,12 +180,13 @@ class PlotProxy(object):
         return kwargs
 
     def plot(self, func, mnorm="none", wnorm="none",
-             weighted=True, show_criteria=True,
-             min2max=False, pull_negatives=False, **kwargs):
+             weighted=True, show_criteria=True, addepsto0=False,
+             min2max=False, push_negatives=False, **kwargs):
         ppkwargs = self.preprocess(
             data=self._data, mnorm=mnorm, wnorm=wnorm,
             weighted=weighted, show_criteria=show_criteria,
-            min2max=min2max, pull_negatives=pull_negatives, **kwargs)
+            addepsto0=addepsto0, min2max=min2max,
+            push_negatives=push_negatives, **kwargs)
         kwargs.update(ppkwargs)
         return func(**kwargs)
 
@@ -193,7 +194,8 @@ class PlotProxy(object):
     def radar(self, **kwargs):
         kwargs.setdefault("show_criteria", False)
         kwargs.setdefault("min2max", True)
-        kwargs.setdefault("pull_negatives", True)
+        kwargs.setdefault("push_negatives", True)
+        kwargs.setdefault("addepsto0", True)
         return self.plot(radar_plot, **kwargs)
 
     @_plot_type

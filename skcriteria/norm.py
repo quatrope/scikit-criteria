@@ -380,8 +380,65 @@ def add1to0(arr, criteria=None, axis=None):
             return arr + 1
         else:
             zeros = np.any(arr == 0, axis=axis)
-            increment = np.zeros(zeros.shape[0])
+            increment = np.zeros(zeros.shape)
             increment[zeros] = 1
+            return arr + increment
+    return arr
+
+
+@register("addepsto0")
+def addepsto0(arr, criteria=None, axis=None):
+    r"""If a value in the array is 0, then an :math:`\epsilon` is
+    added to all the values
+
+    .. math::
+
+        \overline{X}_{ij} = X_{ij} + \epsilon
+
+    Parameters
+    ----------
+
+    arr : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        A array with values
+
+    axis : :py:class:`int` optional
+        Axis along which to operate.  By default, flattened input is used.
+
+    criteria : Not used
+
+    Returns
+    -------
+
+    narray : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        array of ratios
+
+    Examples
+    --------
+
+    >>> from skcriteria import norm
+    >>> mtx = [[1, 2], [3, 4]]
+    >>> mtx_w0 = [[0, 1], [2,3]]
+    >>> norm.addepsto0(mtx)
+    array([[1, 2],
+           [3, 4]])
+    >>> # added epsilon
+    >>> norm.addepsto0(mtx_w0)
+    array([[  2.22e-16, 1],
+           [         2, 3]])
+
+    """
+    arr = np.asarray(arr)
+    if 0 in arr:
+        arr_type = arr.dtype.type
+        if not issubclass(arr_type, (np.floating, float)):
+            arr_type = float
+        eps = np.finfo(arr_type).eps
+        if len(arr.shape) == 1 or axis is None:
+            return arr + eps
+        else:
+            zeros = np.any(arr == 0, axis=axis)
+            increment = np.zeros(zeros.shape[0])
+            increment[zeros] = eps
             return arr + increment
     return arr
 

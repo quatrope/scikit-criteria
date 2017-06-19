@@ -63,7 +63,7 @@ from matplotlib.projections import register_projection
 
 from six.moves import zip
 
-from .. import norm, util
+from .. import norm
 
 
 # =============================================================================

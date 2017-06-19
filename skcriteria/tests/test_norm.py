@@ -214,6 +214,25 @@ class Add1to0(NormTestBase):
             norm.add1to0, "add1to0", mtx_result, arr_result, atol=1)
 
 
+class AddEpsto0(NormTestBase):
+
+    def test_addEpsto0(self):
+        self.mtx = [
+            [1, 0, 3],
+            [4, 5, 0]
+        ]
+
+        mtx_result = [
+            [1, 0, 3],
+            [4, 5, 0],
+        ]
+
+        self.arr = [1, 0, 0]
+        arr_result = [1, 0, 0]
+        self._test_normalizer(
+            norm.addepsto0, "addepsto0", mtx_result, arr_result, atol=0.1)
+
+
 class NoneNorm(NormTestBase):
 
     def test_none(self):

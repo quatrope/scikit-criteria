@@ -49,13 +49,9 @@ __doc__ = """Test normalization functionalities"""
 # IMPORTS
 # =============================================================================
 
-import random
-
 import numpy as np
 
 import mock
-
-from six.moves import range
 
 from . import core
 
