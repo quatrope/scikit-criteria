@@ -78,6 +78,7 @@ def violin_plot(
         ax.legend(loc="best", handles=legends_patchs)
 
     # ticks
+    ax.set_xticks(np.arange(1, len(cnames) + 1))
     ax.set_xticklabels(cnames, rotation=10, size="small")
 
     ax.spines['right'].set_visible(False)
