@@ -42,63 +42,64 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """Test normalization functionalities"""
+__doc__ = """test electre methods"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import numpy as np
+import random
+import string
 
-import mock
+from skcriteria.madm import _dmaker
 
-from . import core
-
-from .. import Data
+from .. import core
 
 
 # =============================================================================
-# BASE
+# BASE CLASS
 # =============================================================================
 
-@mock.patch("matplotlib.pyplot.show")
-class PlotTestCase(core.SKCriteriaTestCase):
+class ExtraTest(core.SKCriteriaTestCase):
 
     def setUp(self):
-        self.alternative_n, self.criteria_n = 5, 3
-        self.mtx = (
-            np.random.rand(self.alternative_n, self.criteria_n) *
-            np.random.choice([1, -1], (self.alternative_n, self.criteria_n)))
-        self.criteria = np.random.choice([1, -1], self.criteria_n)
-        self.weights = np.random.randint(1, 100, self.criteria_n)
-        self.data = Data(self.mtx, self.criteria, self.weights)
+        self.data = {}
+        for idx in range(random.randint(10, 100)):
+            key = "".join([
+                random.choice(string.ascii_letters)
+                for _ in range(random.randint(10, 30))])
+            value = "".join([
+                random.choice(string.ascii_letters)
+                for _ in range(random.randint(10, 30))])
+            self.data[key + str(idx)] = value
+        self.e = _dmaker.Extra(self.data)
 
-    def test_invalid_name(self, *args):
-        with self.assertRaises(ValueError):
-            self.data.plot("fooo")
+    def test_eq(self):
+        self.assertTrue(self.e == _dmaker.Extra(self.data))
 
-    def test_scatter(self, *args):
-        self.data.plot("scatter")
-        self.data.plot.scatter()
+    def test_ne(self):
+        e = self.e
+        self.setUp()
+        self.assertTrue(self.e != e)
 
-    def test_radar(self, *args):
-        self.data.plot()
-        self.data.plot("radar")
-        self.data.plot.radar()
+    def test_getitem(self):
+        for k, v in self.data.items():
+            self.assertEquals(self.e[k], v)
 
-    def test_hist(self, *args):
-        self.data.plot("hist")
-        self.data.plot.hist()
+    def test_iter(self):
+        for k in self.e:
+            self.assertIn(k, self.data)
 
-    def test_box(self, *args):
-        self.data.plot("box")
-        self.data.plot.violin()
+    def test_len(self):
+        self.assertEquals(len(self.data), len(self.e))
 
-    def test_violin(self, *args):
-        self.data.plot("violin")
-        self.data.plot.violin()
+    def test_getattr(self):
+        for k, v in self.data.items():
+            self.assertEquals(getattr(self.e, k), v)
 
-    def test_bars(self, *args):
-        self.data.plot("bars")
-        self.data.plot.bars()
+    def test_str(self):
+        str(self.e)
+
+    def test_repr(self):
+        repr(self.e)

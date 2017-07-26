@@ -37,18 +37,17 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import argparse
+import importlib
+import os
+import sys
+import unittest
+
+from . import core, utils
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
-
-import os
-import sys
-import argparse
-import unittest
-import importlib
-
-from . import core, utils
 
 
 # =============================================================================

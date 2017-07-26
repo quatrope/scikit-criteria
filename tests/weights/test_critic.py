@@ -42,49 +42,48 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """All scikit-criteria base tests"""
+__doc__ = """Test normalization functionalities"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import unittest
-import random
+from .. import core
 
-import numpy as np
-import numpy.testing as npt
-
-import six
-from six.moves import range
-
-from .. import norm, util
+from skcriteria.weights import critic
+from skcriteria import norm, Data, divcorr
 
 
 # =============================================================================
-# BASE CLASS
+# BASE
 # =============================================================================
 
-class SKCriteriaTestCase(unittest.TestCase):
+class CriticTest(core.SKCriteriaTestCase):
 
-    def assertAllClose(self, a, b, **kwargs):
-        return npt.assert_allclose(a, b, **kwargs)
+    def setUp(self):
+        # Data from:
+        # Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
+        # Determining objective weights in multiple criteria problems:
+        # The critic method. Computers & Operations Research, 22(7), 763-770.
+        self.mtx = [
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98]]
+        self.nmtx = norm.ideal_point(self.mtx, [1, 1, 1], axis=0)
+        self.expected = [0.20222554, 0.48090173, 0.31687273]
 
-    def assertArrayEqual(self, a, b, **kwargs):
-        return npt.assert_array_equal(a, b, **kwargs)
+    def test_critic(self):
+        result = critic.critic(self.nmtx, divcorr.std, divcorr.corr_pearson)
+        self.assertAllClose(result, self.expected)
 
-    def assertAll(self, arr, **kwargs):
-        assert np.all(arr), "'{}' is not all True".format(arr)
-
-    def rrange(self, a, b):
-        return range(random.randint(a, b))
-
-    def normalize(self, mtx, criteria, weights):
-        ncriteria = util.criteriarr(criteria)
-        nmtx = norm.norm(self.mnorm, mtx, axis=0)
-        nweights = norm.norm(self.wnorm, weights) if weights is not None else 1
-        return nmtx, ncriteria, nweights
-
-    if six.PY2:
-        assertRaisesRegex = six.assertRaisesRegex
-        assertCountEqual = six.assertCountEqual
+    def test_critic_oop(self):
+        data = Data(self.mtx, [1, 1, 1])
+        wd = critic.CriticWeights()
+        rdata = wd.decide(data)
+        self.assertAllClose(rdata.weights, self.expected)

@@ -54,8 +54,8 @@ import random
 import numpy as np
 
 from .. import core
-from ... import util, norm
-from ...madm import moora
+from skcriteria import util, norm
+from skcriteria.madm import moora
 
 
 # =============================================================================

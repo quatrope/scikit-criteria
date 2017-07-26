@@ -42,7 +42,7 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """test topsis methods"""
+__doc__ = """test moora methods"""
 
 
 # =============================================================================
@@ -50,52 +50,67 @@ __doc__ = """test topsis methods"""
 # =============================================================================
 
 from .. import core
-from ... import util
-from ...madm import topsis
+from skcriteria import util
+from skcriteria.madm import wsum
 
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
 
-class TopsisTest(core.SKCriteriaTestCase):
-    mnorm = "vector"
+class WSumTest(core.SKCriteriaTestCase):
+    mnorm = "sum"
     wnorm = "sum"
 
     def setUp(self):
         # Data From:
-        # Tzeng, G. H., & Huang, J. J. (2011).
-        # Multiple attribute decision making: methods and applications.
-        # CRC press.
+        # KRACKA, M; BRAUERS, W. K. M.; ZAVADSKAS, E. K. Ranking
+        # Heating Losses in a Building by Applying the MULTIMOORA . -
+        # ISSN 1392 – 2785 Inzinerine Ekonomika-Engineering Economics, 2010,
+        # 21(4), 352-359.
+
         self.mtx = [
-            [5, 8, 4],
-            [7, 6, 8],
-            [8, 8, 6],
-            [7, 4, 6],
+            [33.95, 23.78, 11.45, 39.97, 29.44, 167.10, 3.852],
+            [38.9, 4.17, 6.32, 0.01, 4.29, 132.52, 25.184],
+            [37.59, 9.36, 8.23, 4.35, 10.22, 136.71, 10.845],
+            [30.44, 37.59, 13.91, 74.08, 45.10, 198.34, 2.186],
+            [36.21, 14.79, 9.17, 17.77, 17.06, 148.3, 6.610],
+            [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935]
         ]
-        self.criteria = [util.MAX, util.MAX, util.MAX]
+        self.criteria = [
+            util.MIN, util.MIN, util.MIN, util.MIN,
+            util.MAX, util.MIN, util.MAX]
 
-    def test_topsis(self):
-        weights = [.3, .4, .3]
+    def test_mdwsum_with_weights(self):
+        weights = [20, 20, 20, 20, 20, 20, 20]
 
-        result = [3, 2, 1, 4]
-        points = [0.5037, 0.6581, 0.7482, 0.3340]
+        result = [5,  1,  3,  6,  4,  2]
+        points = [-0.1075, -0.0037, -0.0468, -0.1560, -0.0732, -0.0413]
 
         normdata = self.normalize(self.mtx, self.criteria, weights)
-        rank_result, points_result = topsis.topsis(*normdata)
+        rank_result, points_result = wsum.mdwsum(*normdata)
 
-        self.assertAllClose(points_result, points, atol=1.e-4)
+        self.assertAllClose(points_result, points, atol=1.e-3)
         self.assertAllClose(rank_result, result)
 
-    def test_topsis_dm(self):
-        dm = topsis.TOPSIS()
+    def test_mdwsum(self):
+        result = [5,  1,  3,  6,  4,  2]
+        points = [-0.7526, -0.026, -0.3273, -1.092, -0.5127, -0.2894]
 
-        weights = [.3, .4, .3]
+        normdata = self.normalize(self.mtx, self.criteria, weights=None)
+        rank_result, points_result = wsum.mdwsum(*normdata)
 
-        result = [3, 2, 1, 4]
-        points = [0.5037, 0.6581, 0.7482, 0.3340]
+        self.assertAllClose(points_result, points, atol=1.e-3)
+        self.assertAllClose(rank_result, result)
 
+    def test_mdwsum_dm(self):
+        weights = [20, 20, 20, 20, 20, 20, 20]
+
+        result = [5,  1,  3,  6,  4,  2]
+        points = [-0.1075, -0.0037, -0.0468, -0.1560, -0.0732, -0.0413]
+
+        dm = wsum.MDWeightedSum()
         decision = dm.decide(self.mtx, self.criteria, weights)
 
-        self.assertAllClose(decision.e_.closeness, points, atol=1.e-4)
+        self.assertAllClose(decision.e_.points, points, atol=1.e-3)
         self.assertAllClose(decision.rank_, result)
