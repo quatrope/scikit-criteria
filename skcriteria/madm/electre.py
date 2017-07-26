@@ -38,15 +38,25 @@
 from __future__ import unicode_literals
 
 
-__doc__ = """
+__doc__ = """ELECTRE is a family of multi-criteria decision analysis methods
+that originated in Europe in the mid-1960s. The acronym ELECTRE stands for:
+ELimination Et Choix Traduisant la REalité (ELimination and Choice Expressing
+REality).
 
-Data from Tzeng and Huang et al, 2011 [TZENG2011]_
+Usually the Electre Methods are used to discard some alternatives to the
+problem, which are unacceptable. After that we can use another MCDA to select
+the best one. The Advantage of using the Electre Methods before is that we
+can apply another MCDA with a restricted set of alternatives saving much time.
 
 References
 ----------
 
-.. [TZENG2011] Tzeng, G. H., & Huang, J. J. (2011). Multiple
-   attribute decision making: methods and applications. CRC press.
+.. [1] Roy, B. (1990). The outranking approach and the foundations of ELECTRE
+       methods. In Readings in multiple criteria decision aid (pp. 155-183).
+       Springer, Berlin, Heidelberg.
+.. [2] ELECTRE. In Wikipedia, The Free Encyclopedia. Retrieved
+       from https://en.wikipedia.org/w/index.php?title=ELECTRE&oldid=791487870
+
 
 """
 
@@ -131,6 +141,86 @@ def electre1(nmtx, ncriteria, nweights, p, q):
 # =============================================================================
 
 class ELECTRE1(DecisionMaker):
+    """The ELECTRE I model  find the kernel solution in a situation where true
+    criteria and restricted outranking relations are given.
+
+    That is, ELECTRE I cannot derive the ranking of alternatives but the kernel
+    set. In ELECTRE I, two indices called the concordance (p) index and the
+    discordance index (q) are used to measure the relations between objects.
+
+    Parameters
+    ----------
+
+    p : float, optional (default=0.65)
+        concordance index. Threshold of how much one alternative is at least
+        as good as another to be significative.
+
+    q : float, optional (default=0.35)
+        discordance index. Threshold of how much the degree one alternative is
+        strictly preferred to another to be significative.
+
+    mnorm : string, callable, optional (default="sum")
+        normalization method for the alternative matrix.
+
+    wnorm : string, callable, optional (default="sum")
+        normalization method for the weights array.
+
+    Decision Attributes
+    -------------------
+
+    kernel_ : numpy.ndarray
+        Array with the indexes of the alternatives in he kernel.
+
+    rank_ : None
+        Always ``None``, ELECTRE1 cannot derive the ranking.
+
+    best_alternative_ : None
+        Always ``None``, ELECTRE1 cannot derive the ranking.
+
+    alpha_solution_ : bool
+        Always False.
+
+    beta_solution_ : bool
+        Always True.
+
+    gamma_solution_ : bool
+        Always False.
+
+    Decision Extra Attributes
+    -------------------------
+
+    e_.outrank : numpy.ndarray of bool
+        The outranking matrix of superation. If the element[i][j] is True
+        The alternative ``i`` outrank the alternative ``j``.
+
+    e_.mtx_concordance : numpy.ndarray
+        The concordance matrix where the element[i][j] measures how much the
+        alternative ``i`` is at least as good as ``j``.
+
+    e_.mtx_discordance : numpy.ndarray
+        The discordance matrix where the element[i][j] measures the degree to
+        which the alternative ``i`` is strictly preferred to ``j``.
+
+    e_.p : float
+        Concordance index.
+
+    e_.q : float
+        Discordance index.
+
+
+    References
+    ----------
+
+    .. [1] Roy, B. (1990). The outranking approach and the foundations of
+       ELECTRE methods. In Readings in multiple criteria decision aid
+       (pp. 155-183). Springer, Berlin, Heidelberg.
+    .. [2] Roy, B. (1968). Classement et choix en présence de points de vue
+       multiples. Revue française d'informatique et de recherche
+       opérationnelle, 2(8), 57-75.
+    .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
+       making: methods and applications. CRC press.
+
+    """
 
     def __init__(self, p=.65, q=.35, mnorm="sum", wnorm="sum"):
         super(ELECTRE1, self).__init__(mnorm=mnorm, wnorm=wnorm)
