@@ -55,7 +55,7 @@ from six.moves import range
 
 from . import core
 
-from .. import rank
+from skcriteria import rank
 
 
 # =============================================================================

@@ -49,42 +49,56 @@ __doc__ = """Test normalization functionalities"""
 # IMPORTS
 # =============================================================================
 
-from .. import core
+import numpy as np
 
-from ...weights import divergence
-from ... import norm, Data, divcorr
+import mock
+
+from . import core
+
+from skcriteria import Data
 
 
 # =============================================================================
 # BASE
 # =============================================================================
 
-class DivergenceTest(core.SKCriteriaTestCase):
+@mock.patch("matplotlib.pyplot.show")
+class PlotTestCase(core.SKCriteriaTestCase):
 
     def setUp(self):
-        # Data from:
-        # Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
-        # Determining objective weights in multiple criteria problems:
-        # The critic method. Computers & Operations Research, 22(7), 763-770.
-        self.mtx = [
-            [61, 1.08, 4.33],
-            [20.7, 0.26, 4.34],
-            [16.3, 1.98, 2.53],
-            [9, 3.29, 1.65],
-            [5.4, 2.77, 2.33],
-            [4, 4.12, 1.21],
-            [-6.1, 3.52, 2.10],
-            [-34.6, 3.31, 0.98]
-        ]
-        self.nmtx = norm.ideal_point(self.mtx, criteria=[1, 1, 1], axis=0)
-        self.expected = [0.27908306,  0.34092628,  0.37999065]
+        self.alternative_n, self.criteria_n = 5, 3
+        self.mtx = (
+            np.random.rand(self.alternative_n, self.criteria_n) *
+            np.random.choice([1, -1], (self.alternative_n, self.criteria_n)))
+        self.criteria = np.random.choice([1, -1], self.criteria_n)
+        self.weights = np.random.randint(1, 100, self.criteria_n)
+        self.data = Data(self.mtx, self.criteria, self.weights)
 
-    def test_divergence(self):
-        result = divergence.divergence(self.nmtx, divcorr.std)
-        self.assertAllClose(result, self.expected)
+    def test_invalid_name(self, *args):
+        with self.assertRaises(ValueError):
+            self.data.plot("fooo")
 
-    def test_divergence_oop(self):
-        data = Data(self.mtx, [1, 1, 1])
-        wd = divergence.DivergenceWeights()
-        rdata = wd.decide(data)
-        self.assertAllClose(rdata.weights, self.expected)
+    def test_scatter(self, *args):
+        self.data.plot("scatter")
+        self.data.plot.scatter()
+
+    def test_radar(self, *args):
+        self.data.plot()
+        self.data.plot("radar")
+        self.data.plot.radar()
+
+    def test_hist(self, *args):
+        self.data.plot("hist")
+        self.data.plot.hist()
+
+    def test_box(self, *args):
+        self.data.plot("box")
+        self.data.plot.violin()
+
+    def test_violin(self, *args):
+        self.data.plot("violin")
+        self.data.plot.violin()
+
+    def test_bars(self, *args):
+        self.data.plot("bars")
+        self.data.plot.bars()

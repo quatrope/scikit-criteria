@@ -55,7 +55,7 @@ import numpy as np
 
 from . import core
 
-from .. import util
+from skcriteria import util
 
 
 # =============================================================================

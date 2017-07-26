@@ -42,45 +42,40 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """Test io functionalities"""
+__doc__ = """Test normalization functionalities"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import random
-
 import numpy as np
 
-from .. import _oop
+from .. import core
 
-from . import core
+from skcriteria.weights import equal
+from skcriteria import Data
 
 
 # =============================================================================
 # BASE
 # =============================================================================
 
-class TestData(core.SKCriteriaTestCase):
+class EqualTest(core.SKCriteriaTestCase):
 
     def setUp(self):
-        self.mtx = np.random.rand(3, 3)
-        self.criteria = np.asarray([random.choice((1, -1)) for e in range(3)])
-        self.weights = np.random.randint(1, 100, 3)
+        self.nmtx = np.array([
+            [1, 1],
+            [2, 2]
+        ])
+        self.expected = [0.5, 0.5]
 
-    def test_trivial(self):
-        data = _oop.Data(self.mtx, self.criteria, self.weights)
-        other = _oop.Data(self.mtx, self.criteria, self.weights)
-        self.assertEqual(data, other)
+    def test_equal(self):
+        result = equal.equal(self.nmtx)
+        self.assertAllClose(result, self.expected)
 
-    def test_unicode_string(self):
-        cnames = anames = u"ñññ"
-        data = _oop.Data(
-            self.mtx, self.criteria, self.weights,
-            anames=anames, cnames=cnames)
-        data.to_str()
-        data.to_str(tablefmt="html")
-
-        repr(data)
-        str(data)
+    def test_equal_oop(self):
+        data = Data(self.nmtx, [1, 1])
+        wd = equal.EqualWeights()
+        rdata = wd.decide(data)
+        self.assertAllClose(rdata.weights, self.expected)

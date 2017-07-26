@@ -60,7 +60,7 @@ from six.moves import range
 
 from . import core
 
-from .. import norm
+from skcriteria import norm
 
 
 # =============================================================================

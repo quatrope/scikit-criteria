@@ -42,7 +42,7 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """test electre methods"""
+__doc__ = """Test io functionalities"""
 
 
 # =============================================================================
@@ -50,56 +50,37 @@ __doc__ = """test electre methods"""
 # =============================================================================
 
 import random
-import string
 
-from ...madm import _dmaker
+import numpy as np
 
-from .. import core
+from skcriteria import _oop
+
+from . import core
 
 
 # =============================================================================
-# BASE CLASS
+# BASE
 # =============================================================================
 
-class ExtraTest(core.SKCriteriaTestCase):
+class TestData(core.SKCriteriaTestCase):
 
     def setUp(self):
-        self.data = {}
-        for idx in range(random.randint(10, 100)):
-            key = "".join([
-                random.choice(string.ascii_letters)
-                for _ in range(random.randint(10, 30))])
-            value = "".join([
-                random.choice(string.ascii_letters)
-                for _ in range(random.randint(10, 30))])
-            self.data[key + str(idx)] = value
-        self.e = _dmaker.Extra(self.data)
+        self.mtx = np.random.rand(3, 3)
+        self.criteria = np.asarray([random.choice((1, -1)) for e in range(3)])
+        self.weights = np.random.randint(1, 100, 3)
 
-    def test_eq(self):
-        self.assertTrue(self.e == _dmaker.Extra(self.data))
+    def test_trivial(self):
+        data = _oop.Data(self.mtx, self.criteria, self.weights)
+        other = _oop.Data(self.mtx, self.criteria, self.weights)
+        self.assertEqual(data, other)
 
-    def test_ne(self):
-        e = self.e
-        self.setUp()
-        self.assertTrue(self.e != e)
+    def test_unicode_string(self):
+        cnames = anames = u"ñññ"
+        data = _oop.Data(
+            self.mtx, self.criteria, self.weights,
+            anames=anames, cnames=cnames)
+        data.to_str()
+        data.to_str(tablefmt="html")
 
-    def test_getitem(self):
-        for k, v in self.data.items():
-            self.assertEquals(self.e[k], v)
-
-    def test_iter(self):
-        for k in self.e:
-            self.assertIn(k, self.data)
-
-    def test_len(self):
-        self.assertEquals(len(self.data), len(self.e))
-
-    def test_getattr(self):
-        for k, v in self.data.items():
-            self.assertEquals(getattr(self.e, k), v)
-
-    def test_str(self):
-        str(self.e)
-
-    def test_repr(self):
-        repr(self.e)
+        repr(data)
+        str(data)

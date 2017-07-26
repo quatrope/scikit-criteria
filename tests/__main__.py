@@ -37,18 +37,17 @@
 
 from __future__ import unicode_literals, absolute_import
 
+import argparse
+import importlib
+import os
+import sys
+import unittest
+
+from . import core, utils
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
-
-import os
-import sys
-import argparse
-import unittest
-import importlib
-
-from . import core, utils
 
 
 # =============================================================================
@@ -83,7 +82,7 @@ def create_parser():
 
 
 def load_test_modules():
-    base_pkg, test_modules_names = ".".join(["skcriteria", "tests"]), []
+    base_pkg, test_modules_names = ".".join(["tests"]), []
     for dirpath, dirnames, filenames in os.walk(PATH):
         pkg = [] if dirpath == PATH else [os.path.basename(dirpath)]
         for fname in filenames:

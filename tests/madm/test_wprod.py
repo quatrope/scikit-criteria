@@ -50,8 +50,8 @@ from __future__ import unicode_literals
 # =============================================================================
 
 from .. import core
-from ... import util, norm
-from ...madm import wprod
+from skcriteria import util, norm
+from skcriteria.madm import wprod
 
 
 # =============================================================================
