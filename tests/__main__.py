@@ -82,7 +82,7 @@ def create_parser():
 
 
 def load_test_modules():
-    base_pkg, test_modules_names = ".".join(["skcriteria", "tests"]), []
+    base_pkg, test_modules_names = ".".join(["tests"]), []
     for dirpath, dirnames, filenames in os.walk(PATH):
         pkg = [] if dirpath == PATH else [os.path.basename(dirpath)]
         for fname in filenames:
