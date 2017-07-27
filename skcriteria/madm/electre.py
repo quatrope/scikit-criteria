@@ -60,6 +60,8 @@ References
 
 """
 
+__all__ = ['ELECTRE1']
+
 
 # =============================================================================
 # IMPORTS
@@ -145,25 +147,25 @@ class ELECTRE1(DecisionMaker):
     criteria and restricted outranking relations are given.
 
     That is, ELECTRE I cannot derive the ranking of alternatives but the kernel
-    set. In ELECTRE I, two indices called the concordance (p) index and the
-    discordance index (q) are used to measure the relations between objects.
+    set. In ELECTRE I, two indices called the concordance index and the
+    discordance index are used to measure the relations between objects.
 
     Parameters
     ----------
 
     p : float, optional (default=0.65)
-        concordance index. Threshold of how much one alternative is at least
-        as good as another to be significative.
+        concordance threshold. Threshold of how much one alternative is at
+        least as good as another to be significative.
 
     q : float, optional (default=0.35)
-        discordance index. Threshold of how much the degree one alternative is
-        strictly preferred to another to be significative.
+        discordance threshold. Threshold of how much the degree one alternative
+        is strictly preferred to another to be significative.
 
     mnorm : string, callable, optional (default="sum")
-        normalization method for the alternative matrix.
+        Normalization method for the alternative matrix.
 
     wnorm : string, callable, optional (default="sum")
-        normalization method for the weights array.
+        Normalization method for the weights array.
 
     Decision Attributes
     -------------------
@@ -186,39 +188,38 @@ class ELECTRE1(DecisionMaker):
     gamma_solution_ : bool
         Always False.
 
-    Decision Extra Attributes
-    -------------------------
+    Extra Attributes
+    ----------------
 
     e_.outrank : numpy.ndarray of bool
         The outranking matrix of superation. If the element[i][j] is True
         The alternative ``i`` outrank the alternative ``j``.
 
     e_.mtx_concordance : numpy.ndarray
-        The concordance matrix where the element[i][j] measures how much the
-        alternative ``i`` is at least as good as ``j``.
+        The concordance indexes matrix where the element[i][j] measures how
+        much the alternative ``i`` is at least as good as ``j``.
 
     e_.mtx_discordance : numpy.ndarray
-        The discordance matrix where the element[i][j] measures the degree to
-        which the alternative ``i`` is strictly preferred to ``j``.
+        The discordance indexes matrix where the element[i][j] measures the
+        degree to which the alternative ``i`` is strictly preferred to ``j``.
 
     e_.p : float
-        Concordance index.
+        Concordance index threshold.
 
     e_.q : float
-        Discordance index.
-
+        Discordance index threshold.
 
     References
     ----------
 
     .. [1] Roy, B. (1990). The outranking approach and the foundations of
-       ELECTRE methods. In Readings in multiple criteria decision aid
-       (pp. 155-183). Springer, Berlin, Heidelberg.
+           ELECTRE methods. In Readings in multiple criteria decision aid
+           (pp.155-183). Springer, Berlin, Heidelberg.
     .. [2] Roy, B. (1968). Classement et choix en présence de points de vue
-       multiples. Revue française d'informatique et de recherche
-       opérationnelle, 2(8), 57-75.
+           multiples. Revue française d'informatique et de recherche
+           opérationnelle, 2(8), 57-75.
     .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
-       making: methods and applications. CRC press.
+           making: methods and applications. CRC press.
 
     """
 
