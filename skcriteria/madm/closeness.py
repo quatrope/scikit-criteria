@@ -30,12 +30,27 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
 # =============================================================================
-# FUTURE
+# FUTURE & DOCS
 # =============================================================================
 
 from __future__ import unicode_literals
+
+
+__doc__ = """Methods based on an aggregating function representing
+“closeness to the ideal”.
+
+References
+----------
+
+.. [1] Opricovic, S., & Tzeng, G. H. (2004). Compromise solution by MCDM
+       methods: A comparative analysis of VIKOR and TOPSIS. European journal of
+       operational research, 156(2), 445-455. ISO 690.
+
+
+"""
+
+__all__ = ['TOPSIS']
 
 
 # =============================================================================
@@ -81,6 +96,63 @@ def topsis(nmtx, ncriteria, nweights):
 # =============================================================================
 
 class TOPSIS(DecisionMaker):
+    """TOPSIS is based on the concept that the chosen alternative should have
+    the shortest geometric distance from the ideal solution
+    and the longest geometric distance from the worst solution.
+
+    An assumption of TOPSIS is that the criteria are monotonically increasing
+    or decreasing, and also allow trade-offs between criteria, where a poor
+    result in one criterion can be negated by a good result in another
+    criterion.
+
+    Parameters
+    ----------
+
+    mnorm : string, callable, optional (default="vector")
+        Normalization method for the alternative matrix.
+
+    wnorm : string, callable, optional (default="sum")
+        Normalization method for the weights array.
+
+    Decision Attributes
+    -------------------
+
+    kernel_ : numpy.ndarray
+        A ranking (start at 1) when the i-nth element represent the
+        position of the i-nth alternative.
+
+    rank_ : None
+        Always ``None``, ELECTRE1 cannot derive the ranking.
+
+    best_alternative_ : None
+        The index of the alternative with the rank 1.
+
+    alpha_solution_ : bool
+        Always True.
+
+    beta_solution_ : bool
+        Always False.
+
+    gamma_solution_ : bool
+        Always True.
+
+    Extra Attributes
+    ----------------
+
+    e_.closeness : numpy.ndarray
+        The i-nth element closenees to ideal and worst solution.
+
+    References
+    ----------
+
+    .. [1] Yoon, K., & Hwang, C. L. (1981). Multiple attribute decision
+           making: methods and applications. SPRINGER-VERLAG BERLIN AN.
+    .. [2] TOPSIS. In Wikipedia, The Free Encyclopedia. Retrieved
+           from https://en.wikipedia.org/wiki/TOPSIS
+    .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
+           making: methods and applications. CRC press.
+
+    """
 
     def __init__(self, mnorm="vector", wnorm="sum"):
         super(TOPSIS, self).__init__(mnorm=mnorm, wnorm=wnorm)

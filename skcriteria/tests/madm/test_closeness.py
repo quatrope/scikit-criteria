@@ -51,7 +51,7 @@ __doc__ = """test topsis methods"""
 
 from .. import core
 from ... import util
-from ...madm import topsis
+from ...madm import closeness
 
 
 # =============================================================================
@@ -82,13 +82,13 @@ class TopsisTest(core.SKCriteriaTestCase):
         points = [0.5037, 0.6581, 0.7482, 0.3340]
 
         normdata = self.normalize(self.mtx, self.criteria, weights)
-        rank_result, points_result = topsis.topsis(*normdata)
+        rank_result, points_result = closeness.topsis(*normdata)
 
         self.assertAllClose(points_result, points, atol=1.e-4)
         self.assertAllClose(rank_result, result)
 
     def test_topsis_dm(self):
-        dm = topsis.TOPSIS()
+        dm = closeness.TOPSIS()
 
         weights = [.3, .4, .3]
 
