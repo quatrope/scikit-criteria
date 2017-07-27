@@ -363,7 +363,7 @@ class Decision(object):
 
         """
         if self._rank is not None:
-            return self._rank[0]
+            return np.argmin(self._rank)
 
     @property
     def alpha_solution_(self):
