@@ -58,23 +58,7 @@ import numpy as np
 from tabulate import tabulate
 
 from .. import util
-from .._oop import BaseSolver
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-CRITERIA_AS_ATR = {
-    util.MIN: "min",
-    util.MAX: "max"
-}
-
-TABULATE_PARAMS = {
-    "headers": "firstrow",
-    "numalign": "center",
-    "stralign": "center",
-}
+from .._core import BaseSolver, CRITERIA_STR, TABULATE_PARAMS
 
 
 # =============================================================================

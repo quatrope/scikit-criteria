@@ -61,7 +61,8 @@ from six.moves import zip
 
 from matplotlib import cm
 
-from .. import norm, util
+from .. import norm
+from .._core import MIN, CRITERIA_STR
 from .radar import radar_plot
 from .multihist import multihist_plot
 from .scmtx import scmtx_plot
@@ -140,7 +141,7 @@ class PlotProxy(object):
 
         # convert all minimun criteria to max
         if min2max:
-            mincrits = np.squeeze(np.where(criteria == util.MIN))
+            mincrits = np.squeeze(np.where(criteria == MIN))
             if np.any(mincrits):
                 mincrits_inverted = 1.0 / mtx[:, mincrits]
                 mtx = mtx.astype(mincrits_inverted.dtype.type)
@@ -158,7 +159,7 @@ class PlotProxy(object):
 
         # labels for criteria
         criterias = (
-            [" ({})".format(util.CRITERIA_STR[c]) for c in criteria]
+            [" ({})".format(CRITERIA_STR[c]) for c in criteria]
             if show_criteria else
             [""] * len(criteria))
 

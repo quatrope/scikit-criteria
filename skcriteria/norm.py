@@ -53,7 +53,7 @@ __doc__ = """Several implementations of normalization methods
 import numpy as np
 from numpy import linalg
 
-from . import util
+from ._core import MAX
 
 
 # =============================================================================
@@ -488,6 +488,7 @@ def ideal_point(arr, criteria=None, axis=None):
            [ 1.,  1.]])
 
     """
+
     if criteria is None:
         raise TypeError("you must provide a criteria")
 
@@ -504,7 +505,7 @@ def ideal_point(arr, criteria=None, axis=None):
         criteria = criteria[0]
         idealf, nadirf = (
             (np.max, np.min)
-            if criteria == util.MAX
+            if criteria == MAX
             else (np.min, np.max))
         ideal, nadir = idealf(arr), nadirf(arr)
     elif axis == 1:
@@ -513,8 +514,8 @@ def ideal_point(arr, criteria=None, axis=None):
     maxs = np.max(arr, axis=0)
     mins = np.min(arr, axis=0)
 
-    ideal = np.where(criteria == util.MAX, maxs, mins)
-    nadir = np.where(criteria == util.MAX, mins, maxs)
+    ideal = np.where(criteria == MAX, maxs, mins)
+    nadir = np.where(criteria == MAX, mins, maxs)
 
     result = (arr - nadir) / (ideal - nadir)
 

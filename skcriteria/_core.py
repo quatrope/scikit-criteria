@@ -30,12 +30,32 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+# =============================================================================
+# FUTURE & DOCS
+# =============================================================================
+
+from __future__ import unicode_literals
+
+
+__doc__ = """Module containing the basic functionality of scikit-criteria
+including:
+
+- Scikit-Criteria Data representation.
+- Scikit-Criteria Criteria representation.
+- Scikit-Criteria Data validation.
+
+"""
+
+__all__ = [
+    'MIN', 'MAX',
+    'criteriarr',
+    'validate_data',
+    'Data']
+
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
-
-from __future__ import unicode_literals
 
 import sys
 import abc
@@ -46,13 +66,19 @@ import numpy as np
 
 from tabulate import tabulate
 
-from . import util, norm, plot
-
 
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
+MIN = -1
+
+MAX = 1
+
+CRITERIA_STR = {
+    MIN: "min",
+    MAX: "max"
+}
 
 TABULATE_PARAMS = {
     "headers": "firstrow",
@@ -62,37 +88,132 @@ TABULATE_PARAMS = {
 
 
 # =============================================================================
+# EXCEPTIONS
+# =============================================================================
+
+class DataValidationError(ValueError):
+    """Raised when some part of the multicriteria data (alternative matrix,
+    criteria array or weights array) are not compatible with another part.
+
+    """
+    pass
+
+
+# =============================================================================
+# FUNCTIONS
+# =============================================================================
+
+def iter_equal(a, b):
+    """Validate if two iterables are equals independently of their type"""
+    if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
+        return np.allclose(a, b, equal_nan=True)
+    return a == b
+
+
+def is_mtx(mtx, size=None):
+    """Return True if mtx is two dimensional structure.
+
+    If `size` is not None, must be a expected shape of the mtx
+
+    """
+    try:
+        mtx = np.asarray(mtx)
+        a, b = mtx.shape
+        if size and (a, b) != size:
+            return False
+    except:
+        return False
+    return True
+
+
+def criteriarr(criteria):
+    """Validate if the iterable only contains MIN (-1) and MAX (1) criteria"""
+
+    criteria = np.asarray(criteria)
+    if np.setdiff1d(criteria, [MIN, MAX]):
+        msg = "Criteria Array only accept '{}' or '{}' Values. Found {}"
+        raise DataValidationError(msg.format(MAX, MIN, criteria))
+    return criteria
+
+
+def validate_data(mtx, criteria, weights=None):
+    """Validate if the main components of the Data in scikit-criteria are
+    compatible.
+
+    Tests
+    -----
+
+    - The matrix (mtx) must be 2-dimensional.
+    - The criteria array must be a criteria array (criteriarr function).
+    - The number of criteria must be the same number of columns in mtx.
+    - The weight array must be None or an iterable with the same length
+      of the criteria.
+
+    Return
+    ------
+
+    - A mtx as 2d numpy.ndarray.
+    - A criteria as numpy.ndarray.
+    - A weights as numpy.ndarray or None (if weights is None).
+
+    """
+    mtx = np.asarray(mtx)
+    if not is_mtx(mtx):
+        msg = "'mtx' must be a 2 dimensional array"
+        raise DataValidationError(msg)
+
+    criteria = criteriarr(criteria)
+    if len(criteria) != np.shape(mtx)[1]:
+        msg = "{} senses of optimality given but mtx has {} criteria".format(
+            len(criteria), np.shape(mtx)[1])
+        raise DataValidationError(msg)
+
+    weights = (np.asarray(weights) if weights is not None else None)
+    if weights is not None:
+        if len(weights) != len(criteria):
+            msg = "{} weights given for {} criteria".format(
+                len(weights), len(criteria))
+            raise DataValidationError(msg)
+
+    return mtx, criteria, weights
+
+
+# =============================================================================
 # DATA PROXY
 # =============================================================================
 
 class Data(object):
 
     def __init__(self, mtx, criteria, weights=None, anames=None, cnames=None):
-        self._mtx = np.asarray(mtx)
-        self._criteria = util.criteriarr(criteria)
-        self._weights = (np.asarray(weights) if weights is not None else None)
-        util.validate_data(self._mtx, self._criteria, self._weights)
 
+        # validate and store all data
+        self._mtx, self._criteria, self.weights = validate_data(
+            self._mtx, self._criteria, self._weights)
+
+        # validate alternative names
         self._anames = (
             anames if anames is not None else
             ["A{}".format(idx) for idx in range(len(mtx))])
         if len(self._anames) != len(self._mtx):
             msg = "{} names given for {} alternatives".format(
                 len(self._anames), len(self._mtx))
-            raise util.DataValidationError(msg)
+            raise DataValidationError(msg)
 
+        # validate criteria names
         self._cnames = (
             cnames if cnames is not None else
             ["C{}".format(idx) for idx in range(len(criteria))])
         if len(self._cnames) != len(self._criteria):
             msg = "{} names for given {} criteria".format(
                 len(self._cnames), len(self._criteria))
-            raise util.DataValidationError(msg)
+            raise DataValidationError(msg)
 
+        # create plot proxy
+        from . import plot
         self._plot = plot.PlotProxy(self)
 
     def _iter_rows(self):
-        direction = map(util.CRITERIA_STR.get, self._criteria)
+        direction = map(CRITERIA_STR.get, self._criteria)
         title = ["ALT./CRIT."]
         if self._weights is None:
             cstr = zip(self._cnames, direction)
@@ -108,9 +229,9 @@ class Data(object):
     def __eq__(self, obj):
         return (
             isinstance(obj, Data) and
-            util.iter_equal(self._mtx, obj._mtx) and
-            util.iter_equal(self._criteria, obj._criteria) and
-            util.iter_equal(self._weights, obj._weights))
+            iter_equal(self._mtx, obj._mtx) and
+            iter_equal(self._criteria, obj._criteria) and
+            iter_equal(self._weights, obj._weights))
 
     def __ne__(self, obj):
         return not self == obj
@@ -177,6 +298,8 @@ class Data(object):
 class BaseSolver(object):
 
     def __init__(self, mnorm, wnorm):
+        from . import norm
+
         self._mnorm = norm.get(mnorm, mnorm)
         self._wnorm = norm.get(wnorm, wnorm)
         if not hasattr(self._mnorm, "__call__"):

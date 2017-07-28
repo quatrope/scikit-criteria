@@ -53,7 +53,7 @@ import random
 
 import numpy as np
 
-from .. import _oop
+from .. import _core
 
 from . import core
 
@@ -70,13 +70,13 @@ class TestData(core.SKCriteriaTestCase):
         self.weights = np.random.randint(1, 100, 3)
 
     def test_trivial(self):
-        data = _oop.Data(self.mtx, self.criteria, self.weights)
-        other = _oop.Data(self.mtx, self.criteria, self.weights)
+        data = _core.Data(self.mtx, self.criteria, self.weights)
+        other = _core.Data(self.mtx, self.criteria, self.weights)
         self.assertEqual(data, other)
 
     def test_unicode_string(self):
         cnames = anames = u"ñññ"
-        data = _oop.Data(
+        data = _core.Data(
             self.mtx, self.criteria, self.weights,
             anames=anames, cnames=cnames)
         data.to_str()

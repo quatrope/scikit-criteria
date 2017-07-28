@@ -55,49 +55,8 @@ import numpy as np
 
 
 # =============================================================================
-# CONSTANTS
-# =============================================================================
-
-MIN = -1
-
-MAX = 1
-
-CRITERIA_STR = {
-    MIN: "min",
-    MAX: "max"
-}
-
-
-# =============================================================================
-# EXCEPTIONS
-# =============================================================================
-
-class DataValidationError(ValueError):
-    pass
-
-
-# =============================================================================
 # FUNCTIONS
 # =============================================================================
-
-def criteriarr(criteria):
-    criteria = np.asarray(criteria)
-    if np.setdiff1d(criteria, [MIN, MAX]):
-        msg = "Criteria Array only accept '{}' or '{}' Values. Found {}"
-        raise DataValidationError(msg.format(MAX, MIN, criteria))
-    return criteria
-
-
-def is_mtx(mtx, size=None):
-    try:
-        mtx = np.asarray(mtx)
-        a, b = mtx.shape
-        if size and (a, b) != size:
-            return False
-    except:
-        return False
-    return True
-
 
 def nearest(array, value, side=None):
     # based on: http://stackoverflow.com/a/2566508
@@ -128,25 +87,3 @@ def nearest(array, value, side=None):
         idx = decisor(masked_diff)
 
     return cleaned[idx]
-
-
-def iter_equal(a, b):
-    if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
-        return np.allclose(a, b, equal_nan=True)
-    return a == b
-
-
-def validate_data(mtx, criteria, weights=None):
-    if not is_mtx(mtx):
-        msg = "'mtx' must be a 2 dimensional array"
-        raise DataValidationError(msg)
-    criteria = criteriarr(criteria)
-    if len(criteria) != np.shape(mtx)[1]:
-        msg = "{} senses of optimality given but mtx has {} criteria".format(
-            len(criteria), np.shape(mtx)[1])
-        raise DataValidationError(msg)
-    if weights is not None:
-        if len(weights) != len(criteria):
-            msg = "{} weights given for {} criteria".format(
-                len(weights), len(criteria))
-            raise DataValidationError(msg)

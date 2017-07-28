@@ -56,6 +56,7 @@ import numpy as np
 from . import core
 
 from .. import util
+from ..core import MIN, MAX
 
 
 # =============================================================================
@@ -66,7 +67,7 @@ class Criteriarr(core.SKCriteriaTestCase):
 
     def setUp(self):
         super(Criteriarr, self).setUp()
-        self.min_max = (util.MIN, util.MAX)
+        self.min_max = (MIN, MAX)
 
     def test_from_list(self):
         arr = [random.choice(self.min_max) for _ in self.rrange(100, 1000)]
