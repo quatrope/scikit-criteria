@@ -53,7 +53,7 @@ import numpy as np
 
 import mock
 
-from .. import Data
+from ..core import Data
 
 from .tcore import SKCriteriaTestCase
 

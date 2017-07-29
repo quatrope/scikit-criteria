@@ -49,7 +49,8 @@ from __future__ import unicode_literals
 # IMPORTS
 # =============================================================================
 
-from ... import norm, MAX, MIN
+from ... import norm
+from ...core import MAX, MIN
 from ...madm import wprod
 
 from ..tcore import SKCriteriaTestCase

@@ -53,7 +53,8 @@ import random
 
 import numpy as np
 
-from ... import norm, MIN, MAX
+from ... import norm
+from ...core import MIN, MAX
 from ...madm import moora
 
 from ..tcore import SKCriteriaTestCase

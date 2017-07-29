@@ -49,7 +49,7 @@ __doc__ = """test moora methods"""
 # IMPORTS
 # =============================================================================
 
-from ... import MAX, MIN
+from ...core import MAX, MIN
 from ...madm import wsum
 
 from ..tcore import SKCriteriaTestCase
