@@ -55,7 +55,7 @@ import numpy as np
 
 from ..core import Data, MIN, MAX, criteriarr, is_mtx
 
-from .core import SKCriteriaTestCase
+from .tcore import SKCriteriaTestCase
 
 
 # =============================================================================

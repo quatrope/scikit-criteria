@@ -41,5 +41,5 @@ def collect_subclasses(cls):
         for subcls in basecls.__subclasses__():
             collected.add(subcls)
             collected.update(collect(subcls))
-        return sorted(collected)
+        return collected
     return tuple(collect(cls))

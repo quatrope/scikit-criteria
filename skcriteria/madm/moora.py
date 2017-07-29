@@ -64,7 +64,7 @@ import itertools
 
 import numpy as np
 
-from .. import norm, util, rank
+from .. import norm, rank
 from ..core import Data, MIN, MAX, criteriarr
 
 from ._dmaker import DecisionMaker

@@ -55,7 +55,7 @@ from six.moves import range
 
 from .. import rank
 
-from .core import SKCriteriaTestCase
+from .tcore import SKCriteriaTestCase
 
 
 # =============================================================================

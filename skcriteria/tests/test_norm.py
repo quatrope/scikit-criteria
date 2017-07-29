@@ -58,11 +58,9 @@ import mock
 
 from six.moves import range
 
-from . import core
-
 from .. import norm
 
-from .core import SKCriteriaTestCase
+from .tcore import SKCriteriaTestCase
 
 
 # =============================================================================

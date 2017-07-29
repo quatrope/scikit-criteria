@@ -59,8 +59,8 @@ __all__ = ['TOPSIS']
 
 import numpy as np
 
-from ..import util, rank
-from ..core import Data, MIN, MAX, criteriarr
+from ..import rank
+from ..core import MIN, MAX
 from ._dmaker import DecisionMaker
 
 

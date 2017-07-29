@@ -69,7 +69,7 @@ __all__ = ['ELECTRE1']
 
 import numpy as np
 
-from .. import util, MAX, MIN
+from ..core import MAX, MIN
 from ._dmaker import DecisionMaker
 
 

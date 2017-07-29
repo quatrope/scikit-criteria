@@ -49,10 +49,10 @@ __doc__ = """test topsis methods"""
 # IMPORTS
 # =============================================================================
 
-from ... import util, MAX, MIN
+from ... import MAX
 from ...madm import closeness
 
-from ..core import SKCriteriaTestCase
+from ..tcore import SKCriteriaTestCase
 
 
 # =============================================================================

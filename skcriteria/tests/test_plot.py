@@ -55,7 +55,7 @@ import mock
 
 from .. import Data
 
-from .core import SKCriteriaTestCase
+from .tcore import SKCriteriaTestCase
 
 
 # =============================================================================

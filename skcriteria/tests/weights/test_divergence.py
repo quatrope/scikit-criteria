@@ -52,7 +52,8 @@ __doc__ = """Test normalization functionalities"""
 from ...weights import divergence
 from ... import norm, Data, divcorr
 
-from ..core import SKCriteriaTestCase
+from ..tcore import SKCriteriaTestCase
+
 
 # =============================================================================
 # BASE

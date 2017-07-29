@@ -58,7 +58,7 @@ import numpy as np
 from tabulate import tabulate
 
 from .. import util
-from ..core import BaseSolver, CRITERIA_STR, TABULATE_PARAMS
+from ..core import BaseSolver, TABULATE_PARAMS
 
 
 # =============================================================================

@@ -54,7 +54,7 @@ import numpy as np
 from ...weights import equal
 from ... import Data
 
-from ..core import SKCriteriaTestCase
+from ..tcore import SKCriteriaTestCase
 
 
 # =============================================================================

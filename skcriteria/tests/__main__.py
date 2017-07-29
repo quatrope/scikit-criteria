@@ -48,9 +48,8 @@ import argparse
 import unittest
 import importlib
 
-from .core import SKCriteriaTestCase
+from .tcore import SKCriteriaTestCase
 from . import utils
-
 
 
 # =============================================================================

@@ -52,7 +52,7 @@ __doc__ = """Test normalization functionalities"""
 from ...weights import critic
 from ... import norm, Data, divcorr
 
-from ..core import SKCriteriaTestCase
+from ..tcore import SKCriteriaTestCase
 
 
 # =============================================================================

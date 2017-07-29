@@ -54,7 +54,7 @@ import string
 
 from ...madm import _dmaker
 
-from ..core import SKCriteriaTestCase
+from ..tcore import SKCriteriaTestCase
 
 
 # =============================================================================

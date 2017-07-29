@@ -49,10 +49,11 @@ from __future__ import unicode_literals
 # IMPORTS
 # =============================================================================
 
-from ... import util, norm, MAX, MIN
+from ... import norm, MAX, MIN
 from ...madm import wprod
 
-from ..core import SKCriteriaTestCase
+from ..tcore import SKCriteriaTestCase
+
 
 # =============================================================================
 # BASE CLASS

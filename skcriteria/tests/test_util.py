@@ -49,13 +49,11 @@ __doc__ = """Test utilities"""
 # IMPORTS
 # =============================================================================
 
-import random
-
 import numpy as np
 
-from .. import util, MIN, MAX
+from .. import util
 
-from .core import SKCriteriaTestCase
+from .tcore import SKCriteriaTestCase
 
 
 # =============================================================================

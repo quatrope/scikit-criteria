@@ -51,8 +51,8 @@ __doc__ = ""
 
 import numpy as np
 
-from .. import norm, util, rank
-from ..core import Data, MAX, MIN, criteriarr
+from .. import norm, rank
+from ..core import Data, MIN, criteriarr
 from ._dmaker import DecisionMaker
 
 
