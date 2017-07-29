@@ -53,72 +53,16 @@ import random
 
 import numpy as np
 
-from . import core
+from .. import util, MIN, MAX
 
-from .. import util
-from ..core import MIN, MAX
+from .core import SKCriteriaTestCase
 
 
 # =============================================================================
 # TESTS
 # =============================================================================
 
-class Criteriarr(core.SKCriteriaTestCase):
-
-    def setUp(self):
-        super(Criteriarr, self).setUp()
-        self.min_max = (MIN, MAX)
-
-    def test_from_list(self):
-        arr = [random.choice(self.min_max) for _ in self.rrange(100, 1000)]
-        arr_result = util.criteriarr(arr)
-        self.assertAllClose(arr, arr_result)
-        self.assertIsInstance(arr_result, np.ndarray)
-
-    def test_from_array(self):
-        arr = np.array(
-            [random.choice(self.min_max) for _ in self.rrange(100, 1000)])
-        arr_result = util.criteriarr(arr)
-        self.assertAllClose(arr, arr_result)
-        self.assertIsInstance(arr_result, np.ndarray)
-        self.assertIs(arr, arr_result)
-
-    def test_no_min_max(self):
-        arr = [
-            random.choice(self.min_max) for _ in self.rrange(100, 1000)] + [2]
-        with self.assertRaises(ValueError):
-            util.criteriarr(arr)
-
-
-class IsMtx(core.SKCriteriaTestCase):
-
-    def setUp(self):
-        self.cases = [
-            ([[1, 2], [1, 2]], True),
-            ([[1, 2], [1]], False),
-            ([1], False),
-            ([1, 2, 3], False),
-            ([[1], [1]], True),
-            ([], False)]
-
-    def assertIsMtx(self, case, expected):
-        result = util.is_mtx(case)
-        if result != expected:
-            msg = "{} must {} a matrix".format(
-                case, "be" if expected else "not be")
-            self.fail(msg)
-
-    def test_as_list(self):
-        for case, expected in self.cases:
-            self.assertIsMtx(case, expected)
-
-    def test_as_array(self):
-        for case, expected in self.cases:
-            case = np.asarray(case)
-            self.assertIsMtx(case, expected)
-
-
-class Nearest(core.SKCriteriaTestCase):
+class Nearest(SKCriteriaTestCase):
 
     def test_gt(self):
         arr = np.array([0.25, 0.27])

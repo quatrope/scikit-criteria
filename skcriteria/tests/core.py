@@ -58,7 +58,7 @@ import numpy.testing as npt
 import six
 from six.moves import range
 
-from .. import norm, util
+from .. import norm, util, criteriarr
 
 
 # =============================================================================
@@ -80,7 +80,7 @@ class SKCriteriaTestCase(unittest.TestCase):
         return range(random.randint(a, b))
 
     def normalize(self, mtx, criteria, weights):
-        ncriteria = util.criteriarr(criteria)
+        ncriteria = criteriarr(criteria)
         nmtx = norm.norm(self.mnorm, mtx, axis=0)
         nweights = norm.norm(self.wnorm, weights) if weights is not None else 1
         return nmtx, ncriteria, nweights

@@ -53,9 +53,9 @@ import numpy as np
 
 import mock
 
-from . import core
-
 from .. import Data
+
+from .core import SKCriteriaTestCase
 
 
 # =============================================================================
@@ -63,7 +63,7 @@ from .. import Data
 # =============================================================================
 
 @mock.patch("matplotlib.pyplot.show")
-class PlotTestCase(core.SKCriteriaTestCase):
+class PlotTestCase(SKCriteriaTestCase):
 
     def setUp(self):
         self.alternative_n, self.criteria_n = 5, 3

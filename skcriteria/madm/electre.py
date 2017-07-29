@@ -69,7 +69,7 @@ __all__ = ['ELECTRE1']
 
 import numpy as np
 
-from .. import util
+from .. import util, MAX, MIN
 from ._dmaker import DecisionMaker
 
 
@@ -86,8 +86,8 @@ def concordance(mtx, criteria, weights):
     for idx, row in enumerate(mtx):
         difference = row - mtx
         outrank = (
-            ((mtx_criteria == util.MAX) & (difference >= 0)) |
-            ((mtx_criteria == util.MIN) & (difference <= 0))
+            ((mtx_criteria == MAX) & (difference >= 0)) |
+            ((mtx_criteria == MIN) & (difference <= 0))
         )
         filter_weights = mtx_weight * outrank.astype(int)
         new_row = np.sum(filter_weights, axis=1)
@@ -107,8 +107,8 @@ def discordance(mtx, criteria):
     for idx, row in enumerate(mtx):
         difference = mtx - row
         worsts = (
-            ((mtx_criteria == util.MAX) & (difference > 0)) |
-            ((mtx_criteria == util.MIN) & (difference < 0))
+            ((mtx_criteria == MAX) & (difference > 0)) |
+            ((mtx_criteria == MIN) & (difference < 0))
         )
         filter_difference = np.abs(difference * worsts)
         delta = filter_difference / max_range

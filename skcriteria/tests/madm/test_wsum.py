@@ -49,16 +49,17 @@ __doc__ = """test moora methods"""
 # IMPORTS
 # =============================================================================
 
-from .. import core
-from ... import util
+from ... import MAX, MIN
 from ...madm import wsum
+
+from ..core import SKCriteriaTestCase
 
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
 
-class WSumTest(core.SKCriteriaTestCase):
+class WSumTest(SKCriteriaTestCase):
     mnorm = "sum"
     wnorm = "sum"
 
@@ -78,8 +79,8 @@ class WSumTest(core.SKCriteriaTestCase):
             [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935]
         ]
         self.criteria = [
-            util.MIN, util.MIN, util.MIN, util.MIN,
-            util.MAX, util.MIN, util.MAX]
+            MIN, MIN, MIN, MIN,
+            MAX, MIN, MAX]
 
     def test_mdwsum_with_weights(self):
         weights = [20, 20, 20, 20, 20, 20, 20]

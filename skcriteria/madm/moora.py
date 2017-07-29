@@ -65,7 +65,8 @@ import itertools
 import numpy as np
 
 from .. import norm, util, rank
-from .._oop import Data
+from ..core import Data, MIN, MAX, criteriarr
+
 from ._dmaker import DecisionMaker
 
 
@@ -89,7 +90,7 @@ def refpoint(nmtx, criteria, weights):
     rpmin = np.min(nmtx, axis=0)
 
     # merge two reference points acoording criteria
-    mask = np.where(criteria == util.MAX, criteria, 0)
+    mask = np.where(criteria == MAX, criteria, 0)
     rpoints = np.where(mask, rpmax, rpmin)
 
     # create rank matrix
@@ -101,16 +102,16 @@ def refpoint(nmtx, criteria, weights):
 def fmf(nmtx, criteria):
     lmtx = np.log(nmtx)
 
-    if not np.setdiff1d(criteria, [util.MAX]):
+    if not np.setdiff1d(criteria, [MAX]):
         # only max
         points = np.sum(lmtx, axis=1)
-    elif not np.setdiff1d(criteria, [util.MIN]):
+    elif not np.setdiff1d(criteria, [MIN]):
         # only min
         points = 1 - np.sum(lmtx, axis=1)
     else:
         # min max
-        min_mask = np.ravel(np.argwhere(criteria == util.MAX))
-        max_mask = np.ravel(np.argwhere(criteria == util.MIN))
+        min_mask = np.ravel(np.argwhere(criteria == MAX))
+        max_mask = np.ravel(np.argwhere(criteria == MIN))
 
         # remove invalid values
         min_arr = np.delete(lmtx, min_mask, axis=1)
@@ -172,7 +173,7 @@ class RatioMOORA(DecisionMaker):
         Matrix of responses of alternatives to objectives.
 
     criteria : iterable
-        Criteria vector. Can only containing *util.MIN* or *util.MAX* values
+        Criteria vector. Can only containing *MIN* or *MAX* values
         with the same columns as mtx.
 
     weights : iterable or None
@@ -249,7 +250,7 @@ class FMFMOORA(DecisionMaker):
         non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
         nmtx = self._mnorm(non_zero, axis=0)
-        ncriteria = util.criteriarr(data.criteria)
+        ncriteria = criteriarr(data.criteria)
         return Data(mtx=nmtx, criteria=ncriteria, weights=data.weights,
                     anames=data.anames, cnames=data.cnames)
 
@@ -273,7 +274,7 @@ class MultiMOORA(DecisionMaker):
         non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
         nmtx = self._mnorm(non_zero, axis=0)
-        ncriteria = util.criteriarr(data.criteria)
+        ncriteria = criteriarr(data.criteria)
         return Data(mtx=nmtx, criteria=ncriteria, weights=data.weights,
                     anames=data.anames, cnames=data.cnames)
 

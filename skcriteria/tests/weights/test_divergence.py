@@ -49,17 +49,16 @@ __doc__ = """Test normalization functionalities"""
 # IMPORTS
 # =============================================================================
 
-from .. import core
-
 from ...weights import divergence
 from ... import norm, Data, divcorr
 
+from ..core import SKCriteriaTestCase
 
 # =============================================================================
 # BASE
 # =============================================================================
 
-class DivergenceTest(core.SKCriteriaTestCase):
+class DivergenceTest(SKCriteriaTestCase):
 
     def setUp(self):
         # Data from:

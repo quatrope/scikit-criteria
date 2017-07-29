@@ -53,16 +53,17 @@ import random
 
 import numpy as np
 
-from .. import core
-from ... import util, norm
+from ... import util, norm, MIN, MAX
 from ...madm import moora
+
+from ..core import SKCriteriaTestCase
 
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
 
-class MOORATestBase(core.SKCriteriaTestCase):
+class MOORATestBase(SKCriteriaTestCase):
     mnorm = "vector"
     wnorm = "sum"
 
@@ -82,8 +83,8 @@ class MOORATestBase(core.SKCriteriaTestCase):
             [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935]
         ]
         self.criteria = [
-            util.MIN, util.MIN, util.MIN, util.MIN,
-            util.MAX, util.MIN, util.MAX
+            MIN, MIN, MIN, MIN,
+            MAX, MIN, MAX
         ]
         self.rows = len(self.mtx)
         self.columns = len(self.mtx[0]) if self.rows else 0
@@ -102,22 +103,6 @@ class RatioMOORATest(MOORATestBase):
         points = [-0.23206838, -0.03604841, -0.1209072,
                   -0.31909074, -0.16956892, -0.11065173]
 
-        nmtx, ncriteria, nweights = self.normalize(
-            self.mtx, self.criteria, weights)
-        rank_result, points_result = moora.ratio(
-            nmtx, ncriteria, nweights
-        )
-
-        self.assertAllClose(points_result, points, atol=1.e-4)
-        self.assertAllClose(rank_result, result)
-
-    def test_ratio_dm(self):
-        weights = [1, 1, 1, 1, 1, 1, 1]
-
-        result = [5, 1, 3, 6, 4, 2]
-        points = [-0.23206838, -0.03604841, -0.1209072,
-                  -0.31909074, -0.16956892, -0.11065173]
-
         dm = moora.RatioMOORA()
         decision = dm.decide(self.mtx, self.criteria, weights)
 
@@ -128,19 +113,6 @@ class RatioMOORATest(MOORATestBase):
 class RefPointMOORATest(MOORATestBase):
 
     def test_refpoint(self):
-        weights = [1, 1, 1, 1, 1, 1, 1]
-        result = [4, 5, 1, 6, 2, 3]
-        points = [0.09847, 0.0999, 0.0854, 0.1227, 0.0857, 0.0878]
-
-        nmtx, ncriteria, nweights = self.normalize(
-            self.mtx, self.criteria, weights)
-        rank_result, points_result = moora.refpoint(
-            nmtx, ncriteria, nweights)
-
-        self.assertAllClose(points_result, points, atol=1.e-3)
-        self.assertAllClose(rank_result, result)
-
-    def test_refpoint_dm(self):
         weights = [1, 1, 1, 1, 1, 1, 1]
         result = [4, 5, 1, 6, 2, 3]
         points = [0.09847, 0.0999, 0.0854, 0.1227, 0.0857, 0.0878]
@@ -167,18 +139,6 @@ class FMFMOORATest(MOORATestBase):
         # the result is the logarithm of this values
         points = [3.4343, 148689.356, 120.3441, 0.7882, 16.2917, 252.9155]
 
-        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
-        rank_result, points_result = moora.fmf(nmtx, ncriteria)
-
-        self.assertAllClose(points_result, np.log(points), atol=1.e-4)
-        self.assertAllClose(rank_result, result)
-
-    def test_fmf_dm(self):
-        result = [5, 1, 3, 6, 4, 2]
-
-        # the result is the logarithm of this values
-        points = [3.4343, 148689.356, 120.3441, 0.7882, 16.2917, 252.9155]
-
         dm = moora.FMFMOORA()
         decision = dm.decide(self.mtx, self.criteria)
 
@@ -197,21 +157,7 @@ class FMFMOORATest(MOORATestBase):
         dm.decide(self.mtx, self.criteria)
 
     def test_fmf_only_max(self):
-        self.criteria = [util.MAX] * len(self.criteria)
-
-        result = [2, 6, 4, 1, 3, 5]
-
-        # the result is the logarithm of this values
-        points = [0.0011, 2.411e-08, 3.135e-05, 0.0037, 0.0002, 1.48e-05]
-
-        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
-        rank_result, points_result = moora.fmf(nmtx, ncriteria)
-
-        self.assertAllClose(points_result, np.log(points), atol=1.)
-        self.assertAllClose(rank_result, result)
-
-    def test_fmf_only_max_dm(self):
-        self.criteria = [util.MAX] * len(self.criteria)
+        self.criteria = [MAX] * len(self.criteria)
 
         result = [2, 6, 4, 1, 3, 5]
 
@@ -236,22 +182,7 @@ class FMFMOORATest(MOORATestBase):
         dm.decide(self.mtx, self.criteria)
 
     def test_fmf_only_min(self):
-        self.criteria = [util.MIN] * len(self.criteria)
-
-        result = [5, 1, 3, 6, 4, 2]
-
-        # the result is the logarithm + 1 of this values
-        points = [
-            869.5146, 41476540.2, 31897.0622, 264.0502, 4171.5128, 67566.8851]
-
-        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
-        rank_result, points_result = moora.fmf(nmtx, ncriteria)
-
-        self.assertAllClose(points_result, 1 + np.log(points), atol=1.e-4)
-        self.assertAllClose(rank_result, result)
-
-    def test_fmf_only_min_dm(self):
-        self.criteria = [util.MIN] * len(self.criteria)
+        self.criteria = [MIN] * len(self.criteria)
 
         result = [5, 1, 3, 6, 4, 2]
 
@@ -287,23 +218,6 @@ class MultiMOORATest(MOORATestBase):
         return nmtx, ncriteria
 
     def test_multimoora(self):
-        result = [5, 1, 3, 6, 4, 2]
-        mmora_mtx = [
-            [5, 4, 5],
-            [1, 5, 1],
-            [3, 1, 3],
-            [6, 6, 6],
-            [4, 2, 4],
-            [2, 3, 2]
-        ]
-
-        nmtx, ncriteria = self.normalize(self.mtx, self.criteria)
-        rank_result, mmora_mtx_result = moora.multimoora(nmtx, ncriteria)
-
-        self.assertAllClose(mmora_mtx_result, mmora_mtx, atol=1.e-4)
-        self.assertAllClose(rank_result, result)
-
-    def test_multimoora_dm(self):
         result = [5, 1, 3, 6, 4, 2]
         mmora_mtx = [
             [5, 4, 5],

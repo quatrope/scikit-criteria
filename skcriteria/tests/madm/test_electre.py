@@ -51,16 +51,17 @@ __doc__ = """test electre methods"""
 
 import numpy as np
 
-from .. import core
-from ... import util, norm, Data
+from ... import util, norm, criteriarr, Data
 from ...madm import electre
+
+from ..core import SKCriteriaTestCase
 
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
 
-class ConcordanceTest(core.SKCriteriaTestCase):
+class ConcordanceTest(SKCriteriaTestCase):
 
     def test_concordance(self):
         # Data From:
@@ -79,7 +80,7 @@ class ConcordanceTest(core.SKCriteriaTestCase):
             [6, 8, 30, 7, 9],
             [5, 6, 26, 4, 8]
         ], axis=0)
-        ncriteria = util.criteriarr([1, 1, -1, 1, 1])
+        ncriteria = criteriarr([1, 1, -1, 1, 1])
         nweights = norm.sum([0.25, 0.25, 0.1, 0.2, 0.2])
         results = [
             [np.nan, 0.5000, 0.3500, 0.5000, 0.3500, 0.4500],
@@ -93,7 +94,7 @@ class ConcordanceTest(core.SKCriteriaTestCase):
         self.assertAllClose(concordance, results, atol=1.e-3)
 
 
-class DiscordanceTest(core.SKCriteriaTestCase):
+class DiscordanceTest(SKCriteriaTestCase):
 
     def test_discordance(self):
         # Data From:
@@ -112,7 +113,7 @@ class DiscordanceTest(core.SKCriteriaTestCase):
             [6, 8, 30, 7, 9],
             [5, 6, 26, 4, 8]
         ], axis=0)
-        ncriteria = util.criteriarr([1, 1, -1, 1, 1])
+        ncriteria = criteriarr([1, 1, -1, 1, 1])
         results = [
             [np.nan, 0.5052, 0.4042, 0.1883, 0.42857, 0.2825],
             [0.4286, np.nan, 0.7143, 0.2589, 0.8571, 0.5714],
@@ -124,37 +125,11 @@ class DiscordanceTest(core.SKCriteriaTestCase):
         self.assertAllClose(discordance, results, atol=1.e-3)
 
 
-class Electre1Test(core.SKCriteriaTestCase):
+class Electre1Test(SKCriteriaTestCase):
     mnorm = "sum"
     wnorm = "sum"
 
     def test_electre1(self):
-        # Data From:
-        # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
-        # en Aragón: Una aplicación empírica de la ayuda a la decisión
-        # multicriterio tipo ELECTRE I y III. Robustez de los resultados
-        # obtenidos.
-        # Revista de Métodos Cuantitativos para la Economía y la Empresa,
-        # (7), 31-56.
-
-        mtx = [
-            [6, 5, 28, 5, 5],
-            [4, 2, 25, 10, 9],
-            [5, 7, 35, 9, 6],
-            [6, 1, 27, 6, 7],
-            [6, 8, 30, 7, 9],
-            [5, 6, 26, 4, 8]
-        ]
-        criteria = [1, 1, -1, 1, 1]
-        weights = [0.25, 0.25, 0.1, 0.2, 0.2]
-
-        result_kernel = [4]
-        nmtx, ncriteria, nweights = self.normalize(mtx, criteria, weights)
-        kernel = electre.electre1(
-            nmtx, ncriteria, nweights=nweights, p=0.5500, q=0.699)[0]
-        self.assertCountEqual(kernel, result_kernel)
-
-    def test_electre1_dm(self):
         # Data From:
         # Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
         # en Aragón: Una aplicación empírica de la ayuda a la decisión

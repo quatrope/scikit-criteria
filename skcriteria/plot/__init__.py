@@ -62,7 +62,7 @@ from six.moves import zip
 from matplotlib import cm
 
 from .. import norm
-from .._core import MIN, CRITERIA_STR
+from ..core import MIN, CRITERIA_STR
 from .radar import radar_plot
 from .multihist import multihist_plot
 from .scmtx import scmtx_plot

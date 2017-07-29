@@ -49,16 +49,16 @@ from __future__ import unicode_literals
 # IMPORTS
 # =============================================================================
 
-from .. import core
-from ... import util, norm
+from ... import util, norm, MAX, MIN
 from ...madm import wprod
 
+from ..core import SKCriteriaTestCase
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
 
-class WProdTest(core.SKCriteriaTestCase):
+class WProdTest(SKCriteriaTestCase):
     mnorm = "sum"
     wnorm = "sum"
 
@@ -72,7 +72,7 @@ class WProdTest(core.SKCriteriaTestCase):
             [10, 30, 20, 30],
             [30, 10, 30, 10],
         ]
-        self.criteria = [util.MAX, util.MAX, util.MAX, util.MAX]
+        self.criteria = [MAX, MAX, MAX, MAX]
         self.weights = [20, 15, 40, 25]
 
     def normalize(self, mtx, criteria, weights):
@@ -95,7 +95,7 @@ class WProdTest(core.SKCriteriaTestCase):
             points_result, [-1.154253, -1.161619, -1.219155], atol=1.e-3)
 
     def test_wprod_min(self):
-        self.criteria[0] = util.MIN
+        self.criteria[0] = MIN
 
         normdata = self.normalize(self.mtx, self.criteria, self.weights)
         rank_result, points_result = wprod.wprod(*normdata)

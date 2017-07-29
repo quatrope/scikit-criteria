@@ -48,7 +48,9 @@ import argparse
 import unittest
 import importlib
 
-from . import core, utils
+from .core import SKCriteriaTestCase
+from . import utils
+
 
 
 # =============================================================================
@@ -110,7 +112,7 @@ def run_tests(verbosity=1, failfast=False):
 
     load_test_modules()
 
-    for testcase in utils.collect_subclasses(core.SKCriteriaTestCase):
+    for testcase in utils.collect_subclasses(SKCriteriaTestCase):
         tests = loader.loadTestsFromTestCase(testcase)
         if tests.countTestCases():
                 suite.addTests(tests)

@@ -52,7 +52,7 @@ __doc__ = ""
 import numpy as np
 
 from .. import norm, util, rank
-from .._oop import Data
+from ..core import Data, MAX, MIN, criteriarr
 from ._dmaker import DecisionMaker
 
 
@@ -62,8 +62,8 @@ from ._dmaker import DecisionMaker
 
 def wprod(nmtx, ncriteria, nweights):
     # invert the minimization criteria
-    if util.MIN in ncriteria:
-        mincrits = np.squeeze(np.where(ncriteria == util.MIN))
+    if MIN in ncriteria:
+        mincrits = np.squeeze(np.where(ncriteria == MIN))
         mincrits_inverted = 1.0 / nmtx[:, mincrits]
         nmtx = nmtx.astype(mincrits_inverted.dtype.type)
         nmtx[:, mincrits] = mincrits_inverted
@@ -123,7 +123,7 @@ class WeightedProduct(DecisionMaker):
         non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
         nmtx = self._mnorm(non_zero, axis=0)
-        ncriteria = util.criteriarr(data.criteria)
+        ncriteria = criteriarr(data.criteria)
         nweights = (
             self._wnorm(data.weights, criteria=data.criteria)
             if data.weights is not None else

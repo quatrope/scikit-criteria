@@ -51,17 +51,17 @@ __doc__ = """Test normalization functionalities"""
 
 import numpy as np
 
-from .. import core
-
 from ...weights import equal
 from ... import Data
+
+from ..core import SKCriteriaTestCase
 
 
 # =============================================================================
 # BASE
 # =============================================================================
 
-class EqualTest(core.SKCriteriaTestCase):
+class EqualTest(SKCriteriaTestCase):
 
     def setUp(self):
         self.nmtx = np.array([

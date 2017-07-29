@@ -49,17 +49,17 @@ __doc__ = """Test normalization functionalities"""
 # IMPORTS
 # =============================================================================
 
-from .. import core
-
 from ...weights import critic
 from ... import norm, Data, divcorr
+
+from ..core import SKCriteriaTestCase
 
 
 # =============================================================================
 # BASE
 # =============================================================================
 
-class CriticTest(core.SKCriteriaTestCase):
+class CriticTest(SKCriteriaTestCase):
 
     def setUp(self):
         # Data from:

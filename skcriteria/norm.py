@@ -53,7 +53,7 @@ __doc__ = """Several implementations of normalization methods
 import numpy as np
 from numpy import linalg
 
-from ._core import MAX
+from .core import MAX, criteriarr
 
 
 # =============================================================================
@@ -497,7 +497,7 @@ def ideal_point(arr, criteria=None, axis=None):
         raise ValueError(msg.format(axis))
 
     arr = np.asarray(arr, dtype=float)
-    criteria = util.criteriarr(criteria)
+    criteria = criteriarr(criteria)
     if axis is None:
         if len(set(criteria)) != 1:
             msg = "If 'axis' is None all the 'criteria' must be the same"

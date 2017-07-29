@@ -62,12 +62,14 @@ from . import core
 
 from .. import norm
 
+from .core import SKCriteriaTestCase
+
 
 # =============================================================================
 # BASE
 # =============================================================================
 
-class NormTestBase(core.SKCriteriaTestCase):
+class NormTestBase(SKCriteriaTestCase):
 
     def setUp(self):
         super(NormTestBase, self).setUp()
@@ -97,7 +99,7 @@ class NormTestBase(core.SKCriteriaTestCase):
 # TESTS
 # =============================================================================
 
-class RegisterTest(core.SKCriteriaTestCase):
+class RegisterTest(SKCriteriaTestCase):
 
     @mock.patch("skcriteria.norm.NORMALIZERS", {})
     def test_register_as_function(self):

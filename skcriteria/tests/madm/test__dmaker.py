@@ -54,14 +54,14 @@ import string
 
 from ...madm import _dmaker
 
-from .. import core
+from ..core import SKCriteriaTestCase
 
 
 # =============================================================================
 # BASE CLASS
 # =============================================================================
 
-class ExtraTest(core.SKCriteriaTestCase):
+class ExtraTest(SKCriteriaTestCase):
 
     def setUp(self):
         self.data = {}

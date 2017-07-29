@@ -53,16 +53,16 @@ import random
 
 from six.moves import range
 
-from . import core
-
 from .. import rank
+
+from .core import SKCriteriaTestCase
 
 
 # =============================================================================
 # TESTS
 # =============================================================================
 
-class RankTest(core.SKCriteriaTestCase):
+class RankTest(SKCriteriaTestCase):
 
     def setUp(self):
         super(RankTest, self).setUp()
@@ -82,7 +82,7 @@ class RankTest(core.SKCriteriaTestCase):
         self.assertEquals(manual, sorted(self.arr, reverse=True))
 
 
-class Dominance(core.SKCriteriaTestCase):
+class Dominance(SKCriteriaTestCase):
 
     def test_dominance(self):
         # Data from:
@@ -108,7 +108,7 @@ class Dominance(core.SKCriteriaTestCase):
         self.assertEqual(rank.dominance(c, c), 0)
 
 
-class Equality(core.SKCriteriaTestCase):
+class Equality(SKCriteriaTestCase):
 
     def test_equality(self):
         # Data from:
@@ -139,7 +139,7 @@ class Equality(core.SKCriteriaTestCase):
         self.assertEqual(rank.equality(c, a), 0)
 
 
-class KendalDominance(core.SKCriteriaTestCase):
+class KendalDominance(SKCriteriaTestCase):
 
     def test_kendall_dominance(self):
         # Data from:
@@ -165,7 +165,7 @@ class KendalDominance(core.SKCriteriaTestCase):
         self.assertEqual(rank.kendall_dominance(c, c), (None, (6, 6)))
 
 
-class SpearmianR(core.SKCriteriaTestCase):
+class SpearmianR(SKCriteriaTestCase):
 
     def test_spearmanr(self):
         # Data from:
