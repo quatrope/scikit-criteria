@@ -57,7 +57,6 @@ References
 .. [2] ELECTRE. In Wikipedia, The Free Encyclopedia. Retrieved
        from https://en.wikipedia.org/w/index.php?title=ELECTRE&oldid=791487870
 
-
 """
 
 __all__ = ['ELECTRE1']
