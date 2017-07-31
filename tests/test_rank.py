@@ -53,9 +53,8 @@ import random
 
 from six.moves import range
 
-from . import core
-
 from skcriteria import rank
+from tests import core
 
 
 # =============================================================================

@@ -49,8 +49,8 @@ __doc__ = """test moora methods"""
 # IMPORTS
 # =============================================================================
 
-from .. import core
 from skcriteria import util
+from tests import core
 from skcriteria.madm import wsum
 
 

@@ -54,8 +54,7 @@ import random
 import numpy as np
 
 from skcriteria import _oop
-
-from . import core
+from tests import core
 
 
 # =============================================================================

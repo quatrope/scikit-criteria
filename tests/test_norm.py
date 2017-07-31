@@ -58,9 +58,8 @@ import mock
 
 from six.moves import range
 
-from . import core
-
 from skcriteria import norm
+from tests import core
 
 
 # =============================================================================

@@ -51,10 +51,9 @@ __doc__ = """Test normalization functionalities"""
 
 import numpy as np
 
-from .. import core
-
 from skcriteria.weights import equal
 from skcriteria import Data
+from tests import core
 
 
 # =============================================================================

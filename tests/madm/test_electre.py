@@ -51,8 +51,8 @@ __doc__ = """test electre methods"""
 
 import numpy as np
 
-from .. import core
 from skcriteria import util, norm, Data
+from tests import core
 from skcriteria.madm import electre
 
 

@@ -53,9 +53,8 @@ import numpy as np
 
 import mock
 
-from . import core
-
 from skcriteria import Data
+from tests import core
 
 
 # =============================================================================

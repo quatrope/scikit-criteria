@@ -54,7 +54,7 @@ import string
 
 from skcriteria.madm import _dmaker
 
-from .. import core
+from tests import core
 
 
 # =============================================================================

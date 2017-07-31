@@ -53,8 +53,8 @@ import random
 
 import numpy as np
 
-from .. import core
 from skcriteria import util, norm
+from tests import core
 from skcriteria.madm import moora
 
 

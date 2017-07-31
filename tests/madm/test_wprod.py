@@ -49,8 +49,8 @@ from __future__ import unicode_literals
 # IMPORTS
 # =============================================================================
 
-from .. import core
 from skcriteria import util, norm
+from tests import core
 from skcriteria.madm import wprod
 
 
