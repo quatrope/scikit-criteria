@@ -72,9 +72,9 @@ Bibtex entry::
 Contents:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
 
-   api/modules
+   api/skcriteria
 
 
 
@@ -84,4 +84,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

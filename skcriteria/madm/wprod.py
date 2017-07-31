@@ -88,9 +88,8 @@ class WeightedProduct(DecisionMaker):
     instead of addition in the main mathematical operation now there is
     multiplication.
 
-
-    Notes
-    -----
+    Implementation Notes
+    --------------------
 
     The implementation works as follow:
 
@@ -104,15 +103,15 @@ class WeightedProduct(DecisionMaker):
     References
     ----------
 
-    Bridgman, P.W. (1922). Dimensional Analysis. New Haven, CT, U.S.A.:
-    Yale University Press.
+    .. [1] Bridgman, P.W. (1922). Dimensional Analysis. New Haven, CT, U.S.A.:
+           Yale University Press.
 
-    Miller, D.W.; M.K. Starr (1969). Executive Decisions and Operations
-    Research. Englewood Cliffs, NJ, U.S.A.: Prentice-Hall, Inc.
+    .. [2] Miller, D.W.; M.K. Starr (1969). Executive Decisions and Operations
+           Research. Englewood Cliffs, NJ, U.S.A.: Prentice-Hall, Inc.
 
-    Wen, Y. (2007, September 16). Using log-transform to avoid underflow
-    problem in computing posterior probabilities. Retrieved January 7, 2017,
-    from http://web.mit.edu/wenyang/www/log_transform_for_underflow.pdf
+    .. [3] Wen, Y. (2007, September 16). Using log-transform to avoid underflow
+           problem in computing posterior probabilities.
+           from http://web.mit.edu/wenyang/www/log_transform_for_underflow.pdf
 
     """
 

@@ -30,5 +30,29 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+# =============================================================================
+# DOCS
+# =============================================================================
 
-"""This package contains several implementations of madm methods"""
+"""This package contains several implementations of Multi criteria decision
+analysys methods (MADM) methods.
+
+Conflicting criteria are typical in evaluating options: cost or price is
+usually one of the main criteria, and some measure of quality is typically
+another criterion, easily in conflict with the cost. In purchasing a car, cost,
+comfort, safety, and fuel economy may be some of the main criteria we consider
+-- it is unusual that the cheapest car is the most comfortable and the safest
+one. In portfolio management, we are interested in getting high returns but at
+the same time reducing our risks, but the stocks that have the potential of
+bringing high returns typically also carry high risks of losing money. In a
+service industry, customer satisfaction and the cost of providing service are
+fundamental conflicting criteria.
+
+"""
+
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+from _dmaker import Decision, Extra  # noqa

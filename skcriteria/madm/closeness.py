@@ -40,13 +40,6 @@ from __future__ import unicode_literals
 __doc__ = """Methods based on an aggregating function representing
 “closeness to the ideal”.
 
-References
-----------
-
-.. [1] Opricovic, S., & Tzeng, G. H. (2004). Compromise solution by MCDM
-       methods: A comparative analysis of VIKOR and TOPSIS. European journal of
-       operational research, 156(2), 445-455. ISO 690.
-
 
 """
 
@@ -115,43 +108,36 @@ class TOPSIS(DecisionMaker):
     wnorm : string, callable, optional (default="sum")
         Normalization method for the weights array.
 
-    Decision Attributes
-    -------------------
+    Attributes
+    ----------
 
-    kernel_ : numpy.ndarray
-        A ranking (start at 1) when the i-nth element represent the
-        position of the i-nth alternative.
+    Returns
+    -------
 
-    rank_ : None
-        Always ``None``, ELECTRE1 cannot derive the ranking.
+    Decision : skcriteria.madm.Decision
+        With values:
 
-    best_alternative_ : None
-        The index of the alternative with the rank 1.
+        - **kernel_**: None
+        - **rank_**: A ranking (start at 1) where the i-nth element represent
+          the position of the i-nth alternative.
+        - **best_alternative_**: The index of the best alternative.
+        - **alpha_solution_**: True
+        - **beta_solution_**: False
+        - **gamma_solution_**: True
+        - **e_**: Particular data created by this method.
 
-    alpha_solution_ : bool
-        Always True.
-
-    beta_solution_ : bool
-        Always False.
-
-    gamma_solution_ : bool
-        Always True.
-
-    Extra Attributes
-    ----------------
-
-    e_.closeness : numpy.ndarray
-        The i-nth element closenees to ideal and worst solution.
+          - **e_.closeness**: Array where the i-nth element represent the
+            closenees of the i-nth alternative to ideal and worst solution.
 
     References
     ----------
 
     .. [1] Yoon, K., & Hwang, C. L. (1981). Multiple attribute decision
-           making: methods and applications. SPRINGER-VERLAG BERLIN AN.
+       making: methods and applications. SPRINGER-VERLAG BERLIN AN.
     .. [2] TOPSIS. In Wikipedia, The Free Encyclopedia. Retrieved
-           from https://en.wikipedia.org/wiki/TOPSIS
+       from https://en.wikipedia.org/wiki/TOPSIS
     .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
-           making: methods and applications. CRC press.
+       making: methods and applications. CRC press.
 
     """
 

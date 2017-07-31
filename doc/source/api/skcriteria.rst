@@ -1,25 +1,45 @@
 skcriteria package
 ==================
 
-Subpackages
------------
-
 .. toctree::
 
-    skcriteria.common
+    skcriteria.madm
+    skcriteria.plot
     skcriteria.tests
+    skcriteria.weights
 
 Submodules
 ----------
 
-.. toctree::
+skcriteria.core module
+----------------------
 
-    skcriteria.wprod
-    skcriteria.wsum
+.. automodule:: skcriteria.core
+    :members:
 
-    skcriteria.ahp
+skcriteria.divcorr module
+-------------------------
 
-    skcriteria.moora
+.. automodule:: skcriteria.divcorr
+    :members:
+
+skcriteria.norm module
+----------------------
+
+.. automodule:: skcriteria.norm
+    :members:
+
+skcriteria.rank module
+----------------------
+
+.. automodule:: skcriteria.rank
+    :members:
+
+skcriteria.util module
+----------------------
+
+.. automodule:: skcriteria.util
+    :members:
 
 
 Module contents
@@ -27,4 +47,3 @@ Module contents
 
 .. automodule:: skcriteria
     :members:
-    :show-inheritance:

@@ -48,15 +48,6 @@ problem, which are unacceptable. After that we can use another MCDA to select
 the best one. The Advantage of using the Electre Methods before is that we
 can apply another MCDA with a restricted set of alternatives saving much time.
 
-References
-----------
-
-.. [1] Roy, B. (1990). The outranking approach and the foundations of ELECTRE
-       methods. In Readings in multiple criteria decision aid (pp. 155-183).
-       Springer, Berlin, Heidelberg.
-.. [2] ELECTRE. In Wikipedia, The Free Encyclopedia. Retrieved
-       from https://en.wikipedia.org/w/index.php?title=ELECTRE&oldid=791487870
-
 """
 
 __all__ = ['ELECTRE1']
@@ -166,59 +157,48 @@ class ELECTRE1(DecisionMaker):
     wnorm : string, callable, optional (default="sum")
         Normalization method for the weights array.
 
-    Decision Attributes
-    -------------------
+    Returns
+    -------
 
-    kernel_ : numpy.ndarray
-        Array with the indexes of the alternatives in he kernel.
+    Decision : skcriteria.madm.Decision
+        With values:
 
-    rank_ : None
-        Always ``None``, ELECTRE1 cannot derive the ranking.
+        - **kernel_**:  Array with the indexes of the alternatives
+          in he kernel.
+        - **rank_**: None
+        - **best_alternative_**: None
+        - **alpha_solution_**: False
+        - **beta_solution_**: True
+        - **gamma_solution_**: False
+        - **e_**: Particular data created by this method.
 
-    best_alternative_ : None
-        Always ``None``, ELECTRE1 cannot derive the ranking.
-
-    alpha_solution_ : bool
-        Always False.
-
-    beta_solution_ : bool
-        Always True.
-
-    gamma_solution_ : bool
-        Always False.
-
-    Extra Attributes
-    ----------------
-
-    e_.outrank : numpy.ndarray of bool
-        The outranking matrix of superation. If the element[i][j] is True
-        The alternative ``i`` outrank the alternative ``j``.
-
-    e_.mtx_concordance : numpy.ndarray
-        The concordance indexes matrix where the element[i][j] measures how
-        much the alternative ``i`` is at least as good as ``j``.
-
-    e_.mtx_discordance : numpy.ndarray
-        The discordance indexes matrix where the element[i][j] measures the
-        degree to which the alternative ``i`` is strictly preferred to ``j``.
-
-    e_.p : float
-        Concordance index threshold.
-
-    e_.q : float
-        Discordance index threshold.
+          - **e_.closeness**: Array where the i-nth element represent the
+            closenees of the i-nth alternative to ideal and worst solution.
+          - **e_.outrank**: numpy.ndarray of bool
+            The outranking matrix of superation. If the element[i][j] is True
+            The alternative ``i`` outrank the alternative ``j``.
+          - **e_.mtx_concordance**: numpy.ndarray
+            The concordance indexes matrix where the element[i][j] measures how
+            much the alternative ``i`` is at least as good as ``j``.
+          - **e_.mtx_discordance**: numpy.ndarray
+            The discordance indexes matrix where the element[i][j] measures the
+            degree to which the alternative ``i`` is strictly preferred to ``j``.
+          - **e_.p**: float
+            Concordance index threshold.
+          - **e_.q**: float
+            Discordance index threshold.
 
     References
     ----------
 
     .. [1] Roy, B. (1990). The outranking approach and the foundations of
-           ELECTRE methods. In Readings in multiple criteria decision aid
-           (pp.155-183). Springer, Berlin, Heidelberg.
+       ELECTRE methods. In Readings in multiple criteria decision aid
+       (pp.155-183). Springer, Berlin, Heidelberg.
     .. [2] Roy, B. (1968). Classement et choix en présence de points de vue
-           multiples. Revue française d'informatique et de recherche
-           opérationnelle, 2(8), 57-75.
+       multiples. Revue française d'informatique et de recherche
+       opérationnelle, 2(8), 57-75.
     .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
-           making: methods and applications. CRC press.
+       making: methods and applications. CRC press.
 
     """
 

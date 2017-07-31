@@ -37,10 +37,10 @@
 from __future__ import unicode_literals
 
 
-__doc__ = """Abstract classes to create decision makers for
-madm methods
+__doc__ = """Core functionalities of all madm methods.
 
 """
+
 
 # =============================================================================
 # IMPORTS
