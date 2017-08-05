@@ -140,8 +140,7 @@ def validate_data(mtx, criteria, weights=None):
     """Validate if the main components of the Data in scikit-criteria are
     compatible.
 
-    Tests
-    -----
+    The function tests:
 
     - The matrix (mtx) must be 2-dimensional.
     - The criteria array must be a criteria array (criteriarr function).
@@ -149,8 +148,8 @@ def validate_data(mtx, criteria, weights=None):
     - The weight array must be None or an iterable with the same length
       of the criteria.
 
-    Return
-    ------
+    Returns
+    -------
 
     - A mtx as 2d numpy.ndarray.
     - A criteria as numpy.ndarray.
