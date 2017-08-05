@@ -61,11 +61,11 @@ from ._dmaker import DecisionMaker
 # =============================================================================
 
 def wsum(nmtx, ncriteria, nweights):
-    # add criteria to weights
-    cweights = nweights * ncriteria
+    # invert the minimization criteria
+    nmtx = norm.invert_min(nmtx, ncriteria, axis=0)
 
     # calculate raning by inner prodcut
-    rank_mtx = np.inner(nmtx, cweights)
+    rank_mtx = np.inner(nmtx, nweights)
     points = np.squeeze(np.asarray(rank_mtx))
 
     return rank.rankdata(points, reverse=True), points
