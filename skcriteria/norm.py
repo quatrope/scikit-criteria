@@ -53,7 +53,7 @@ __doc__ = """Several implementations of normalization methods
 import numpy as np
 from numpy import linalg
 
-from .core import MAX, criteriarr
+from .core import MIN, MAX, criteriarr
 
 
 # =============================================================================
@@ -134,10 +134,6 @@ def sum(arr, criteria=None, axis=None):
     .. math::
 
         \overline{X}_{ij} = \frac{X_{ij}}{\sum\limits_{j=1}^m X_{ij}}
-
-    This ratio is used in various MCDA methods including
-    :doc:`AHP <skcriteria.ahp>`, :doc:`Weighted Sum <skcriteria.wsum>`
-    and :doc:`Weighted Product <skcriteria.wprod>`
 
     Parameters
     ----------
@@ -228,8 +224,6 @@ def vector(arr, criteria=None, axis=None):
     r"""Caculates the set of ratios as the square roots of the sum of squared
     responses of a given axis as denominators.  If *axis* is *None* sum all
     the array.
-
-    This ratio method is used in :doc:`MOORA <skcriteria.moora>`.
 
     .. math::
 
@@ -455,8 +449,7 @@ def ideal_point(arr, criteria=None, axis=None):
 
     .. math::
 
-        x_{aj} = \frac{ f_j(a) - f_{j^*} }{ f_j^* - f_{j^*} }
-
+        x_{aj} = \\frac{ f_j(a) - f_{j^*} }{ f_j^* - f_{j^*} }
 
     Parameters
     ----------
@@ -523,3 +516,71 @@ def ideal_point(arr, criteria=None, axis=None):
         result = result.T
 
     return result
+
+
+@register("invert_min")
+def invert_min(arr, criteria=None, axis=None):
+    """Invert all the axis whith minimizartion criteria
+
+    Parameters
+    ----------
+
+    arr : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        A array with values
+
+    axis : :py:class:`int` optional
+        Axis along which to operate.  By default, flattened input is used.
+
+    criteria : :py:class:`numpy.ndarray`
+        Criteria array.
+
+    Returns
+    -------
+
+    narray : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
+        array of ratios
+
+
+    Examples
+    --------
+
+    >>> from skcriteria import norm
+    >>> mtx = [[1, 2], [3, 4]]
+    >>> norm.ideal_point(mtx, criteria=[1, -1], axis=0)
+    array([[ 1.,   0.5],
+           [ 3.,  0.25]])
+
+    """
+
+    if criteria is None:
+        raise TypeError("you must provide a criteria")
+
+    if axis not in (0, 1, None):
+        msg = "'axis' must be 0, 1 or None. Found: {}"
+        raise ValueError(msg.format(axis))
+
+    arr = np.asarray(arr, dtype=float)
+    criteria = criteriarr(criteria)
+
+    if axis is None and len(set(criteria)) != 1:
+        msg = "If 'axis' is None all the 'criteria' must be the same"
+        raise ValueError(msg)
+    elif axis == 1:
+        arr = arr.T
+
+    if MIN in criteria:
+        mincrits = np.squeeze(np.where(criteria == MIN))
+
+        if np.ndim(arr) == 1:
+            mincrits_inverted = 1.0 / arr[mincrits]
+            arr = arr.astype(mincrits_inverted.dtype.type)
+            arr[mincrits] = mincrits_inverted
+        else:
+            mincrits_inverted = 1.0 / arr[:, mincrits]
+            arr = arr.astype(mincrits_inverted.dtype.type)
+            arr[:, mincrits] = mincrits_inverted
+
+    if axis == 1:
+        arr = arr.T
+
+    return arr

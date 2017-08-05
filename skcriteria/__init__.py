@@ -43,7 +43,7 @@ from __future__ import unicode_literals
 # =============================================================================
 
 __doc__ = """Scikit-Criteria is a collections of algorithms, methods and
-techniques for multiple-criteria decision analysis [].
+techniques for multiple-criteria decision analysis.
 
 """
 

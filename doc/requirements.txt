@@ -1,2 +1,0 @@
-mock
-numpydoc==0.5

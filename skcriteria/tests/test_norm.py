@@ -309,3 +309,62 @@ class IdealPoint(NormTestBase):
         ]).T
         result = norm.ideal_point(mtx, criteria=[1, 1, 1], axis=1)
         self.assertAllClose(result, expected)
+
+
+class InvertMin(NormTestBase):
+
+    def test_invert_min(self):
+        # Data from:
+        # Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
+        # Determining objective weights in multiple criteria problems:
+        # The critic method. Computers & Operations Research, 22(7), 763-770.
+
+        self.mtx = [
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98]
+        ]
+        mtx_result = self.mtx
+
+        self.arr = [61, 1.08, 4.33]
+        arr_result = self.arr
+
+        self._test_normalizer(
+            norm.invert_min, "invert_min",
+            mtx_result, arr_result, criteria=[1, 1, 1])
+
+    def test_invert_min_axis_None(self):
+        mtx = [
+            [1., 2., 3.],
+            [4., 5., 6.]
+        ]
+        expected = [
+            [1, 0.5, 0.33],
+            [0.25, 0.2, 0.16]
+        ]
+
+        result = norm.invert_min(mtx, criteria=[-1, -1, -1], axis=None)
+        self.assertAllClose(result, expected, atol=0.1)
+        result = norm.invert_min(mtx[0], criteria=[-1, -1, -1], axis=None)
+        self.assertAllClose(result, expected[0], atol=0.1)
+
+        with self.assertRaises(ValueError):
+            norm.invert_min(mtx, criteria=[-1, -1, 1], axis=None)
+
+    def test_invert_min_axis_1(self):
+        mtx = [
+            [1., 2., 3.],
+            [4., 5., 6.]
+        ]
+        expected = [
+            [1, 0.5, 0.33],
+            [4., 5., 6.]
+        ]
+
+        result = norm.invert_min(mtx, criteria=[-1, 1], axis=1)
+        self.assertAllClose(result, expected, atol=0.1)

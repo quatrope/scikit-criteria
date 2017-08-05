@@ -339,6 +339,7 @@ class BaseSolver(object):
                     anames=data.anames, cnames=data.cnames)
 
     def decide(self, data, criteria=None, weights=None):
+        """foo"""
         if isinstance(data, Data):
             if criteria or weights:
                 raise ValueError("If 'data' is instance of Data, 'criteria' "
@@ -362,8 +363,10 @@ class BaseSolver(object):
 
     @property
     def mnorm(self):
+        """Normalization function for the alternative matrix."""
         return self._mnorm
 
     @property
     def wnorm(self):
+        """Normalization function for the weights vector."""
         return self._wnorm

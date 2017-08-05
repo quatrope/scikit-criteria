@@ -55,4 +55,4 @@ fundamental conflicting criteria.
 # IMPORTS
 # =============================================================================
 
-from _dmaker import Decision, Extra  # noqa
+from ._dmaker import Decision, Extra  # noqa

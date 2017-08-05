@@ -375,7 +375,9 @@ class Decision(object):
 class DecisionMaker(BaseSolver):
 
     def make_result(self, data, kernel, rank, extra):
-        """Create a new Decision instance for the decision maker"""
+        """Create a new Decision instance for the decision maker.
+
+        """
         decision = Decision(
             decision_maker=self, data=data,
             kernel_=kernel, rank_=rank, e_=extra)

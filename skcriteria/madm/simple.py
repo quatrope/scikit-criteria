@@ -42,7 +42,7 @@ from __future__ import unicode_literals
 # DOCS
 # =============================================================================
 
-__doc__ = ""
+__doc__ = """Simplests method of multi-criteria"""
 
 
 # =============================================================================
@@ -52,7 +52,7 @@ __doc__ = ""
 import numpy as np
 
 from .. import norm, rank
-from ..core import Data, MIN, criteriarr
+from ..core import Data, criteriarr
 from ._dmaker import DecisionMaker
 
 
@@ -60,13 +60,20 @@ from ._dmaker import DecisionMaker
 # FUNCTIONS
 # =============================================================================
 
+def wsum(nmtx, ncriteria, nweights):
+    # add criteria to weights
+    cweights = nweights * ncriteria
+
+    # calculate raning by inner prodcut
+    rank_mtx = np.inner(nmtx, cweights)
+    points = np.squeeze(np.asarray(rank_mtx))
+
+    return rank.rankdata(points, reverse=True), points
+
+
 def wprod(nmtx, ncriteria, nweights):
     # invert the minimization criteria
-    if MIN in ncriteria:
-        mincrits = np.squeeze(np.where(ncriteria == MIN))
-        mincrits_inverted = 1.0 / nmtx[:, mincrits]
-        nmtx = nmtx.astype(mincrits_inverted.dtype.type)
-        nmtx[:, mincrits] = mincrits_inverted
+    nmtx = norm.invert_min(nmtx, ncriteria, axis=0)
 
     # calculate ranking by inner prodcut
     lmtx = np.log(nmtx)
@@ -81,6 +88,87 @@ def wprod(nmtx, ncriteria, nweights):
 # OO
 # =============================================================================
 
+class WeightedSum(DecisionMaker):
+    r"""The weighted sum model is the best known and simplest multi-criteria
+    decision analysis for evaluating a number of alternatives in terms of a
+    number of decision criteria. It is very important to state here that it
+    is applicable only when all the data are expressed in exactly the same
+    unit. If this is not the case, then the final result is equivalent to
+    "adding apples and oranges." To avoid this problem a previous normalization
+    step is necesary
+
+    In general, suppose that a given MCDA problem is defined on :math:`m`
+    alternatives and :math:`n` decision criteria. Furthermore, let us assume
+    that all the criteria are benefit criteria, that is, the higher the values
+    are, the better it is. Next suppose that :math:`w_j` denotes the relative
+    weight of importance of the criterion :math:`C_j` and :math:`a_{ij}` is
+    the performance value of alternative :math:`A_i` when it is evaluated in
+    terms of criterion :math:`C_j`. Then, the total (i.e., when all the
+    criteria are considered simultaneously) importance of alternative
+    :math:`A_i`, denoted as :math:`A_{i}^{WSM-score}`, is defined as follows:
+
+    .. math::
+
+        A_{i}^{WSM-score} = \sum_{j=1}^{n} w_j a_{ij},\ for\ i = 1,2,3,...,m
+
+    For the maximization case, the best alternative is the one that yields
+    the maximum total performance value.
+
+    Notes
+    -----
+
+    If some criteria is for minimization, this implementation calculates the
+    inverse.
+
+    Parameters
+    ----------
+
+    mnorm : string, callable, optional (default="sum")
+        Normalization method for the alternative matrix.
+
+    wnorm : string, callable, optional (default="sum")
+        Normalization method for the weights array.
+
+    Returns
+    -------
+
+     Decision : :py:class:`skcriteria.madm.Decision`
+        With values:
+
+        - **kernel_**: None
+        - **rank_**: A ranking (start at 1) where the i-nth element represent
+          the position of the i-nth alternative.
+        - **best_alternative_**: The index of the best alternative.
+        - **alpha_solution_**: True
+        - **beta_solution_**: False
+        - **gamma_solution_**: True
+        - **e_**: Particular data created by this method.
+
+          - **e_.points**: Array where the i-nth element represent the
+            importance of the i-nth alternative.
+
+    References
+    ----------
+
+    .. [1] Fishburn, P. C. (1967). Letter to the editor—additive utilities
+       with incomplete product sets: application to priorities and assignments.
+       Operations Research, 15(3), 537-542.
+    .. [2] Weighted sum model. In Wikipedia, The Free Encyclopedia. Retrieved
+       from https://en.wikipedia.org/wiki/Weighted_sum_model
+    .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
+       making: methods and applications. CRC press.
+
+    """
+
+    def __init__(self, mnorm="sum", wnorm="sum"):
+        super(WeightedSum, self).__init__(mnorm=mnorm, wnorm=wnorm)
+
+    def solve(self, ndata):
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
+        rank, points = wsum(nmtx, ncriteria, nweights)
+        return None, rank, {"points": points}
+
+
 class WeightedProduct(DecisionMaker):
     """The weighted product model (WPM) is a popular multi-criteria decision
     analysis (MCDA) / multi-criteria decision making (MCDM) method. It is
@@ -88,8 +176,8 @@ class WeightedProduct(DecisionMaker):
     instead of addition in the main mathematical operation now there is
     multiplication.
 
-    Implementation Notes
-    --------------------
+    Notes
+    -----
 
     The implementation works as follow:
 
@@ -134,3 +222,11 @@ class WeightedProduct(DecisionMaker):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, points = wprod(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
+
+
+# =============================================================================
+# MAIN
+# =============================================================================
+
+if __name__ == "__main__":
+    print(__doc__)

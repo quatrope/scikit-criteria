@@ -92,7 +92,7 @@ def topsis(nmtx, ncriteria, nweights):
 class TOPSIS(DecisionMaker):
     """TOPSIS is based on the concept that the chosen alternative should have
     the shortest geometric distance from the ideal solution
-    and the longest geometric distance from the worst solution.
+    and the longest euclidean distance from the worst solution.
 
     An assumption of TOPSIS is that the criteria are monotonically increasing
     or decreasing, and also allow trade-offs between criteria, where a poor
@@ -114,7 +114,7 @@ class TOPSIS(DecisionMaker):
     Returns
     -------
 
-    Decision : skcriteria.madm.Decision
+    Decision : :py:class:`skcriteria.madm.Decision`
         With values:
 
         - **kernel_**: None

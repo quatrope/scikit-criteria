@@ -13,9 +13,10 @@ Scikit-Criteria
         :align: center
         :scale: 100 %
 
-**Scikit-Criteria** is a collection of Multiple-criteria decision analysis (MCDA_)
+**Scikit-Criteria** is a collection of Multiple-criteria decision analysis
+(`MCDA <https://en.wikipedia.org/wiki/Multiple-criteria_decision_analysis>`_)
 methods integrated into scientific python stack. Is Open source and
-commercially usable - `BSD license`_
+commercially usable.
 
 Support
 -------
@@ -69,10 +70,11 @@ Bibtex entry::
     }
 
 
-Contents:
+Contents
+--------
 
 .. toctree::
-   :maxdepth: 4
+   :maxdepth: 3
 
    api/skcriteria
 

@@ -42,21 +42,22 @@ from __future__ import unicode_literals
 # DOC
 # =============================================================================
 
-__doc__ = """test moora methods"""
+__doc__ = """test simple methods"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
+from ... import norm
 from ...core import MAX, MIN
-from ...madm import wsum
+from ...madm import simple
 
 from ..tcore import SKCriteriaTestCase
 
 
 # =============================================================================
-# BASE CLASS
+# Tests
 # =============================================================================
 
 class WSumTest(SKCriteriaTestCase):
@@ -81,37 +82,93 @@ class WSumTest(SKCriteriaTestCase):
         self.criteria = [
             MIN, MIN, MIN, MIN,
             MAX, MIN, MAX]
+        self.weights = [20, 20, 20, 20, 20, 20, 20]
 
-    def test_mdwsum_with_weights(self):
-        weights = [20, 20, 20, 20, 20, 20, 20]
-
+    def test_wsum(self):
         result = [5,  1,  3,  6,  4,  2]
         points = [-0.1075, -0.0037, -0.0468, -0.1560, -0.0732, -0.0413]
 
-        normdata = self.normalize(self.mtx, self.criteria, weights)
-        rank_result, points_result = wsum.mdwsum(*normdata)
-
-        self.assertAllClose(points_result, points, atol=1.e-3)
-        self.assertAllClose(rank_result, result)
-
-    def test_mdwsum(self):
-        result = [5,  1,  3,  6,  4,  2]
-        points = [-0.7526, -0.026, -0.3273, -1.092, -0.5127, -0.2894]
-
-        normdata = self.normalize(self.mtx, self.criteria, weights=None)
-        rank_result, points_result = wsum.mdwsum(*normdata)
-
-        self.assertAllClose(points_result, points, atol=1.e-3)
-        self.assertAllClose(rank_result, result)
-
-    def test_mdwsum_dm(self):
-        weights = [20, 20, 20, 20, 20, 20, 20]
-
-        result = [5,  1,  3,  6,  4,  2]
-        points = [-0.1075, -0.0037, -0.0468, -0.1560, -0.0732, -0.0413]
-
-        dm = wsum.MDWeightedSum()
-        decision = dm.decide(self.mtx, self.criteria, weights)
+        dm = simple.WeightedSum()
+        decision = dm.decide(self.mtx, self.criteria, self.weights)
 
         self.assertAllClose(decision.e_.points, points, atol=1.e-3)
         self.assertAllClose(decision.rank_, result)
+
+
+class WProdTest(SKCriteriaTestCase):
+    mnorm = "sum"
+    wnorm = "sum"
+
+    def setUp(self):
+        # Data From:
+        # Weighted product model. (n.d.). Retrieved January 07, 2017,
+        # from http://en.wikipedia.org/wiki/Weighted_product_model
+
+        self.mtx = [
+            [25, 20, 15, 30],
+            [10, 30, 20, 30],
+            [30, 10, 30, 10],
+        ]
+        self.criteria = [MAX, MAX, MAX, MAX]
+        self.weights = [20, 15, 40, 25]
+
+    def normalize(self, mtx, criteria, weights):
+        non_negative = norm.push_negatives(mtx, axis=0)
+        non_zero = norm.add1to0(non_negative, axis=0)
+        return super(WProdTest, self).normalize(
+            non_zero, criteria, weights)
+
+    def test_wprod(self):
+        # Data From:
+        # Weighted product model. (n.d.). Retrieved January 07, 2017,
+        # from http://en.wikipedia.org/wiki/Weighted_product_model
+        # this is the wikipedia example
+
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = simple.wprod(*normdata)
+
+        self.assertAllClose(rank_result, [1, 2, 3])
+        self.assertAllClose(
+            points_result, [-1.154253, -1.161619, -1.219155], atol=1.e-3)
+
+    def test_wprod_min(self):
+        self.criteria[0] = MIN
+
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = simple.wprod(*normdata)
+
+        self.assertAllClose(rank_result, [2, 1, 3])
+        self.assertAllClose(
+            points_result, [-0.772, -0.4128, -0.9098], atol=1.e-3)
+
+    def test_wprod_negative(self):
+        self.mtx[0][0] = -self.mtx[0][0]
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = simple.wprod(*normdata)
+
+        self.assertAllClose(rank_result, [3, 1, 2])
+        self.assertAllClose(
+            points_result, [-1.869671, -0.977075, -1.165967], atol=1.e-3)
+
+    def test_wprod_zero(self):
+        self.mtx[0][0] = 0
+
+        normdata = self.normalize(self.mtx, self.criteria, self.weights)
+        rank_result, points_result = simple.wprod(*normdata)
+
+        self.assertAllClose(rank_result, [3, 1, 2])
+        self.assertAllClose(
+            points_result, [-1.715391, -1.05992, -1.12996], atol=1.e-3)
+
+    def test_wprod_dm(self):
+        # Data From:
+        # Weighted product model. (n.d.). Retrieved January 07, 2017,
+        # from http://en.wikipedia.org/wiki/Weighted_product_model
+        # this is the wikipedia example
+
+        dm = simple.WeightedProduct()
+        decision = dm.decide(self.mtx, self.criteria, self.weights)
+
+        self.assertAllClose(decision.rank_, [1, 2, 3])
+        self.assertAllClose(
+            decision.e_.points, [-1.154253, -1.161619, -1.219155], atol=1.e-3)

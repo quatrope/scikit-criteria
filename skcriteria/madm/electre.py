@@ -144,11 +144,11 @@ class ELECTRE1(DecisionMaker):
     ----------
 
     p : float, optional (default=0.65)
-        concordance threshold. Threshold of how much one alternative is at
+        Concordance threshold. Threshold of how much one alternative is at
         least as good as another to be significative.
 
     q : float, optional (default=0.35)
-        discordance threshold. Threshold of how much the degree one alternative
+        Discordance threshold. Threshold of how much the degree one alternative
         is strictly preferred to another to be significative.
 
     mnorm : string, callable, optional (default="sum")
@@ -160,7 +160,7 @@ class ELECTRE1(DecisionMaker):
     Returns
     -------
 
-    Decision : skcriteria.madm.Decision
+    Decision : :py:class:`skcriteria.madm.Decision`
         With values:
 
         - **kernel_**:  Array with the indexes of the alternatives
@@ -182,7 +182,8 @@ class ELECTRE1(DecisionMaker):
             much the alternative ``i`` is at least as good as ``j``.
           - **e_.mtx_discordance**: numpy.ndarray
             The discordance indexes matrix where the element[i][j] measures the
-            degree to which the alternative ``i`` is strictly preferred to ``j``.
+            degree to which the alternative ``i`` is strictly
+            preferred to ``j``.
           - **e_.p**: float
             Concordance index threshold.
           - **e_.q**: float
@@ -228,8 +229,16 @@ class ELECTRE1(DecisionMaker):
 
     @property
     def p(self):
+        """Concordance threshold. Threshold of how much one alternative is at
+        least as good as another to be significative.
+
+        """
         return self._p
 
     @property
     def q(self):
+        """Discordance threshold. Threshold of how much the degree one
+        alternative is strictly preferred to another to be significative.
+
+        """
         return self._q
