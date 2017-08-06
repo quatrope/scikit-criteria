@@ -57,8 +57,7 @@ import numpy as np
 
 from tabulate import tabulate
 
-from .. import util
-from ..core import BaseSolver, TABULATE_PARAMS
+from ..core import iter_equal, BaseSolver, TABULATE_PARAMS
 
 
 # =============================================================================
@@ -102,7 +101,7 @@ class Extra(Mapping):
             ov = obj._data[k]
             if not isinstance(ov, type(v)):
                 return False
-            eq = util.iter_equal if isinstance(v, np.ndarray) else operator.eq
+            eq = iter_equal if isinstance(v, np.ndarray) else operator.eq
             if not eq(v, ov):
                 return False
         return True
@@ -214,8 +213,8 @@ class Decision(object):
             isinstance(obj, Decision) and
             self._decision_maker == obj._decision_maker and
             self._data == obj._data and
-            util.iter_equal(self._kernel, obj._kernel) and
-            util.iter_equal(self._rank, obj._rank) and
+            iter_equal(self._kernel, obj._kernel) and
+            iter_equal(self._rank, obj._rank) and
             self._e == obj._e)
 
     def __ne__(self, obj):

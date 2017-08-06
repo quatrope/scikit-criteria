@@ -49,7 +49,6 @@ import unittest
 import importlib
 
 from .tcore import SKCriteriaTestCase
-from . import utils
 
 
 # =============================================================================
@@ -101,6 +100,16 @@ def load_test_modules():
     return tuple(test_modules)
 
 
+def collect_subclasses(cls):
+    def collect(basecls):
+        collected = set()
+        for subcls in basecls.__subclasses__():
+            collected.add(subcls)
+            collected.update(collect(subcls))
+        return collected
+    return tuple(collect(cls))
+
+
 def run_tests(verbosity=1, failfast=False):
     """Run test of scikit-criteria"""
 
@@ -111,7 +120,7 @@ def run_tests(verbosity=1, failfast=False):
 
     load_test_modules()
 
-    for testcase in utils.collect_subclasses(SKCriteriaTestCase):
+    for testcase in collect_subclasses(SKCriteriaTestCase):
         tests = loader.loadTestsFromTestCase(testcase)
         if tests.countTestCases():
                 suite.addTests(tests)

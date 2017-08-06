@@ -32,14 +32,42 @@
 
 
 # =============================================================================
-# FUNCTIONS
+# FUTURE
 # =============================================================================
 
-def collect_subclasses(cls):
-    def collect(basecls):
-        collected = set()
-        for subcls in basecls.__subclasses__():
-            collected.add(subcls)
-            collected.update(collect(subcls))
-        return collected
-    return tuple(collect(cls))
+from __future__ import unicode_literals
+
+
+# =============================================================================
+# DOC
+# =============================================================================
+
+__doc__ = """Test utilities"""
+
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+import numpy as np
+
+from ...utils import nearest
+
+from ..tcore import SKCriteriaTestCase
+
+
+# =============================================================================
+# TESTS
+# =============================================================================
+
+class Nearest(SKCriteriaTestCase):
+
+    def test_gt(self):
+        arr = np.array([0.25, 0.27])
+        result = nearest.nearest(arr, 0.26, "gt")
+        self.assertAllClose(result, 0.27)
+
+    def test_lt(self):
+        arr = np.array([0.25, 0.27])
+        result = nearest.nearest(arr, 0.26, "lt")
+        self.assertAllClose(result, 0.25)

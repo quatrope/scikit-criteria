@@ -31,43 +31,4 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-# =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
-# DOC
-# =============================================================================
-
-__doc__ = """Test utilities"""
-
-
-# =============================================================================
-# IMPORTS
-# =============================================================================
-
-import numpy as np
-
-from .. import util
-
-from .tcore import SKCriteriaTestCase
-
-
-# =============================================================================
-# TESTS
-# =============================================================================
-
-class Nearest(SKCriteriaTestCase):
-
-    def test_gt(self):
-        arr = np.array([0.25, 0.27])
-        result = util.nearest(arr, 0.26, "gt")
-        self.assertAllClose(result, 0.27)
-
-    def test_lt(self):
-        arr = np.array([0.25, 0.27])
-        result = util.nearest(arr, 0.26, "lt")
-        self.assertAllClose(result, 0.25)
+"""Test cases for the package skcriteria.utils"""
