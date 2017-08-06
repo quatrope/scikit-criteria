@@ -43,11 +43,3 @@ skcriteria\.rank module
     :members:
     :undoc-members:
     :show-inheritance:
-
-skcriteria\.util module
------------------------
-
-.. automodule:: skcriteria.util
-    :members:
-    :undoc-members:
-    :show-inheritance:

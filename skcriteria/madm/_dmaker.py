@@ -70,10 +70,10 @@ class Extra(Mapping):
 
     Parameters
     ----------
-    data : any object supported for create a dict
-        - Extra(dict) -> new Extra initialized from a dict object
+    data : any object supported for create a dict.
+        - Extra(dict) -> new Extra initialized from a dict object.
         - Extra(mapping) -> new Extra initialized from a mapping object's
-          (key, value) pairs
+          (key, value) pairs.
         - Extra(iterable) -> new Extra initialized as if via:
 
           .. code-block:: python
@@ -84,7 +84,7 @@ class Extra(Mapping):
             Extra(d)
 
         - Extra(**kwargs) -> new Extra initialized with the name=value
-          pairs in the keyword argument list. For example: Extra(one=1, two=2)
+          pairs in the keyword argument list. For example: Extra(one=1, two=2).
 
     """
 
@@ -92,7 +92,7 @@ class Extra(Mapping):
         self._data = dict(data)
 
     def __eq__(self, obj):
-        """x.__eq__(y) <==> x==y"""
+        """x.__eq__(y) <==> x==y."""
         if not isinstance(obj, Extra):
             return False
         if sorted(self._data.keys()) != sorted(obj._data.keys()):
@@ -107,23 +107,23 @@ class Extra(Mapping):
         return True
 
     def __ne__(self, obj):
-        """x.__ne__(y) <==> x!=y"""
+        """x.__ne__(y) <==> x!=y."""
         return not self == obj
 
     def __getitem__(self, k):
-        """x.__getitem__(y) <==> x[y]"""
+        """x.__getitem__(y) <==> x[y]."""
         return self._data[k]
 
     def __iter__(self):
-        """x.__iter__() <==> iter(x)"""
+        """x.__iter__() <==> iter(x)."""
         return iter(self._data)
 
     def __len__(self):
-        """x.__len__() <==> len(x)"""
+        """x.__len__() <==> len(x)."""
         return len(self._data)
 
     def __getattr__(self, k):
-        """x.__getattr__('name') <==> x.name"""
+        """x.__getattr__('name') <==> x.name."""
         try:
             return self._data[k]
         except KeyError:
@@ -131,18 +131,18 @@ class Extra(Mapping):
             raise AttributeError(msg)
 
     def __unicode__(self):
-        """x.__unicode__() <==> unicode(x)"""
+        """x.__unicode__() <==> unicode(x)."""
         return self.to_str()
 
     def __bytes__(self):
-        """x.__bytes__() <==> bytes(x)"""
+        """x.__bytes__() <==> bytes(x)."""
         encoding = sys.getdefaultencoding()
         return self.__unicode__().encode(encoding, 'replace')
 
     def __str__(self):
-        """x.__str__() <==> str(x)
+        """x.__str__() <==> str(x).
 
-        Return a string representation for a particular Object
+        Return a string representation for a particular Object.
 
         Invoked by str(df) in both py2/py3.
         Yields Bytestring in Py2, Unicode String in py3.
@@ -152,11 +152,11 @@ class Extra(Mapping):
         return self.__bytes__()
 
     def __repr__(self):
-        """x.__repr__() <==> repr(x)"""
+        """x.__repr__() <==> repr(x)."""
         return str(self)
 
     def to_str(self):
-        """Return an string implementation of the extra data"""
+        """Return an string implementation of the extra data."""
         return "Extra({})".format(", ".join(self._data))
 
 
@@ -165,22 +165,22 @@ class Extra(Mapping):
 # =============================================================================
 
 class Decision(object):
-    """Represent a result of a Decision Maker method
+    """Represent a result of a Decision Maker method.
 
     Params
     ------
 
-    decision_maker : decision maker instance
-        The object that make this decision
-    data : skcriteria.Data instance
-        All the information of the alternatives and criteria
+    decision_maker : decision maker instance.
+        The object that make this decision.
+    data : skcriteria.Data instance.
+        All the information of the alternatives and criteria.
         used by the decision maker to make this decision.
-    kernel_ : ndarray
-        indexes of non superated alternatives
+    kernel_ : ndarray.
+        indexes of non superated alternatives.
     rank_ : iterable
-        rank scores of all the alternatives of the data
+        rank scores of all the alternatives of the data.
     e_: dict
-        extra information of the decision maker
+        extra information of the decision maker.
 
     """
     def __init__(self, decision_maker, data, kernel_, rank_, e_):
@@ -209,6 +209,7 @@ class Decision(object):
             yield row + extra
 
     def __eq__(self, obj):
+        """x.__eq__(y) <==> x == y."""
         return (
             isinstance(obj, Decision) and
             self._decision_maker == obj._decision_maker and
@@ -218,7 +219,7 @@ class Decision(object):
             self._e == obj._e)
 
     def __ne__(self, obj):
-        """x.__ne__(y) <==> x != y"""
+        """x.__ne__(y) <==> x != y."""
         return not self == obj
 
     def __unicode__(self):
@@ -227,7 +228,7 @@ class Decision(object):
             repr(self._decision_maker)[1: -1], self.to_str())
 
     def __bytes__(self):
-        """x.__bytes__() <==> bytes(x)"""
+        """x.__bytes__() <==> bytes(x)."""
         encoding = sys.getdefaultencoding()
         return self.__unicode__().encode(encoding, 'replace')
 
@@ -244,11 +245,11 @@ class Decision(object):
         return self.__bytes__()
 
     def __repr__(self):
-        """x.__repr__() <==> repr(x)"""
+        """x.__repr__() <==> repr(x)."""
         return str(self)
 
     def _repr_html_(self):
-        """Return a html representation for a particular decision"""
+        """Return a html representation for a particular decision."""
         uid = "dec-" + str(uuid.uuid1())
         table = self.to_str(tablefmt="html")
         dm = repr(self._decision_maker)[1: -1]
@@ -256,14 +257,14 @@ class Decision(object):
             uid, dm, table)
 
     def to_str(self, **params):
-        """Return an string implementation of the decision"""
+        """Return an string implementation of the decision."""
         params.update({
             k: v for k, v in TABULATE_PARAMS.items() if k not in params})
         rows = self._iter_rows()
         return tabulate(rows, **params)
 
     def as_dict(self):
-        """Return an dict implementation of the obect"""
+        """Return an dict implementation of the obect."""
         data = {
             "data": self._data.as_dict(),
             "kernel_": self._kernel,
@@ -274,46 +275,46 @@ class Decision(object):
 
     @property
     def decision_maker(self):
-        """Decision maker instance tat create this decision"""
+        """Decision maker instance tat create this decision."""
         return self._decision_maker
 
     @property
     def data(self):
-        """Data used to create this decision"""
+        """Data used to create this decision."""
         return self._data
 
     @property
     def mtx(self):
-        """Decision matrix used to create this decision
+        """Decision matrix used to create this decision.
 
         Notes
         -----
 
-        this is a shorcut for ``self.data.mxt``
+        This is a shorcut for ``self.data.mxt``.
 
         """
         return self._data.mtx
 
     @property
     def criteria(self):
-        """Criteria vector used to create this decision
+        """Criteria vector used to create this decision.
 
         Notes
         -----
 
-        this is a shorcut for ``self.data.criteria``
+        This is a shorcut for ``self.data.criteria``.
 
         """
         return self._data.criteria
 
     @property
     def weights(self):
-        """Weights used to create this decision
+        """Weights used to create this decision.
 
         Notes
         -----
 
-        this is a shorcut for ``self.data.weights``
+        This is a shorcut for ``self.data.weights``.
 
         """
         return self._data.weights
@@ -321,7 +322,7 @@ class Decision(object):
     @property
     def kernel_(self):
         """Kernel of the non-superated alternatives or ``None`` if
-        the decision is not :math:`beta` solution
+        the decision is not :math:`beta` solution.
 
         """
         return self._kernel
@@ -329,7 +330,7 @@ class Decision(object):
     @property
     def rank_(self):
         """Rank of alternatives or ``None`` if
-        the decision is type :math:`beta` solution
+        the decision is type :math:`beta` solution.
 
         """
         return self._rank
@@ -342,7 +343,7 @@ class Decision(object):
     @property
     def best_alternative_(self):
         """Best alternative or ``None`` if
-        the decision is type :math:`beta` solution
+        the decision is type :math:`beta` solution.
 
         """
         if self._rank is not None:
@@ -350,7 +351,7 @@ class Decision(object):
 
     @property
     def alpha_solution_(self):
-        """If is True the decision has a full ranking of alternatives"""
+        """If is True the decision has a full ranking of alternatives."""
         return self._rank is not None
 
     @property

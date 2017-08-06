@@ -66,6 +66,8 @@ import numpy as np
 
 from tabulate import tabulate
 
+from .utils.doc_inherit import InheritableDocstrings
+
 
 # =============================================================================
 # CONSTANTS
@@ -293,7 +295,11 @@ class Data(object):
 # DECISION MAKER
 # =============================================================================
 
-@six.add_metaclass(abc.ABCMeta)
+class BaseSolverMeta(abc.ABCMeta, InheritableDocstrings):
+    pass
+
+
+@six.add_metaclass(BaseSolverMeta)
 class BaseSolver(object):
 
     def __init__(self, mnorm, wnorm):
@@ -325,6 +331,7 @@ class BaseSolver(object):
         return str(self)
 
     def as_dict(self):
+        """Create a :py:class:`dict` representation of the object"""
         return {"mnorm": self._mnorm.__name__,
                 "wnorm": self._wnorm.__name__}
 
@@ -338,7 +345,6 @@ class BaseSolver(object):
                     anames=data.anames, cnames=data.cnames)
 
     def decide(self, data, criteria=None, weights=None):
-        """foo"""
         if isinstance(data, Data):
             if criteria or weights:
                 raise ValueError("If 'data' is instance of Data, 'criteria' "

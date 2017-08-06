@@ -53,6 +53,8 @@ import numpy as np
 
 from .. import norm, rank
 from ..core import Data, criteriarr
+from ..utils.doc_inherit import doc_inherit
+
 from ._dmaker import DecisionMaker
 
 
@@ -163,6 +165,7 @@ class WeightedSum(DecisionMaker):
     def __init__(self, mnorm="sum", wnorm="sum"):
         super(WeightedSum, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, points = wsum(nmtx, ncriteria, nweights)
@@ -206,6 +209,7 @@ class WeightedProduct(DecisionMaker):
     def __init__(self, mnorm="sum", wnorm="sum"):
         super(WeightedProduct, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
+    @doc_inherit
     def preprocess(self, data):
         non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
@@ -218,6 +222,7 @@ class WeightedProduct(DecisionMaker):
         return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
                     anames=data.anames, cnames=data.cnames)
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, points = wprod(nmtx, ncriteria, nweights)

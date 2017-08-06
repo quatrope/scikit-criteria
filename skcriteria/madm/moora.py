@@ -66,6 +66,7 @@ import numpy as np
 
 from .. import norm, rank
 from ..core import Data, MIN, MAX, criteriarr
+from ..utils.doc_inherit import doc_inherit
 
 from ._dmaker import DecisionMaker
 
@@ -219,6 +220,7 @@ class RatioMOORA(DecisionMaker):
     def __init__(self, mnorm="vector", wnorm="sum"):
         super(RatioMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, points = ratio(nmtx, ncriteria, nweights)
@@ -230,6 +232,7 @@ class RefPointMOORA(DecisionMaker):
     def __init__(self, mnorm="vector", wnorm="sum"):
         super(RefPointMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, points = refpoint(nmtx, ncriteria, nweights)
@@ -241,11 +244,13 @@ class FMFMOORA(DecisionMaker):
     def __init__(self, mnorm="vector"):
         super(FMFMOORA, self).__init__(mnorm=mnorm, wnorm="none")
 
+    @doc_inherit
     def as_dict(self):
         data = super(FMFMOORA, self).as_dict()
         del data["wnorm"]
         return data
 
+    @doc_inherit
     def preprocess(self, data):
         non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
@@ -254,6 +259,7 @@ class FMFMOORA(DecisionMaker):
         return Data(mtx=nmtx, criteria=ncriteria, weights=data.weights,
                     anames=data.anames, cnames=data.cnames)
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria = ndata.mtx, ndata.criteria
         rank, points = fmf(nmtx, ncriteria)
@@ -265,11 +271,13 @@ class MultiMOORA(DecisionMaker):
     def __init__(self, mnorm="vector"):
         super(MultiMOORA, self).__init__(mnorm=mnorm, wnorm="none")
 
+    @doc_inherit
     def as_dict(self):
         data = super(FMFMOORA, self).as_dict()
         del data["wnorm"]
         return data
 
+    @doc_inherit
     def preprocess(self, data):
         non_negative = norm.push_negatives(data.mtx, axis=0)
         non_zero = norm.add1to0(non_negative, axis=0)
@@ -278,6 +286,7 @@ class MultiMOORA(DecisionMaker):
         return Data(mtx=nmtx, criteria=ncriteria, weights=data.weights,
                     anames=data.anames, cnames=data.cnames)
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria = ndata.mtx, ndata.criteria
         rank, rank_mtx = multimoora(nmtx, ncriteria)

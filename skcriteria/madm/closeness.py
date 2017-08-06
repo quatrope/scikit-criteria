@@ -54,6 +54,8 @@ import numpy as np
 
 from ..import rank
 from ..core import MIN, MAX
+from ..utils.doc_inherit import doc_inherit
+
 from ._dmaker import DecisionMaker
 
 
@@ -144,6 +146,7 @@ class TOPSIS(DecisionMaker):
     def __init__(self, mnorm="vector", wnorm="sum"):
         super(TOPSIS, self).__init__(mnorm=mnorm, wnorm=wnorm)
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         rank, closeness = topsis(nmtx, ncriteria, nweights)

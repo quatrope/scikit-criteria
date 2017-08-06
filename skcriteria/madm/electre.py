@@ -60,6 +60,8 @@ __all__ = ['ELECTRE1']
 import numpy as np
 
 from ..core import MAX, MIN
+from ..utils.doc_inherit import doc_inherit
+
 from ._dmaker import DecisionMaker
 
 
@@ -208,11 +210,13 @@ class ELECTRE1(DecisionMaker):
         self._p = float(p)
         self._q = float(q)
 
+    @doc_inherit
     def as_dict(self):
         base = super(ELECTRE1, self).as_dict()
         base.update({"p": self._p, "q": self._q})
         return base
 
+    @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
         kernel, outrank, mtx_concordance, mtx_discordance = electre1(
