@@ -375,7 +375,32 @@ class Decision(object):
 class DecisionMaker(BaseSolver):
 
     def make_result(self, data, kernel, rank, extra):
-        """Create a new Decision instance for the decision maker.
+        """Create a new :py:class:`skcriteria.madm.Decision`
+
+        This function receives all the raw data of the DecisionMaker
+        and create more usefull object.
+
+        Parameters
+        ----------
+
+        data : :py:class:`skcriteria.Data`
+            A original data provided to the ``solve()`` method.
+        kernel : array_like or None.
+            An 1d array_like with *n* elements
+            where the every element is the index of the the non-superated
+            alternatives; or ``None`` if the method not resolve a kernel.
+        rank : array_like or None.
+            An 1d array_like with the same elements as alternatives in
+            data or None. The i-nth element represent the rank of the
+            i-nth alternative.
+        extra : :py:class:`dict`
+            Extra information about the result.
+
+        Returns
+        -------
+
+        :py:class:`skcriteria.madm.Decision`
+            A convenient instance conraining all the parameters.
 
         """
         decision = Decision(

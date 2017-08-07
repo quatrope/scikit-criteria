@@ -331,11 +331,39 @@ class BaseSolver(object):
         return str(self)
 
     def as_dict(self):
-        """Create a :py:class:`dict` representation of the object"""
+        """Create a simply :py:class:`dict` representation of the object.
+
+        Notes
+        -----
+
+        ``x.as_dict != dict(x)``
+
+        """
         return {"mnorm": self._mnorm.__name__,
                 "wnorm": self._wnorm.__name__}
 
     def preprocess(self, data):
+        """Normalize the alternative matrix and weight vector.
+
+        Creates a new instance of data by aplying the normalization function
+        to the alternative matrix and the weights vector containded inside
+        the given data.
+
+        Parameters
+        ----------
+
+        data : :py:class:`skcriteria.Data`
+            A data to be Preprocessed
+
+        Returns
+        -------
+
+        :py:class:`skcriteria.Data`
+            A new instance of data with the ``mtx`` attributes normalized
+            with ``mnorm`` and ``weights`` normalized with wnorm. ``anames``
+            and ``cnames`` are preseved
+
+        """
         nmtx = self._mnorm(data.mtx, criteria=data.criteria, axis=0)
         nweights = (
             self._wnorm(data.weights, criteria=data.criteria)
@@ -345,10 +373,39 @@ class BaseSolver(object):
                     anames=data.anames, cnames=data.cnames)
 
     def decide(self, data, criteria=None, weights=None):
+        """Execute the Solver over the given data.
+
+        Parameters
+        ----------
+
+        data : :py:class:`skcriteria.Data` or array_like
+            :py:class:`skcriteria.Data` instance; or a alternative matrix
+            (2d array_like) `n` rows and `m` columns, where n is the number of
+            alternatives and `m` is the number of criteria.
+        criteria : None or array_like, optional
+            If data is :py:class:`skcriteria.Data` must be ``None``. Otherwise
+            must be a 1d array_like with `m` elements (number of criteria);
+            only the values ``-1`` (for minimization) and ``1`` (maximization)
+            are allowed.
+        weights : None or array_like, optional
+            - If data is :py:class:`skcriteria.Data` must be ``None``.
+            - If data is 2d array_like and weights are ``None`` all the
+              criteria has the same weight.
+            - If data is 2d array_like and weights are 1d array_like with `m`
+              elements (number of criteria); the i-nth element represent the
+              importance of the i-nth criteria.
+
+        Returns
+        -------
+
+        :py:class:`object`
+            Check the documentation of ``make_result()``
+
+        """
         if isinstance(data, Data):
-            if criteria or weights:
+            if (criteria, weights) != (None, None):
                 raise ValueError("If 'data' is instance of Data, 'criteria' "
-                                 "and 'weights' must be empty")
+                                 "and 'weights' must be None")
         else:
             if criteria is None:
                 raise ValueError("If 'data' is not instance of Data you must "
@@ -360,6 +417,21 @@ class BaseSolver(object):
 
     @abc.abstractmethod
     def solve(self, pdata):
+        """Execute the multi-criteria method.
+
+        Parameters
+        ----------
+
+        data : :py:class:`skcriteria.Data`
+            Preprocessed Data.
+
+        Returns
+        -------
+
+        :py:class:`object`
+            object or tuple of objects with the raw result data.
+
+        """
         return NotImplemented
 
     @abc.abstractmethod

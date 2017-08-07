@@ -45,15 +45,13 @@ from __future__ import unicode_literals
 __doc__ = """Implementation of a family of Multi-objective optimization on
 the basis of ratio analysis (MOORA) methods.
 
-Methods:
-
-- MOORA with ratio (:py:func:`skcriteria.moora.ratio`).
-- MOORA with reference point (:py:func:`skcriteria.moora.refpoint`).
-- Full multiplicative form (:py:func:`skcriteria.moora.fmf`).
-- Multi-MOORA (:py:func:`skcriteria.moora.multimoora`).
-
-
 """
+
+__all__ = [
+    "RatioMOORA",
+    "RefPointMOORA",
+    "FMFMOORA",
+    "MultiMOORA"]
 
 
 # =============================================================================

@@ -44,6 +44,10 @@ from __future__ import unicode_literals
 
 __doc__ = """Simplests method of multi-criteria"""
 
+__all__ = [
+    "WeightedSum",
+    "WeightedProduct"]
+
 
 # =============================================================================
 # IMPORTS
