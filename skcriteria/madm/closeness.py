@@ -110,9 +110,6 @@ class TOPSIS(DecisionMaker):
     wnorm : string, callable, optional (default="sum")
         Normalization method for the weights array.
 
-    Attributes
-    ----------
-
     Returns
     -------
 

@@ -8,9 +8,22 @@
     :target: https://travis-ci.org/leliel12/scikit-criteria
     :alt: Build-Status
 
+.. image:: https://readthedocs.org/projects/scikit-criteria/badge/?version=latest&style=flat
+   :target: http://scikit-criteria.readthedocs.io
+   :alt: Documentation Status
+
 .. image:: https://img.shields.io/badge/License-BSD%203--Clause-blue.svg
    :target: https://opensource.org/licenses/BSD-3-Clause
    :alt: License
+
+.. image:: https://img.shields.io/badge/python-2.7-blue.svg
+   :target: https://badge.fury.io/py/scikit-criteria
+   :alt: Python 2.7
+
+.. image:: https://img.shields.io/badge/python-3.5-blue.svg
+   :target: https://badge.fury.io/py/scikit-criteria
+   :alt: Python 3.5
+
 
 Support
 -------
@@ -42,5 +55,3 @@ LOGO
 
 - The scikit-criteria logo is a dereived work of
   https://openclipart.org/detail/170778/retro-diamonds-abstract-009
-
-
