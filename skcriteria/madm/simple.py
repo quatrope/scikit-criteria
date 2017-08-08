@@ -209,7 +209,6 @@ class WeightedProduct(DecisionMaker):
     For the maximization case, the best alternative is the one that yields
     the maximum total performance value.
 
-
     Notes
     -----
 
