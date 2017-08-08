@@ -1,5 +1,5 @@
-skcriteria API
-==============
+Reference
+=========
 
 .. automodule:: skcriteria
     :members:
@@ -8,7 +8,7 @@ skcriteria API
 
 .. toctree::
 
-    madm/modules
+    madm/madm
     skcriteria.plot
     skcriteria.weights
 

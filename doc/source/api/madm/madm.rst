@@ -1,5 +1,5 @@
-skcriteria\.madm package
-========================
+``skcriteria.madm`` package
+===========================
 
 .. automodule:: skcriteria.madm
     :members:
@@ -9,6 +9,7 @@ skcriteria\.madm package
 **Modules:**
 
 .. toctree::
+    :maxdepth: 3
 
     simple
     closeness

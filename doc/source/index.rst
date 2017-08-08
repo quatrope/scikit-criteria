@@ -69,14 +69,17 @@ Bibtex entry::
         url={http://45jaiio.sadio.org.ar/sites/default/files/Sio-23.pdf}
     }
 
+**Full Publication:** http://sedici.unlp.edu.ar/handle/10915/58577
+
 
 Contents
 --------
 
 .. toctree::
-   :maxdepth: 3
+    :maxdepth: 3
 
-   api/skcriteria
+    tutorial/intro
+    api/skcriteria
 
 
 

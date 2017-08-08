@@ -1,5 +1,5 @@
-moora
-=====
+``skcriteria.madm.moora`` module
+================================
 
 .. automodule:: skcriteria.madm.moora
     :members:
