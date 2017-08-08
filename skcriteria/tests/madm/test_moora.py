@@ -101,8 +101,8 @@ class RatioMOORATest(MOORATestBase):
         weights = [1, 1, 1, 1, 1, 1, 1]
 
         result = [5, 1, 3, 6, 4, 2]
-        points = [-0.23206838, -0.03604841, -0.1209072,
-                  -0.31909074, -0.16956892, -0.11065173]
+        points = [
+            1.685519, 1234.105438, 4.797482, 1.405341, 2.32333, 7.296386]
 
         dm = moora.RatioMOORA()
         decision = dm.decide(self.mtx, self.criteria, weights)

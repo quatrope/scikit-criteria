@@ -73,12 +73,18 @@ from ._dmaker import DecisionMaker
 # FUNCTIONS
 # =============================================================================
 
-def ratio(nmtx, criteria, nweights):
+def ratio(nmtx, ncriteria, nweights):
 
-    cweights = nweights * criteria
+    # invert the minimization criteria
+    nmtx = norm.invert_min(nmtx, ncriteria, axis=0)
+
+    # check the weights
+    if np.ndim(nweights) == 0:
+        ncriteria = np.shape(nmtx)[-1]
+        nweights = np.ones(ncriteria)
 
     # calculate raning by inner prodcut
-    rank_mtx = np.inner(nmtx, cweights)
+    rank_mtx = np.inner(nmtx, nweights)
     points = np.squeeze(np.asarray(rank_mtx))
     return rank.rankdata(points, reverse=True), points
 
@@ -124,12 +130,11 @@ def fmf(nmtx, criteria):
 
 
 def multimoora(nmtx, ncriteria):
-
     ratio_rank = ratio(nmtx, ncriteria, 1)[0]
     refpoint_rank = refpoint(nmtx, ncriteria, 1)[0]
     fmf_rank = fmf(nmtx, ncriteria)[0]
 
-    rank_mtx = np.array([ratio_rank, refpoint_rank, fmf_rank]).T
+    rank_mtx = np.vstack((ratio_rank, refpoint_rank, fmf_rank)).T
 
     alternatives = rank_mtx.shape[0]
     points = np.zeros(alternatives)

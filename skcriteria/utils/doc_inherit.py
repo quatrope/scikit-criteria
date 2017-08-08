@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # flake8: noqa
-# pragma: no cover
 
 import six
 
-if six.PY3:
+if six.PY3:  # pragma: no cover
     # from: http://code.activestate.com/recipes/578587/
     # license: MIT
 
@@ -75,7 +74,7 @@ if six.PY3:
 
             return super().__new__(cls, name, bases, classdict)
 
-else:  # py2
+else:  # pragma: no cover
 
     # from: http://code.activestate.com/recipes/576862/
     # license: MIT
