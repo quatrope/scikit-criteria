@@ -1,0 +1,5 @@
+alabaster==0.7.10
+docutils==0.14rc2
+mock==2.0.0
+numpydoc==0.7.0
+sphinx-rtd-theme==0.2.4
