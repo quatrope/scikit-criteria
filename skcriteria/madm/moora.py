@@ -156,7 +156,7 @@ class RatioMOORA(DecisionMaker):
     objectives, to which ratios are applied.
 
     In MOORA the set of ratios (by default) has the square roots of the sum
-    of squared responses as denominators [BRAUERS2006]_ .
+    of squared responses as denominators.
 
     .. math::
 

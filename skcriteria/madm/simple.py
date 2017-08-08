@@ -81,10 +81,11 @@ def wprod(nmtx, ncriteria, nweights):
     # invert the minimization criteria
     nmtx = norm.invert_min(nmtx, ncriteria, axis=0)
 
-    # calculate ranking by inner prodcut
-    lmtx = np.log(nmtx)
-    rank_mtx = np.multiply(lmtx, nweights)
+    # add the weights to the mtx
+    wnmtx = np.multiply(nmtx, nweights)
 
+    # instead of multiply we sum the logarithms
+    rank_mtx = np.log10(wnmtx)
     points = np.sum(rank_mtx, axis=1)
 
     return rank.rankdata(points, reverse=True), points
@@ -95,13 +96,13 @@ def wprod(nmtx, ncriteria, nweights):
 # =============================================================================
 
 class WeightedSum(DecisionMaker):
-    r"""The weighted sum model is the best known and simplest multi-criteria
-    decision analysis for evaluating a number of alternatives in terms of a
-    number of decision criteria. It is very important to state here that it
-    is applicable only when all the data are expressed in exactly the same
-    unit. If this is not the case, then the final result is equivalent to
-    "adding apples and oranges." To avoid this problem a previous normalization
-    step is necesary
+    r"""The weighted sum model (WSM) is the best known and simplest
+    multi-criteria decision analysis for evaluating a number of alternatives
+    in terms of a number of decision criteria. It is very important to state
+    here that it is applicable only when all the data are expressed in exactly
+    the same unit. If this is not the case, then the final result is equivalent
+    to "adding apples and oranges." To avoid this problem a previous
+    normalization step is necesary.
 
     In general, suppose that a given MCDA problem is defined on :math:`m`
     alternatives and :math:`n` decision criteria. Furthermore, let us assume
@@ -178,10 +179,36 @@ class WeightedSum(DecisionMaker):
 
 class WeightedProduct(DecisionMaker):
     """The weighted product model (WPM) is a popular multi-criteria decision
-    analysis (MCDA) / multi-criteria decision making (MCDM) method. It is
-    similar to the weighted sum model (WSM). The main difference is that
-    instead of addition in the main mathematical operation now there is
-    multiplication.
+    analysis method. It is similar to the weighted sum model.
+    The main difference is that instead of addition in the main mathematical
+    operation now there is multiplication.
+
+    In general, suppose that a given MCDA problem is defined on :math:`m`
+    alternatives and :math:`n` decision criteria. Furthermore, let us assume
+    that all the criteria are benefit criteria, that is, the higher the values
+    are, the better it is. Next suppose that :math:`w_j` denotes the relative
+    weight of importance of the criterion :math:`C_j` and :math:`a_{ij}` is
+    the performance value of alternative :math:`A_i` when it is evaluated in
+    terms of criterion :math:`C_j`. Then, the total (i.e., when all the
+    criteria are considered simultaneously) importance of alternative
+    :math:`A_i`, denoted as :math:`A_{i}^{WPM-score}`, is defined as follows:
+
+    .. math::
+
+        A_{i}^{WPM-score} = \prod_{j=1}^{n} w_j a_{ij},\ for\ i = 1,2,3,...,m
+
+    To avoid underflow, instead the multiplication of the values we add the
+    logarithms of the values; so :math:`A_{i}^{WPM-score}`, is finally defined
+    as:
+
+    .. math::
+
+        A_{i}^{WPM-score} = \sum_{j=1}^{n} \log(w_j a_{ij}),\
+                            for\ i = 1,2,3,...,m
+
+    For the maximization case, the best alternative is the one that yields
+    the maximum total performance value.
+
 
     Notes
     -----
@@ -191,8 +218,11 @@ class WeightedProduct(DecisionMaker):
     - If we have some values of any criteria < 0 in the alternative-matrix
       we add the minimimun value of this criteria to all the criteria.
     - If we have some 0 in some criteria all the criteria is incremented by 1.
+    - If some criteria is for minimization, this implementation calculates the
+      inverse.
     - Instead the multiplication of the values we add the
       logarithms of the values to avoid underflow.
+
 
     Parameters
     ----------
