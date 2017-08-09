@@ -76,15 +76,10 @@ from ._dmaker import DecisionMaker
 def ratio(nmtx, ncriteria, nweights):
 
     # invert the minimization criteria
-    nmtx = norm.invert_min(nmtx, ncriteria, axis=0)
-
-    # check the weights
-    if np.ndim(nweights) == 0:
-        ncriteria = np.shape(nmtx)[-1]
-        nweights = np.ones(ncriteria)
+    cweights = nweights * ncriteria
 
     # calculate raning by inner prodcut
-    rank_mtx = np.inner(nmtx, nweights)
+    rank_mtx = np.inner(nmtx, cweights)
     points = np.squeeze(np.asarray(rank_mtx))
     return rank.rankdata(points, reverse=True), points
 
@@ -194,30 +189,9 @@ class RatioMOORA(DecisionMaker):
     References
     ----------
 
-    .. [BRAUERS2006] BRAUERS, W. K.; ZAVADSKAS, Edmundas Kazimieras. The MOORA
+    .. [1] BRAUERS, W. K.; ZAVADSKAS, Edmundas Kazimieras. The MOORA
        method and its application to privatization in a transition economy.
        Control and Cybernetics, 2006, vol. 35, p. 445-469.`
-
-
-    .. [CURCHOD2014] CURCHOD, M. A.; ALBERTO, C. L. Aplicación del método
-       MOORA para el desarrollo de un indicador compuesto. XXVII ENDIO - XXV
-       EPIO, 2014.
-
-
-    Examples
-    --------
-
-    >>> from skcriteria import moora
-    >>>
-    >>> mtx = [[1,2,3], [1,1,4], [2, 0, 1]]
-    >>> criteria = [1, -1, 1]
-    >>>
-    >>> dm = moora.RatioMOORA()
-    >>> decision = dm.decide(mtx, criteria)
-    >>> decision.rank_
-    array([2, 1, 0])
-    >>> decision.e_.points
-    array([ 0.1021695 ,  0.74549924,  1.01261272])
 
     """
     def __init__(self, mnorm="vector", wnorm="sum"):
