@@ -161,30 +161,41 @@ class RatioMOORA(DecisionMaker):
 
     These ratios, as dimensionless, seem to be the best choice among different
     ratios. These dimensionless ratios, situated between zero and one, are
-    added in the case of maximization or subtracted in case of minimization.
-    Finally, all alternatives are ranked, according to the obtained ratios.
+    added in the case of maximization or subtracted in case of minimization:
 
+    .. math::
+
+        Ny_i = \sum_{i=1}^{g} Nx_{ij} - \sum_{i=1}^{g+1} Nx_{ij}
+
+    with:
+    :math:`i = 1, 2, ..., g` for the objectives to be maximized,
+    :math:`i = g + 1, g + 2, ...,n` for the objectives to be minimized.
+
+    Finally, all alternatives are ranked, according to the obtained ratios.
 
     Parameters
     ----------
 
-    mtx : A matrix like object
-        Matrix of responses of alternatives to objectives.
-
-    criteria : iterable
-        Criteria vector. Can only containing *MIN* or *MAX* values
-        with the same columns as mtx.
-
-    weights : iterable or None
-        Used to ponderate some criteria. The value of the weight is normalized
-        to values between *0* and *1*. [CURCHOD2014]_
-
+    wnorm : string, callable, optional (default="sum")
+        Normalization method for the weights array.
 
     Returns
     -------
 
-    a Decision : (:py:class:`skcriteria.dmaker._Decision`)
-        # TODO
+    Decision : :py:class:`skcriteria.madm.Decision`
+        With values:
+
+        - **kernel_**: None
+        - **rank_**: A ranking (start at 1) where the i-nth element represent
+          the position of the i-nth alternative.
+        - **best_alternative_**: The index of the best alternative.
+        - **alpha_solution_**: True
+        - **beta_solution_**: False
+        - **gamma_solution_**: True
+        - **e_**: Particular data created by this method.
+
+           - **e_.points**: Array where the i-nth element represent the
+             importance of the i-nth alternative.
 
     References
     ----------
@@ -194,8 +205,14 @@ class RatioMOORA(DecisionMaker):
        Control and Cybernetics, 2006, vol. 35, p. 445-469.`
 
     """
-    def __init__(self, mnorm="vector", wnorm="sum"):
-        super(RatioMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
+    def __init__(self, wnorm="sum"):
+        super(RatioMOORA, self).__init__(mnorm="vector", wnorm=wnorm)
+
+    @doc_inherit
+    def as_dict(self):
+        data = super(FMFMOORA, self).as_dict()
+        del data["mnorm"]
+        return data
 
     @doc_inherit
     def solve(self, ndata):
@@ -206,8 +223,14 @@ class RatioMOORA(DecisionMaker):
 
 class RefPointMOORA(DecisionMaker):
 
-    def __init__(self, mnorm="vector", wnorm="sum"):
-        super(RefPointMOORA, self).__init__(mnorm=mnorm, wnorm=wnorm)
+    def __init__(self, wnorm="sum"):
+        super(RefPointMOORA, self).__init__(mnorm="vector", wnorm=wnorm)
+
+    @doc_inherit
+    def as_dict(self):
+        data = super(FMFMOORA, self).as_dict()
+        del data["mnorm"]
+        return data
 
     @doc_inherit
     def solve(self, ndata):
@@ -218,13 +241,13 @@ class RefPointMOORA(DecisionMaker):
 
 class FMFMOORA(DecisionMaker):
 
-    def __init__(self, mnorm="vector"):
-        super(FMFMOORA, self).__init__(mnorm=mnorm, wnorm="none")
+    def __init__(self):
+        super(FMFMOORA, self).__init__(mnorm="vector", wnorm="none")
 
     @doc_inherit
     def as_dict(self):
         data = super(FMFMOORA, self).as_dict()
-        del data["wnorm"]
+        del data["wnorm"], data["mnorm"]
         return data
 
     @doc_inherit
@@ -245,13 +268,13 @@ class FMFMOORA(DecisionMaker):
 
 class MultiMOORA(DecisionMaker):
 
-    def __init__(self, mnorm="vector"):
-        super(MultiMOORA, self).__init__(mnorm=mnorm, wnorm="none")
+    def __init__(self):
+        super(MultiMOORA, self).__init__(mnorm="vector", wnorm="none")
 
     @doc_inherit
     def as_dict(self):
         data = super(FMFMOORA, self).as_dict()
-        del data["wnorm"]
+        del data["wnorm"], data["mnorm"]
         return data
 
     @doc_inherit
