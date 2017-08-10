@@ -222,7 +222,36 @@ class RatioMOORA(DecisionMaker):
 
 
 class RefPointMOORA(DecisionMaker):
+    r"""
 
+    Parameters
+    ----------
+
+    wnorm : string, callable, optional (default="sum")
+        Normalization method for the weights array.
+
+    Returns
+    -------
+
+    Decision : :py:class:`skcriteria.madm.Decision`
+        With values:
+
+        - **kernel_**: None
+        - **rank_**: A ranking (start at 1) where the i-nth element represent
+          the position of the i-nth alternative.
+        - **best_alternative_**: The index of the best alternative.
+        - **alpha_solution_**: True
+        - **beta_solution_**: False
+        - **gamma_solution_**: True
+        - **e_**: Particular data created by this method.
+
+           - **e_.points**: Array where the i-nth element represent the
+             importance of the i-nth alternative.
+
+    References
+    ----------
+
+    """
     def __init__(self, wnorm="sum"):
         super(RefPointMOORA, self).__init__(mnorm="vector", wnorm=wnorm)
 
