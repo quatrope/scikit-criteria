@@ -237,7 +237,6 @@ class RefPointMOORA(DecisionMaker):
         \overline{X}_{ij} =
         \frac{X_{ij}}{\sqrt{\sum\limits_{j=1}^m X_{ij}^{2}}}
 
-
     Preference is given to a reference point possessing as co-ordinates the
     dominating co-ordinates per attribute of the candidate alternatives and
     which is designated as the *Maximal Objective Reference Point*. This
@@ -267,8 +266,8 @@ class RefPointMOORA(DecisionMaker):
         - **e_**: Particular data created by this method.
 
            - **e_.points**: rray where the i-nth element represent the
-            closenees of the i-nth alternative to a reference point based
-            on the *Min-Max Metric of Tchebycheff*.
+             closenees of the i-nth alternative to a reference point based
+             on the *Min-Max Metric of Tchebycheff*.
 
     References
     ----------
