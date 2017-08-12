@@ -222,7 +222,28 @@ class RatioMOORA(DecisionMaker):
 
 
 class RefPointMOORA(DecisionMaker):
-    r"""
+    r"""Rank the alternatives from a reference point selected with the
+    Min-Max Metric of Tchebycheff.
+
+    .. math::
+
+        \min_{j} \{ \max_{i} |r_i - x^*_{ij}| \}
+
+    This reference point theory starts from the already normalized ratios
+    as defined in the MOORA method, namely formula:
+
+    .. math::
+
+        \overline{X}_{ij} =
+        \frac{X_{ij}}{\sqrt{\sum\limits_{j=1}^m X_{ij}^{2}}}
+
+
+    Preference is given to a reference point possessing as co-ordinates the
+    dominating co-ordinates per attribute of the candidate alternatives and
+    which is designated as the *Maximal Objective Reference Point*. This
+    approach is called realistic and non-subjective as the co-ordinates,
+    which are selected for the reference point, are realized in one of the
+    candidate alternatives.
 
     Parameters
     ----------
@@ -245,11 +266,18 @@ class RefPointMOORA(DecisionMaker):
         - **gamma_solution_**: True
         - **e_**: Particular data created by this method.
 
-           - **e_.points**: Array where the i-nth element represent the
-             importance of the i-nth alternative.
+           - **e_.points**: rray where the i-nth element represent the
+            closenees of the i-nth alternative to a reference point based
+            on the *Min-Max Metric of Tchebycheff*.
 
     References
     ----------
+
+    .. [1] Brauers, W. K. M., & Zavadskas, E. K. (2012). Robustness of
+           MULTIMOORA: a method for multi-objective optimization.
+           Informatica, 23(1), 1-25.
+    .. [2] Karlin, S., & Studden, W. J. (1966). Tchebycheff systems: With
+           applications in analysis and statistics. New York: Interscience.
 
     """
     def __init__(self, wnorm="sum"):
