@@ -265,7 +265,7 @@ class RefPointMOORA(DecisionMaker):
         - **gamma_solution_**: True
         - **e_**: Particular data created by this method.
 
-           - **e_.points**: rray where the i-nth element represent the
+           - **e_.points**: array where the i-nth element represent the
              closenees of the i-nth alternative to a reference point based
              on the *Min-Max Metric of Tchebycheff*.
 
@@ -296,6 +296,80 @@ class RefPointMOORA(DecisionMaker):
 
 
 class FMFMOORA(DecisionMaker):
+    r"""Full Multiplicative Form, a method that is non-linear,
+    non-additive, does not use weights and does not require normalization.
+
+    To combine a minimization and maximization of different criteria
+    in the same problem all the method uses the formula:
+
+    .. math::
+
+        U'_j = \frac{\prod_{g=1}^{i} x_{gi}}
+                   {\prod_{k=i+1}^{n} x_{kj}}
+
+    Where :math:`j` = the number of alternatives;
+    :math:`i` = the number of objectives to be maximized;
+    :math:`n − i` = the number of objectives to be minimize; and
+    :math:`U'_j`: the utility of alternative j with objectives to be maximized
+    and objectives to be minimized.
+
+    To avoid underflow, instead the multiplication of the values we add the
+    logarithms of the values; so :math:`U'_j`:, is finally defined
+    as:
+
+    .. math::
+
+        U'_j = \sum_{g=1}^{i} \log(x_{gi}) - \sum_{k=i+1}^{n} \log(x_{kj})
+
+    Notes
+    -----
+
+    The implementation works as follow:
+
+    - Before determine :math:`U_j` the values  are normalized by the ratio
+      sugested by MOORA.
+
+      .. math::
+
+        \overline{X}_{ij} =
+        \frac{X_{ij}}{\sqrt{\sum\limits_{j=1}^m X_{ij}^{2}}}
+
+    - Instead the multiplication of the values we add the
+      logarithms of the values to avoid underflow.
+
+
+    Parameters
+    ----------
+
+    wnorm : string, callable, optional (default="sum")
+        Normalization method for the weights array.
+
+    Returns
+    -------
+
+    Decision : :py:class:`skcriteria.madm.Decision`
+        With values:
+
+        - **kernel_**: None
+        - **rank_**: A ranking (start at 1) where the i-nth element represent
+          the position of the i-nth alternative.
+        - **best_alternative_**: The index of the best alternative.
+        - **alpha_solution_**: True
+        - **beta_solution_**: False
+        - **gamma_solution_**: True
+        - **e_**: Particular data created by this method.
+
+          - **e_.points**: Array where the i-nth element represent the
+            importance of the i-nth alternative.
+
+    References
+    ----------
+
+    .. [1] Brauers, W. K. M., & Zavadskas, E. K. (2012). Robustness of
+           MULTIMOORA: a method for multi-objective optimization.
+           Informatica, 23(1), 1-25.
+
+    """
 
     def __init__(self):
         super(FMFMOORA, self).__init__(mnorm="vector", wnorm="none")
