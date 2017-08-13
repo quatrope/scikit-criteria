@@ -326,6 +326,7 @@ class FMFMOORA(DecisionMaker):
 
     The implementation works as follow:
 
+    - Weights are not allowed.
     - Before determine :math:`U_j` the values  are normalized by the ratio
       sugested by MOORA.
 
