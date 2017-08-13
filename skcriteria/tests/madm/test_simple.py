@@ -130,7 +130,7 @@ class WProdTest(SKCriteriaTestCase):
 
         self.assertAllClose(rank_result, [1, 2, 3])
         self.assertAllClose(
-            points_result, [-4.419772, -4.516682, -4.817712], atol=1.e-3)
+            points_result, [-0.501286, -0.504485, -0.529472], atol=1.e-3)
 
     def test_wprod_min(self):
         self.criteria[0] = MIN
@@ -140,7 +140,7 @@ class WProdTest(SKCriteriaTestCase):
 
         self.assertAllClose(rank_result, [2, 1, 3])
         self.assertAllClose(
-            points_result, [-3.589826, -2.890856, -4.146128], atol=1.e-3)
+            points_result, [-0.335297, -0.179319, -0.395156], atol=1.e-3)
 
     def test_wprod_negative(self):
         self.mtx[0][0] = -self.mtx[0][0]
@@ -149,7 +149,7 @@ class WProdTest(SKCriteriaTestCase):
 
         self.assertAllClose(rank_result, [3, 1, 2])
         self.assertAllClose(
-            points_result, [-5.973282, -4.115949, -4.702215], atol=1.e-3)
+            points_result, [-0.811988, -0.424338, -0.506373], atol=1.e-3)
 
     def test_wprod_zero(self):
         self.mtx[0][0] = 0
@@ -159,7 +159,7 @@ class WProdTest(SKCriteriaTestCase):
 
         self.assertAllClose(rank_result, [3, 1, 2])
         self.assertAllClose(
-            points_result, [-5.638267, -4.295845, -4.624027], atol=1.e-3)
+            points_result, [-0.744985, -0.460317, -0.490735], atol=1.e-3)
 
     def test_wprod_dm(self):
         # Data From:
@@ -172,4 +172,4 @@ class WProdTest(SKCriteriaTestCase):
 
         self.assertAllClose(decision.rank_, [1, 2, 3])
         self.assertAllClose(
-            decision.e_.points, [-4.419772, -4.516682, -4.817712], atol=1.e-3)
+            decision.e_.points, [-0.501286, -0.504485, -0.529472], atol=1.e-3)

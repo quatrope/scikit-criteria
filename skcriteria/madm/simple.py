@@ -81,11 +81,12 @@ def wprod(nmtx, ncriteria, nweights):
     # invert the minimization criteria
     nmtx = norm.invert_min(nmtx, ncriteria, axis=0)
 
-    # add the weights to the mtx
-    wnmtx = np.multiply(nmtx, nweights)
-
     # instead of multiply we sum the logarithms
-    rank_mtx = np.log10(wnmtx)
+    lmtx = np.log10(nmtx)
+
+    # add the weights to the mtx
+    rank_mtx = np.multiply(lmtx, nweights)
+
     points = np.sum(rank_mtx, axis=1)
 
     return rank.rankdata(points, reverse=True), points
@@ -195,7 +196,7 @@ class WeightedProduct(DecisionMaker):
 
     .. math::
 
-        A_{i}^{WPM-score} = \prod_{j=1}^{n} w_j a_{ij},\ for\ i = 1,2,3,...,m
+        A_{i}^{WPM-score} = \prod_{j=1}^{n} a_{ij}^{w_j},\ for\ i = 1,2,3,...,m
 
     To avoid underflow, instead the multiplication of the values we add the
     logarithms of the values; so :math:`A_{i}^{WPM-score}`, is finally defined
@@ -203,7 +204,7 @@ class WeightedProduct(DecisionMaker):
 
     .. math::
 
-        A_{i}^{WPM-score} = \sum_{j=1}^{n} \log(w_j a_{ij}),\
+        A_{i}^{WPM-score} = \sum_{j=1}^{n} w_j \log(a_{ij}),\
                             for\ i = 1,2,3,...,m
 
     For the maximization case, the best alternative is the one that yields
