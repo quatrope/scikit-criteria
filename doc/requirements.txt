@@ -5,3 +5,4 @@ sphinx-rtd-theme==0.2.4
 six
 tabulate
 json-tricks
+nbsphinx
