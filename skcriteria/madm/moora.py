@@ -99,8 +99,8 @@ def refpoint(nmtx, criteria, weights):
     return rank.rankdata(points), points
 
 
-def fmf(nmtx, criteria):
-    lmtx = np.log(nmtx)
+def fmf(nmtx, criteria, weights):
+    lmtx = np.multiply(np.log(nmtx), weights)
 
     if not np.setdiff1d(criteria, [MAX]):
         # only max
@@ -127,7 +127,7 @@ def fmf(nmtx, criteria):
 def multimoora(nmtx, ncriteria):
     ratio_rank = ratio(nmtx, ncriteria, 1)[0]
     refpoint_rank = refpoint(nmtx, ncriteria, 1)[0]
-    fmf_rank = fmf(nmtx, ncriteria)[0]
+    fmf_rank = fmf(nmtx, ncriteria, 1)[0]
 
     rank_mtx = np.vstack((ratio_rank, refpoint_rank, fmf_rank)).T
 
@@ -375,13 +375,13 @@ class FMFMOORA(DecisionMaker):
 
     """
 
-    def __init__(self):
-        super(FMFMOORA, self).__init__(mnorm="vector", wnorm="none")
+    def __init__(self, wnorm="sum"):
+        super(FMFMOORA, self).__init__(mnorm="vector", wnorm=wnorm)
 
     @doc_inherit
     def as_dict(self):
         data = super(FMFMOORA, self).as_dict()
-        del data["wnorm"], data["mnorm"]
+        del data["mnorm"]
         return data
 
     @doc_inherit
@@ -390,13 +390,17 @@ class FMFMOORA(DecisionMaker):
         non_zero = norm.add1to0(non_negative, axis=0)
         nmtx = self._mnorm(non_zero, axis=0)
         ncriteria = criteriarr(data.criteria)
-        return Data(mtx=nmtx, criteria=ncriteria, weights=data.weights,
+        nweights = (
+            self._wnorm(data.weights, criteria=data.criteria)
+            if data.weights is not None else
+            np.ones(data.criteria.shape))
+        return Data(mtx=nmtx, criteria=ncriteria, weights=nweights,
                     anames=data.anames, cnames=data.cnames)
 
     @doc_inherit
     def solve(self, ndata):
-        nmtx, ncriteria = ndata.mtx, ndata.criteria
-        rank, points = fmf(nmtx, ncriteria)
+        nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
+        rank, points = fmf(nmtx, ncriteria, nweights)
         return None, rank, {"points": points}
 
 
