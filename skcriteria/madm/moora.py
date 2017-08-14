@@ -405,13 +405,72 @@ class FMFMOORA(DecisionMaker):
 
 
 class MultiMOORA(DecisionMaker):
+    r"""MULTIMOORA is compose the ranking resulting of aplyting the methods,
+    RatioMOORA, RefPointMOORA and FMFMOORA.
+
+    These three methods represent all possible methods with dimensionless
+    measures in multi-objective optimization and one can not argue that one
+    method is better than or is of more importance than the others; so for
+    determining the final ranking the implementation maximizes how many times
+    an alternative *i* dominates and alternative *j*.
+
+    Notes
+    -----
+
+    The implementation works as follow:
+
+    - Before determine :math:`U_j` the values  are normalized by the ratio
+      sugested by MOORA.
+
+      .. math::
+
+        \overline{X}_{ij} =
+        \frac{X_{ij}}{\sqrt{\sum\limits_{j=1}^m X_{ij}^{2}}}
+
+    - If we have some values of any criteria < 0 in the alternative-matrix
+      we add the minimimun value of this criteria to all the criteria.
+    - If we have some 0 in some criteria all the criteria is incremented by 1.
+    - If some criteria is for minimization, this implementation calculates the
+      inverse.
+    - Instead the multiplication of the values we add the
+      logarithms of the values to avoid underflow.
+    - For determining the final ranking the implementation maximizes how many
+      times an alternative *i* dominates and alternative *j*.
+
+    Returns
+    -------
+
+    Decision : :py:class:`skcriteria.madm.Decision`
+        With values:
+
+        - **kernel_**: None
+        - **rank_**: A ranking (start at 1) where the i-nth element represent
+          the position of the i-nth alternative.
+        - **best_alternative_**: The index of the best alternative.
+        - **alpha_solution_**: True
+        - **beta_solution_**: False
+        - **gamma_solution_**: True
+        - **e_**: Particular data created by this method.
+
+          - **e_.rank_mtx**: 2x3 Array where the first column is the
+            RatioMOORA ranking, the second one the RefPointMOORA ranking and
+            the last the FMFMOORA ranking.
+
+    References
+    ----------
+
+    .. [1] Brauers, W. K. M., & Zavadskas, E. K. (2012). Robustness of
+           MULTIMOORA: a method for multi-objective optimization.
+           Informatica, 23(1), 1-25.
+
+    """
 
     def __init__(self):
         super(MultiMOORA, self).__init__(mnorm="vector", wnorm="none")
 
     @doc_inherit
     def as_dict(self):
-        data = super(FMFMOORA, self).as_dict()
+        data = super(MultiMOORA, self).as_dict()
         del data["wnorm"], data["mnorm"]
         return data
 
