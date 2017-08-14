@@ -326,7 +326,6 @@ class FMFMOORA(DecisionMaker):
 
     The implementation works as follow:
 
-    - Weights are not allowed.
     - Before determine :math:`U_j` the values  are normalized by the ratio
       sugested by MOORA.
 
@@ -335,9 +334,13 @@ class FMFMOORA(DecisionMaker):
         \overline{X}_{ij} =
         \frac{X_{ij}}{\sqrt{\sum\limits_{j=1}^m X_{ij}^{2}}}
 
+    - If we have some values of any criteria < 0 in the alternative-matrix
+      we add the minimimun value of this criteria to all the criteria.
+    - If we have some 0 in some criteria all the criteria is incremented by 1.
+    - If some criteria is for minimization, this implementation calculates the
+      inverse.
     - Instead the multiplication of the values we add the
       logarithms of the values to avoid underflow.
-
 
     Parameters
     ----------
