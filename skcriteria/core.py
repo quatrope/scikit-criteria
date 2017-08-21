@@ -288,7 +288,7 @@ class Data(object):
 
     @property
     def weights(self):
-        return self._weights.copy() if self._weights else None
+        return None if self._weights is None else self._weights.copy()
 
     @property
     def plot(self):
