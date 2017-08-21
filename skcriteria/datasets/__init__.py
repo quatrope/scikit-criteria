@@ -30,60 +30,18 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
-# =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
 # =============================================================================
 # DOCS
 # =============================================================================
 
-__doc__ = """Scikit-Criteria is a collections of algorithms, methods and
-techniques for multiple-criteria decision analysis.
-
+"""The :mod:`skcriteria.datasets` module includes utilities to load datasets,
+including methods to load and fetch popular reference datasets. It also
+features some artificial data generators.
 """
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-__version__ = ("0", "2", "1")
-
-NAME = "scikit-criteria"
-
-DOC = __doc__
-
-VERSION = ".".join(__version__)
-
-AUTHORS = "Cabral & Luczywo"
-
-EMAIL = "jbc.develop@gmail.com"
-
-URL = "http://scikit-criteria.org/"
-
-LICENSE = "3 Clause BSD"
-
-KEYWORDS = "mcda mcdm ahp moora muti criteria".split()
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import os
-
-if os.getenv("SKCRITERIA_IN_SETUP") != "True":
-    from .core import *  # noqa
-
-del os
-
-# =============================================================================
-# MAIN
-# =============================================================================
-
-if __name__ == "__main__":
-    print(__doc__)
+from .base import load_camera # noqa

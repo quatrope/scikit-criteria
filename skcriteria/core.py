@@ -266,6 +266,10 @@ class Data(object):
         rows = self._iter_rows()
         return tabulate(rows, **params)
 
+    def raw(self):
+        """Return a (mtx, criteria, weights, anames, cnames) tuple"""
+        return self.mtx, self.criteria, self.weights, self.anames, self.cnames
+
     @property
     def anames(self):
         return tuple(self._anames)
@@ -276,15 +280,15 @@ class Data(object):
 
     @property
     def mtx(self):
-        return self._mtx
+        return self._mtx.copy()
 
     @property
     def criteria(self):
-        return self._criteria
+        return self._criteria.copy()
 
     @property
     def weights(self):
-        return self._weights
+        return self._weights.copy() if self._weights else None
 
     @property
     def plot(self):

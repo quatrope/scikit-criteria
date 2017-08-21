@@ -30,44 +30,13 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
-# =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
 # =============================================================================
 # DOCS
 # =============================================================================
 
-__doc__ = """Scikit-Criteria is a collections of algorithms, methods and
-techniques for multiple-criteria decision analysis.
+"""Base IO code for all datasets
 
 """
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-__version__ = ("0", "2", "1")
-
-NAME = "scikit-criteria"
-
-DOC = __doc__
-
-VERSION = ".".join(__version__)
-
-AUTHORS = "Cabral & Luczywo"
-
-EMAIL = "jbc.develop@gmail.com"
-
-URL = "http://scikit-criteria.org/"
-
-LICENSE = "3 Clause BSD"
-
-KEYWORDS = "mcda mcdm ahp moora muti criteria".split()
 
 
 # =============================================================================
@@ -76,14 +45,66 @@ KEYWORDS = "mcda mcdm ahp moora muti criteria".split()
 
 import os
 
-if os.getenv("SKCRITERIA_IN_SETUP") != "True":
-    from .core import *  # noqa
+import six
 
-del os
+import numpy as np
+
+from ..core import Data, MIN, MAX
+
 
 # =============================================================================
-# MAIN
+# CONSTANTS
 # =============================================================================
 
-if __name__ == "__main__":
-    print(__doc__)
+PATH = os.path.abspath(os.path.dirname(__file__))
+
+DATA_PATH = os.path.join(PATH, "data")
+
+
+# =============================================================================
+# FUNCTIONS
+# =============================================================================
+
+def load_camera():
+    """A dataset of about 1000 cameras with 13 properties such as
+    weight, focal length, price, etc.
+
+    Notes
+    -----
+
+    These dataset have been gathered and cleaned up by Petra
+    Isenberg, Pierre Dragicevic and Yvonne Jansen.
+    https://perso.telecom-paristech.fr/eagan/class/igr204/datasets
+
+    """
+    path = os.path.join(DATA_PATH, "Camera.csv")
+    dtypes = [
+        ("Model", six.text_type, 35),
+        ("Release date", float),
+        ("Max resolution", float),
+        ("Low resolution", float),
+        ("Effective pixels", float),
+        ("Zoom wide (W)", float),
+        ("Zoom tele (T)", float),
+        ("Normal focus range", float),
+        ("Macro focus range", float),
+        ("Storage included", float),
+        ("Weight (inc. batteries)", float),
+        ("Dimensions", float),
+        ("Price", float),
+    ]
+
+    criteria = [MAX, MAX, MAX, MAX, MAX, MAX, MAX, MAX, MAX, MIN, MIN, MIN]
+
+    data = np.genfromtxt(path, delimiter=";", dtype=dtypes, skip_header=2)
+
+    # columns of the alternative matrix
+    columns = list(data.dtype.names[1:])
+
+    anames = data["Model"]
+    cnames = [dt[0] for dt in dtypes[1:]]
+
+    mtx = np.asarray(data[columns].tolist())
+
+    data = Data(mtx=mtx, criteria=criteria, anames=anames, cnames=cnames)
+    return data
