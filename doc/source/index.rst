@@ -78,7 +78,8 @@ Contents
 .. toctree::
     :maxdepth: 3
 
-    tutorial/intro
+    install
+    tutorial/index
     api/skcriteria
 
 
