@@ -28,12 +28,22 @@ a, a:visited {
     color: white;
 }
 
-div.nboutput div.output_area.table-wrapper {
-     height: 500px;
-     overflow: auto;
-     font-size: 12px;
+div.nboutput,
+div[class^='highlight'] pre {
+    font-size: 14px !important;
 }
 
-div.nboutput div.output_area.table-wrapper th {
-    background-color: #b2ce41;
+div.nboutput div.table-wrapper {
+     max-height: 500px;
+     overflow: auto;
+}
+
+
+div.nboutput div.table-wrapper th {
+    color: #6b7b27;
+}
+
+div.nboutput div.table-wrapper table {
+    border-collapse: separate;
+    border-spacing: 7px 0;
 }
