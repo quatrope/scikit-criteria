@@ -84,7 +84,7 @@ def topsis(nmtx, ncriteria, nweights):
     closeness = d_worst / (d_better + d_worst)
 
     # compute the rank and return the result
-    return rank.rankdata(closeness, reverse=True), closeness
+    return rank.rankdata(closeness, reverse=True), ideal, anti_ideal, closeness
 
 
 # =============================================================================
@@ -146,5 +146,9 @@ class TOPSIS(DecisionMaker):
     @doc_inherit
     def solve(self, ndata):
         nmtx, ncriteria, nweights = ndata.mtx, ndata.criteria, ndata.weights
-        rank, closeness = topsis(nmtx, ncriteria, nweights)
-        return None, rank, {"closeness": closeness}
+        rank, ideal, anti_ideal, closeness = topsis(nmtx, ncriteria, nweights)
+        extra = {
+            "ideal": ideal,
+            "anti_ideal": anti_ideal,
+            "closeness": closeness}
+        return None, rank, extra
