@@ -4,7 +4,7 @@
     background-color: #7b8e2d;
 }
 
-a {
+a, a:visited {
     color: #48531e;
 }
 
@@ -19,5 +19,6 @@ a {
     color: black;
 }
 
-
-
+body {
+    background-color: red !important;
+    }
