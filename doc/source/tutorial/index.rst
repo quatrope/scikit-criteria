@@ -9,7 +9,7 @@ Contents:
 .. toctree::
     :maxdepth: 1
 
-    data.ipynb
+    quickstart.ipynb
 
 
 .. seealso::
