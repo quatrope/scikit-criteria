@@ -8,7 +8,7 @@ Reference
 
     core
     madm/madm
-.. ~     skcriteria.plot
+    skcriteria.plot
 .. ~     skcriteria.weights
 
 .. ~ skcriteria\.core module
