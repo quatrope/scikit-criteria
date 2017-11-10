@@ -48,6 +48,7 @@ including:
 
 __all__ = [
     'MIN', 'MAX',
+    'DataValidationError',
     'criteriarr',
     'validate_data',
     'Data']
@@ -74,8 +75,10 @@ from .utils.doc_inherit import InheritableDocstrings
 # =============================================================================
 
 MIN = -1
+"""Int: Minimization criteria"""
 
 MAX = 1
+"""Int: Maximization criteria"""
 
 CRITERIA_STR = {
     MIN: "min",
@@ -106,7 +109,7 @@ class DataValidationError(ValueError):
 # =============================================================================
 
 def iter_equal(a, b):
-    """Validate if two iterables are equals independently of their type"""
+    """Validate if two iterables are equals independently of their type."""
     if isinstance(a, np.ndarray) or isinstance(b, np.ndarray):
         return np.allclose(a, b, equal_nan=True)
     return a == b
@@ -129,7 +132,29 @@ def is_mtx(mtx, size=None):
 
 
 def criteriarr(criteria):
-    """Validate if the iterable only contains MIN (-1) and MAX (1) criteria"""
+    """Validate if the iterable only contains MIN (-1) and MAX (1) values. And
+    also always returns an ndarray representation of the iterable. If
+
+
+    Parameters
+    ----------
+
+    criteria : Array-like
+        Iterable containing all the values to be validated by the function.
+
+    Returns
+    -------
+
+    numpy.ndarray :
+        Criteria array.
+
+    Raises
+    ------
+
+    DataValidationError :
+        if some value of the criteria array are not MIN (-1) or MAX (1)
+
+    """
 
     criteria = np.asarray(criteria)
     if np.setdiff1d(criteria, [MIN, MAX]):
@@ -150,12 +175,37 @@ def validate_data(mtx, criteria, weights=None):
     - The weight array must be None or an iterable with the same length
       of the criteria.
 
+    Parameters
+    ----------
+
+    mtx : 2D array-like
+        2D alternative matrix, where every column (axis 0) are a criteria, and
+        every row (axis 1) is an alternative.
+
+    criteria : Array-like
+        The sense of optimality of every criteria. Must has only
+        MIN (-1) and MAX (1) values. Must has the same elements as columns
+        has ``mtx``
+
+    weights : array like or None
+        The importance of every criteria. Must has the same elements as columns
+        has ``mtx`` or None.
+
     Returns
     -------
 
-    - A mtx as 2d numpy.ndarray.
-    - A criteria as numpy.ndarray.
-    - A weights as numpy.ndarray or None (if weights is None).
+    mtx : numpy.ndarray
+        mtx representations as 2d numpy.ndarray.
+    criteria : numpy.ndarray
+        A criteria as numpy.ndarray.
+    weights : numpy.ndarray or None
+        A weights as numpy.ndarray or None (if weights is None).
+
+    Raises
+    ------
+
+    DataValidationError :
+        If the data are incompatible.
 
     """
     mtx = np.asarray(mtx)
@@ -261,6 +311,23 @@ class Data(object):
         return self.to_str(tablefmt="html")
 
     def to_str(self, **params):
+        """String representation of the Data object.
+
+        Parameters
+        ----------
+
+        kwargs :
+            Parameters to configure
+            `tabulate <https://bitbucket.org/astanin/python-tabulate>`_
+
+        Return
+        ------
+
+        str :
+            String representation of the Data object.
+
+        """
+
         params.update({
             k: v for k, v in TABULATE_PARAMS.items() if k not in params})
         rows = self._iter_rows()
@@ -272,26 +339,32 @@ class Data(object):
 
     @property
     def anames(self):
+        """Names of the alternatives as tuple of string."""
         return tuple(self._anames)
 
     @property
     def cnames(self):
+        """Names of the criteria as tuple of string."""
         return tuple(self._cnames)
 
     @property
     def mtx(self):
+        """Alternative matrix as 2d numpy.ndarray."""
         return self._mtx.copy()
 
     @property
     def criteria(self):
+        """Sense of optimality of every criteria"""
         return self._criteria.copy()
 
     @property
     def weights(self):
+        """Relative importance of the criteria or None if all the same"""
         return None if self._weights is None else self._weights.copy()
 
     @property
     def plot(self):
+        """Data plotting accessor and method"""
         return self._plot
 
 
