@@ -53,7 +53,7 @@ __doc__ = """Several implementations of normalization methods
 import numpy as np
 from numpy import linalg
 
-from .core import MIN, MAX, criteriarr
+from .validate import MIN, MAX, criteriarr
 
 
 # =============================================================================

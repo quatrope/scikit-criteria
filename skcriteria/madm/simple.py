@@ -55,7 +55,7 @@ __all__ = [
 
 import numpy as np
 
-from ..core import criteriarr
+from ..validate import criteriarr
 from ..base import Data
 from .. import norm, rank
 from ..utils.doc_inherit import doc_inherit

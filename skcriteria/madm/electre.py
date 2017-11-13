@@ -59,7 +59,7 @@ __all__ = ['ELECTRE1']
 
 import numpy as np
 
-from ..core import MAX, MIN
+from ..validate import MAX, MIN
 from ..utils.doc_inherit import doc_inherit
 
 from ._dmaker import DecisionMaker

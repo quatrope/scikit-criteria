@@ -59,9 +59,9 @@ import numpy as np
 from tabulate import tabulate
 
 from .utils.doc_inherit import InheritableDocstrings
-from .core import (CRITERIA_STR,
-                   DataValidationError,
-                   validate_data, iter_equal)
+from .validate import (CRITERIA_STR,
+                       DataValidationError,
+                       validate_data, iter_equal)
 
 
 # =============================================================================

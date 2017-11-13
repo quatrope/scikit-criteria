@@ -77,7 +77,7 @@ KEYWORDS = "mcda mcdm ahp moora muti criteria".split()
 import os
 
 if os.getenv("SKCRITERIA_IN_SETUP") != "True":
-    from .core import *  # noqa
+    from .validate import *  # noqa
     from .base import *  # noqa
 
 del os

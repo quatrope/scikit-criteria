@@ -53,7 +53,7 @@ __all__ = ['TOPSIS']
 import numpy as np
 
 from ..import rank
-from ..core import MIN, MAX
+from ..validate import MIN, MAX
 from ..utils.doc_inherit import doc_inherit
 
 from ._dmaker import DecisionMaker

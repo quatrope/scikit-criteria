@@ -59,7 +59,7 @@ import six
 from six.moves import range
 
 from .. import norm
-from ..core import criteriarr
+from ..validate import criteriarr
 
 
 # =============================================================================

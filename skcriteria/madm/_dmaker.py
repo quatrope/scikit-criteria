@@ -57,7 +57,7 @@ import numpy as np
 
 from tabulate import tabulate
 
-from ..core import iter_equal
+from ..validate import iter_equal
 from ..base import TABULATE_PARAMS, BaseSolver
 
 

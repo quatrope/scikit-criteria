@@ -50,7 +50,7 @@ __doc__ = """test simple methods"""
 # =============================================================================
 
 from ... import norm
-from ...core import MAX, MIN
+from ...validate import MAX, MIN
 from ...madm import simple
 
 from ..tcore import SKCriteriaTestCase

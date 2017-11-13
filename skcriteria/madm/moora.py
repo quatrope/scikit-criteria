@@ -62,7 +62,7 @@ import itertools
 
 import numpy as np
 
-from ..core import MIN, MAX, criteriarr
+from ..validate import MIN, MAX, criteriarr
 from ..base import Data
 from .. import norm, rank
 

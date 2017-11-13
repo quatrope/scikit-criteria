@@ -61,7 +61,7 @@ from six.moves import zip
 
 from matplotlib import cm
 
-from ..core import MIN, CRITERIA_STR
+from ..validate import MIN, CRITERIA_STR
 from .. import norm
 
 from .radar import radar_plot

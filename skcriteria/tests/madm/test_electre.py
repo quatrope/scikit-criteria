@@ -51,7 +51,7 @@ __doc__ = """test electre methods"""
 
 import numpy as np
 
-from ...core import criteriarr
+from ...validate import criteriarr
 from ...base import Data
 from ... import norm
 
