@@ -62,6 +62,7 @@ from .utils.doc_inherit import InheritableDocstrings
 from .validate import (CRITERIA_STR,
                        DataValidationError,
                        validate_data, iter_equal)
+from .plot import PlotProxy
 
 
 # =============================================================================
