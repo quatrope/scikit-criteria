@@ -88,7 +88,21 @@ def _plot_type(method):
 # CLASS
 # =============================================================================
 
-class PlotProxy(object):
+class DataPlotMethods(object):
+    """Data plotting accessor and method
+
+    Examples
+    --------
+    >>> data.plot()
+    >>> data.plot.hist()
+    >>> data.plot.scatter('x', 'y')
+    >>> data.plot.radar()
+
+    These plotting methods can also be accessed by calling the accessor as a
+    method with the ``kind`` argument:
+    ``data.plot(kind='violin')`` is equivalent to ``data.plot.violin()``
+
+    """
 
     def __init__(self, data):
         self._data = data
@@ -113,15 +127,15 @@ class PlotProxy(object):
     def __repr__(self):
         return str(self)
 
-    def __call__(self, plotname="radar", **kwargs):
-        if plotname not in _plot_types:
-            msg = "Invalid plotname '{}'. Chooce from: {}"
-            raise ValueError(msg.format(plotname, ", ".join(_plot_types)))
-        method = getattr(self, plotname)
+    def __call__(self, kind="radar", **kwargs):
+        if kind not in _plot_types:
+            msg = "Invalid kind '{}'. Chooce from: {}"
+            raise ValueError(msg.format(kind, ", ".join(_plot_types)))
+        method = getattr(self, kind)
         return method(**kwargs)
 
     def to_str(self):
-        return "PlotProxy for {}".format(self._data)
+        return "DataPlotMethods for {}".format(self._data)
 
     def preprocess(self, data, mnorm, wnorm,
                    weighted, show_criteria,

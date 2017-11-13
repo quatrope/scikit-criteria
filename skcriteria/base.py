@@ -59,10 +59,11 @@ import numpy as np
 from tabulate import tabulate
 
 from .utils.doc_inherit import InheritableDocstrings
+from .utils.acc_property import AccessorProperty
 from .validate import (CRITERIA_STR,
                        DataValidationError,
                        validate_data, iter_equal)
-from .plot import PlotProxy
+from .plot import DataPlotMethods
 
 
 # =============================================================================
@@ -105,10 +106,6 @@ class Data(object):
             msg = "{} names for given {} criteria".format(
                 len(self._cnames), len(self._criteria))
             raise DataValidationError(msg)
-
-        # create plot proxy
-        from . import plot
-        self._plot = plot.PlotProxy(self)
 
     def _iter_rows(self):
         direction = map(CRITERIA_STR.get, self._criteria)
@@ -213,6 +210,9 @@ class Data(object):
     def plot(self):
         """Data plotting accessor and method"""
         return self._plot
+
+
+Data.plot = AccessorProperty(DataPlotMethods, DataPlotMethods)
 
 
 # =============================================================================
