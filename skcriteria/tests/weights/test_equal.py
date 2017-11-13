@@ -51,7 +51,7 @@ __doc__ = """Test normalization functionalities"""
 
 import numpy as np
 
-from ...core import Data
+from ...base import Data
 from ...weights import equal
 
 from ..tcore import SKCriteriaTestCase

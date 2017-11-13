@@ -62,8 +62,10 @@ import itertools
 
 import numpy as np
 
+from ..core import MIN, MAX, criteriarr
+from ..base import Data
 from .. import norm, rank
-from ..core import Data, MIN, MAX, criteriarr
+
 from ..utils.doc_inherit import doc_inherit
 
 from ._dmaker import DecisionMaker

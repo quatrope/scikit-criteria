@@ -55,8 +55,9 @@ __all__ = [
 
 import numpy as np
 
+from ..core import criteriarr
+from ..base import Data
 from .. import norm, rank
-from ..core import Data, criteriarr
 from ..utils.doc_inherit import doc_inherit
 
 from ._dmaker import DecisionMaker

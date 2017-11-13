@@ -53,7 +53,7 @@ import random
 
 import numpy as np
 
-from ..core import Data, MIN, MAX, criteriarr, is_mtx
+from ..core import MIN, MAX, criteriarr, is_mtx
 
 from .tcore import SKCriteriaTestCase
 
@@ -115,27 +115,3 @@ class IsMtx(SKCriteriaTestCase):
         for case, expected in self.cases:
             case = np.asarray(case)
             self.assertIsMtx(case, expected)
-
-
-class TestData(SKCriteriaTestCase):
-
-    def setUp(self):
-        self.mtx = np.random.rand(3, 3)
-        self.criteria = np.asarray([random.choice((1, -1)) for e in range(3)])
-        self.weights = np.random.randint(1, 100, 3)
-
-    def test_trivial(self):
-        data = Data(self.mtx, self.criteria, self.weights)
-        other = Data(self.mtx, self.criteria, self.weights)
-        self.assertEqual(data, other)
-
-    def test_unicode_string(self):
-        cnames = anames = u"ñññ"
-        data = Data(
-            self.mtx, self.criteria, self.weights,
-            anames=anames, cnames=cnames)
-        data.to_str()
-        data.to_str(tablefmt="html")
-
-        repr(data)
-        str(data)

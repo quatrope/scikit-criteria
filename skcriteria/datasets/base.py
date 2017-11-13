@@ -49,7 +49,8 @@ import six
 
 import numpy as np
 
-from ..core import Data, MIN, MAX
+from ..core import MIN, MAX
+from ..base import Data
 
 
 # =============================================================================

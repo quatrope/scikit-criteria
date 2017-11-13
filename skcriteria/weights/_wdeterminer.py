@@ -37,7 +37,7 @@
 
 from __future__ import unicode_literals
 
-from ..core import Data, BaseSolver
+from ..base import Data, BaseSolver
 
 
 # =============================================================================
