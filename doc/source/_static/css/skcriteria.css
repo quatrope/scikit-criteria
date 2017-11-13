@@ -40,20 +40,21 @@ div.input_area {
 }
 
 
-table {
+div.output_area table {
     border-collapse: collapse;
 }
 
-table thead tr th{
+div.output_area table thead tr th{
     background-color: #7b8e2d;
 }
 
-table thead tr th,
-table tbody tr td {
+
+div.output_area table thead tr th,
+div.output_area  table tbody tr td {
     border: 1px solid black;
     font-size: 12px;
 }
 
-tr:nth-child(even) {
-  background-color: #7b8e2d5c;
+div.output_area tr:nth-child(even){
+  background-color: #7b8e2d5c !important;
 }

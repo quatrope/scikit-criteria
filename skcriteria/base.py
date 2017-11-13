@@ -206,13 +206,10 @@ class Data(object):
         """Relative importance of the criteria or None if all the same"""
         return None if self._weights is None else self._weights.copy()
 
-    @property
-    def plot(self):
-        """Data plotting accessor and method"""
-        return self._plot
+    # ----------------------------------------------------------------------
+    # Add plotting methods to DataFrame
 
-
-Data.plot = AccessorProperty(DataPlotMethods, DataPlotMethods)
+    plot = AccessorProperty(DataPlotMethods, DataPlotMethods)
 
 
 # =============================================================================

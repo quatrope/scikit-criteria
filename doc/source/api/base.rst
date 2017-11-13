@@ -1,7 +1,7 @@
-``skcriteria.core`` module
+``skcriteria.base`` module
 ==========================
 
-.. automodule:: skcriteria.core
+.. automodule:: skcriteria.base
     :members:
     :undoc-members:
     :show-inheritance:
