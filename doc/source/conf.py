@@ -29,7 +29,11 @@ os.environ["SKCRITERIA_IN_SETUP"] = "True"
 import skcriteria
 
 # modules to mock in readthedocs
-MOCK_MODULES = ["numpy", "scipy", "matplotlib"]
+MOCK_MODULES = ["numpy", "scipy", 
+                "matplotlib", "matplotlib.pyplot",
+                "matplotlib.cm", "matplotlib.patches",
+                "matplotlib.spines", "matplotlib.projections.polar",
+                "matplotlib.projections", "matplotlib.path"]
 
 # -- General configuration ------------------------------------------------
 
