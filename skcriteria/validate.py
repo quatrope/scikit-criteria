@@ -123,8 +123,7 @@ def is_mtx(mtx, size=None):
 
 def criteriarr(criteria):
     """Validate if the iterable only contains MIN (-1) and MAX (1) values. And
-    also always returns an ndarray representation of the iterable. If
-
+    also always returns an ndarray representation of the iterable.
 
     Parameters
     ----------

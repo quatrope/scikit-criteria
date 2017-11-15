@@ -75,7 +75,6 @@ from .bars import bars_plot
 
 _plot_types = set()
 
-
 def _plot_type(method):
     _plot_types.add(method.__name__)
     return method
@@ -100,7 +99,6 @@ class DataPlotMethods(object):
     ``data.plot(kind='violin')`` is equivalent to ``data.plot.violin()``
 
     """
-
     def __init__(self, data):
         self._data = data
 
@@ -125,6 +123,8 @@ class DataPlotMethods(object):
         return str(self)
 
     def __call__(self, kind="radar", **kwargs):
+        """Make plots of Data using matplotlib / pylab."""
+
         if kind not in _plot_types:
             msg = "Invalid kind '{}'. Chooce from: {}"
             raise ValueError(msg.format(kind, ", ".join(_plot_types)))
@@ -135,13 +135,57 @@ class DataPlotMethods(object):
         return "DataPlotMethods for {}".format(self._data)
 
     def preprocess(self, data, mnorm, wnorm,
-                   weighted, show_criteria,
-                   min2max, push_negatives,
-                   addepsto0, **kwargs):
+                   anames, cnames, cmap,
+                   weighted, show_criteria, min2max,
+                   push_negatives, addepsto0):
+        """Preprocess the data to be plotted.
+
+        Parameters
+        ----------
+        data : skcritria.core.Data
+            The data to be preprocessed.
+        mnorm: string, callable
+            Normalization method for the alternative matrix.
+        wnorm : string, callable
+            Normalization method for the weights array.
+        anames : list of str or None
+            The list of alternative names to be render in the plot.
+            If is None then the alternative names of data are used.
+        cnames : list of str or None
+            The list of criteria names to be render in the plot.
+            If is None then the criteria names of data are used.
+        cmap : string or None
+            Name of the color map to be used [1]_
+        weighted : bool
+            If the data must be weighted before redering.
+        show_criteria : bool
+            I the sense of optimality must be rendered in the plot.
+        min2max : bool
+            If true all the data of the minimization criteria are inverted
+            before render.
+        push_negatives : bool
+            If True all the criterias with some value < 0 are incremented to
+            be at least 0 in the minimun value.
+        addepsto0 : bool
+            If true add an small value to all the zeros inside the data.
+
+        Returns
+        -------
+        preprocessed_data : dict
+            All the data ready to be sended to a plot function
+
+        References
+        ----------
+        .. [1] https://matplotlib.org/users/colormaps.html
+
+        """
 
         # extract all the data
-        mtx, criteria, weights, cnames, anames = (
-            data.mtx, data.criteria, data.weights, data.cnames, data.anames)
+        mtx = data.mtx
+        criteria = data.criteria
+        weights = data.weights
+        anames = anames or data.anames
+        cnames = cnames or data.cnames
 
         # push negatives
         if push_negatives:
@@ -183,28 +227,119 @@ class DataPlotMethods(object):
             cnames = [
                 "{}{}".format(cn, cr) for cn, cr in zip(cnames, criterias)]
 
-        # color map parse
-        kwargs["cmap"] = cm.get_cmap(name=kwargs.get("cmap"))
-
-        kwargs.update({
+        return {
             "mtx": mtx, "criteria": criteria, "weights": weights,
-            "anames": kwargs.pop("anames", anames),
-            "cnames": kwargs.pop("cnames", cnames)})
-        return kwargs
+            "cmap": cm.get_cmap(name=cmap),
+            "anames": anames, "cnames": cnames}
 
     def plot(self, func, mnorm="none", wnorm="none",
-             weighted=True, show_criteria=True, addepsto0=False,
-             min2max=False, push_negatives=False, **kwargs):
+             anames=None, cnames=None, cmap=None,
+             weighted=True, show_criteria=True, min2max=False,
+             push_negatives=False, addepsto0=False, **kwargs):
+        """Preprocess the data and send to the plot function *func*.
+
+        Parameters
+        ----------
+        func : callable
+            The function that make the plot. The return value of func
+            are the recutn value of this method.
+        mnorm: string, callable, optional (default="none")
+            Normalization method for the alternative matrix.
+        wnorm : string, callable, optional (default="none")
+            Normalization method for the weights array.
+        anames : list of str or None, optional (default=None)
+            The list of alternative names to be render in the plot.
+            If is None then the alternative names of data are used.
+        cnames : list of str or None, optional (default=None)
+            The list of criteria names to be render in the plot.
+            If is None then the criteria names of data are used.
+        cmap : string or None, optional (default=None)
+            Name of the color map to be used [1]_
+        weighted : bool, optional (default=True)
+            If the data must be weighted before redering.
+        show_criteria : bool, optional (default=True)
+            I the sense of optimality must be rendered in the plot.
+        min2max : bool, optional (default=False)
+            If true all the data of the minimization criteria are inverted
+            before render.
+        push_negatives : bool, optional (default=False)
+            If True all the criterias with some value < 0 are incremented to
+            be at least 0 in the minimun value.
+        addepsto0 : bool, optional (default=False)
+            If true add an small value to all the zeros inside the data.
+        kwargs :
+            Arguments to send to *func*
+
+        Returns
+        -------
+        The return value of *func*.
+
+        Notes
+        -----
+        All the plot methods of Scikit-Criteria returns a matplotlib axis.
+
+        References
+        ----------
+        .. [1] https://matplotlib.org/users/colormaps.html
+
+        """
+
         ppkwargs = self.preprocess(
             data=self._data, mnorm=mnorm, wnorm=wnorm,
+            anames=anames, cnames=cnames, cmap=cmap,
             weighted=weighted, show_criteria=show_criteria,
             addepsto0=addepsto0, min2max=min2max,
-            push_negatives=push_negatives, **kwargs)
+            push_negatives=push_negatives)
         kwargs.update(ppkwargs)
         return func(**kwargs)
 
     @_plot_type
     def radar(self, **kwargs):
+        """Creates a radar chart, also known as a spider or star chart [1]_.
+
+        A radar chart is a graphical method of displaying multivariate data in
+        the form of a two-dimensional chart of three or more quantitative
+        variables represented on axes starting from the same point. The
+        relative position and angle of the axes is typically uninformative.
+
+        Parameters
+        ----------
+        frame : {"polygon", "circle"}
+            Shape of frame surrounding axes.
+        ax : None or PolarAxes, optional (default=None)
+            Axis where the radar must be redered. Is is None a new axis are
+            created.
+        legendcol : int, optional (default=5)
+            How many columns must has the legend.
+        subplots_kwargs : dict or None, optional (default=None)
+            Argument to send to ``matplotlib.pyplot.subplots`` if axis is None.
+            If axis is not None, subplots_kwargs are ignored.
+
+        Returns
+        -------
+        ax : matplotlib.projections.polar.PolarAxes
+            Axis where the radar are rendered
+
+        See Also
+        --------
+        DataPlotMethods.plot : To check all the available parameters
+
+
+        Notes
+        -----
+        All the parameters in ``plot()`` are supported; but by default
+        this method override some default values:
+
+        - ``show_criteria=False``
+        - ``min2max=True``
+        - ``push_negatices=True``
+        - ``addepsto0=True``
+
+        References
+        ----------
+        .. [1] http://en.wikipedia.org/wiki/Radar_chart
+
+        """
         kwargs.setdefault("show_criteria", False)
         kwargs.setdefault("min2max", True)
         kwargs.setdefault("push_negatives", True)
