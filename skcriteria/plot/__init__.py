@@ -75,6 +75,7 @@ from .bars import bars_plot
 
 _plot_types = set()
 
+
 def _plot_type(method):
     _plot_types.add(method.__name__)
     return method
