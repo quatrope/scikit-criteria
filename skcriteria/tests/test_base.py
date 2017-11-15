@@ -73,6 +73,17 @@ class TestData(SKCriteriaTestCase):
         other = Data(self.mtx, self.criteria, self.weights)
         self.assertEqual(data, other)
 
+    def test_metadata(self):
+        meta = {"foo": "faa"}
+        data = Data(self.mtx, self.criteria, self.weights, meta=meta)
+        self.assertEqual(data.meta, meta)
+        self.assertEqual(data.meta.foo, data.meta["foo"])
+        with self.assertRaises(KeyError):
+            data.meta["fee"]
+        with self.assertRaises(AttributeError):
+            data.meta.fee
+        data.meta.to_str()
+
     def test_unicode_string(self):
         cnames = anames = u"ñññ"
         data = Data(

@@ -51,6 +51,7 @@ __all__ = ['Data']
 
 import sys
 import abc
+from collections import Mapping
 
 import six
 
@@ -81,9 +82,57 @@ TABULATE_PARAMS = {
 # DATA
 # =============================================================================
 
+class MetaData(Mapping):
+
+    def __init__(self, data):
+        self._data = data
+
+    def __getitem__(self, k):
+        return self._data[k]
+
+    def __iter__(self):
+        return iter(self._data)
+
+    def __len__(self):
+        return len(self._data)
+
+    def __getattr__(self, n):
+        try:
+            return self._data[n]
+        except KeyError:
+            raise AttributeError(n)
+
+    def __dir__(self):
+        return list(self._data)
+
+    def __unicode__(self):
+        return self.to_str()
+
+    def __bytes__(self):
+        encoding = sys.getdefaultencoding()
+        return self.__unicode__().encode(encoding, 'replace')
+
+    def __str__(self):
+        """Return a string representation for a particular Object
+
+        Invoked by str(df) in both py2/py3.
+        Yields Bytestring in Py2, Unicode String in py3.
+        """
+        if six.PY3:
+            return self.__unicode__()
+        return self.__bytes__()
+
+    def __repr__(self):
+        return str(self)
+
+    def to_str(self):
+        return "MetaData(" + ", ".join(self) + ")"
+
+
 class Data(object):
 
-    def __init__(self, mtx, criteria, weights=None, anames=None, cnames=None):
+    def __init__(self, mtx, criteria,
+                 weights=None, anames=None, cnames=None, meta=None):
 
         # validate and store all data
         self._mtx, self._criteria, self._weights = validate_data(
@@ -107,6 +156,8 @@ class Data(object):
                 len(self._cnames), len(self._criteria))
             raise DataValidationError(msg)
 
+        self._meta = MetaData(meta or {})
+
     def _iter_rows(self):
         direction = map(CRITERIA_STR.get, self._criteria)
         title = ["ALT./CRIT."]
@@ -123,7 +174,7 @@ class Data(object):
 
     def __eq__(self, obj):
         return (
-            isinstance(obj, Data) and
+            isinstance(obj, Data) and self._meta == obj.meta and
             iter_equal(self._mtx, obj._mtx) and
             iter_equal(self._criteria, obj._criteria) and
             iter_equal(self._weights, obj._weights))
@@ -205,6 +256,11 @@ class Data(object):
     def weights(self):
         """Relative importance of the criteria or None if all the same"""
         return None if self._weights is None else self._weights.copy()
+
+    @property
+    def meta(self):
+        """Dict-like metadata"""
+        return self._meta
 
     # ----------------------------------------------------------------------
     # Add plotting methods to DataFrame
