@@ -51,7 +51,7 @@ techniques for multiple-criteria decision analysis.
 # CONSTANTS
 # =============================================================================
 
-__version__ = ("0", "2", "1")
+__version__ = ("0", "2", "9")
 
 NAME = "scikit-criteria"
 
@@ -67,7 +67,7 @@ URL = "http://scikit-criteria.org/"
 
 LICENSE = "3 Clause BSD"
 
-KEYWORDS = "mcda mcdm ahp moora muti criteria".split()
+KEYWORDS = "mcda mcdm moora muti criteria".split()
 
 
 # =============================================================================
