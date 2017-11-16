@@ -18,11 +18,21 @@ Scikit-Criteria
 methods integrated into scientific python stack. Is Open source and
 commercially usable.
 
-Support
--------
+Help & discussion mailing list
+------------------------------
 
--   **You can contact me at:** jbc.develop@gmail.com
--   **Code Repository & Issues:** https://github.com/leliel12/scikit-criteria
+Our Google Groups mailing list is
+`here <https://groups.google.com/forum/#!forum/scikit-criteria>`_.
+
+
+**You can contact me at:** jbc.develop@gmail.com (if you have a support
+question, try the mailing list first)
+
+
+Code Repository & Issues
+------------------------
+
+https://github.com/leliel12/scikit-criteria
 
 
 License
