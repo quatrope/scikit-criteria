@@ -49,8 +49,6 @@ __doc__ = """Test load of the datasets"""
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
 from .. import datasets
 
 from .tcore import SKCriteriaTestCase
