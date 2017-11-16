@@ -42,6 +42,6 @@ from __future__ import unicode_literals
 # DOCS
 # =============================================================================
 
-"""This package contains utilities to make some treantments to weights
+__doc__ = """This package contains utilities to make some treatments to weights
 
 """

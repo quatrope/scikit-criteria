@@ -8,5 +8,6 @@ API
 
     base
     validate
+    plot
     madm/madm
-    skcriteria.plot
+    weights/weights
