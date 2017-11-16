@@ -107,5 +107,8 @@ def load_camera():
 
     mtx = np.asarray(data[columns].tolist())
 
-    data = Data(mtx=mtx, criteria=criteria, anames=anames, cnames=cnames)
+    meta = {"desc": load_camera.__doc__}
+
+    data = Data(mtx=mtx, criteria=criteria,
+                anames=anames, cnames=cnames, meta=meta)
     return data

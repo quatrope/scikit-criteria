@@ -45,3 +45,5 @@ features some artificial data generators.
 # =============================================================================
 
 from .base import load_camera # noqa
+
+# from .generator import generate_dataset  # noqa
