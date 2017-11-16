@@ -130,6 +130,18 @@ class MetaData(Mapping):
 
 
 class Data(object):
+    """Multi-Criteria data representation.
+
+    This make easy to manipulate:
+
+    - The matrix of alternatives. (``mtx``)
+    - The array with the sense of optimality of every criteria (``criteria``).
+    - Optional weights of the criteria (``weights``)
+    - Optional names of the alternatives (``anames``) and the
+      criteria (``cnames``)
+    - Optional metadata (``meta``)
+
+    """
 
     def __init__(self, mtx, criteria,
                  weights=None, anames=None, cnames=None, meta=None):
