@@ -57,6 +57,8 @@ __all__ = [
 # IMPORTS
 # =============================================================================
 
+import itertools as it
+
 import numpy as np
 
 
@@ -67,8 +69,15 @@ import numpy as np
 MIN = -1
 """Int: Minimization criteria"""
 
+MIN_ALIASES = [MIN, min, np.min, np.nanmin, np.amin, "min", "minimize"]
+"""Another ways to name the minimization criterias."""
+
 MAX = 1
 """Int: Maximization criteria"""
+
+MAX_ALIASES = [MAX, max, np.max, np.nanmax, np.amax, "max", "maximize"]
+"""Another way to name the maximization criterias."""
+
 
 CRITERIA_STR = {
     MIN: "min",
@@ -81,6 +90,9 @@ TABULATE_PARAMS = {
     "stralign": "center",
 }
 
+
+ALIASES = dict(it.chain(dict.fromkeys(MIN_ALIASES, MIN).items(),
+                        dict.fromkeys(MAX_ALIASES, MAX).items()))
 
 # =============================================================================
 # EXCEPTIONS
@@ -122,8 +134,9 @@ def is_mtx(mtx, size=None):
 
 
 def criteriarr(criteria):
-    """Validate if the iterable only contains MIN (-1) and MAX (1) values. And
-    also always returns an ndarray representation of the iterable.
+    """Validate if the iterable only contains MIN (or any alias) and MAX
+    (or any alias) values. And also always returns an ndarray representation
+    of the iterable.
 
     Parameters
     ----------
@@ -145,9 +158,9 @@ def criteriarr(criteria):
 
     """
 
-    criteria = np.asarray(criteria)
-    if np.setdiff1d(criteria, [MIN, MAX]):
-        msg = "Criteria Array only accept '{}' or '{}' Values. Found {}"
+    criteria = np.array([ALIASES.get(c, c) for c in criteria])
+    if np.setdiff1d(criteria, [MIN, MAX]).size > 0:
+        msg = "Criteria Array only accept minimize or maximize Values. Found {}"
         raise DataValidationError(msg.format(MAX, MIN, criteria))
     return criteria
 

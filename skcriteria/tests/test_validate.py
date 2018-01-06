@@ -74,19 +74,31 @@ class Criteriarr(SKCriteriaTestCase):
         self.assertAllClose(arr, arr_result)
         self.assertIsInstance(arr_result, np.ndarray)
 
-    def test_from_array(self):
-        arr = np.array(
-            [random.choice(self.min_max) for _ in self.rrange(100, 1000)])
-        arr_result = criteriarr(arr)
-        self.assertAllClose(arr, arr_result)
-        self.assertIsInstance(arr_result, np.ndarray)
-        self.assertIs(arr, arr_result)
-
     def test_no_min_max(self):
         arr = [
             random.choice(self.min_max) for _ in self.rrange(100, 1000)] + [2]
         with self.assertRaises(ValueError):
             criteriarr(arr)
+
+    def test_alias(self):
+        original = np.array([-1, 1])
+        criterias = (
+            [min, max],
+            [np.min, np.max],
+            [np.amin, np.amax],
+            [np.nanmin, np.nanmax],
+            ["minimize", "maximize"],
+            ["min", "max"])
+        for arr in criterias:
+            parsed = criteriarr(arr)
+            self.assertArrayEqual(parsed, original)
+            with self.assertRaises(ValueError):
+                criteriarr(arr + [2])
+            with self.assertRaises(ValueError):
+                criteriarr(arr + [range])
+            with self.assertRaises(ValueError):
+                criteriarr(arr + ["foo"])
+
 
 
 class IsMtx(SKCriteriaTestCase):
