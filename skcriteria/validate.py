@@ -94,6 +94,7 @@ TABULATE_PARAMS = {
 ALIASES = dict(it.chain(dict.fromkeys(MIN_ALIASES, MIN).items(),
                         dict.fromkeys(MAX_ALIASES, MAX).items()))
 
+
 # =============================================================================
 # EXCEPTIONS
 # =============================================================================
@@ -160,7 +161,8 @@ def criteriarr(criteria):
 
     criteria = np.array([ALIASES.get(c, c) for c in criteria])
     if np.setdiff1d(criteria, [MIN, MAX]).size > 0:
-        msg = "Criteria Array only accept minimize or maximize Values. Found {}"
+        msg = (
+            "Criteria Array only accept minimize or maximize Values. Found {}")
         raise DataValidationError(msg.format(MAX, MIN, criteria))
     return criteria
 

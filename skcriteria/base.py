@@ -361,7 +361,7 @@ class BaseSolver(object):
         return Data(mtx=nmtx, criteria=data.criteria, weights=nweights,
                     anames=data.anames, cnames=data.cnames)
 
-    def decide(self, data, criteria=None, weights=None):
+    def decide(self, data, criteria=None, weights=None, **kwargs):
         """Execute the Solver over the given data.
 
         Parameters
@@ -383,6 +383,8 @@ class BaseSolver(object):
             - If data is 2d array_like and weights are 1d array_like with `m`
               elements (number of criteria); the i-nth element represent the
               importance of the i-nth criteria.
+        kwargs : optional
+            keywords arguments for the solve method
 
         Returns
         -------
@@ -401,7 +403,7 @@ class BaseSolver(object):
                                  "provide a 'criteria' array")
             data = Data(data, criteria, weights)
         pdata = self.preprocess(data)
-        result = self.solve(pdata)
+        result = self.solve(pdata, **kwargs)
         return self.make_result(data, *result)
 
     @abc.abstractmethod

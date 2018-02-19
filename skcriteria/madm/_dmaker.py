@@ -404,7 +404,7 @@ class DecisionMaker(BaseSolver):
         -------
 
         :py:class:`skcriteria.madm.Decision`
-            A convenient instance conraining all the parameters.
+            A convenient instance containing all the parameters.
 
         """
         decision = Decision(

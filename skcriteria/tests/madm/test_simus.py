@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016-2017, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2016-2017-2018, Cabral, Juan; Luczywo, Nadia
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -32,82 +32,53 @@
 
 
 # =============================================================================
-# DOCS
+# FUTURE
 # =============================================================================
 
-"""This file is for distribute scikit-criteria
+from __future__ import unicode_literals
 
-"""
+
+# =============================================================================
+# DOC
+# =============================================================================
+
+__doc__ = """test simple methods"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import sys
-import os
+from skcriteria import Data
+from ...madm import simus
 
-from ez_setup import use_setuptools
-use_setuptools()
-
-from setuptools import setup, find_packages
-
-os.environ["SKCRITERIA_IN_SETUP"] = "True"
-import skcriteria
+from ..tcore import SKCriteriaTestCase
 
 
 # =============================================================================
-# CONSTANTS
+# Tests
 # =============================================================================
 
-REQUIREMENTS = [
-    "numpy", "scipy", "six", "mock", "tabulate", "matplotlib", "pulp",
-    "json-tricks", "joblib", "attrs"
-]
+class SimusTest(SKCriteriaTestCase):
+    mnorm = "sum"
+    wnorm = "sum"
 
+    def setUp(self):
+        # Data From:
+        # Munier, N., Carignano, C., & Alberto, C.
+        # UN MÉTODO DE PROGRAMACIÓN MULTIOBJETIVO.
+        # Revista de la Escuela de Perfeccionamiento en Investigación
+        # Operativa, 24(39).
 
-# =============================================================================
-# FUNCTIONS
-# =============================================================================
+        self.data = Data(
+            mtx=[[250, 120, 20, 800],
+                 [130, 200, 40, 1000],
+                 [350, 340, 15, 600]],
+            criteria=[max, max, min, max],
+            anames=["Proyecto 1", "Proyecto 2", "Proyecto 3"],
+            cnames=["Criterio 1", "Criterio 2", "Criterio 3", "Criterio 4"])
+        self.b = [None, 500, None, None]
 
-def do_setup():
-    setup(
-        name=skcriteria.NAME,
-        version=skcriteria.VERSION,
-        description=skcriteria.DOC,
-        author=skcriteria.AUTHORS,
-        author_email=skcriteria.EMAIL,
-        url=skcriteria.URL,
-        license=skcriteria.LICENSE,
-        keywords=skcriteria.KEYWORDS,
-        classifiers=(
-            "Development Status :: 4 - Beta",
-            "Intended Audience :: Education",
-            "Intended Audience :: Science/Research",
-            "License :: OSI Approved :: BSD License",
-            "Operating System :: OS Independent",
-            "Programming Language :: Python",
-            "Programming Language :: Python :: 2",
-            "Programming Language :: Python :: 2.7",
-            "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.4",
-            "Programming Language :: Python :: 3.5",
-            "Programming Language :: Python :: Implementation :: CPython",
-            "Topic :: Scientific/Engineering",
-        ),
-        packages=[
-            pkg for pkg in find_packages() if pkg.startswith("skcriteria")],
-        py_modules=["ez_setup"],
-        install_requires=REQUIREMENTS,
-    )
-
-
-def do_publish():
-    pass
-
-
-if __name__ == "__main__":
-    if sys.argv[-1] == 'publish':
-        do_publish()
-    else:
-        do_setup()
+    def test_simus(self):
+        dm = simus.SIMUS()
+        dm.decide(self.data, b=self.b)

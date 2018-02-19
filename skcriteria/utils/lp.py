@@ -44,7 +44,6 @@
 # =============================================================================
 
 import operator
-from collections import Mapping
 
 import pulp
 
@@ -54,12 +53,6 @@ import attr
 # =============================================================================
 # CONSTANTS
 # =============================================================================
-
-VAR_TYPE = {
-    int: pulp.LpInteger,
-    float: pulp.LpContinuous,
-    bool: pulp.LpBinary
-}
 
 SOLVERS = {
     "pulp": pulp.solvers.PULP_CBC_CMD,
@@ -115,12 +108,35 @@ class Result(object):
     variables = attr.ib(converter=Bunch)
 
 
-class Var(pulp.LpVariable):
+# =============================================================================
+# VARIABLES
+# =============================================================================
 
-    def __init__(self, name, low=None, up=None, type=float, *args, **kwargs):
-        super(Var, self).__init__(
+class _Var(pulp.LpVariable):
+
+    def __init__(self, name, low=None, up=None, *args, **kwargs):
+        super(_Var, self).__init__(
             name=name, lowBound=low, upBound=up,
-            cat=VAR_TYPE[type], *args, **kwargs)
+            cat=self.var_type, *args, **kwargs)
+
+
+class Float(_Var):
+    var_type = pulp.LpContinuous
+
+
+class Int(_Var):
+    var_type = pulp.LpInteger
+
+
+class Bool(_Var):
+    var_type = pulp.LpBinary
+
+
+VAR_TYPE = {
+    int: Int,
+    float: Float,
+    bool: Bool
+}
 
 
 # =============================================================================
@@ -147,15 +163,11 @@ class _LP(pulp.LpProblem):
         else:
             x_n = len(x)
 
-        xkwds = []
-        for xi in x:
-            if xi is None:
-                xi = {"low": 0, "type": float}
-            elif xi in VAR_TYPE:
-                xi = {"low": 0, "type": xi}
-            xkwds.append(xi)
-
-        x_s = [Var("x{}".format(idx + 1), **xkwds[idx]) for idx in range(x_n)]
+        x_s = []
+        for idx, xi in enumerate(x):
+            cls = VAR_TYPE.get(type(xi), Float)
+            x = cls("x{}".format(idx + 1), low=0)
+            x_s.append(x)
 
         # Z
         z = sum([ci * xi for ci, xi in zip(c, x_s)])
@@ -185,8 +197,8 @@ class _LP(pulp.LpProblem):
         super(_LP, self).solve()
         objective = pulp.value(self.objective)
         variables = {v.name: v.varValue for v in self.variables()}
-        status=pulp.LpStatus[self.status]
-        model.assignVarsVals(dict.fromkeys(variables, None))
+        status = pulp.LpStatus[self.status]
+        self.assignVarsVals(dict.fromkeys(variables, None))
         return Result(status_code=self.status,
                       status=status,
                       objective=objective,
