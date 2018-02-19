@@ -61,8 +61,8 @@ import skcriteria
 # =============================================================================
 
 REQUIREMENTS = [
-    "numpy", "scipy", "six", "mock", "tabulate", "matplotlib",
-    "json-tricks"  # this is for io
+    "numpy", "scipy", "six", "mock", "tabulate", "matplotlib", "pulp",
+    "json-tricks", "joblib"  # this is for io
 ]
 
 

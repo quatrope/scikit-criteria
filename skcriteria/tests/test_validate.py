@@ -95,10 +95,7 @@ class Criteriarr(SKCriteriaTestCase):
             with self.assertRaises(ValueError):
                 criteriarr(arr + [2])
             with self.assertRaises(ValueError):
-                criteriarr(arr + [range])
-            with self.assertRaises(ValueError):
                 criteriarr(arr + ["foo"])
-
 
 
 class IsMtx(SKCriteriaTestCase):
