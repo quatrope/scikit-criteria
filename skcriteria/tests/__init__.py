@@ -44,5 +44,9 @@ from __future__ import unicode_literals
 
 __doc__ = """All scikit-criteria tests"""
 
-if __name__ == "__main__":
-    print(__doc__)
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+from .run import run  # noqa
