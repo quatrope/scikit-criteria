@@ -81,4 +81,9 @@ class SimusTest(SKCriteriaTestCase):
 
     def test_simus(self):
         dm = simus.SIMUS()
-        dm.decide(self.data, b=self.b)
+        dec = dm.decide(self.data, b=self.b)
+        self.assertAllClose(dec.rank_, [3, 2, 1])
+        self.assertAllClose(
+            dec.e_.points1, [0.09090909, 0.66603535, 0.74305556])
+        self.assertAllClose(
+            dec.e_.points2, [-2.45454545,  0.99621211,  1.45833334])

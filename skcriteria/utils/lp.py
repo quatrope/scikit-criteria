@@ -47,6 +47,8 @@ import operator
 
 import pulp
 
+import six
+
 import attr
 
 
@@ -86,15 +88,6 @@ CMP = {
 # RESULT CLASSES
 # =============================================================================
 
-class Bunch(dict):
-
-    def __getattr__(self, aname):
-        try:
-            return self[aname]
-        except KeyError as err:
-            raise AttributeError(*err.args)
-
-
 @attr.s(frozen=True)
 class Result(object):
 
@@ -105,7 +98,8 @@ class Result(object):
         validator=attr.validators.in_(pulp.constants.LpStatus.values()))
     objective = attr.ib(
         validator=attr.validators.instance_of(float))
-    variables = attr.ib(converter=Bunch)
+    variables = attr.ib(converter=tuple)
+    values = attr.ib(converter=tuple)
 
 
 # =============================================================================
@@ -148,7 +142,7 @@ class _LP(pulp.LpProblem):
     def __init__(self, z, name="no-name", solver=None, **solver_kwds):
         super(_LP, self).__init__(name, self.sense)
         if solver:
-            if isinstance(solver, str):
+            if isinstance(solver, six.string_types):
                 cls = SOLVERS[solver]
                 solver = cls(**solver_kwds) if cls else None
             self.solver = solver
@@ -196,13 +190,17 @@ class _LP(pulp.LpProblem):
     def solve(self):
         super(_LP, self).solve()
         objective = pulp.value(self.objective)
-        variables = {v.name: v.varValue for v in self.variables()}
+        variables, values = [], []
+        for v in self.variables():
+            variables.append(v.name)
+            values.append(v.varValue)
         status = pulp.LpStatus[self.status]
         self.assignVarsVals(dict.fromkeys(variables, None))
         return Result(status_code=self.status,
                       status=status,
                       objective=objective,
-                      variables=variables)
+                      variables=variables,
+                      values=values)
 
 
 # =============================================================================
