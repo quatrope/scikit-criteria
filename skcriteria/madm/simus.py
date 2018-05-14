@@ -255,7 +255,7 @@ class SIMUS(DecisionMaker):
         Whic solver to use to solve the undelying linear programs. The full
         list are available in :py:dict:`skcriteria.utils.lp.SOLVERS`
 
-    njobs : str, default=None
+    njobs : int, default=None
         How many cores to use to solve the linear programs and the second
         method. By default all the availables cores are used.
 

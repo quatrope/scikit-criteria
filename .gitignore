@@ -59,3 +59,4 @@ target/
 
 *.ipynb_checkpoints
 setuptools-*.zip
+.pytest_cache
