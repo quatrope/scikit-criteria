@@ -182,7 +182,7 @@ class PushNegatives(NormTestBase):
     def test_push_negatives(self):
         self.mtx = [
             [1, -2, 3],
-            [4,  5, 6]
+            [4, 5, 6]
         ]
         mtx_result = [
             [1, 0, 3],

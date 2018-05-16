@@ -84,9 +84,9 @@ def radar_factory(num_vars, frame='circle'):
 
     """
     # calculate evenly-spaced axis angles
-    theta = np.linspace(0, 2*np.pi, num_vars, endpoint=False)
+    theta = np.linspace(0, 2 * np.pi, num_vars, endpoint=False)
     # rotate theta such that the first axis is at the top
-    theta += np.pi/2
+    theta += np.pi / 2
 
     def draw_poly_patch(self):
         verts = unit_poly_verts(theta)
@@ -160,7 +160,7 @@ def unit_poly_verts(theta):
     This polygon is circumscribed by a unit circle centered at (0.5, 0.5)
     """
     x0, y0, r = [0.5] * 3
-    verts = [(r*np.cos(t) + x0, r*np.sin(t) + y0) for t in theta]
+    verts = [(r * np.cos(t) + x0, r * np.sin(t) + y0) for t in theta]
     return verts
 
 
@@ -199,7 +199,7 @@ def radar_plot(mtx, criteria, weights, anames, cnames,
     ax.legend(
         anames, loc='upper center',
         bbox_to_anchor=(0.5, -0.08),
-        fancybox=True, ncol=int(len(anames)/colfactor))
+        fancybox=True, ncol=int(len(anames) / colfactor))
 
     figure.tight_layout(rect=[0, 0.2, 1, 1])
 

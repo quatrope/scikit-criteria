@@ -85,8 +85,8 @@ class WSumTest(SKCriteriaTestCase):
         self.weights = [20, 20, 20, 20, 20, 20, 20]
 
     def test_wsum(self):
-        result = [5,  1,  3,  6,  4,  2]
-        points = [3.531494, 1985.498321,  8.853048,
+        result = [5, 1, 3, 6, 4, 2]
+        points = [3.531494, 1985.498321, 8.853048,
                   2.95696, 4.71996, 12.909456]
 
         dm = simple.WeightedSum()

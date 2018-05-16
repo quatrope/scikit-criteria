@@ -79,7 +79,7 @@ class DivergenceTest(SKCriteriaTestCase):
             [-34.6, 3.31, 0.98]
         ]
         self.nmtx = norm.ideal_point(self.mtx, criteria=[1, 1, 1], axis=0)
-        self.expected = [0.27908306,  0.34092628,  0.37999065]
+        self.expected = [0.27908306, 0.34092628, 0.37999065]
 
     def test_divergence(self):
         result = divergence.divergence(self.nmtx, divcorr.std)

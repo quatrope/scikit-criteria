@@ -160,8 +160,8 @@ class _LP(pulp.LpProblem):
 
         x_s = []
         for idx, xi in enumerate(x):
-            cls = VAR_TYPE.get(type(xi), Float)
-            x = cls("x{}".format(idx + 1), low=0)
+            vcls = VAR_TYPE.get(type(xi), Float)
+            x = vcls("x{}".format(idx + 1), low=0)
             x_s.append(x)
 
         # Z

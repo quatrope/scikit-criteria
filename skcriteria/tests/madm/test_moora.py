@@ -150,8 +150,8 @@ class FMFMOORATest(MOORATestBase):
         zeros = set()
         while len(zeros) < 3:
             zero = (
-                random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1))
+                random.randint(0, self.rows - 1),
+                random.randint(0, self.columns - 1))
             zeros.add(zero)
         for row, column in zeros:
             self.mtx[row][column] = 0
@@ -175,8 +175,8 @@ class FMFMOORATest(MOORATestBase):
         zeros = set()
         while len(zeros) < 3:
             zero = (
-                random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1))
+                random.randint(0, self.rows - 1),
+                random.randint(0, self.columns - 1))
             zeros.add(zero)
         for row, column in zeros:
             self.mtx[row][column] = 0
@@ -201,8 +201,8 @@ class FMFMOORATest(MOORATestBase):
         zeros = set()
         while len(zeros) < 3:
             zero = (
-                random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1))
+                random.randint(0, self.rows - 1),
+                random.randint(0, self.columns - 1))
             zeros.add(zero)
         for row, column in zeros:
             self.mtx[row][column] = 0
@@ -239,8 +239,8 @@ class MultiMOORATest(MOORATestBase):
         zeros = set()
         while len(zeros) < 3:
             zero = (
-                random.randint(0, self.rows-1),
-                random.randint(0, self.columns-1))
+                random.randint(0, self.rows - 1),
+                random.randint(0, self.columns - 1))
             zeros.add(zero)
         for row, column in zeros:
             self.mtx[row][column] = 0

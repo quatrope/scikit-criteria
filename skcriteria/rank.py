@@ -143,4 +143,4 @@ def spearmanr(r0, r1):
     N = len(r0)
     num = 6.0 * np.sum(np.subtract(r0, r1) ** 2)
     denom = N * ((N ** 2) - 1)
-    return 1 - (num/denom)
+    return 1 - (num / denom)

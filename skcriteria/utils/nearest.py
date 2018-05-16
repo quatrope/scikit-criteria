@@ -70,11 +70,11 @@ def nearest(array, value, side=None):
     cleaned = raveled[~np.isnan(raveled)]
 
     if side is None:
-        idx = np.argmin(np.abs(cleaned-value))
+        idx = np.argmin(np.abs(cleaned - value))
 
     else:
         masker, decisor = (
-            (np.ma.less_equal,  np.argmin)
+            (np.ma.less_equal, np.argmin)
             if side == "gt" else
             (np.ma.greater_equal, np.argmax))
 
