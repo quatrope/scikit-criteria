@@ -225,6 +225,7 @@ class ELECTRE1(DecisionMaker):
     .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
        making: methods and applications. CRC press.
 
+
     """
 
     def __init__(self, p=.65, q=.35, mnorm="sum", wnorm="sum", njobs=None):
@@ -269,3 +270,11 @@ class ELECTRE1(DecisionMaker):
 
         """
         return self._q
+
+    @property
+    def njobs(self):
+        """How many cores to use to solve the linear programs and the second
+        method. By default all the availables cores are used.
+
+        """
+        return self._njobs

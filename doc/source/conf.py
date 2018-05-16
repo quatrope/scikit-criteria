@@ -29,11 +29,12 @@ os.environ["SKCRITERIA_IN_SETUP"] = "True"
 import skcriteria
 
 # modules to mock in readthedocs
-MOCK_MODULES = ["numpy", "scipy",
-                "matplotlib", "matplotlib.pyplot",
-                "matplotlib.cm", "matplotlib.patches",
-                "matplotlib.spines", "matplotlib.projections.polar",
-                "matplotlib.projections", "matplotlib.path"]
+MOCK_MODULES = []
+#~ ["numpy", "scipy",
+                #~ "matplotlib", "matplotlib.pyplot",
+                #~ "matplotlib.cm", "matplotlib.patches",
+                #~ "matplotlib.spines", "matplotlib.projections.polar",
+                #~ "matplotlib.projections", "matplotlib.path"]
 
 # -- General configuration ------------------------------------------------
 
@@ -72,7 +73,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = skcriteria.NAME
-copyright = u'2015-2016-2017, Juan B. Cabral - Nadia A. Luczywo'
+copyright = u'2015-2016-2017-2018, Juan B. Cabral - Nadia A. Luczywo'
 author = u'Juan BC'
 
 # The version info for the project you're documenting, acts as replacement for

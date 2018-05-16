@@ -4,7 +4,7 @@
 Installing scikit-criteria
 ==========================
 
-The easiest way to install scikit-learn is using ``pip`` ::
+The easiest way to install scikit-criteria is using ``pip`` ::
 
     pip install -U scikit-criteria
 
@@ -35,5 +35,5 @@ Canopy and Anaconda for all supported platforms
 `Canopy
 <https://www.enthought.com/products/canopy>`_ and `Anaconda
 <https://www.continuum.io/downloads>`_ both ship a recent
-version of scikit-learn, in addition to a large set of scientific python
+version of Python, in addition to a large set of scientific python
 library for Windows, Mac OSX and Linux.

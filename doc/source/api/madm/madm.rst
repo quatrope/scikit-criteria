@@ -15,3 +15,4 @@
     closeness
     moora
     electre
+    simus

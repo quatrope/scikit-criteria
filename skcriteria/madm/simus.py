@@ -252,8 +252,8 @@ class SIMUS(DecisionMaker):
         The two methods are executed always.
 
     solver : str, default="pulp"
-        Whic solver to use to solve the undelying linear programs. The full
-        list are available in :py:dict:`skcriteria.utils.lp.SOLVERS`
+        Which solver to use to solve the undelying linear programs. The full
+        list are available in `skcriteria.utils.lp.SOLVERS`
 
     njobs : int, default=None
         How many cores to use to solve the linear programs and the second
@@ -292,16 +292,16 @@ class SIMUS(DecisionMaker):
           - **doms**: Total dominance matrix of the 2nd. method.
           - **dom_by_crit**: Dominance by criteria of the 2nd method.
 
-
     References
     ----------
 
     .. [1] Munier, N. (2011). A strategy for using multicriteria analysis in
-    decision-making: a guide for simple and complex environmental projects.
-    Springer Science & Business Media.
+       decision-making: a guide for simple and complex environmental projects.
+       Springer Science & Business Media.
     .. [2] Munier, N., Carignano, C., & Alberto, C. UN MÉTODO DE PROGRAMACIÓN
-    MULTIOBJETIVO. Revista de la Escuela de Perfeccionamiento en Investigación
-    Operativa, 24(39).
+       MULTIOBJETIVO. Revista de la Escuela de Perfeccionamiento en
+       Investigación Operativa, 24(39).
+
 
     """
 
@@ -336,10 +336,18 @@ class SIMUS(DecisionMaker):
 
     @property
     def solver(self):
+        """Which solver to use to solve the undelying linear programs. The full
+        list are available in `skcriteria.utils.lp.SOLVERS`
+
+        """
         return self._solver
 
     @property
     def njobs(self):
+        """How many cores to use to solve the linear programs and the second
+        method. By default all the availables cores are used.
+
+        """
         return self._njobs
 
 
