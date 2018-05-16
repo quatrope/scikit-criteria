@@ -51,6 +51,8 @@ __doc__ = """test electre methods"""
 
 import numpy as np
 
+import joblib
+
 from ...validate import criteriarr
 from ...base import Data
 from ... import norm
@@ -93,7 +95,8 @@ class ConcordanceTest(SKCriteriaTestCase):
             [0.9000, 0.7000, 0.8000, 0.9000, np.nan, 0.9000],
             [0.5500, 0.5000, 0.5500, 0.5500, 0.1000, np.nan]
         ]
-        concordance = electre.concordance(nmtx, ncriteria, nweights)
+        with joblib.Parallel(n_jobs=1) as jobs:
+            concordance = electre.concordance(nmtx, ncriteria, nweights, jobs)
         self.assertAllClose(concordance, results, atol=1.e-3)
 
 
@@ -124,7 +127,9 @@ class DiscordanceTest(SKCriteriaTestCase):
             [0.5714, 0.4042, 0.8571, np.nan, 1.0, 0.7143],
             [0.0485, 0.3031, 0.2021, 0.0727, np.nan, 0.0969],
             [0.1295, 0.6063, 0.5052, 0.2021, 0.3031, np.nan]]
-        discordance = electre.discordance(nmtx, ncriteria)
+
+        with joblib.Parallel(n_jobs=1) as jobs:
+            discordance = electre.discordance(nmtx, ncriteria, jobs)
         self.assertAllClose(discordance, results, atol=1.e-3)
 
 
@@ -153,7 +158,7 @@ class Electre1Test(SKCriteriaTestCase):
         weights = [0.25, 0.25, 0.1, 0.2, 0.2]
 
         result_kernel = [4]
-        dm = electre.ELECTRE1(p=0.55, q=0.699)
+        dm = electre.ELECTRE1(p=0.55, q=0.699, njobs=1)
         decision = dm.decide(mtx, criteria, weights)
         self.assertCountEqual(decision.kernel_, result_kernel)
 
@@ -178,7 +183,8 @@ class Electre1Test(SKCriteriaTestCase):
 
         kernels_len = []
         for p, q in zip(ps, qs):
-            dm = electre.ELECTRE1(mnorm="none", wnorm="none", p=p, q=q)
+            dm = electre.ELECTRE1(
+                mnorm="none", wnorm="none", p=p, q=q, njobs=1)
             dec = dm.decide(data)
             klen = len(dec.kernel_)
 
@@ -186,3 +192,7 @@ class Electre1Test(SKCriteriaTestCase):
                 self.fail("less sensitive electre must have more "
                           "alternatives in kernel. {}".format(kernels_len))
             kernels_len.append(klen)
+
+    @property
+    def njobs(self):
+        return self._njobs

@@ -59,6 +59,8 @@ __all__ = ['ELECTRE1']
 
 import numpy as np
 
+import joblib
+
 from ..validate import MAX, MIN
 from ..utils.doc_inherit import doc_inherit
 
@@ -69,44 +71,56 @@ from ._dmaker import DecisionMaker
 # UTILS
 # =============================================================================
 
-def concordance(mtx, criteria, weights):
+def _conc_row(idx, row, mtx, mtx_criteria, mtx_weight):
+    difference = row - mtx
+    outrank = (
+        ((mtx_criteria == MAX) & (difference >= 0)) |
+        ((mtx_criteria == MIN) & (difference <= 0))
+    )
+    filter_weights = mtx_weight * outrank.astype(int)
+    new_row = np.sum(filter_weights, axis=1)
+    return new_row
+
+
+def concordance(mtx, criteria, weights, jobs=None):
 
     mtx_criteria = np.tile(criteria, (len(mtx), 1))
     mtx_weight = np.tile(weights, (len(mtx), 1))
-    mtx_concordance = np.empty((len(mtx), len(mtx)))
+    mtx_concordance = jobs(
+        joblib.delayed(_conc_row)(idx, row, mtx, mtx_criteria, mtx_weight)
+        for idx, row in enumerate(mtx))
 
-    for idx, row in enumerate(mtx):
-        difference = row - mtx
-        outrank = (
-            ((mtx_criteria == MAX) & (difference >= 0)) |
-            ((mtx_criteria == MIN) & (difference <= 0))
-        )
-        filter_weights = mtx_weight * outrank.astype(int)
-        new_row = np.sum(filter_weights, axis=1)
-        mtx_concordance[idx] = new_row
-
+    mtx_concordance = np.asarray(mtx_concordance)
     np.fill_diagonal(mtx_concordance, np.nan)
     return mtx_concordance
 
 
-def discordance(mtx, criteria):
+# =============================================================================
+# DISCORDANCE
+# =============================================================================
 
+def _disc_row(idx, row, mtx, mtx_criteria, max_range):
+    difference = mtx - row
+    worsts = (
+        ((mtx_criteria == MAX) & (difference > 0)) |
+        ((mtx_criteria == MIN) & (difference < 0))
+    )
+    filter_difference = np.abs(difference * worsts)
+    delta = filter_difference / max_range
+    new_row = np.max(delta, axis=1)
+    return new_row
+
+
+def discordance(mtx, criteria, jobs):
     mtx_criteria = np.tile(criteria, (len(mtx), 1))
-    mtx_discordance = np.empty((len(mtx), len(mtx)))
     ranges = np.max(mtx, axis=0) - np.min(mtx, axis=0)
     max_range = ranges.max()
 
-    for idx, row in enumerate(mtx):
-        difference = mtx - row
-        worsts = (
-            ((mtx_criteria == MAX) & (difference > 0)) |
-            ((mtx_criteria == MIN) & (difference < 0))
-        )
-        filter_difference = np.abs(difference * worsts)
-        delta = filter_difference / max_range
-        new_row = np.max(delta, axis=1)
-        mtx_discordance[idx] = new_row
+    mtx_discordance = jobs(
+        joblib.delayed(_disc_row)(idx, row, mtx, mtx_criteria, max_range)
+        for idx, row in enumerate(mtx))
 
+    mtx_discordance = np.asarray(mtx_discordance)
     np.fill_diagonal(mtx_discordance, np.nan)
     return mtx_discordance
 
@@ -115,11 +129,15 @@ def discordance(mtx, criteria):
 # ELECTRE
 # =============================================================================
 
-def electre1(nmtx, ncriteria, nweights, p, q):
+def electre1(nmtx, ncriteria, nweights, p, q, njobs=None):
+    # determine the njobs
+    njobs = njobs or joblib.cpu_count()
 
     # get the concordance and discordance info
-    mtx_concordance = concordance(nmtx, ncriteria, nweights)
-    mtx_discordance = discordance(nmtx, ncriteria)
+    # multiprocessing environment
+    with joblib.Parallel(n_jobs=njobs) as jobs:
+        mtx_concordance = concordance(nmtx, ncriteria, nweights, jobs)
+        mtx_discordance = discordance(nmtx, ncriteria, jobs)
 
     with np.errstate(invalid='ignore'):
         outrank = (
@@ -158,6 +176,10 @@ class ELECTRE1(DecisionMaker):
 
     wnorm : string, callable, optional (default="sum")
         Normalization method for the weights array.
+
+    njobs : int, default=None
+        How many cores to use to solve the linear programs and the second
+        method. By default all the availables cores are used.
 
     Returns
     -------
@@ -205,10 +227,11 @@ class ELECTRE1(DecisionMaker):
 
     """
 
-    def __init__(self, p=.65, q=.35, mnorm="sum", wnorm="sum"):
+    def __init__(self, p=.65, q=.35, mnorm="sum", wnorm="sum", njobs=None):
         super(ELECTRE1, self).__init__(mnorm=mnorm, wnorm=wnorm)
         self._p = float(p)
         self._q = float(q)
+        self._njobs = njobs
 
     @doc_inherit
     def as_dict(self):
