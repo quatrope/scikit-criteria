@@ -10,6 +10,7 @@ Contents:
     :maxdepth: 1
 
     quickstart.ipynb
+    simus.ipynb
 
 
 .. seealso::
