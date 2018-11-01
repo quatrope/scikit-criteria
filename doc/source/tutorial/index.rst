@@ -11,6 +11,7 @@ Contents:
 
     quickstart.ipynb
     simus.ipynb
+    electre1.ipynb
 
 
 .. seealso::
