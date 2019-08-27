@@ -6,15 +6,23 @@ script:
   - tox -r
 matrix:
     include:
-        - python: 2.7
-          env: TOXENV=py27
-        - python: 3.4
-          env: TOXENV=py34
-        - python: 3.5
-          env: TOXENV=py35
+        - python: 3.7
+          env: TOXENV=style
+          sudo: true
+          dist: xenial
+        - python: 3.7
+          env: TOXENV=coverage
+          sudo: true
+          dist: xenial
+        - python: 3.7
+          env: TOXENV=docs
+          dist: xenial
+          sudo: true
+        - python: 3.7
+          env: TOXENV=py37
+          dist: xenial
+          sudo: true
         - python: 3.6
           env: TOXENV=py36
-        - python: 3.6
-          env: TOXENV=style
-        - python: 3.6
-          env: TOXENV=coverage
+          dist: xenial
+          sudo: true
