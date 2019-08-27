@@ -31,13 +31,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # =============================================================================
-# FUTURE & DOCS
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
-
-
-__doc__ = """Module containing the basic functionality
+"""Module containing the basic functionality
 for the data representation used inside Scikit-Criteria.
 
 """
@@ -49,11 +46,8 @@ __all__ = ['Data']
 # IMPORTS
 # =============================================================================
 
-import sys
 import abc
 from collections import Mapping
-
-import six
 
 import numpy as np
 
@@ -105,22 +99,8 @@ class MetaData(Mapping):
     def __dir__(self):
         return list(self._data)
 
-    def __unicode__(self):
-        return self.to_str()
-
-    def __bytes__(self):
-        encoding = sys.getdefaultencoding()
-        return self.__unicode__().encode(encoding, 'replace')
-
     def __str__(self):
-        """Return a string representation for a particular Object
-
-        Invoked by str(df) in both py2/py3.
-        Yields Bytestring in Py2, Unicode String in py3.
-        """
-        if six.PY3:
-            return self.__unicode__()
-        return self.__bytes__()
+        return self.to_str()
 
     def __repr__(self):
         return str(self)
@@ -194,22 +174,8 @@ class Data(object):
     def __ne__(self, obj):
         return not self == obj
 
-    def __unicode__(self):
-        return self.to_str()
-
-    def __bytes__(self):
-        encoding = sys.getdefaultencoding()
-        return self.__unicode__().encode(encoding, 'replace')
-
     def __str__(self):
-        """Return a string representation for a particular Object
-
-        Invoked by str(df) in both py2/py3.
-        Yields Bytestring in Py2, Unicode String in py3.
-        """
-        if six.PY3:
-            return self.__unicode__()
-        return self.__bytes__()
+        return self.to_str()
 
     def __repr__(self):
         return str(self)
@@ -227,14 +193,13 @@ class Data(object):
             Parameters to configure
             `tabulate <https://bitbucket.org/astanin/python-tabulate>`_
 
-        Return
-        ------
+        Returns
+        -------
 
         str :
             String representation of the Data object.
 
         """
-
         params.update({
             k: v for k, v in TABULATE_PARAMS.items() if k not in params})
         rows = self._iter_rows()
@@ -288,8 +253,7 @@ class BaseSolverMeta(abc.ABCMeta, InheritableDocstrings):
     pass
 
 
-@six.add_metaclass(BaseSolverMeta)
-class BaseSolver(object):
+class BaseSolver(metaclass=BaseSolverMeta):
 
     def __init__(self, mnorm, wnorm):
         from . import norm

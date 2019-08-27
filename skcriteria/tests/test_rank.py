@@ -32,17 +32,10 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOC
 # =============================================================================
 
-__doc__ = """Test ranking procedures"""
+"""Test ranking procedures"""
 
 
 # =============================================================================
@@ -50,8 +43,6 @@ __doc__ = """Test ranking procedures"""
 # =============================================================================
 
 import random
-
-from six.moves import range
 
 from .. import rank
 
@@ -73,13 +64,13 @@ class RankTest(SKCriteriaTestCase):
         manual = [None] * len(self.arr)
         for elem_idx, pos in enumerate(rank.rankdata(self.arr)):
             manual[int(pos) - 1] = self.arr[elem_idx]
-        self.assertEquals(manual, sorted(self.arr))
+        self.assertEqual(manual, sorted(self.arr))
 
     def test_rank_reverse(self):
         manual = [None] * len(self.arr)
         for elem_idx, pos in enumerate(rank.rankdata(self.arr, reverse=True)):
             manual[int(pos) - 1] = self.arr[elem_idx]
-        self.assertEquals(manual, sorted(self.arr, reverse=True))
+        self.assertEqual(manual, sorted(self.arr, reverse=True))
 
 
 class Dominance(SKCriteriaTestCase):

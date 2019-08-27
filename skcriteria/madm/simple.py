@@ -32,13 +32,6 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOCS
 # =============================================================================
 
@@ -180,7 +173,7 @@ class WeightedSum(DecisionMaker):
 
 
 class WeightedProduct(DecisionMaker):
-    """The weighted product model (WPM) is a popular multi-criteria decision
+    r"""The weighted product model (WPM) is a popular multi-criteria decision
     analysis method. It is similar to the weighted sum model.
     The main difference is that instead of addition in the main mathematical
     operation now there is multiplication.

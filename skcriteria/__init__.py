@@ -32,17 +32,10 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOCS
 # =============================================================================
 
-__doc__ = """Scikit-Criteria is a collections of algorithms, methods and
+"""Scikit-Criteria is a collections of algorithms, methods and
 techniques for multiple-criteria decision analysis.
 
 """
@@ -76,7 +69,7 @@ KEYWORDS = "mcda mcdm moora muti criteria".split()
 
 import os
 
-if os.getenv("SKCRITERIA_IN_SETUP") != "True":
+if os.getenv("__SKCRITERIA_IN_SETUP__") != "True":
     from .validate import *  # noqa
     from .base import *  # noqa
 

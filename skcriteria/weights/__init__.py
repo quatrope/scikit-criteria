@@ -32,16 +32,9 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOCS
 # =============================================================================
 
-__doc__ = """This package contains utilities to make some treatments to weights
+"""This package contains utilities to make some treatments to weights
 
 """

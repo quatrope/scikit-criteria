@@ -30,14 +30,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import division, print_function
-
-
 # =============================================================================
 # META
 # =============================================================================
 
-__doc__ = """ Create a scatter-plot matrix using Matplotlib. """
+""" Create a scatter-plot matrix using Matplotlib. """
 
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
@@ -49,8 +46,6 @@ __author__ = "adrn <adrn@astro.columbia.edu>"
 import numpy as np
 
 import matplotlib.pyplot as plt
-
-from six.moves import range
 
 
 # =============================================================================

@@ -52,7 +52,7 @@ use_setuptools()
 
 from setuptools import setup, find_packages
 
-os.environ["SKCRITERIA_IN_SETUP"] = "True"
+os.environ["__SKCRITERIA_IN_SETUP__"] = "True"
 import skcriteria
 
 
@@ -61,7 +61,7 @@ import skcriteria
 # =============================================================================
 
 REQUIREMENTS = [
-    "numpy", "scipy", "six", "mock", "tabulate", "matplotlib", "pulp",
+    "numpy", "scipy", "mock", "tabulate", "matplotlib", "PuLP-py3",
     "json-tricks", "joblib", "attrs", "pytest"
 ]
 

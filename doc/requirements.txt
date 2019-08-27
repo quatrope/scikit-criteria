@@ -1,8 +1,9 @@
-docutils==0.14
-mock==2.0.0
-numpydoc==0.7.0
-sphinx-rtd-theme==0.2.4
-six
+docutils
+numpydoc
+sphinx-rtd-theme
 tabulate
 json-tricks
+jupyter
+ipykernel
 nbsphinx
+jupyter_client

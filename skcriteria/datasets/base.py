@@ -45,8 +45,6 @@
 
 import os
 
-import six
-
 import numpy as np
 
 from ..validate import MIN, MAX
@@ -80,7 +78,7 @@ def load_camera():
     """
     path = os.path.join(DATA_PATH, "Camera.csv")
     dtypes = [
-        ("Model", six.text_type, 35),
+        ("Model", str, 35),
         ("Release date", float),
         ("Max resolution", float),
         ("Low resolution", float),

@@ -57,7 +57,7 @@ citations to the following paper:
     Scikit-Criteria: Colección de Métodos de Análisis Multi-Criterio Integrado
     Al Stack Científico de Python. In XLV Jornadas Argentinas de Informática E
     Investigación Operativa (45JAIIO)-XIV Simposio Argentino de Investigación
-    Operativa (SIO) (Buenos Aires, 2016) Pp. 59–66.
+    Operativa (SIO) (Buenos Aires, 2016) Pp. 59-66.
     http://45jaiio.sadio.org.ar/sites/default/files/Sio-23.pdf.
 
 

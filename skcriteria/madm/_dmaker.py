@@ -31,13 +31,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # =============================================================================
-# FUTURE & DOCS
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
-
-
-__doc__ = """Core functionalities of all madm methods.
+"""Core functionalities of all madm methods.
 
 """
 
@@ -46,12 +43,9 @@ __doc__ = """Core functionalities of all madm methods.
 # IMPORTS
 # =============================================================================
 
-import sys
 import operator
 import uuid
 from collections import Mapping
-
-import six
 
 import numpy as np
 
@@ -66,7 +60,7 @@ from ..base import TABULATE_PARAMS, BaseSolver
 # =============================================================================
 
 class Extra(Mapping):
-    """The Extra object is a dictiorany with steroids. The main objective
+    """The Extra object is a dictionary with steroids. The main objective
     is to store and present the extra data created by different madm methods.
 
     Parameters
@@ -134,26 +128,9 @@ class Extra(Mapping):
             msg = "'Extra' object has no attribute '{}'".format(k)
             raise AttributeError(msg)
 
-    def __unicode__(self):
-        """x.__unicode__() <==> unicode(x)."""
-        return self.to_str()
-
-    def __bytes__(self):
-        """x.__bytes__() <==> bytes(x)."""
-        encoding = sys.getdefaultencoding()
-        return self.__unicode__().encode(encoding, 'replace')
-
     def __str__(self):
-        """x.__str__() <==> str(x).
-
-        Return a string representation for a particular Object.
-
-        Invoked by str(df) in both py2/py3.
-        Yields Bytestring in Py2, Unicode String in py3.
-        """
-        if six.PY3:
-            return self.__unicode__()
-        return self.__bytes__()
+        """x.__str__() <==> repr(x)."""
+        return self.to_str()
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -226,27 +203,10 @@ class Decision(object):
         """x.__ne__(y) <==> x != y."""
         return not self == obj
 
-    def __unicode__(self):
-        """x.__unicode__() <==> unicode(x)"""
+    def __str__(self):
+        """x.__str__() <==> str(x)"""
         return "{} - Solution:\n{}".format(
             repr(self._decision_maker)[1: -1], self.to_str())
-
-    def __bytes__(self):
-        """x.__bytes__() <==> bytes(x)."""
-        encoding = sys.getdefaultencoding()
-        return self.__unicode__().encode(encoding, 'replace')
-
-    def __str__(self):
-        """x.__str__() <==> str(x)
-
-        Return a string representation for a particular Object
-
-        Invoked by str(df) in both py2/py3.
-        Yields Bytestring in Py2, Unicode String in py3.
-        """
-        if six.PY3:
-            return self.__unicode__()
-        return self.__bytes__()
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""

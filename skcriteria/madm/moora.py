@@ -32,13 +32,6 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOCS
 # =============================================================================
 
@@ -104,10 +97,10 @@ def refpoint(nmtx, criteria, weights):
 def fmf(nmtx, criteria, weights):
     lmtx = np.multiply(np.log(nmtx), weights)
 
-    if not np.setdiff1d(criteria, [MAX]):
+    if np.all(np.unique(criteria) == [MAX]):
         # only max
         points = np.sum(lmtx, axis=1)
-    elif not np.setdiff1d(criteria, [MIN]):
+    elif np.all(np.unique(criteria) == [MIN]):
         # only min
         points = 1 - np.sum(lmtx, axis=1)
     else:
@@ -131,7 +124,7 @@ def multimoora(nmtx, ncriteria):
     refpoint_rank = refpoint(nmtx, ncriteria, 1)[0]
     fmf_rank = fmf(nmtx, ncriteria, 1)[0]
 
-    rank_mtx = np.vstack((ratio_rank, refpoint_rank, fmf_rank)).T
+    rank_mtx = np.vstack([ratio_rank, refpoint_rank, fmf_rank]).T
 
     alternatives = rank_mtx.shape[0]
     points = np.zeros(alternatives)

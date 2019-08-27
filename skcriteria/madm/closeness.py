@@ -31,13 +31,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # =============================================================================
-# FUTURE & DOCS
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
-
-
-__doc__ = """Methods based on an aggregating function representing
+"""Methods based on an aggregating function representing
 “closeness to the ideal”.
 
 

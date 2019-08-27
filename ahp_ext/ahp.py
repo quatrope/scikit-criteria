@@ -6,19 +6,10 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOCS
 # =============================================================================
 
-__doc__ = """AHP
-
-"""
+"""AHP"""
 
 
 # =============================================================================
@@ -28,8 +19,6 @@ __doc__ = """AHP
 from collections import namedtuple
 
 import numpy as np
-
-import six
 
 from skcriteria import norm, rank
 
@@ -135,7 +124,7 @@ def validate_values(values):
 
 def validate_ahp_matrix(rows_and_columns, mtx, mtxtype=None):
     type_validation = mtxtype is None or (
-       isinstance(mtxtype, six.string_types) and
+       isinstance(mtxtype, str) and
        mtxtype in [MTX_TYPE_CRITERIA, MTX_TYPE_ALTERNATIVES])
 
     if not type_validation:

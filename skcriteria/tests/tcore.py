@@ -30,19 +30,11 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
-# =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
 # =============================================================================
 # DOC
 # =============================================================================
 
-__doc__ = """All scikit-criteria base tests"""
+"""All scikit-criteria base tests"""
 
 
 # =============================================================================
@@ -54,9 +46,6 @@ import random
 
 import numpy as np
 import numpy.testing as npt
-
-import six
-from six.moves import range
 
 from .. import norm
 from ..validate import criteriarr
@@ -85,7 +74,3 @@ class SKCriteriaTestCase(unittest.TestCase):
         nmtx = norm.norm(self.mnorm, mtx, axis=0)
         nweights = norm.norm(self.wnorm, weights) if weights is not None else 1
         return nmtx, ncriteria, nweights
-
-    if six.PY2:
-        assertRaisesRegex = six.assertRaisesRegex
-        assertCountEqual = six.assertCountEqual

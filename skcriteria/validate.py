@@ -31,13 +31,10 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # =============================================================================
-# FUTURE & DOCS
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
-
-
-__doc__ = """This module core functionalities for validate the data
+"""This module core functionalities for validate the data
 used inside scikit criteria.
 
 - Constants that represent minimization and mazimization criteria.
@@ -70,13 +67,13 @@ MIN = -1
 """Int: Minimization criteria"""
 
 MIN_ALIASES = [MIN, min, np.min, np.nanmin, np.amin, "min", "minimize"]
-"""Another ways to name the minimization criterias."""
+"""Another ways to name the minimization criteria."""
 
 MAX = 1
 """Int: Maximization criteria"""
 
 MAX_ALIASES = [MAX, max, np.max, np.nanmax, np.amax, "max", "maximize"]
-"""Another way to name the maximization criterias."""
+"""Another way to name the maximization criteria."""
 
 
 CRITERIA_STR = {
@@ -159,12 +156,12 @@ def criteriarr(criteria):
 
     """
 
-    criteria = np.array([ALIASES.get(c, c) for c in criteria])
-    if np.setdiff1d(criteria, [MIN, MAX]).size > 0:
+    pcriteria = np.array([ALIASES.get(c) for c in criteria])
+    if None in pcriteria:
         msg = (
             "Criteria Array only accept minimize or maximize Values. Found {}")
-        raise DataValidationError(msg.format(MAX, MIN, criteria))
-    return criteria
+        raise DataValidationError(msg.format(criteria))
+    return pcriteria
 
 
 def validate_data(mtx, criteria, weights=None):

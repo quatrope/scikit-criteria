@@ -32,13 +32,10 @@
 
 
 # =============================================================================
-# FUTURE & DOCS
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
-
-
-__doc__ = """Plotting utilities"""
+"""Plotting utilities"""
 
 
 __all__ = ["DataPlotMethods"]
@@ -48,13 +45,7 @@ __all__ = ["DataPlotMethods"]
 # IMPORTS
 # =============================================================================
 
-import sys
-
-import six
-
 import numpy as np
-
-from six.moves import zip
 
 from matplotlib import cm
 
@@ -90,6 +81,7 @@ class DataPlotMethods(object):
 
     Examples
     --------
+
     >>> data.plot()
     >>> data.plot.hist()
     >>> data.plot.scatter('x', 'y')
@@ -103,28 +95,14 @@ class DataPlotMethods(object):
     def __init__(self, data):
         self._data = data
 
-    def __unicode__(self):
-        return self.to_str()
-
-    def __bytes__(self):
-        encoding = sys.getdefaultencoding()
-        return self.__unicode__().encode(encoding, 'replace')
-
     def __str__(self):
-        """Return a string representation for a particular Object
-
-        Invoked by str(df) in both py2/py3.
-        Yields Bytestring in Py2, Unicode String in py3.
-        """
-        if six.PY3:
-            return self.__unicode__()
-        return self.__bytes__()
+        return self.to_str()
 
     def __repr__(self):
         return str(self)
 
     def __call__(self, kind="radar", **kwargs):
-        """Make plots of Data using matplotlib / pylab."""
+        """Make plots of Data using matplotlib."""
 
         if kind not in _plot_types:
             msg = "Invalid kind '{}'. Chooce from: {}"
@@ -156,7 +134,8 @@ class DataPlotMethods(object):
             The list of criteria names to be render in the plot.
             If is None then the criteria names of data are used.
         cmap : string or None
-            Name of the color map to be used [1]_
+            Name of the color map to be used
+            (https://matplotlib.org/users/colormaps.html)
         weighted : bool
             If the data must be weighted before redering.
         show_criteria : bool
@@ -172,12 +151,9 @@ class DataPlotMethods(object):
 
         Returns
         -------
+
         preprocessed_data : dict
             All the data ready to be sended to a plot function
-
-        References
-        ----------
-        .. [1] https://matplotlib.org/users/colormaps.html
 
         """
 
@@ -241,9 +217,10 @@ class DataPlotMethods(object):
 
         Parameters
         ----------
+
         func : callable
             The function that make the plot. The return value of func
-            are the recutn value of this method.
+            are the return value of this method.
         mnorm: string, callable, optional (default="none")
             Normalization method for the alternative matrix.
         wnorm : string, callable, optional (default="none")
@@ -255,7 +232,8 @@ class DataPlotMethods(object):
             The list of criteria names to be render in the plot.
             If is None then the criteria names of data are used.
         cmap : string or None, optional (default=None)
-            Name of the color map to be used [1]_
+            Name of the color map to be used
+            (https://matplotlib.org/users/colormaps.html)
         weighted : bool, optional (default=True)
             If the data must be weighted before redering.
         show_criteria : bool, optional (default=True)
@@ -279,10 +257,6 @@ class DataPlotMethods(object):
         -----
         All the plot methods of Scikit-Criteria returns a matplotlib axis.
 
-        References
-        ----------
-        .. [1] https://matplotlib.org/users/colormaps.html
-
         """
 
         ppkwargs = self.preprocess(
@@ -296,7 +270,8 @@ class DataPlotMethods(object):
 
     @_plot_type
     def radar(self, **kwargs):
-        """Creates a radar chart, also known as a spider or star chart [1]_.
+        """Creates a radar chart, also known as a spider or star chart
+        (http://en.wikipedia.org/wiki/Radar_chart).
 
         A radar chart is a graphical method of displaying multivariate data in
         the form of a two-dimensional chart of three or more quantitative
@@ -333,12 +308,8 @@ class DataPlotMethods(object):
 
         - ``show_criteria=False``
         - ``min2max=True``
-        - ``push_negatices=True``
+        - ``push_negatives=True``
         - ``addepsto0=True``
-
-        References
-        ----------
-        .. [1] http://en.wikipedia.org/wiki/Radar_chart
 
         """
         kwargs.setdefault("show_criteria", False)

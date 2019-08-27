@@ -32,17 +32,10 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOC
 # =============================================================================
 
-__doc__ = """test electre methods"""
+"""test electre methods"""
 
 
 # =============================================================================
@@ -85,18 +78,18 @@ class ExtraTest(SKCriteriaTestCase):
 
     def test_getitem(self):
         for k, v in self.data.items():
-            self.assertEquals(self.e[k], v)
+            self.assertEqual(self.e[k], v)
 
     def test_iter(self):
         for k in self.e:
             self.assertIn(k, self.data)
 
     def test_len(self):
-        self.assertEquals(len(self.data), len(self.e))
+        self.assertEqual(len(self.data), len(self.e))
 
     def test_getattr(self):
         for k, v in self.data.items():
-            self.assertEquals(getattr(self.e, k), v)
+            self.assertEqual(getattr(self.e, k), v)
 
     def test_str(self):
         str(self.e)

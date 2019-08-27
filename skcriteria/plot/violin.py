@@ -45,8 +45,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import patches
 
-from six.moves import zip
-
 
 # =============================================================================
 # FUNCTIONS

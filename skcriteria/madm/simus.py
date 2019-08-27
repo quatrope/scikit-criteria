@@ -32,17 +32,10 @@
 
 
 # =============================================================================
-# FUTURE
-# =============================================================================
-
-from __future__ import unicode_literals
-
-
-# =============================================================================
 # DOCS
 # =============================================================================
 
-__doc__ = """SIMUS (Sequential Interactive Model for Urban Systems) Method"""
+"""SIMUS (Sequential Interactive Model for Urban Systems) Method"""
 
 __all__ = [
     "SIMUS"]
@@ -115,7 +108,7 @@ def solve_stages(t_nmtx, b, ncriteria, solver, jobs):
         results.append(r)
 
     # create the results mtx
-    arr_result = np.vstack((np.asarray(r.values) for r in results))
+    arr_result = np.vstack([np.asarray(r.values) for r in results])
     with np.errstate(invalid='ignore'):
         norm_result = norm.sum(arr_result, axis=1)
     norm_result[np.isnan(norm_result)] = 0
@@ -181,41 +174,43 @@ def second_method(stage_results, jobs):
 # SIMUS FUNCTION
 # ===============
 
-def simus(nmtx, ncriteria, nweights,
-          rank_by=1, b=None, solver="pulp", njobs=None):
-            # determine the njobs
-            njobs = njobs or joblib.cpu_count()
+def simus(
+    nmtx, ncriteria, nweights,
+    rank_by=1, b=None, solver="pulp", njobs=None
+):
+    # determine the njobs
+    njobs = njobs or joblib.cpu_count()
 
-            t_nmtx = nmtx.T
+    t_nmtx = nmtx.T
 
-            # check the b array and complete the missing values
-            b = np.asarray(b)
-            if None in b:
-                mins = np.min(t_nmtx, axis=1)
-                maxs = np.max(t_nmtx, axis=1)
+    # check the b array and complete the missing values
+    b = np.asarray(b)
+    if None in b:
+        mins = np.min(t_nmtx, axis=1)
+        maxs = np.max(t_nmtx, axis=1)
 
-                auto_b = np.where(ncriteria == MAX, maxs, mins)
-                b = np.where(b.astype(bool), b, auto_b)
+        auto_b = np.where(ncriteria == MAX, maxs, mins)
+        b = np.where(b.astype(bool), b, auto_b)
 
-            # multiprocessing environment
-            with joblib.Parallel(n_jobs=njobs) as jobs:
+    # multiprocessing environment
+    with joblib.Parallel(n_jobs=njobs) as jobs:
 
-                # create and execute the stages
-                stages, stage_results = solve_stages(
-                    t_nmtx=t_nmtx, b=b, ncriteria=ncriteria,
-                    solver=solver, jobs=jobs)
+        # create and execute the stages
+        stages, stage_results = solve_stages(
+            t_nmtx=t_nmtx, b=b, ncriteria=ncriteria,
+            solver=solver, jobs=jobs)
 
-                # first methods points
-                points1 = first_method(stage_results)
-                points2, tita_j_p, tita_j_d, doms, dom_by_crit = second_method(
-                    stage_results, jobs)
+        # first methods points
+        points1 = first_method(stage_results)
+        points2, tita_j_p, tita_j_d, doms, dom_by_crit = second_method(
+            stage_results, jobs)
 
-            points = [points1, points2][rank_by - 1]
-            ranking = rank.rankdata(points, reverse=True)
+    points = [points1, points2][rank_by - 1]
+    ranking = rank.rankdata(points, reverse=True)
 
-            return (
-                ranking, stages, stage_results, points1,
-                points2, tita_j_p, tita_j_d, doms, dom_by_crit)
+    return (
+        ranking, stages, stage_results, points1,
+        points2, tita_j_p, tita_j_d, doms, dom_by_crit)
 
 
 # =============================================================================
@@ -307,10 +302,10 @@ class SIMUS(DecisionMaker):
 
     def __init__(self, mnorm="none", wnorm="none",
                  rank_by=1, solver="pulp", njobs=None):
-                    super(SIMUS, self).__init__(mnorm=mnorm, wnorm=wnorm)
-                    self._solver = solver
-                    self._njobs = njobs
-                    self._rank_by = rank_by
+        super(SIMUS, self).__init__(mnorm=mnorm, wnorm=wnorm)
+        self._solver = solver
+        self._njobs = njobs
+        self._rank_by = rank_by
 
     @doc_inherit
     def solve(self, ndata, b):

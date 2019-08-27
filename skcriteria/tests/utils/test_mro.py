@@ -32,12 +32,11 @@
 
 
 # =============================================================================
-# FUTURE
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
 
-__doc__ = """test integration with recipe
+"""test integration with recipe
 http://code.activestate.com/recipes/577748/ test case
 
 """

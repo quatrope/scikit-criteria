@@ -61,8 +61,6 @@ from matplotlib.spines import Spine
 from matplotlib.projections.polar import PolarAxes
 from matplotlib.projections import register_projection
 
-from six.moves import zip
-
 from .. import norm
 
 

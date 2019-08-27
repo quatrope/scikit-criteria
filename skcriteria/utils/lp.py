@@ -48,8 +48,6 @@ import operator
 
 import pulp
 
-import six
-
 import attr
 
 
@@ -73,7 +71,6 @@ SOLVERS = {
     'gurobi': pulp.solvers.GUROBI,
     'gurobi_cmd': pulp.solvers.GUROBI_CMD,
 
-    'scip': pulp.solvers.SCIP,
     'xpress': pulp.solvers.XPRESS,
     'yaposib': pulp.solvers.YAPOSIB
 }
@@ -143,7 +140,7 @@ class _LP(pulp.LpProblem):
     def __init__(self, z, name="no-name", solver=None, **solver_kwds):
         super(_LP, self).__init__(name, self.sense)
         if solver:
-            if isinstance(solver, six.string_types):
+            if isinstance(solver, str):
                 cls = SOLVERS[solver]
                 solver = cls(**solver_kwds) if cls else None
             self.solver = solver

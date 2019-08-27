@@ -32,12 +32,10 @@
 
 
 # =============================================================================
-# FUTURE
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
-
-__doc__ = """test integration with recipe
+"""test integration with recipe
 http://code.activestate.com/recipes/577748/ test case
 
 """
@@ -68,10 +66,10 @@ class LPTest(SKCriteriaTestCase):
             ],
             b=[500, -15, 1000])
         result = model.solve()
-        self.assertEquals(result.status, "Optimal")
-        self.assertEquals(result.objective, 540)
-        self.assertEquals(result.variables, ('x1', 'x2', 'x3'))
-        self.assertEquals(result.values, (0.2, 0.0, 1.4))
+        self.assertEqual(result.status, "Optimal")
+        self.assertEqual(result.objective, 540)
+        self.assertEqual(result.variables, ('x1', 'x2', 'x3'))
+        self.assertEqual(result.values, (0.2, 0.0, 1.4))
 
     def test_minimize_frommtx(self):
         model = lp.Minimize.frommtx(
@@ -83,7 +81,7 @@ class LPTest(SKCriteriaTestCase):
             ],
             b=[500, 15, 1000])
         result = model.solve()
-        self.assertEquals(result.status, "Optimal")
-        self.assertEquals(result.objective, 325)
-        self.assertEquals(result.variables, ('x1', 'x2', 'x3'))
-        self.assertEquals(result.values, (0.0, 2.5, 0.0))
+        self.assertEqual(result.status, "Optimal")
+        self.assertEqual(result.objective, 325)
+        self.assertEqual(result.variables, ('x1', 'x2', 'x3'))
+        self.assertEqual(result.values, (0.0, 2.5, 0.0))

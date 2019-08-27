@@ -32,13 +32,10 @@
 
 
 # =============================================================================
-# FUTURE & DOCS
+# DOCS
 # =============================================================================
 
-from __future__ import unicode_literals
-
-
-__doc__ = """ELECTRE is a family of multi-criteria decision analysis methods
+"""ELECTRE is a family of multi-criteria decision analysis methods
 that originated in Europe in the mid-1960s. The acronym ELECTRE stands for:
 ELimination Et Choix Traduisant la REalité (ELimination and Choice Expressing
 REality).
@@ -68,7 +65,7 @@ from ._dmaker import DecisionMaker
 
 
 # =============================================================================
-# UTILS
+# CONCORDANCE
 # =============================================================================
 
 def _conc_row(idx, row, mtx, mtx_criteria, mtx_weight):
@@ -196,8 +193,6 @@ class ELECTRE1(DecisionMaker):
         - **gamma_solution_**: False
         - **e_**: Particular data created by this method.
 
-          - **e_.closeness**: Array where the i-nth element represent the
-            closenees of the i-nth alternative to ideal and worst solution.
           - **e_.outrank**: numpy.ndarray of bool
             The outranking matrix of superation. If the element[i][j] is True
             The alternative ``i`` outrank the alternative ``j``.
