@@ -1,5 +1,8 @@
 language: python
 sudo: false
+addons:
+  apt_packages:
+    - pandoc
 install:
   - pip install tox
 script:
