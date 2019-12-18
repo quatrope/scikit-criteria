@@ -1,4 +1,3 @@
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
@@ -14,7 +13,12 @@ for the data representation used inside Scikit-Criteria.
 
 """
 
-__all__ = ['Data']
+
+# =============================================================================
+# META
+# =============================================================================
+
+__all__ = ['Data', 'DataValidationError', 'ascriteria']
 
 
 # =============================================================================
@@ -93,9 +97,9 @@ def ascriteria(criteria):
 
     """
     pcriteria = np.empty(len(criteria))
-    for idx, c in enumerate(criteria):
-        if c not in ALIASES:
-            pcriteria[idx] = ALIASES[c]
+    for idx, crit in enumerate(criteria):
+        if crit in ALIASES:
+            pcriteria[idx] = ALIASES[crit]
         else:
             raise DataValidationError(
                 "Criteria Array only accept minimize or maximize Values. "
@@ -129,6 +133,8 @@ class Data(AttributeClass):
     cnames = AttributeClass.parameter(default=None)
     plot = AttributeClass.parameter(init=False, repr=False)
 
+    __configuration__ = {"repr": False, "frozen": True}
+
     def __initialization__(self):
         self.mtx = np.asarray(self.mtx)
         if np.ndim(self.mtx) != 2:
@@ -150,22 +156,22 @@ class Data(AttributeClass):
                     f"{len(self.weights)} weights given "
                     f"for {len(self.criteria)} criteria")
 
-        if self.anames is None
+        if self.anames is None:
             self.anames = tuple(
-                f"A{idx}" for idx in range(mtx.shape[0]))
+                f"A{idx}" for idx in range(self.mtx.shape[0]))
         else:
             self.anames = tuple(self.anames)
-            if len(self.anames) !=  self.mtx.shape[0]:
+            if len(self.anames) != self.mtx.shape[0]:
                 raise ValueError(
                     f"{len(self.anames)} names given "
                     f"for {self.mtx.shape[0]} alternatives")
 
-        if self.cnames is None
+        if self.cnames is None:
             self.cnames = tuple(
-                f"C{idx}" for idx in range(mtx.shape[1]))
+                f"C{idx}" for idx in range(self.mtx.shape[1]))
         else:
             self.cnames = tuple(self.cnames)
-            if len(self.cnames) !=  self.mtx.shape[1]:
+            if len(self.cnames) != self.mtx.shape[1]:
                 raise ValueError(
                     f"{len(self.cnames)} names given "
                     f"for {self.mtx.shape[1]} criteria")

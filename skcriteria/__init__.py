@@ -14,6 +14,18 @@ techniques for multiple-criteria decision analysis.
 """
 
 # =============================================================================
+# IMPORTS
+# =============================================================================
+
+import os
+
+if os.getenv("__SKCRITERIA_IN_SETUP__") != "True":
+    from .data import *  # noqa
+
+del os
+
+
+# =============================================================================
 # CONSTANTS
 # =============================================================================
 
@@ -34,17 +46,5 @@ URL = "http://scikit-criteria.org/"
 LICENSE = "3 Clause BSD"
 
 KEYWORDS = (
-    "mcda mcdm moora electre critiq simus topsis muti criteria"
-    "weightedsum").split()
-
-
-# =============================================================================
-# IMPORTS
-# =============================================================================
-
-import os
-
-if os.getenv("__SKCRITERIA_IN_SETUP__") != "True":
-    from .data import *  # noqa
-
-del os
+    "muticriteria mcda mcdm".split() +
+    "weightedsum weightedproduct simus topsis moora electre".split())
