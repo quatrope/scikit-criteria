@@ -23,7 +23,7 @@ import numpy as np
 
 import pytest
 
-from skcriteria import Data, ascriteria
+from skcriteria import Data, DataValidationError, ascriteria
 
 
 # =============================================================================
@@ -58,7 +58,7 @@ def init_data():
 
 
 # =============================================================================
-# TESTS
+# MUST WORK
 # =============================================================================
 
 def test_simple_creation(init_data):
@@ -73,3 +73,150 @@ def test_simple_creation(init_data):
     assert np.all(data.weights == weights)
     assert data.anames == tuple(anames)
     assert data.cnames == tuple(cnames)
+
+
+def test_no_provide_weights(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    weights = np.ones(criteria.shape, dtype=float)
+    data = Data(
+        mtx=mtx, criteria=criteria, anames=anames, cnames=cnames)
+
+    assert np.all(data.mtx == mtx)
+    assert np.all(data.criteria == ascriteria(criteria))
+    assert np.all(data.weights == weights)
+    assert data.anames == tuple(anames)
+    assert data.cnames == tuple(cnames)
+
+
+def test_no_provide_anames(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    anames = (f'A{idx}' for idx in range(mtx.shape[0]))
+
+    data = Data(
+        mtx=mtx, criteria=criteria, weights=weights, cnames=cnames)
+
+    assert np.all(data.mtx == mtx)
+    assert np.all(data.criteria == ascriteria(criteria))
+    assert np.all(data.weights == weights)
+    assert data.anames == tuple(anames)
+    assert data.cnames == tuple(cnames)
+
+
+def test_no_provide_cnames(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    cnames = (f'C{idx}' for idx in range(mtx.shape[1]))
+
+    data = Data(
+        mtx=mtx, criteria=criteria, weights=weights, anames=anames)
+
+    assert np.all(data.mtx == mtx)
+    assert np.all(data.criteria == ascriteria(criteria))
+    assert np.all(data.weights == weights)
+    assert data.anames == tuple(anames)
+    assert data.cnames == tuple(cnames)
+
+
+def test_no_provide_cnames_and_anames(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    anames = (f'A{idx}' for idx in range(mtx.shape[0]))
+    cnames = (f'C{idx}' for idx in range(mtx.shape[1]))
+
+    data = Data(mtx=mtx, criteria=criteria, weights=weights)
+
+    assert np.all(data.mtx == mtx)
+    assert np.all(data.criteria == ascriteria(criteria))
+    assert np.all(data.weights == weights)
+    assert data.anames == tuple(anames)
+    assert data.cnames == tuple(cnames)
+
+
+# =============================================================================
+# MUST FAIL
+# =============================================================================
+
+def test_no_provide_mtx(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    with pytest.raises(TypeError):
+        Data(criteria=criteria, weights=weights, cnames=cnames, anames=anames)
+
+
+def test_no_provide_criteria(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    with pytest.raises(TypeError):
+        Data(mtx=mtx, weights=weights, anames=anames, cnames=cnames)
+
+
+def test_invalid_criteria(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    criteria = [1, 2, 3, 4]
+    with pytest.raises(DataValidationError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)
+
+
+def test_weight_no_float(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    weights = ["hola"]
+    with pytest.raises(ValueError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)
+
+
+def test_missmatch_criteria(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    criteria = criteria[1:]
+    with pytest.raises(DataValidationError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)
+
+
+def test_missmatch_weights(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    weights = weights[1:]
+    with pytest.raises(DataValidationError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)
+
+
+def test_missmatch_anames(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    anames = anames[1:]
+    with pytest.raises(DataValidationError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)
+
+
+def test_missmatch_cnames(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    cnames = cnames[1:]
+    with pytest.raises(DataValidationError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)
+
+
+def test_mtx_ndim1(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    mtx = mtx.flatten()
+    with pytest.raises(DataValidationError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)
+
+
+def test_mtx_ndim3(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+    mtx = [[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]
+    with pytest.raises(DataValidationError):
+        Data(
+            mtx=mtx, criteria=criteria, weights=weights,
+            anames=anames, cnames=cnames)

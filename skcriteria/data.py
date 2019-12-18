@@ -162,7 +162,7 @@ class Data(AttributeClass):
         else:
             self.anames = tuple(self.anames)
             if len(self.anames) != self.mtx.shape[0]:
-                raise ValueError(
+                raise DataValidationError(
                     f"{len(self.anames)} names given "
                     f"for {self.mtx.shape[0]} alternatives")
 
@@ -172,7 +172,7 @@ class Data(AttributeClass):
         else:
             self.cnames = tuple(self.cnames)
             if len(self.cnames) != self.mtx.shape[1]:
-                raise ValueError(
+                raise DataValidationError(
                     f"{len(self.cnames)} names given "
                     f"for {self.mtx.shape[1]} criteria")
 
