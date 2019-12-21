@@ -25,11 +25,15 @@ __all__ = ['Data', 'DataValidationError', 'ascriteria']
 # IMPORTS
 # =============================================================================
 
+import copy
 import itertools as it
 
 import numpy as np
 
 from .attribute import AttributeClass
+
+from .serializer import DataSerializerProxy
+# from .display.plot import DataPlotProxy
 
 
 # =============================================================================
@@ -53,13 +57,6 @@ CRITERIA_STR = {
     MIN: "min",
     MAX: "max"
 }
-
-TABULATE_PARAMS = {
-    "headers": "firstrow",
-    "numalign": "center",
-    "stralign": "center",
-}
-
 
 ALIASES = dict(it.chain(
     dict.fromkeys(MIN_ALIASES, MIN).items(),
@@ -93,7 +90,7 @@ def ascriteria(criteria):
     Returns
     -------
     numpy.ndarray :
-        Criteria array.
+        Criteria array as intergers (-1 for minimize, 1 for maximize).
 
     """
     pcriteria = np.empty(len(criteria))
@@ -131,9 +128,13 @@ class Data(AttributeClass):
     weights = AttributeClass.parameter(default=None)
     anames = AttributeClass.parameter(default=None)
     cnames = AttributeClass.parameter(default=None)
-    plot = AttributeClass.parameter(init=False, repr=False)
 
-    __configuration__ = {"repr": False, "frozen": True}
+    plot = AttributeClass.parameter(init=False, repr=False)
+    serializer = AttributeClass.parameter(init=False, repr=False)
+
+    __configuration__ = {
+        "repr": False, "frozen": True,
+        "order": False, "eq": False}
 
     def __initialization__(self):
         self.mtx = np.asarray(self.mtx)
@@ -147,9 +148,7 @@ class Data(AttributeClass):
                 f"{len(self.criteria)} senses of optimality given "
                 f"but mtx has {self.mtx.shape[1]} criteria")
 
-        if self.weights is None:
-            self.weights = np.ones(self.criteria.shape, dtype=float)
-        else:
+        if self.weights is not None:
             self.weights = np.asarray(self.weights, dtype=float)
             if len(self.weights) != len(self.criteria):
                 raise DataValidationError(
@@ -176,4 +175,35 @@ class Data(AttributeClass):
                     f"{len(self.cnames)} names given "
                     f"for {self.mtx.shape[1]} criteria")
 
-        self.plot = None
+        self.serializer = DataSerializerProxy(self)
+        self.plot = None  # DataPlotProxy(self)
+
+    def __eq__(self, other):
+        if not isinstance(other, Data):
+            return NotImplemented
+        return self is other or (
+            np.all(self.mtx == other.mtx) and
+            np.all(self.criteria == other.criteria) and
+            np.all(self.weights == other.weights) and
+            self.anames == other.anames and
+            self.cnames == other.cnames)
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return self.serializer.to_text()
+
+    def _repr_html_(self):
+        return self.serializer.to_html()
+
+    def copy(self):
+        """Create a deep copy of the Data object.
+
+        """
+        return Data(
+            mtx=self.mtx.copy(),
+            criteria=self.criteria.copy(),
+            weights=self.weights.copy(),
+            anames=copy.copy(self.anames),
+            cnames=copy.copy(self.cnames))

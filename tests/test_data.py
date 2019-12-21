@@ -30,7 +30,7 @@ from skcriteria import Data, DataValidationError, ascriteria
 # CONSTANTS
 # =============================================================================
 
-CHARS = tuple(string.ascii_letters + string.digits + string.punctuation)
+CHARS = tuple(string.ascii_letters + string.digits)
 
 RANDOM = np.random.RandomState(42)
 
@@ -51,8 +51,8 @@ def init_data():
     criteria = random.choice([min, max, 1, -1, np.min, np.max], crit)
     weights = random.rand(crit)
 
-    anames = ["".join(random.choice(CHARS, 15)) for _ in range(alts)]
-    cnames = ["".join(random.choice(CHARS, 15)) for _ in range(crit)]
+    anames = ["".join(random.choice(CHARS, 5)) for _ in range(alts)]
+    cnames = ["".join(random.choice(CHARS, 5)) for _ in range(crit)]
 
     return mtx, criteria, weights, anames, cnames
 
@@ -78,13 +78,12 @@ def test_simple_creation(init_data):
 def test_no_provide_weights(init_data):
     mtx, criteria, weights, anames, cnames = init_data
 
-    weights = np.ones(criteria.shape, dtype=float)
     data = Data(
         mtx=mtx, criteria=criteria, anames=anames, cnames=cnames)
 
     assert np.all(data.mtx == mtx)
     assert np.all(data.criteria == ascriteria(criteria))
-    assert np.all(data.weights == weights)
+    assert data.weights is None
     assert data.anames == tuple(anames)
     assert data.cnames == tuple(cnames)
 
@@ -132,6 +131,61 @@ def test_no_provide_cnames_and_anames(init_data):
     assert np.all(data.weights == weights)
     assert data.anames == tuple(anames)
     assert data.cnames == tuple(cnames)
+
+
+def test_copy(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    data = Data(
+        mtx=mtx, criteria=criteria, weights=weights,
+        anames=anames, cnames=cnames)
+    copy = data.copy()
+
+    assert data is not copy
+    assert data == copy
+
+
+def test_self_eq(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    data = Data(
+        mtx=mtx, criteria=criteria, weights=weights,
+        anames=anames, cnames=cnames)
+    copy = data
+
+    assert data is copy
+    assert data == copy
+
+
+def test_self_ne(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    data = Data(
+        mtx=mtx, criteria=criteria, weights=weights,
+        anames=anames, cnames=cnames)
+    other = Data(
+        mtx=mtx, criteria=criteria, weights=weights)
+    assert data != other
+
+
+def test_simple_repr(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    data = Data(
+        mtx=mtx, criteria=criteria, weights=weights,
+        anames=anames, cnames=cnames)
+
+    assert repr(data)
+
+
+def test_simple_html(init_data):
+    mtx, criteria, weights, anames, cnames = init_data
+
+    data = Data(
+        mtx=mtx, criteria=criteria, weights=weights,
+        anames=anames, cnames=cnames)
+
+    assert data._repr_html_()
 
 
 # =============================================================================

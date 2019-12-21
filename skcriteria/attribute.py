@@ -109,9 +109,9 @@ class AttributeClass(metaclass=AttributeMeta):
 
     @classmethod
     def parameter(cls, default=attr.NOTHING, validator=None, repr=True,
-                  eq=True, hash=None, init=True, convert=None, metadata=None,
-                  type=None, converter=None, factory=None, kw_only=False,
-                  instanceof=attr.NOTHING):
+                  hash=None, init=True, metadata=None, type=None,
+                  converter=None, factory=None, kw_only=False, eq=None,
+                  order=None, instanceof=attr.NOTHING):
         """Create a new attribute for the current class"""
 
         if instanceof is not attr.NOTHING:
@@ -121,12 +121,13 @@ class AttributeClass(metaclass=AttributeMeta):
             else:
                 validator = attr.validators.instance_of(instanceof)
 
-        attrib = attr.ib(
-            default=default, validator=validator, repr=repr, eq=eq,
+        param = attr.ib(
+            default=default, validator=validator, repr=repr,
             hash=hash, init=init, metadata=metadata, type=type,
-            converter=converter, factory=factory, kw_only=kw_only)
+            converter=converter, factory=factory, kw_only=kw_only,
+            eq=eq, order=order)
 
-        return attrib
+        return param
 
     def __attrs_post_init__(self):
         if self._attrcc.initialization is not attr.NOTHING:
