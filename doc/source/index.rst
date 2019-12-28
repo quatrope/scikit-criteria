@@ -48,8 +48,6 @@ copyright notices and the license's disclaimers of warranty are maintained.
 Citation
 --------
 
-If you are using Scikit-Criteria in your research, please cite:
-
 If you use scikit-criteria in a scientific publication, we would appreciate
 citations to the following paper:
 
