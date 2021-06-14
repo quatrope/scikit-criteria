@@ -249,18 +249,23 @@ def test_simple_html(data_values):
 # =============================================================================
 # MUST FAIL
 # =============================================================================
-@pytest.mark.xfail
+
+
 def test_no_provide_mtx(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    _, criteria, weights, anames, cnames = data_values(seed=42)
     with pytest.raises(TypeError):
-        Data(criteria=criteria, weights=weights, cnames=cnames, anames=anames)
+        data.mkdm(
+            criteria=criteria, weights=weights, cnames=cnames, anames=anames
+        )
 
 
-@pytest.mark.xfail
+
 def test_no_provide_criteria(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, _, weights, anames, cnames = data_values(seed=42)
     with pytest.raises(TypeError):
-        Data(mtx=mtx, weights=weights, anames=anames, cnames=cnames)
+        data.mkdm(
+            mtxt=mtx, weights=weights, cnames=cnames, anames=anames
+        )
 
 
 @pytest.mark.xfail
