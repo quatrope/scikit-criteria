@@ -259,21 +259,17 @@ def test_no_provide_mtx(data_values):
         )
 
 
-
 def test_no_provide_criteria(data_values):
     mtx, _, weights, anames, cnames = data_values(seed=42)
     with pytest.raises(TypeError):
-        data.mkdm(
-            mtxt=mtx, weights=weights, cnames=cnames, anames=anames
-        )
+        data.mkdm(mtxt=mtx, weights=weights, cnames=cnames, anames=anames)
 
 
-@pytest.mark.xfail
 def test_invalid_criteria(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, _, weights, anames, cnames = data_values(seed=42)
     criteria = [1, 2, 3, 4]
-    with pytest.raises(DataValidationError):
-        Data(
+    with pytest.raises(ValueError):
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,
@@ -282,12 +278,11 @@ def test_invalid_criteria(data_values):
         )
 
 
-@pytest.mark.xfail
 def test_weight_no_float(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, criteria, _, anames, cnames = data_values(seed=42)
     weights = ["hola"]
     with pytest.raises(ValueError):
-        Data(
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,
@@ -296,12 +291,11 @@ def test_weight_no_float(data_values):
         )
 
 
-@pytest.mark.xfail
 def test_missmatch_criteria(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, criteria, weights, anames, cnames = data_values(seed=42)
     criteria = criteria[1:]
-    with pytest.raises(DataValidationError):
-        Data(
+    with pytest.raises(ValueError):
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,
@@ -310,12 +304,11 @@ def test_missmatch_criteria(data_values):
         )
 
 
-@pytest.mark.xfail
 def test_missmatch_weights(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, criteria, weights, anames, cnames = data_values(seed=42)
     weights = weights[1:]
-    with pytest.raises(DataValidationError):
-        Data(
+    with pytest.raises(ValueError):
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,
@@ -324,12 +317,11 @@ def test_missmatch_weights(data_values):
         )
 
 
-@pytest.mark.xfail
 def test_missmatch_anames(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, criteria, weights, anames, cnames = data_values(seed=42)
     anames = anames[1:]
-    with pytest.raises(DataValidationError):
-        Data(
+    with pytest.raises(ValueError):
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,
@@ -338,12 +330,11 @@ def test_missmatch_anames(data_values):
         )
 
 
-@pytest.mark.xfail
 def test_missmatch_cnames(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, criteria, weights, anames, cnames = data_values(seed=42)
     cnames = cnames[1:]
-    with pytest.raises(DataValidationError):
-        Data(
+    with pytest.raises(ValueError):
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,
@@ -352,12 +343,11 @@ def test_missmatch_cnames(data_values):
         )
 
 
-@pytest.mark.xfail
 def test_mtx_ndim1(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    mtx, criteria, weights, anames, cnames = data_values(seed=42)
     mtx = mtx.flatten()
-    with pytest.raises(DataValidationError):
-        Data(
+    with pytest.raises(ValueError):
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,
@@ -366,12 +356,11 @@ def test_mtx_ndim1(data_values):
         )
 
 
-@pytest.mark.xfail
 def test_mtx_ndim3(data_values):
-    mtx, criteria, weights, anames, cnames = init_data
+    _, criteria, weights, anames, cnames = data_values(seed=42)
     mtx = [[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]
-    with pytest.raises(DataValidationError):
-        Data(
+    with pytest.raises(ValueError):
+        data.mkdm(
             mtx=mtx,
             criteria=criteria,
             weights=weights,

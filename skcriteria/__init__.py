@@ -46,5 +46,6 @@ URL = "http://scikit-criteria.org/"
 LICENSE = "3 Clause BSD"
 
 KEYWORDS = (
-    "muticriteria mcda mcdm".split() +
-    "weightedsum weightedproduct simus topsis moora electre".split())
+    "muticriteria mcda mcdm".split()
+    + "weightedsum weightedproduct simus topsis moora electre".split()
+)

@@ -19,36 +19,60 @@ import pandas as pd
 # CONSTANTS
 # =============================================================================
 
-MIN = -1
-"""Int: Minimization criteria"""
-
-MIN_ALIASES = [MIN, min, np.min, np.nanmin, np.amin, "min", "minimize"]
-"""Another ways to name the minimization criteria."""
-
-MAX = 1
-"""Int: Maximization criteria"""
-
-MAX_ALIASES = [MAX, max, np.max, np.nanmax, np.amax, "max", "maximize"]
-"""Another way to name the maximization criteria."""
-
-
-CRITERIA_STR = {MIN: "min", MAX: "max"}
-
-CRITERIA_ALIASES = dict(
-    it.chain(
-        {MIN: MIN, MAX: MAX}.items(),
-        dict.fromkeys(MIN_ALIASES, MIN).items(),
-        dict.fromkeys(MAX_ALIASES, MAX).items(),
-    )
-)
 
 CRITERIA_COLUMN = "criteria"
 
 WEIGHTS_COLUMN = "weights"
 
+
 # =============================================================================
-# CONVERTE
+# CONVERTERS
 # =============================================================================
+
+class Objective(enum.Enum):
+    MIN = -1
+    MAX = 1
+
+    #: Another way to name the maximization criteria.
+    _MAX_ALIASES = [
+        MAX,
+        max,
+        np.max,
+        np.nanmax,
+        np.amax,
+        "max",
+        "maximize",
+        "+",
+        ">",
+    ]
+
+    #: Another ways to name the minimization criteria.
+    _MIN_ALIASES = [
+        MIN,
+        min,
+        np.min,
+        np.nanmin,
+        np.amin,
+        "min",
+        "minimize",
+        "-",
+        "<",
+    ]
+
+    def __str__(self):
+        return self.name
+
+    @classmethod
+    def standarize(cls, alias):
+        if alias in [cls.MIN, cls.MAX]:
+            return alias
+        if isinstance(alias, str):
+            alias = alias.lower()
+        if alias in cls._MAX_ALIASES.value:
+            return cls.MAX
+        if alias in cls._MIN_ALIASES.value:
+            return cls.MIN
+        raise ValueError(f"Invalid criteria sense {alias}")
 
 
 def ascriteria(criteria):
@@ -133,6 +157,9 @@ class DecisionMatrix:
     def __ne__(self, other):
         return not self == other
 
+    def __repr__(self):
+        return repr(self.df)
+
 
 # =============================================================================
 # factory
@@ -140,7 +167,14 @@ class DecisionMatrix:
 
 
 def mkdm(mtx, criteria, weights=None, anames=None, cnames=None):
-    a_number, c_number = np.shape(mtx)
+    # first we need the number of alternatives and criteria
+    try:
+        a_number, c_number = np.shape(mtx)
+    except ValueError:
+        mtx_ndim = np.ndim(mtx)
+        raise ValueError(
+            f"'mtx' must have 2 dimensions, found {mtx_ndim} instead"
+        )
 
     anames = (
         np.array([f"A{idx}" for idx in range(a_number)])
@@ -153,9 +187,20 @@ def mkdm(mtx, criteria, weights=None, anames=None, cnames=None):
         else cnames
     )
 
-    weights = np.ones(c_number) if weights is None else weights
+    weights = (
+        np.ones(c_number, dtype=float)
+        if weights is None
+        else np.asarray(weights, dtype=float)
+    )
     criteria = ascriteria(criteria)
 
+    # validations
+    if not issubclass(weights.dtype.type, np.floating):
+        raise ValueError(
+            f"'cw_df.{WEIGHTS_COLUMN}' must be float. Found: {weights.dtype}"
+        )
+
+    # creation of the internal dataframe
     data_df = pd.DataFrame(mtx, index=anames, columns=cnames)
     cw_df = pd.DataFrame(
         {CRITERIA_COLUMN: criteria, WEIGHTS_COLUMN: weights}, index=cnames
