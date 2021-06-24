@@ -75,7 +75,8 @@ class Objective(enum.Enum):
         raise ValueError(f"Invalid criteria sense {alias}")
 
 
-def ascriteria(criteria):
+@np.ufunc
+def objective(c):
     """Validate and convert a criteria array
 
     Check if the iterable only contains MIN (or any alias) and MAX
