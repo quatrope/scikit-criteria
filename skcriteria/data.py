@@ -5,29 +5,30 @@
 # - nombre de los atributos (anames)
 # - nombre de los criterios (cnames)
 
-# Diseño:
-# Con
+# notes
+# https://github.com/tomharvey/pandas-extension-dtype/blob/master/decimal_array.py
+# https://github.com/0phoff/pygeos-pandas/blob/master/pgpd/_array.py
+# https://pandas.pydata.org/pandas-docs/stable/development/extending.html#extension-types
 
-import itertools as it
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+import enum
+import numbers
+from collections.abc import Iterable
 
 import attr
+
 import numpy as np
+
 import pandas as pd
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-
-CRITERIA_COLUMN = "criteria"
-
-WEIGHTS_COLUMN = "weights"
-
+from pandas.api import extensions as pdext
 
 # =============================================================================
-# CONVERTERS
+# OBJECTIVE ENUM
 # =============================================================================
+
 
 class Objective(enum.Enum):
     MIN = -1
@@ -63,148 +64,272 @@ class Objective(enum.Enum):
         return self.name
 
     @classmethod
-    def standarize(cls, alias):
-        if alias in [cls.MIN, cls.MAX]:
-            return alias
+    def construct_from_alias(cls, alias):
         if isinstance(alias, str):
             alias = alias.lower()
         if alias in cls._MAX_ALIASES.value:
             return cls.MAX
         if alias in cls._MIN_ALIASES.value:
             return cls.MIN
-        raise ValueError(f"Invalid criteria sense {alias}")
+        raise ValueError(f"Invalid criteria objective {alias}")
 
 
-@np.ufunc
-def objective(c):
-    """Validate and convert a criteria array
+# =============================================================================
+# CUSTOM DTYPE
+# =============================================================================
+@pdext.register_extension_dtype
+@attr.s(repr=False, hash=True)
+class CriteriaDtype(pdext.ExtensionDtype):
+    """A custom data type, to be paired with an ExtensionArray."""
 
-    Check if the iterable only contains MIN (or any alias) and MAX
-    (or any alias) values. And also always returns an ndarray representation
-    of the iterable.
+    # dtype related
+    type = np.number
+    name = "criteria"
+    na_value = pd.NA
 
-    Parameters
-    ----------
-    criteria : Array-like
-        Iterable containing all the values to be validated by the function.
+    _is_numeric = True
+    _metadata = ("objective", "weight")
 
-    Returns
-    -------
-    numpy.ndarray :
-        Criteria array as intergers (-1 for minimize, 1 for maximize).
+    # data itself
+    objective = attr.ib(converter=Objective.construct_from_alias)
+    weight = attr.ib(converter=float)
 
-    """
-    pcriteria = np.empty(len(criteria), dtype=int)
-    for idx, crit in enumerate(criteria):
-        crit = crit.lower() if isinstance(crit, str) else crit
-        crit = CRITERIA_ALIASES.get(crit, None)
-        if crit is None:
-            raise ValueError(
-                "Criteria Array only accept minimize or maximize Values. "
-                f"Found {crit}"
+    def __attrs_post_init__(self):
+        # we rewrite the name in the instance so the objective and weight
+        # is shown when the array is put in a series
+        self.name = f"{self.name}({self.objective}, {self.weight})"
+
+    def __repr__(self):
+        return str(self)
+
+    def __str__(self):
+        return f"{type(self).__name__}({self.objective}, {self.weight})"
+
+    @classmethod
+    def construct_from_string(cls, string):
+        """
+        Construct this type from a string (ic. :attr:`~CriteriaDtype.name`).
+        Args:
+            string (str): The name of the type.
+        Returns:
+            CriteriaDtype: instance of the dtype.
+        Raises:
+            TypeError: string is not equal to "criteria".
+        """
+        if string == cls.name:
+            return cls()
+        else:
+            raise TypeError(
+                f'Cannot construct a "{cls.__name__}" from "{string}"'
             )
-        pcriteria[idx] = crit
-    return pcriteria
+
+    @classmethod
+    def construct_array_type(cls):
+        """Return the array type associated with this dtype."""
+        return CriteriaArray
 
 
 # =============================================================================
-# DATA CLASS
+# CUSTOM ARRAY
 # =============================================================================
 
 
-@attr.s(frozen=True, repr=False, cmp=False)
-class DecisionMatrix:
+@attr.s(repr=False)
+class CriteriaArray(pdext.ExtensionArray):
 
-    data_df: pd.DataFrame = attr.ib()
-    cw_df: pd.DataFrame = attr.ib()
+    data = attr.ib(converter=np.asarray)
+    _dtype = attr.ib(validator=attr.validators.instance_of(CriteriaDtype))
 
-    @property
-    def anames(self):
-        return self.data_df.index.to_numpy()
+    # INTERNAL
 
-    @property
-    def cnames(self):
-        return self.data_df.columns.to_numpy()
-
-    @property
-    def mtx(self):
-        return self.data_df.to_numpy()
+    def __repr__(self):
+        """x.__repr__() <==> repr(x)"""
+        cls_name = type(self).__name__
+        return f"{cls_name}({self.data}, {self.dtype})"
 
     @property
-    def weights(self):
-        return self.cw_df.weights.to_numpy()
+    def dtype(self):
+        return self._dtype
 
-    @property
-    def criteria(self):
-        return self.cw_df.criteria.to_numpy()
+    # =========================================================================
+    # ExtensionArray Specific
+    # =========================================================================
 
-    @property
-    def dtypes(self):
-        return self.data_df.dtypes
+    @classmethod
+    def _from_sequence(cls, scalars, dtype, copy=False):
+        values = np.asarray(scalars)
+        if copy:
+            values = values.copy()
+        return cls(data=values, dtype=dtype)
 
-    def copy(self, deep=True):
-        return DecisionMatrix(
-            data_df=self.data_df.copy(deep=deep),
-            cw_df=self.cw_df.copy(deep=deep),
-        )
+    @classmethod
+    def _from_factorized(cls, values, original):
+        """Reconstruct an ExtensionArray after factorization."""
+        return cls(values)
+
+    def __getitem__(self, key):
+        if isinstance(key, numbers.Integral):
+            return self.data[key]
+
+        key = pd.api.indexers.check_array_indexer(self, key)
+        if isinstance(key, (Iterable, slice)):
+            return CriteriaArray(self.data[key], dtype=self.dtype)
+        else:
+            raise TypeError("Index type not supported", key)
+
+    def __setitem__(self, key, value):
+        self.data.__setitem__(key, value)
+
+    def __len__(self):
+        return len(self.data)
 
     def __eq__(self, other):
         return (
-            isinstance(other, DecisionMatrix)
-            and self.data_df.equals(other.data_df)
-            and self.cw_df.equals(other.cw_df)
+            isinstance(other, self.__class__)
+            and self.data == other.data
+            and self.dtype == other.dtype
         )
 
-    def __ne__(self, other):
-        return not self == other
+    @property
+    def nbytes(self):
+        return self.data.nbytes
 
-    def __repr__(self):
-        return repr(self.df)
+    def isna(self):
+        return pd.isna(self.data)
+
+    def take(self, indices, allow_fill=False, fill_value=None):
+        from pandas.core.algorithms import take
+
+        if allow_fill:
+            if fill_value is None or pd.isna(fill_value):
+                fill_value = None
+            elif not isinstance(fill_value, self.dtype.type):
+                raise TypeError("Provide float or None as fill value")
+
+        result = take(
+            self.data, indices, allow_fill=allow_fill, fill_value=fill_value
+        )
+
+        if allow_fill and fill_value is None:
+            result[pd.isna(result)] = None
+
+        return self.__class__(result)
+
+    def copy(self, order="C"):
+        cdata = self.data.copy(order)
+        return CriteriaArray(cdata, dtype=self.dtype)
+
+    @classmethod
+    def _concat_same_type(cls, to_concat):
+        data = np.concatenate([c.data for c in to_concat])
+        dtype = {c.dtype for c in to_concat}
+        if len(dtype) > 1:
+            raise ValueError("Multiple criteria dtype detected")
+        return cls(data, dtype=dtype.pop())
+
+
+# =============================================================================
+# SERIES AND DATA FRAME
+# =============================================================================
+
+
+class CriteriaSeries(pd.Series):
+    @property
+    def _constructor(self):
+        return CriteriaSeries
+
+    @property
+    def _constructor_expanddim(self):
+        return MCDAFrame
+
+
+class MCDAFrame(pd.DataFrame):
+
+    # Pandas extension API
+    @property
+    def _constructor(self):
+        return MCDAFrame
+
+    @property
+    def _constructor_sliced(self):
+        return CriteriaSeries
+
+    # custom constructors
+
+    @classmethod
+    def from_mcda_data(
+        cls, mtx, objectives, weights=None, anames=None, cnames=None
+    ):
+        # first we need the number of alternatives and criteria
+        try:
+            a_number, c_number = np.shape(mtx)
+        except ValueError:
+            mtx_ndim = np.ndim(mtx)
+            raise ValueError(
+                f"'mtx' must have 2 dimensions, found {mtx_ndim} instead"
+            )
+
+        anames = np.asarray(
+            [f"A{idx}" for idx in range(a_number)]
+            if anames is None
+            else anames
+        )
+
+        cnames = np.asarray(
+            [f"C{idx}" for idx in range(c_number)]
+            if cnames is None
+            else cnames
+        )
+
+        weights = np.asarray(np.ones(c_number) if weights is None else weights)
+
+        dtypes = {}
+        for cname, objective, weight in zip(cnames, objectives, weights):
+            dtype = CriteriaDtype(objective=objective, weight=weight)
+            dtypes[cname] = dtype
+
+        df = cls(data=mtx, index=anames, columns=cnames)
+        mcdf = df.astype(dtypes, copy=False)
+
+        return mcdf
+
+    # mcda
+    @property
+    def ctypes(self):
+        def extract_idtypes(v):
+            return v.values.data.dtype
+
+        return self.apply(extract_idtypes, axis=0).to_numpy()
+
+    @property
+    def anames(self):
+        return self.index.to_numpy()
+
+    @property
+    def cnames(self):
+        return self.columns.to_numpy()
+
+    @property
+    def mtx(self):
+        return self.to_numpy()
+
+    @property
+    def weights(self):
+        def extract_weights(v):
+            return v.weights
+
+        return self.dtypes.apply(extract_weights).to_numpy()
+
+    @property
+    def objectives(self):
+        def extract_objectives(v):
+            return v.objective.value
+
+        return self.dtypes.apply(extract_objectives).to_numpy()
 
 
 # =============================================================================
 # factory
 # =============================================================================
 
-
-def mkdm(mtx, criteria, weights=None, anames=None, cnames=None):
-    # first we need the number of alternatives and criteria
-    try:
-        a_number, c_number = np.shape(mtx)
-    except ValueError:
-        mtx_ndim = np.ndim(mtx)
-        raise ValueError(
-            f"'mtx' must have 2 dimensions, found {mtx_ndim} instead"
-        )
-
-    anames = (
-        np.array([f"A{idx}" for idx in range(a_number)])
-        if anames is None
-        else anames
-    )
-    cnames = (
-        np.array([f"C{idx}" for idx in range(c_number)])
-        if cnames is None
-        else cnames
-    )
-
-    weights = (
-        np.ones(c_number, dtype=float)
-        if weights is None
-        else np.asarray(weights, dtype=float)
-    )
-    criteria = ascriteria(criteria)
-
-    # validations
-    if not issubclass(weights.dtype.type, np.floating):
-        raise ValueError(
-            f"'cw_df.{WEIGHTS_COLUMN}' must be float. Found: {weights.dtype}"
-        )
-
-    # creation of the internal dataframe
-    data_df = pd.DataFrame(mtx, index=anames, columns=cnames)
-    cw_df = pd.DataFrame(
-        {CRITERIA_COLUMN: criteria, WEIGHTS_COLUMN: weights}, index=cnames
-    )
-
-    return DecisionMatrix(data_df=data_df, cw_df=cw_df)
+mkdm = MCDAFrame.from_mcda_data
