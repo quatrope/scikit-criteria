@@ -21,6 +21,8 @@ import string
 
 import numpy as np
 
+import pandas as pd
+
 import pytest
 
 from skcriteria import data
@@ -63,8 +65,8 @@ def data_values():
     return make
 
 
-def contruct_objectives(arr):
-    return [data.Objective.construct_from_alias(obj) for obj in arr]
+def contruct_objectives_values(arr):
+    return [data.Objective.construct_from_alias(obj).value for obj in arr]
 
 
 # =============================================================================
@@ -86,7 +88,7 @@ def test_simple_creation(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives(objectives)
+        dm.objectives, contruct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -107,7 +109,7 @@ def test_no_provide_weights(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives(objectives)
+        dm.objectives, contruct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -129,7 +131,7 @@ def test_no_provide_anames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives(objectives)
+        dm.objectives, contruct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -150,7 +152,7 @@ def test_no_provide_cnames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives(objectives)
+        dm.objectives, contruct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -171,7 +173,7 @@ def test_no_provide_cnames_and_anames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives(objectives)
+        dm.objectives, contruct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -191,7 +193,7 @@ def test_copy(data_values):
     copy = dm.copy()
 
     assert dm is not copy
-    assert dm == copy
+    pd.testing.assert_frame_equal(dm, copy)
 
 
 def test_self_eq(data_values):
@@ -204,10 +206,10 @@ def test_self_eq(data_values):
         anames=anames,
         cnames=cnames,
     )
-    copy = dm
+    same = dm
 
-    assert dm is copy
-    assert dm == copy
+    assert dm is same
+    pd.testing.assert_frame_equal(dm, same)
 
 
 def test_self_ne(data_values):
@@ -221,16 +223,17 @@ def test_self_ne(data_values):
         cnames=cnames,
     )
 
-    omtx, ocriteria, oweights, oanames, ocnames = data_values(seed=43)
+    omtx, oobjectives, oweights, oanames, ocnames = data_values(seed=43)
 
     other = data.mkdm(
         mtx=omtx,
-        objectives=ocriteria,
+        objectives=oobjectives,
         weights=oweights,
         anames=oanames,
         cnames=ocnames,
     )
-    assert dm != other
+    with pytest.raises(ValueError):
+        dm != other
 
 
 @pytest.mark.xfail
@@ -279,13 +282,13 @@ def test_no_provide_mtx(data_values):
         )
 
 
-def test_no_provide_criteria(data_values):
+def test_no_provide_objective(data_values):
     mtx, _, weights, anames, cnames = data_values(seed=42)
     with pytest.raises(TypeError):
         data.mkdm(mtxt=mtx, weights=weights, cnames=cnames, anames=anames)
 
 
-def test_invalid_criteria(data_values):
+def test_invalid_objective(data_values):
     mtx, _, weights, anames, cnames = data_values(seed=42)
     objectives = [1, 2, 3, 4]
     with pytest.raises(ValueError):
@@ -311,7 +314,7 @@ def test_weight_no_float(data_values):
         )
 
 
-def test_missmatch_criteria(data_values):
+def test_missmatch_objective(data_values):
     mtx, objectives, weights, anames, cnames = data_values(seed=42)
     objectives = objectives[1:]
     with pytest.raises(ValueError):

@@ -240,21 +240,21 @@ class CriteriaSeries(pd.Series):
 
     @property
     def _constructor_expanddim(self):
-        return MCDAFrame
+        return DMFrame
 
 
-class MCDAFrame(pd.DataFrame):
+class DMFrame(pd.DataFrame):
 
-    # Pandas extension API
+    # Pandas extension API ====================================================
     @property
     def _constructor(self):
-        return MCDAFrame
+        return DMFrame
 
     @property
     def _constructor_sliced(self):
         return CriteriaSeries
 
-    # custom constructors
+    # Custom constructors =====================================================
 
     @classmethod
     def from_mcda_data(
@@ -283,6 +283,21 @@ class MCDAFrame(pd.DataFrame):
 
         weights = np.asarray(np.ones(c_number) if weights is None else weights)
 
+        # validations of longitudes of criteria
+        # in python >= 3.1 we use zip(..., strict=True)
+        lens = {
+            "c_number": c_number,
+            "cnames": len(cnames),
+            "objectives": len(objectives),
+            "weights": len(weights),
+        }
+        if len(set(lens.values())) > 1:
+            del lens["c_number"]
+            raise ValueError(
+                "'cnames', 'objectives' and 'weights' must have "
+                f"{c_number} values. Found {lens}"
+            )
+
         dtypes = {}
         for cname, objective, weight in zip(cnames, objectives, weights):
             dtype = CriteriaDtype(objective=objective, weight=weight)
@@ -293,13 +308,14 @@ class MCDAFrame(pd.DataFrame):
 
         return mcdf
 
-    # mcda
+    # MCDA ====================================================================
+
     @property
     def ctypes(self):
-        def extract_idtypes(v):
+        def extract_ctypes(v):
             return v.values.data.dtype
 
-        return self.apply(extract_idtypes, axis=0).to_numpy()
+        return self.apply(extract_ctypes, axis=0).to_numpy()
 
     @property
     def anames(self):
@@ -316,7 +332,7 @@ class MCDAFrame(pd.DataFrame):
     @property
     def weights(self):
         def extract_weights(v):
-            return v.weights
+            return v.weight
 
         return self.dtypes.apply(extract_weights).to_numpy()
 
@@ -332,4 +348,4 @@ class MCDAFrame(pd.DataFrame):
 # factory
 # =============================================================================
 
-mkdm = MCDAFrame.from_mcda_data
+mkdm = DMFrame.from_mcda_data
