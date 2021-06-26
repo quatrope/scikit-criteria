@@ -65,8 +65,17 @@ def data_values():
     return make
 
 
-def contruct_objectives_values(arr):
+# =============================================================================
+# HELPER
+# =============================================================================
+
+
+def construct_objectives_values(arr):
     return [data.Objective.construct_from_alias(obj).value for obj in arr]
+
+
+def construct_objectives_dtype(arr):
+    return [data.Objective.construct_from_alias(obj) for obj in arr]
 
 
 # =============================================================================
@@ -88,7 +97,10 @@ def test_simple_creation(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives_values(objectives)
+        dm.objectives, construct_objectives_values(objectives)
+    )
+    np.testing.assert_array_equal(
+        dm.objectives_dtype, construct_objectives_dtype(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -109,7 +121,10 @@ def test_no_provide_weights(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives_values(objectives)
+        dm.objectives, construct_objectives_values(objectives)
+    )
+    np.testing.assert_array_equal(
+        dm.objectives_dtype, construct_objectives_dtype(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -131,7 +146,10 @@ def test_no_provide_anames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives_values(objectives)
+        dm.objectives, construct_objectives_values(objectives)
+    )
+    np.testing.assert_array_equal(
+        dm.objectives_dtype, construct_objectives_dtype(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -152,7 +170,10 @@ def test_no_provide_cnames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives_values(objectives)
+        dm.objectives, construct_objectives_values(objectives)
+    )
+    np.testing.assert_array_equal(
+        dm.objectives_dtype, construct_objectives_dtype(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -173,7 +194,10 @@ def test_no_provide_cnames_and_anames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, contruct_objectives_values(objectives)
+        dm.objectives, construct_objectives_values(objectives)
+    )
+    np.testing.assert_array_equal(
+        dm.objectives_dtype, construct_objectives_dtype(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -236,19 +260,23 @@ def test_self_ne(data_values):
         dm != other
 
 
-@pytest.mark.xfail
 def test_simple_repr(data_values):
-    mtx, objectives, weights, anames, cnames = init_data
 
-    data = Data(
-        mtx=mtx,
-        objectives=objectives,
-        weights=weights,
-        anames=anames,
-        cnames=cnames,
+    dm = data.mkdm(
+        mtx=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
     )
 
-    assert repr(data)
+    expected = (
+        "   C0[\u25bc 0.1] C1[\u25b2 0.2] C2[\u25bc 0.3]\n"
+        "A0         1         2         3\n"
+        "A1         4         5         6\n"
+        "A2         7         8         9"
+    )
+
+    result = repr(dm)
+    assert result == expected
 
 
 @pytest.mark.xfail

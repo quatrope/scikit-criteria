@@ -25,6 +25,7 @@ import numpy as np
 import pandas as pd
 from pandas.api import extensions as pdext
 
+
 # =============================================================================
 # OBJECTIVE ENUM
 # =============================================================================
@@ -34,9 +35,13 @@ class Objective(enum.Enum):
     MIN = -1
     MAX = 1
 
+    _MIN_STR = "\u25bc"
+    _MAX_STR = "\u25b2"
+
     #: Another way to name the maximization criteria.
     _MAX_ALIASES = [
         MAX,
+        _MAX_STR,
         max,
         np.max,
         np.nanmax,
@@ -50,18 +55,25 @@ class Objective(enum.Enum):
     #: Another ways to name the minimization criteria.
     _MIN_ALIASES = [
         MIN,
+        _MIN_STR,
         min,
         np.min,
         np.nanmin,
         np.amin,
         "min",
         "minimize",
-        "-",
         "<",
+        "-",
     ]
 
     def __str__(self):
         return self.name
+
+    def to_string(self):
+        if self.value in Objective._MIN_ALIASES.value:
+            return Objective._MIN_STR.value
+        if self.value in Objective._MAX_ALIASES.value:
+            return Objective._MAX_STR.value
 
     @classmethod
     def construct_from_alias(cls, alias):
@@ -243,6 +255,9 @@ class CriteriaSeries(pd.Series):
         return DMFrame
 
 
+# =============================================================================
+# SERIES DATA FRAME
+# =============================================================================
 class DMFrame(pd.DataFrame):
 
     # Pandas extension API ====================================================
@@ -308,6 +323,15 @@ class DMFrame(pd.DataFrame):
 
         return mcdf
 
+    # CUSTOM reimplmentations =================================================
+
+    def to_string(self, **kwargs):
+        cow = zip(self.cnames, self.objectives_dtype, self.weights)
+        kwargs["header"] = [
+            f"{c}[{obj.to_string()} {weight}]" for c, obj, weight in cow
+        ]
+        return super().to_string(**kwargs)
+
     # MCDA ====================================================================
 
     @property
@@ -335,6 +359,13 @@ class DMFrame(pd.DataFrame):
             return v.weight
 
         return self.dtypes.apply(extract_weights).to_numpy()
+
+    @property
+    def objectives_dtype(self):
+        def extract_objectives_dtype(v):
+            return v.objective
+
+        return self.dtypes.apply(extract_objectives_dtype).to_numpy()
 
     @property
     def objectives(self):
