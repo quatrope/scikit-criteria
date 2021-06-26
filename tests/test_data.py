@@ -51,8 +51,8 @@ def data_values():
 
         mtx = random.random((alts, crit))
         objective = random.choice(
-            data.Objective._MAX_ALIASES.value
-            + data.Objective._MIN_ALIASES.value,
+            list(data.Objective._MAX_ALIASES.value)
+            + list(data.Objective._MIN_ALIASES.value),
             crit,
         )
         weights = random.random(crit)
@@ -74,7 +74,7 @@ def construct_objectives_values(arr):
     return [data.Objective.construct_from_alias(obj).value for obj in arr]
 
 
-def construct_objectives_dtype(arr):
+def construct_objectives(arr):
     return [data.Objective.construct_from_alias(obj) for obj in arr]
 
 
@@ -97,10 +97,10 @@ def test_simple_creation(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, construct_objectives_values(objectives)
+        dm.objectives_values, construct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(
-        dm.objectives_dtype, construct_objectives_dtype(objectives)
+        dm.objectives, construct_objectives(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -121,10 +121,10 @@ def test_no_provide_weights(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, construct_objectives_values(objectives)
+        dm.objectives_values, construct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(
-        dm.objectives_dtype, construct_objectives_dtype(objectives)
+        dm.objectives, construct_objectives(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -146,10 +146,10 @@ def test_no_provide_anames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, construct_objectives_values(objectives)
+        dm.objectives_values, construct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(
-        dm.objectives_dtype, construct_objectives_dtype(objectives)
+        dm.objectives, construct_objectives(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -170,10 +170,10 @@ def test_no_provide_cnames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, construct_objectives_values(objectives)
+        dm.objectives_values, construct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(
-        dm.objectives_dtype, construct_objectives_dtype(objectives)
+        dm.objectives, construct_objectives(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -194,10 +194,10 @@ def test_no_provide_cnames_and_anames(data_values):
 
     np.testing.assert_array_equal(dm.mtx, mtx)
     np.testing.assert_array_equal(
-        dm.objectives, construct_objectives_values(objectives)
+        dm.objectives_values, construct_objectives_values(objectives)
     )
     np.testing.assert_array_equal(
-        dm.objectives_dtype, construct_objectives_dtype(objectives)
+        dm.objectives, construct_objectives(objectives)
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
@@ -217,7 +217,7 @@ def test_copy(data_values):
     copy = dm.copy()
 
     assert dm is not copy
-    pd.testing.assert_frame_equal(dm, copy)
+    assert dm == copy
 
 
 def test_self_eq(data_values):
@@ -233,7 +233,7 @@ def test_self_eq(data_values):
     same = dm
 
     assert dm is same
-    pd.testing.assert_frame_equal(dm, same)
+    assert dm == same
 
 
 def test_self_ne(data_values):
@@ -256,8 +256,7 @@ def test_self_ne(data_values):
         anames=oanames,
         cnames=ocnames,
     )
-    with pytest.raises(ValueError):
-        dm != other
+    assert  dm != other
 
 
 def test_simple_repr(data_values):
@@ -272,7 +271,8 @@ def test_simple_repr(data_values):
         "   C0[\u25bc 0.1] C1[\u25b2 0.2] C2[\u25bc 0.3]\n"
         "A0         1         2         3\n"
         "A1         4         5         6\n"
-        "A2         7         8         9"
+        "A2         7         8         9\n"
+        "[3 Alternatives x 3 Criteria]"
     )
 
     result = repr(dm)
