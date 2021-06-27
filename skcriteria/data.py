@@ -5,16 +5,16 @@
 # - nombre de los atributos (anames)
 # - nombre de los criterios (cnames)
 
-# Diseño:
-# Con
 
 import enum
-import itertools as it
 
 import attr
+
 import numpy as np
+
 import pandas as pd
-from pandas.core.frame import DataFrame
+
+import pyquery as pq
 
 
 # =============================================================================
@@ -162,6 +162,8 @@ class DecisionMatrix:
 
         return cls(data_df=data_df, objectives=objectives, weights=weights)
 
+    # MCDA ====================================================================
+
     @property
     def anames(self):
         return self._data_df.index.to_numpy()
@@ -188,9 +190,9 @@ class DecisionMatrix:
 
     @property
     def dtypes(self):
-        return self.data_df.dtypes
+        return self._data_df.dtypes
 
-    # utilities and redefinitions
+    # UTILITIES ===============================================================
 
     def copy(self, deep=True):
         return DecisionMatrix(
@@ -198,6 +200,8 @@ class DecisionMatrix:
             objectives=self._objectives,
             weights=self._weights,
         )
+
+    # CMP =====================================================================
 
     def __eq__(self, other):
         return (
@@ -209,6 +213,61 @@ class DecisionMatrix:
 
     def __ne__(self, other):
         return not self == other
+
+    # repr ====================================================================
+    def _get_cow_headers(self):
+        """Columns names with COW (Criteria, Objective, Weight)."""
+        headers = []
+        for c, o, w in zip(self.cnames, self.objectives, self.weights):
+            header = f"{c}[{o.to_string()} {w}]"
+            headers.append(header)
+        return headers
+
+    def _get_axc_dimensions(self):
+        """Dimension foote with AxC (Alternativs x Criteria)."""
+        a_number, c_number = np.shape(self._data_df)
+        dimensions = f"{a_number} Alternatives x {c_number} Criteria"
+        return dimensions
+
+    def __repr__(self) -> str:
+
+        header = self._get_cow_headers()
+        dimensions = self._get_axc_dimensions()
+
+        kwargs = {"header": header, "show_dimensions": False}
+
+        # retrieve the original string
+        original_string = self._data_df.to_string(**kwargs)
+
+        # add dimension
+        string = f"{original_string}\n[{dimensions}]"
+
+        return string
+
+    def _repr_html_(self) -> str:
+
+        header = dict(zip(self.cnames, self._get_cow_headers()))
+        dimensions = self._get_axc_dimensions()
+
+        # retrieve the original string
+        original_html = self._data_df._repr_html_()
+
+        # add dimension
+        html = (
+            "<div class='decisionmatrix'>\n"
+            f"{original_html}"
+            f"<em class='decisionmatrix-dim'>{dimensions}</em>\n"
+            "</div>"
+        )
+
+        # now we need to change the table header
+        d = pq.PyQuery(html)
+        for th in d("div.decisionmatrix table.dataframe > thead > tr > th"):
+            crit = th.text
+            if crit:
+                th.text = header[crit]
+
+        return str(d)
 
 
 # =============================================================================

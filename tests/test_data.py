@@ -256,10 +256,10 @@ def test_self_ne(data_values):
         anames=oanames,
         cnames=ocnames,
     )
-    assert  dm != other
+    assert dm != other
 
 
-def test_simple_repr(data_values):
+def test_simple_repr():
 
     dm = data.mkdm(
         mtx=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
@@ -279,19 +279,71 @@ def test_simple_repr(data_values):
     assert result == expected
 
 
-@pytest.mark.xfail
-def test_simple_html(data_values):
-    mtx, objectives, weights, anames, cnames = init_data
-
-    data = Data(
-        mtx=mtx,
-        objectives=objectives,
-        weights=weights,
-        anames=anames,
-        cnames=cnames,
+def test_simple_html():
+    dm = data.mkdm(
+        mtx=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
     )
 
-    assert data._repr_html_()
+    expected = """
+        <div class="decisionmatrix">
+            <div>
+                <style scoped="">
+                    .dataframe tbody tr th:only-of-type {
+                        vertical-align: middle;
+                    }
+
+                    .dataframe tbody tr th {
+                        vertical-align: top;
+                    }
+
+                    .dataframe thead th {
+                        text-align: right;
+                    }
+                </style>
+                <table border="1" class="dataframe">
+                    <thead>
+                        <tr style="text-align: right;">
+                            <th/>
+                            <th>C0[▼ 0.1]</th>
+                            <th>C1[▲ 0.2]</th>
+                            <th>C2[▼ 0.3]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>A0</th>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <th>A1</th>
+                            <td>4</td>
+                            <td>5</td>
+                            <td>6</td>
+                        </tr>
+                        <tr>
+                            <th>A2</th>
+                            <td>7</td>
+                            <td>8</td>
+                            <td>9</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <em class="decisionmatrix-dim">3 Alternatives x 3 Criteria
+            </em>
+        </div>
+    """
+
+    result = dm._repr_html_()
+
+    def remove_white_spaces(txt):
+        return "".join([l.strip() for l in txt.splitlines() if l.strip()])
+
+    assert remove_white_spaces(expected) == remove_white_spaces(result)
 
 
 # =============================================================================
