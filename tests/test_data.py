@@ -346,6 +346,28 @@ def test_simple_html():
     assert remove_white_spaces(expected) == remove_white_spaces(result)
 
 
+def test_to_dataframe(data_values):
+
+    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+
+    dm = data.mkdm(
+        mtx=mtx,
+        objectives=objectives,
+        weights=weights,
+        anames=anames,
+        cnames=cnames,
+    )
+
+    df = dm.to_dataframe()
+
+    rows = np.vstack((construct_objectives(objectives), weights, mtx))
+    expected = pd.DataFrame(
+        rows, index=["objectives", "weights"] + anames, columns=cnames
+    )
+
+    pd.testing.assert_frame_equal(df, expected)
+
+
 # =============================================================================
 # MUST FAIL
 # =============================================================================

@@ -194,12 +194,18 @@ class DecisionMatrix:
 
     # UTILITIES ===============================================================
 
-    def copy(self, deep=True):
+    def copy(self):
         return DecisionMatrix(
             data_df=self._data_df,
             objectives=self._objectives,
             weights=self._weights,
         )
+
+    def to_dataframe(self):
+        data = np.vstack((self._objectives, self._weights, self.mtx))
+        index = np.hstack((["objectives", "weights"], self.anames))
+        df = pd.DataFrame(data, index=index, columns=self.cnames, copy=True)
+        return df
 
     # CMP =====================================================================
 
