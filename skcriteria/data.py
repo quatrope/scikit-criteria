@@ -190,7 +190,7 @@ class DecisionMatrix:
 
     @property
     def dtypes(self):
-        return self._data_df.dtypes
+        return self._data_df.dtypes.to_numpy()
 
     # UTILITIES ===============================================================
 

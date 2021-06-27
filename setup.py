@@ -20,18 +20,16 @@
 
 import os
 
-
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
 os.environ["__SKCRITERIA_IN_SETUP__"] = "True"
-import skcriteria
-
+import skcriteria  # noqa
 
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
-REQUIREMENTS = ["numpy", "attrs", "pandas"]
+REQUIREMENTS = ["numpy", "attrs", "pandas", "pyquery"]
 
 
 # =============================================================================

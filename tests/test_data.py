@@ -79,6 +79,32 @@ def construct_objectives(arr):
 
 
 # =============================================================================
+# ENUM
+# =============================================================================
+
+
+def test_objective_construct():
+    for alias in data.Objective._MAX_ALIASES.value:
+        objective = data.Objective.construct_from_alias(alias)
+        assert objective is data.Objective.MAX
+    for alias in data.Objective._MIN_ALIASES.value:
+        objective = data.Objective.construct_from_alias(alias)
+        assert objective is data.Objective.MIN
+    with pytest.raises(ValueError):
+        data.Objective.construct_from_alias("no anda")
+
+
+def test_objective_str():
+    assert str(data.Objective.MAX) == data.Objective.MAX.name
+    assert str(data.Objective.MIN) == data.Objective.MIN.name
+
+
+def test_objective_to_string():
+    assert data.Objective.MAX.to_string() == data.Objective._MAX_STR.value
+    assert data.Objective.MIN.to_string() == data.Objective._MIN_STR.value
+
+
+# =============================================================================
 # MUST WORK
 # =============================================================================
 
@@ -105,6 +131,7 @@ def test_simple_creation(data_values):
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
     np.testing.assert_array_equal(dm.cnames, cnames)
+    np.testing.assert_array_equal(dm.dtypes, [np.float64] * len(cnames))
 
 
 def test_no_provide_weights(data_values):
@@ -341,7 +368,9 @@ def test_simple_html():
     result = dm._repr_html_()
 
     def remove_white_spaces(txt):
-        return "".join([l.strip() for l in txt.splitlines() if l.strip()])
+        return "".join(
+            [line.strip() for line in txt.splitlines() if line.strip()]
+        )
 
     assert remove_white_spaces(expected) == remove_white_spaces(result)
 
