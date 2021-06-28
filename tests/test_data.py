@@ -17,8 +17,6 @@
 # IMPORTS
 # =============================================================================
 
-import string
-
 import numpy as np
 
 import pandas as pd
@@ -26,43 +24,6 @@ import pandas as pd
 import pytest
 
 from skcriteria import data
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-
-CHARS = tuple(string.ascii_letters + string.digits)
-
-
-# =============================================================================
-# FIXTURES
-# =============================================================================
-
-
-@pytest.fixture(scope="session")
-def data_values():
-    def make(seed=None):
-        random = np.random.default_rng(seed=seed)
-
-        alts = random.integers(2, 10)
-        crit = random.integers(2, 10)
-
-        mtx = random.random((alts, crit))
-        objective = random.choice(
-            list(data.Objective._MAX_ALIASES.value)
-            + list(data.Objective._MIN_ALIASES.value),
-            crit,
-        )
-        weights = random.random(crit)
-
-        anames = ["A." + "".join(random.choice(CHARS, 5)) for _ in range(alts)]
-        cnames = ["C." + "".join(random.choice(CHARS, 5)) for _ in range(crit)]
-
-        return mtx, objective, weights, anames, cnames
-
-    return make
 
 
 # =============================================================================
