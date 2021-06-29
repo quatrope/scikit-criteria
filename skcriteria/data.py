@@ -1,10 +1,17 @@
-# el tipo de datos Data de skcriteria, debe contener:
-# - La matriz de alternativas (mtx).
-# - El sentido de los criterios (sense)
-# - Pesos (weights)
-# - nombre de los atributos (anames)
-# - nombre de los criterios (cnames)
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
+# Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# All rights reserved.
 
+# =============================================================================
+# DOCS
+# =============================================================================
+
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
 
 import enum
 
@@ -129,7 +136,13 @@ class DecisionMatrix:
 
     @classmethod
     def from_mcda_data(
-        cls, mtx, objectives, weights=None, anames=None, cnames=None
+        cls,
+        mtx,
+        objectives,
+        weights=None,
+        anames=None,
+        cnames=None,
+        dtypes=None,
     ):
         # first we need the number of alternatives and criteria
         try:
@@ -158,7 +171,14 @@ class DecisionMatrix:
             raise ValueError(f"'cnames' must have {c_number} elements")
 
         weights = np.asarray(np.ones(c_number) if weights is None else weights)
+
         data_df = pd.DataFrame(mtx, index=anames, columns=cnames)
+
+        if dtypes is not None and len(dtypes) != c_number:
+            raise ValueError(f"'dtypes' must have {c_number} elements")
+        elif dtypes is not None:
+            dtypes = {c: dt for c, dt in zip(cnames, dtypes)}
+            data_df = data_df.astype(dtypes)
 
         return cls(data_df=data_df, objectives=objectives, weights=weights)
 
@@ -210,6 +230,7 @@ class DecisionMatrix:
     # CMP =====================================================================
 
     def __eq__(self, other):
+
         return (
             isinstance(other, DecisionMatrix)
             and self._data_df.equals(other._data_df)
