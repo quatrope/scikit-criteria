@@ -1,6 +1,8 @@
 include LICENSE
 include README.md
 
+recursive-include skcriteria *.py
+
 exclude tox.ini
 exclude pyproject.toml
 recursive-exclude tests *

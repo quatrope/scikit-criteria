@@ -8,10 +8,8 @@
 # DOCS
 # =============================================================================
 
-"""Scikit-Criteria is a collections of algorithms, methods and
-techniques for multiple-criteria decision analysis.
-
-"""
+"""Scikit-Criteria is a collections of algorithms, methods and \
+techniques for multiple-criteria decision analysis."""
 
 # =============================================================================
 # IMPORTS
