@@ -145,8 +145,8 @@ class DecisionMatrix:
      DecisionMatrix has two main forms of construction:
 
      1. Use the default constructor of the DecisionMatrix class
-        ``pandas.DataFrame`` where the index is the alternatives
-        and the columns are the criteria; an iterable with the targets with
+        :py:class:`pandas.DataFrame` where the index is the alternatives
+        and the columns are the criteria; an iterable with the objectives with
         the same amount of elements that columns/criteria has the dataframe;
         and an iterable with the weights also with the same amount of elements
         as criteria.
@@ -188,6 +188,19 @@ class DecisionMatrix:
         For simplicity a function is offered at the module level analogous to
         ``from_mcda_data`` called ``mkdm`` (make decision matrix).
 
+    Parameters
+    ----------
+    data_df: :py:class:`pandas.DatFrame`
+        Dataframe where the index is the alternatives and the columns
+        are the criteria.
+    objectives: :py:class:`numpy.ndarray`
+        Aan iterable with the targets with sense of optimality of every
+        criteria (You can use any alias defined in Objective)
+        the same length as columns/criteria has the data_df.
+    weights: :py:class:`numpy.ndarray`
+        An iterable with the weights also with the same amount of elements
+        as criteria.
+
     """
 
     _data_df: pd.DataFrame = attr.ib(converter=_as_df)
@@ -224,7 +237,68 @@ class DecisionMatrix:
         anames: Optional[Iterable] = None,
         cnames: Optional[Iterable] = None,
         dtypes: Optional[Iterable] = None,
-    ):
+    ) -> DecisionMatrix:
+        """Create a new DecisionMatrix object.
+
+        This method receives the parts of the matrix, in what conceptually
+        the matrix of alternatives is usually divided
+
+        Parameters
+        ----------
+        mtx: Iterable
+            The matrix of alternatives. Where every row is an alternative
+            and every column is a criteria.
+
+        objectives: Iterable
+            The array with the sense of optimality of every
+            criteria. You can use any alias provided by the objective class.
+
+        weights: Iterable o None (default ``None``)
+            Optional weights of the criteria. If is ``None`` all the criteria
+            are weighted with 1.
+
+        anames: Iterable o None (default ``None``)
+            Optional names of the alternatives. If is ``None``,
+            al the alternatives are names "A[n]" where n is the number of
+            the row of `mtx` statring at 0.
+
+        cnames: Iterable o None (default ``None``)
+            Optional names of the criteria. If is ``None``,
+            al the alternatives are names "C[m]" where m is the number of
+            the columns of `mtx` statring at 0.
+
+        dtypes: Iterable o None (default ``None``)
+            Optional types of the criteria. If is None, the type is inferred
+            automatically by pandas.
+
+        Returns
+        -------
+        :py:class:`DecisionMatrix`
+            A new decision matrix.
+
+
+        Example
+        -------
+
+
+        >>> DecisionMatrix.from_mcda_data(
+        ...     [[1, 2, 3], [4, 5, 6]],
+        ...     [min, max, min],
+        ...     [1, 1, 1])
+           C0[▼ 1.0] C1[▲ 1.0] C2[▲ 1.0]
+        A0         1         2         3
+        A1         4         5         6
+        [2 Alternatives x 3 Criteria]
+
+        For simplicity a function is offered at the module level analogous to
+        ``from_mcda_data`` called ``mkdm`` (make decision matrix).
+
+        Notes
+        -----
+        This functionality generates more sensitive defaults than using the
+        constructor of the DecisionMatrix class at the cost of be slower.
+
+        """
         # first we need the number of alternatives and criteria
         try:
             a_number, c_number = np.shape(mtx)
@@ -319,6 +393,11 @@ class DecisionMatrix:
         """Convert the entire DecisionMatrix into a dataframe.
 
         The objectives and weights ara added as rows before the alternatives.
+
+        Returns
+        -------
+        :py:class:`pd.DataFrame`
+            A Decision matrix as pandas DataFrame.
 
         Example
         -------
