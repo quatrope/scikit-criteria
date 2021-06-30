@@ -14,10 +14,10 @@
 # IMPORTS
 # =============================================================================
 
-from .invert_objective import MinimizeToMaximize, invert
+from .invert_objective import MinimizeToMaximizeNormalizer, invert
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["MinimizeToMaximize", "invert"]
+__all__ = ["MinimizeToMaximizeNormalizer", "invert"]

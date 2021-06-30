@@ -31,7 +31,7 @@ from ..data import Objective
 # =============================================================================
 
 
-def invert(mtx: np.ndarray, mask: np.ndarray) -> tuple:
+def invert(mtx: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """Inverts all the columns selected by the mask.
 
     Parameters
@@ -78,7 +78,7 @@ def invert(mtx: np.ndarray, mask: np.ndarray) -> tuple:
     return inv_mtx
 
 
-class MinimizeToMaximize(NormalizerMixin, BaseDecisionMaker):
+class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
     r"""Transform all minimization criteria  into maximization ones.
 
     The transformations are made by calculating the inverse value of
@@ -102,13 +102,15 @@ class MinimizeToMaximize(NormalizerMixin, BaseDecisionMaker):
             :py:method:`DecisionMatrix.from_mcda_data`.
 
         """
-        # check where
+        # check where we need to normalize
         minimize_mask = np.equal(objectives, Objective.MIN.value)
 
+        # execute the normalizer
         inv_mtx = invert(mtx, minimize_mask)
 
-        inv_objectives = (
-            np.zeros(np.shape(objectives), dtype=int) + Objective.MAX.value
+        # new objective array
+        inv_objectives = np.full(
+            len(objectives), Objective.MAX.value, dtype=int
         )
 
         # we are trying to preserve the original dtype as much as possible

@@ -29,7 +29,7 @@ from skcriteria.norm import invert_objective
 # =============================================================================
 
 
-def test_MinimizeToMaximize_simple(decision_matrix):
+def test_MinimizeToMaximizeNormalizer_simple(decision_matrix):
 
     dm = skcriteria.mkdm(
         mtx=[[1, 2, 3], [4, 5, 6]], objectives=[min, max, min]
@@ -39,14 +39,14 @@ def test_MinimizeToMaximize_simple(decision_matrix):
         mtx=[[1, 2, 1 / 3], [1 / 4, 5, 1 / 6]], objectives=[max, max, max]
     )
 
-    normalizer = invert_objective.MinimizeToMaximize()
+    normalizer = invert_objective.MinimizeToMaximizeNormalizer()
 
     result = normalizer.normalize(dm)
 
     assert result == expected
 
 
-def test_MinimizeToMaximize_all_min(decision_matrix):
+def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -55,7 +55,7 @@ def test_MinimizeToMaximize_all_min(decision_matrix):
         max_criteria=20,
         min_objectives_proportion=1.0,
     )
-    normalizer = invert_objective.MinimizeToMaximize()
+    normalizer = invert_objective.MinimizeToMaximizeNormalizer()
 
     result = normalizer.normalize(dm)
 
@@ -64,7 +64,7 @@ def test_MinimizeToMaximize_all_min(decision_matrix):
     assert np.all(result.mtx == 1.0 / dm.mtx)
 
 
-def test_MinimizeToMaximize_50percent_min(decision_matrix):
+def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -74,7 +74,7 @@ def test_MinimizeToMaximize_50percent_min(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    normalizer = invert_objective.MinimizeToMaximize()
+    normalizer = invert_objective.MinimizeToMaximizeNormalizer()
 
     result = normalizer.normalize(dm)
 
