@@ -8,44 +8,16 @@
 # DOCS
 # =============================================================================
 
-"""Scikit-Criteria is a collections of algorithms, methods and \
-techniques for multiple-criteria decision analysis."""
+"""Normalization routines."""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import os
-
-if os.getenv("__SKCRITERIA_IN_SETUP__") != "True":
-    from .data import Objective, DecisionMatrix, mkdm
-
-del os
-
+from .invert_objective import MinimizeToMaximize, invert
 
 # =============================================================================
-# CONSTANTS
+# ALL
 # =============================================================================
 
-__all__ = ["DecisionMatrix", "Objective", "mkdm"]
-
-__version__ = ("0", "9")
-
-NAME = "scikit-criteria"
-
-DOC = __doc__
-
-VERSION = ".".join(__version__)
-
-AUTHORS = "Cabral & Luczywo"
-
-EMAIL = "jbcabral@unc.edu.ar"
-
-URL = "http://scikit-criteria.org/"
-
-LICENSE = "3 Clause BSD"
-
-KEYWORDS = (
-    "muticriteria mcda mcdm".split()
-    + "weightedsum weightedproduct simus topsis moora electre".split()
-)
+__all__ = ["MinimizeToMaximize", "invert"]

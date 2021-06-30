@@ -296,7 +296,7 @@ class DecisionMatrix:
         Notes
         -----
         This functionality generates more sensitive defaults than using the
-        constructor of the DecisionMatrix class at the cost of be slower.
+        constructor of the DecisionMatrix class but is slower.
 
         """
         # first we need the number of alternatives and criteria

@@ -8,86 +8,108 @@
 # DOCS
 # =============================================================================
 
+"""Implementation of functionalities for inverting minimization criteria and \
+converting them into maximization ones.
+
+In addition to the main functionality, an agnostic MCDA function is offered
+that inverts columns of a matrix based on a mask.
+
+"""
+
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
+
 import numpy as np
 
-from ..data import DecisionMatrix, Objective
+from ..base import BaseDecisionMaker, NormalizerMixin
+from ..data import Objective
 
 # =============================================================================
 # FUNCTIONS
 # =============================================================================
 
 
-def minimize_to_maximize(mtx, objectives):
+def invert(mtx: np.ndarray, mask: np.ndarray) -> tuple:
+    """Inverts all the columns selected by the mask.
 
-    new_mtx = np.array(mtx, dtype=float)
+    Parameters
+    ----------
+    mtx: :py:class:`numpy.ndarray` like.
+        2D array.
+    mask: :py:class:`numpy.ndarray` like.
+        Boolean array like with the same elements as columns has the ``mtx``.
 
-    minimize_mask = np.equal(objectives, Objective.MIN.value)
+    Returns
+    -------
+    :py:class:`numpy.ndarray`
+        New matrix with the selected columns inverted. The result matrix
+        dtype float.
 
-    inverted_values = 1.0 / new_mtx[:, minimize_mask]
-    new_mtx[:, minimize_mask] = inverted_values
+    Example
+    -------
 
-    new_objectives = (
-        np.zeros(np.shape(objectives), dtype=int) + Objective.MAX.value
-    )
+    .. code-block:: pycon
+        >>> norm.invert([
+        ...     [1, 2, 3],
+        ...     [4, 5, 6]
+        ... ],
+        ... [True, False, True])
+        array([[1.        , 2.        , 0.33333333],
+               [0.25      , 5.        , 0.16666667]])
 
-    return new_mtx, new_objectives
+        >>> norm.invert([
+        ...     [1, 2, 3],
+        ...     [4, 5, 6]
+        ... ],
+        ... [False, True, False])
+        array([[1.        , 2.        , 0.33333333],
+               [0.25      , 5.        , 0.16666667]])
+        array([[1. , 0.5, 3. ],
+               [4. , 0.2, 6. ]]
+
+    """
+    inv_mtx = np.array(mtx, dtype=float)
+
+    inverted_values = 1.0 / inv_mtx[:, mask]
+    inv_mtx[:, mask] = inverted_values
+
+    return inv_mtx
 
 
-# =============================================================================
-# CLASS
-# =============================================================================
+class MinimizeToMaximize(NormalizerMixin, BaseDecisionMaker):
+    r"""Transform all minimization criteria  into maximization ones.
 
+    The transformations are made by calculating the inverse value of
+    the minimization criteria. :math:`\min{C} \equiv \max{\frac{1}{C}}`
 
-class BaseDecisor:
+    Notes
+    -----
+    All the dtypes of the decision matrix are preserved except the inverted
+    ones thar are converted to ``numpy.float64``.
 
-    _decisor_type = None
+    """
 
-    def validate_data(self, **kwargs):
-        pass
+    def normalize_data(self, mtx, objectives, dtypes, **kwargs):
+        """Execute the transformation over the provided data.
 
+        Returns
+        -------
+        :py:class:`dict`
+            A dictionary with all the values of the normalized decision matrix.
+            This parameters will be provided into
+            :py:method:`DecisionMatrix.from_mcda_data`.
 
-class NormalizerMixin:
+        """
+        # check where
+        minimize_mask = np.equal(objectives, Objective.MIN.value)
 
-    _decisor_type = "normalizer"
+        inv_mtx = invert(mtx, minimize_mask)
 
-    def normalize(self, dm):
-        mtx = dm.mtx
-        objectives = dm.objectives_values
-        weights = dm.weights
-        anames = dm.anames
-        cnames = dm.cnames
-        dtypes = dm.dtypes
-
-        self.validate_data(
-            mtx=mtx,
-            objectives=objectives,
-            weights=weights,
-            anames=anames,
-            cnames=cnames,
-            dtypes=dtypes,
+        inv_objectives = (
+            np.zeros(np.shape(objectives), dtype=int) + Objective.MAX.value
         )
-
-        nkwargs = self.transform(
-            mtx=mtx,
-            objectives=objectives,
-            weights=weights,
-            anames=anames,
-            cnames=cnames,
-            dtypes=dtypes,
-        )
-
-        norm_dm = DecisionMatrix.from_mcda_data(**nkwargs)
-
-        return norm_dm
-
-
-class MinimizeToMaximize(NormalizerMixin, BaseDecisor):
-    def transform(self, mtx, objectives, dtypes, **kwargs):
-        inv_mtx, inv_objectives = minimize_to_maximize(mtx, objectives)
 
         # we are trying to preserve the original dtype as much as possible
         # only the minimize criteria are changed.

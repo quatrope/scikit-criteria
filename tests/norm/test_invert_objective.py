@@ -104,12 +104,11 @@ def test_minimize_to_maximize_all_min(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    rmtx, robjs = invert_objective.minimize_to_maximize(
-        dm.mtx, dm.objectives_values
+    rmtx = invert_objective.invert(
+        dm.mtx, dm.objectives_values == skcriteria.Objective.MIN.value
     )
 
     assert np.all(dm.objectives_values == -1)
-    assert np.all(robjs == 1)
     assert np.all(rmtx == 1.0 / dm.mtx)
 
 
@@ -123,8 +122,8 @@ def test_minimize_to_maximize_50percent_min(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    rmtx, robjs = invert_objective.minimize_to_maximize(
-        dm.mtx, dm.objectives_values
+    rmtx = invert_objective.invert(
+        dm.mtx, dm.objectives_values == skcriteria.Objective.MIN.value
     )
 
     original_maximize = dm.mtx[:, dm.objectives_values == 1]
@@ -135,4 +134,3 @@ def test_minimize_to_maximize_50percent_min(decision_matrix):
 
     assert np.all(result_maximize == original_maximize)
     assert np.all(result_minimize == 1 / original_minimize)
-    assert np.all(robjs == 1)
