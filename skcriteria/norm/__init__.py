@@ -15,6 +15,7 @@
 # =============================================================================
 
 from .invert_objective import MinimizeToMaximizeNormalizer, invert
+from .sum_normalizer import SumNormalizer, sum_norm
 
 # =============================================================================
 # ALL

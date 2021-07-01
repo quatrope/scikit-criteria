@@ -91,7 +91,13 @@ class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
 
     """
 
-    def normalize_data(self, mtx, objectives, dtypes, **kwargs):
+    def normalize_data(
+        self,
+        mtx: np.ndarray,
+        objectives: np.ndarray,
+        dtypes: np.ndarray,
+        **kwargs,
+    ) -> dict:
         """Execute the transformation over the provided data.
 
         Returns

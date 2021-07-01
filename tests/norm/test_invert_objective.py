@@ -29,7 +29,7 @@ from skcriteria.norm import invert_objective
 # =============================================================================
 
 
-def test_MinimizeToMaximizeNormalizer_simple(decision_matrix):
+def test_MinimizeToMaximizeNormalizer_simple():
 
     dm = skcriteria.mkdm(
         mtx=[[1, 2, 3], [4, 5, 6]], objectives=[min, max, min]
@@ -49,6 +49,7 @@ def test_MinimizeToMaximizeNormalizer_simple(decision_matrix):
 def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
 
     dm = decision_matrix(
+        seed=42,
         min_alternatives=10,
         max_alternatives=10,
         min_criteria=20,
@@ -67,6 +68,7 @@ def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
 def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
 
     dm = decision_matrix(
+        seed=42,
         min_alternatives=10,
         max_alternatives=10,
         min_criteria=20,
@@ -97,6 +99,7 @@ def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
 def test_minimize_to_maximize_all_min(decision_matrix):
 
     dm = decision_matrix(
+        seed=42,
         min_alternatives=10,
         max_alternatives=10,
         min_criteria=20,
@@ -115,6 +118,7 @@ def test_minimize_to_maximize_all_min(decision_matrix):
 def test_minimize_to_maximize_50percent_min(decision_matrix):
 
     dm = decision_matrix(
+        seed=42,
         min_alternatives=10,
         max_alternatives=10,
         min_criteria=20,

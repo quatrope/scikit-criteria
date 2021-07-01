@@ -12,9 +12,11 @@
 
 # =============================================================================
 # IMPORTS
-# =============================================================================
+# =============================================================================ç
 
-import attr
+import inspect
+
+import numpy as np
 
 from .data import DecisionMatrix
 
@@ -23,25 +25,13 @@ from .data import DecisionMatrix
 # =============================================================================
 
 
-class DecisionMakerMeta(type):
-    """Meta class for all the Decision makers in skcriteria.
-
-    IF the clasa re not abstract (`_skcriteria_dm_type != None`) then the class
-    are converted into a attrs class, using the parameters defined in
-    `_skcriteria_attrs_conf`
-
-    """
-
-    def __new__(cls, name, bases, namespace):  # noqa
-        new_cls = super().__new__(cls, name, bases, namespace)
-        if new_cls._skcriteria_dm_type is not None:
-            attrs_conf = getattr(new_cls, "_skcriteria_attrs_conf") or {}
-            dec = attr.s(**attrs_conf)
-            new_cls = dec(new_cls)
-        return new_cls
+_IGNORE_PARAMS = (
+    inspect.Parameter.VAR_POSITIONAL,
+    inspect.Parameter.VAR_KEYWORD,
+)
 
 
-class BaseDecisionMaker(metaclass=DecisionMakerMeta):
+class BaseDecisionMaker:
     """Base class for all decision maker in scikit-criteria.
 
     Notes
@@ -54,7 +44,7 @@ class BaseDecisionMaker(metaclass=DecisionMakerMeta):
     """
 
     _skcriteria_dm_type = None
-    _skcriteria_attrs_conf = None
+    _skcriteria_parameters = None
 
     def __init_subclass__(cls) -> None:
         """Validate if the subclass are well formed."""
@@ -63,7 +53,32 @@ class BaseDecisionMaker(metaclass=DecisionMakerMeta):
         if decisor_type is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_dm_type'")
 
-    def validate_data(self, **kwargs):
+        if (
+            cls._skcriteria_parameters is None
+            and cls.__init__ is not BaseDecisionMaker.__init__
+        ):
+            parameters = []
+
+            signature = inspect.signature(cls.__init__)
+            for idx, param_tuple in enumerate(signature.parameters.items()):
+                if idx == 0:  # first arugment of a method is the instance
+                    continue
+                name, param = param_tuple
+                if param.kind not in _IGNORE_PARAMS:
+                    parameters.append(name)
+            cls._skcriteria_parameters = frozenset(parameters)
+
+    def __repr__(self) -> str:
+        """x.__repr__() <==> repr(x)."""
+        cls_name = type(self).__name__
+        parameters = []
+        for pname in self._skcriteria_parameters:
+            pvalue = getattr(self, pname)
+            parameters.append(f"{pname}={repr(pvalue)}")
+        str_parameters = ", ".join(parameters)
+        return f"{cls_name}({str_parameters})"
+
+    def validate_data(self, **kwargs) -> None:
         """Validate all the data previously to send to the real algorithm."""
         pass
 
@@ -78,7 +93,7 @@ class NormalizerMixin:
 
     _skcriteria_dm_type = "normalizer"
 
-    def normalize_data(self, **kwargs):  # noqa: D401
+    def normalize_data(self, **kwargs) -> dict:  # noqa: D401
         """Generic implementation of the normalizer logic.
 
         Parameters
@@ -96,7 +111,7 @@ class NormalizerMixin:
         """
         raise NotImplementedError()
 
-    def normalize(self, dm):
+    def normalize(self, dm) -> DecisionMatrix:
         """Perform normalization on `dm` and returns normalized \
         version of it.
 
@@ -139,3 +154,79 @@ class NormalizerMixin:
         norm_dm = DecisionMatrix.from_mcda_data(**nkwargs)
 
         return norm_dm
+
+
+class MatrixAndWeightNormalizerMixin(NormalizerMixin):
+
+    FOR_WEIGHTS = "weights"
+    FOR_MATRIX = "matrix"
+
+    def __init__(self, normalize_for: str = "matrix") -> None:
+        if normalize_for not in (self.FOR_MATRIX, self.FOR_WEIGHTS):
+            raise ValueError(
+                f"'normalize_for' can only be '{self.FOR_WEIGHTS}' or "
+                f"'{self.FOR_MATRIX}'', found '{normalize_for}'"
+            )
+        self._normalize_for = normalize_for
+
+    @property
+    def normalize_for(self) -> str:
+        return self._normalize_for
+
+    def normalize_weights(self, weights: np.ndarray) -> np.ndarray:
+        """Execute the normalize method over the matrix.
+
+        Parameters
+        ----------
+        weights: :py:class:`numpy.ndarray`
+            The weights to transform.
+
+        Returns
+        -------
+        :py:class:`numpy.ndarray`
+            The transformed weights.
+
+        """
+        raise NotImplementedError()
+
+    def normalize_matrix(self, mtx: np.ndarray) -> np.ndarray:
+        """Execute the normalize method over the matrix.
+
+        Parameters
+        ----------
+        mtx: :py:class:`numpy.ndarray`
+            The decision matrix to transform
+
+        Returns
+        -------
+        :py:class:`numpy.ndarray`
+            The transformed matrix.
+
+        """
+        raise NotImplementedError()
+
+    def normalize_data(
+        self, mtx: np.ndarray, weights: np.ndarray, **kwargs
+    ) -> dict:
+        """Execute the transformation over the provided data.
+
+        Returns
+        -------
+        :py:class:`dict`
+            A dictionary with all the values of the normalized decision matrix.
+            This parameters will be provided into
+            :py:method:`DecisionMatrix.from_mcda_data`.
+
+        """
+        if self._normalize_for == self.FOR_MATRIX:
+            norm_mtx = self.normalize_matrix(mtx)
+            norm_weights = weights
+        else:
+            norm_mtx = mtx
+            norm_weights = self.normalize_weights(weights)
+
+        kwargs.update(
+            mtx=norm_mtx, weights=norm_weights, dtypes=None
+        )
+
+        return kwargs

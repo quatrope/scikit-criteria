@@ -31,10 +31,10 @@ from ..base import BaseDecisionMaker, MatrixAndWeightNormalizerMixin
 # =============================================================================
 
 
-def sum(arr: np.ndarray, axis=None):
-    arr = np.array(arr, dtype=float)
-    sumval = np.sum(arr, axis=axis, keepdims=True)
-    return arr / sumval
+def sum_norm(arr: np.ndarray, axis=None) -> np.ndarray:
+    new_arr = np.array(arr, dtype=float)
+    sumval = np.sum(new_arr, axis=axis, keepdims=True)
+    return new_arr / sumval
 
 
 class SumNormalizer(MatrixAndWeightNormalizerMixin, BaseDecisionMaker):
@@ -45,8 +45,8 @@ class SumNormalizer(MatrixAndWeightNormalizerMixin, BaseDecisionMaker):
 
     """
 
-    def normalize_weight(self, weights):
-        return sum(weights, axis=None)
+    def normalize_weights(self, weights: np.ndarray) -> np.ndarray:
+        return sum_norm(weights, axis=None)
 
-    def normalize_mtx(self, mtx):
-        return sum(mtx, axis=1)
+    def normalize_matrix(self, mtx: np.ndarray) -> np.ndarray:
+        return sum_norm(mtx, axis=0)
