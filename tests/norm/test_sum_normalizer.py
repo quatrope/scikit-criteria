@@ -69,7 +69,8 @@ def test_SumNormalizer_matrix(decision_matrix):
     )
 
     expected = skcriteria.mkdm(
-        matrix=dm.matrix / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
+        matrix=dm.matrix
+        / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,

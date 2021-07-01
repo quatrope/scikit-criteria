@@ -21,4 +21,9 @@ from .sum_normalizer import SumNormalizer, sum_norm
 # ALL
 # =============================================================================
 
-__all__ = ["MinimizeToMaximizeNormalizer", "invert"]
+__all__ = [
+    "MinimizeToMaximizeNormalizer",
+    "invert",
+    "SumNormalizer",
+    "sum_norm",
+]

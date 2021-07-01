@@ -419,6 +419,19 @@ def test_missmatch_objective(data_values):
         )
 
 
+def test_missmatch_dtypes(data_values):
+    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    with pytest.raises(ValueError):
+        data.mkdm(
+            matrix=mtx,
+            objectives=objectives,
+            weights=weights,
+            anames=anames,
+            cnames=cnames,
+            dtypes=[float],
+        )
+
+
 def test_missmatch_weights(data_values):
     mtx, objectives, weights, anames, cnames = data_values(seed=42)
     weights = weights[1:]

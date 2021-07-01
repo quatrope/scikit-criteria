@@ -225,8 +225,6 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
             norm_mtx = matrix
             norm_weights = self.normalize_weights(weights)
 
-        kwargs.update(
-            matrix=norm_mtx, weights=norm_weights, dtypes=None
-        )
+        kwargs.update(matrix=norm_mtx, weights=norm_weights, dtypes=None)
 
         return kwargs

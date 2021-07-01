@@ -39,7 +39,8 @@ def invert(matrix: np.ndarray, mask: np.ndarray) -> np.ndarray:
     matrix: :py:class:`numpy.ndarray` like.
         2D array.
     mask: :py:class:`numpy.ndarray` like.
-        Boolean array like with the same elements as columns has the ``matrix``.
+        Boolean array like with the same elements as columns has the
+        ``matrix``.
 
     Returns
     -------
