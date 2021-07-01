@@ -56,13 +56,19 @@ def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
         max_criteria=20,
         min_objectives_proportion=1.0,
     )
+    expected = skcriteria.mkdm(
+        mtx=1.0 / dm.mtx,
+        objectives=np.full(20, 1, dtype=int),
+        weights=dm.weights,
+        anames=dm.anames,
+        cnames=dm.cnames,
+    )
+
     normalizer = invert_objective.MinimizeToMaximizeNormalizer()
 
     result = normalizer.normalize(dm)
 
-    assert np.all(dm.objectives_values == -1)
-    assert np.all(result.objectives_values == 1)
-    assert np.all(result.mtx == 1.0 / dm.mtx)
+    assert result == expected
 
 
 def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
@@ -76,19 +82,26 @@ def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
+    minimize_mask = dm.objectives_values == -1
+    expected_mtx = np.array(dm.mtx, dtype=float)
+    expected_mtx[:, minimize_mask] = 1.0 / expected_mtx[:, minimize_mask]
+
+    inv_dtypes = np.where(dm.objectives_values == -1, float, dm.dtypes)
+
+    expected = skcriteria.mkdm(
+        mtx=expected_mtx,
+        objectives=np.full(20, 1, dtype=int),
+        weights=dm.weights,
+        anames=dm.anames,
+        cnames=dm.cnames,
+        dtypes=inv_dtypes,
+    )
+
     normalizer = invert_objective.MinimizeToMaximizeNormalizer()
 
     result = normalizer.normalize(dm)
 
-    original_maximize = dm.mtx[:, dm.objectives_values == 1]
-    original_minimize = dm.mtx[:, dm.objectives_values == -1]
-
-    result_maximize = result.mtx[:, dm.objectives_values == 1]
-    result_minimize = result.mtx[:, dm.objectives_values == -1]
-
-    assert np.all(result_maximize == original_maximize)
-    assert np.all(result_minimize == 1 / original_minimize)
-    assert np.all(result.objectives_values == 1)
+    assert result == expected
 
 
 # =============================================================================
@@ -96,7 +109,7 @@ def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
 # =============================================================================
 
 
-def test_minimize_to_maximize_all_min(decision_matrix):
+def test_invert_all_min(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -115,7 +128,7 @@ def test_minimize_to_maximize_all_min(decision_matrix):
     assert np.all(rmtx == 1.0 / dm.mtx)
 
 
-def test_minimize_to_maximize_50percent_min(decision_matrix):
+def test_invert_50percent_min(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
