@@ -57,22 +57,21 @@ class BaseDecisionMaker:
             cls._skcriteria_parameters is None
             and cls.__init__ is not BaseDecisionMaker.__init__
         ):
-            parameters = []
-
             signature = inspect.signature(cls.__init__)
+            parameters = set()
             for idx, param_tuple in enumerate(signature.parameters.items()):
                 if idx == 0:  # first arugment of a method is the instance
                     continue
                 name, param = param_tuple
                 if param.kind not in _IGNORE_PARAMS:
-                    parameters.append(name)
+                    parameters.add(name)
             cls._skcriteria_parameters = frozenset(parameters)
 
     def __repr__(self) -> str:
         """x.__repr__() <==> repr(x)."""
         cls_name = type(self).__name__
         parameters = []
-        for pname in self._skcriteria_parameters:
+        for pname in sorted(self._skcriteria_parameters):
             pvalue = getattr(self, pname)
             parameters.append(f"{pname}={repr(pvalue)}")
         str_parameters = ", ".join(parameters)
@@ -109,7 +108,7 @@ class NormalizerMixin:
             :py:method:`DecisionMatrix.from_mcda_data`.
 
         """
-        raise NotImplementedError()
+        raise NotImplementedError()  # noqa
 
     def normalize(self, dm) -> DecisionMatrix:
         """Perform normalization on `dm` and returns normalized \
