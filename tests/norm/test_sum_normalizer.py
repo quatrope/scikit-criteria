@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.norm.invert_objective
+"""test for skcriteria.norm.sum_normalizer
 
 """
 
