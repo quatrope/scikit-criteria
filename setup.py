@@ -47,7 +47,7 @@ def do_setup():
         url=skcriteria.URL,
         license=skcriteria.LICENSE,
         keywords=skcriteria.KEYWORDS,
-        classifiers=(
+        classifiers=[
             "Development Status :: 4 - Beta",
             "Intended Audience :: Education",
             "Intended Audience :: Science/Research",
@@ -57,7 +57,7 @@ def do_setup():
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: Implementation :: CPython",
             "Topic :: Scientific/Engineering",
-        ),
+        ],
         packages=[
             pkg for pkg in find_packages() if pkg.startswith("skcriteria")
         ],
