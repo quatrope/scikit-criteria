@@ -48,5 +48,5 @@ class SumNormalizer(MatrixAndWeightNormalizerMixin, BaseDecisionMaker):
     def normalize_weights(self, weights: np.ndarray) -> np.ndarray:
         return sum_norm(weights, axis=None)
 
-    def normalize_matrix(self, mtx: np.ndarray) -> np.ndarray:
-        return sum_norm(mtx, axis=0)
+    def normalize_matrix(self, matrix: np.ndarray) -> np.ndarray:
+        return sum_norm(matrix, axis=0)

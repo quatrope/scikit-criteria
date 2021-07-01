@@ -123,7 +123,7 @@ def decision_matrix(data_values):
         mtx, objectives, weights, anames, cnames = data_values(*args, **kwargs)
 
         dm = data.mkdm(
-            mtx=mtx,
+            matrix=mtx,
             objectives=objectives,
             weights=weights,
             anames=anames,

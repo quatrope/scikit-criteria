@@ -126,7 +126,7 @@ class NormalizerMixin:
             Normalized decision matrix.
 
         """
-        mtx = dm.mtx
+        mtx = dm.matrix
         objectives = dm.objectives_values
         weights = dm.weights
         anames = dm.anames
@@ -134,7 +134,7 @@ class NormalizerMixin:
         dtypes = dm.dtypes
 
         self.validate_data(
-            mtx=mtx,
+            matrix=mtx,
             objectives=objectives,
             weights=weights,
             anames=anames,
@@ -143,7 +143,7 @@ class NormalizerMixin:
         )
 
         nkwargs = self.normalize_data(
-            mtx=mtx,
+            matrix=mtx,
             objectives=objectives,
             weights=weights,
             anames=anames,
@@ -189,12 +189,12 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
         """
         raise NotImplementedError()
 
-    def normalize_matrix(self, mtx: np.ndarray) -> np.ndarray:
+    def normalize_matrix(self, matrix: np.ndarray) -> np.ndarray:
         """Execute the normalize method over the matrix.
 
         Parameters
         ----------
-        mtx: :py:class:`numpy.ndarray`
+        matrix: :py:class:`numpy.ndarray`
             The decision matrix to transform
 
         Returns
@@ -206,7 +206,7 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
         raise NotImplementedError()
 
     def normalize_data(
-        self, mtx: np.ndarray, weights: np.ndarray, **kwargs
+        self, matrix: np.ndarray, weights: np.ndarray, **kwargs
     ) -> dict:
         """Execute the transformation over the provided data.
 
@@ -219,14 +219,14 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
 
         """
         if self._normalize_for == self.FOR_MATRIX:
-            norm_mtx = self.normalize_matrix(mtx)
+            norm_mtx = self.normalize_matrix(matrix)
             norm_weights = weights
         else:
-            norm_mtx = mtx
+            norm_mtx = matrix
             norm_weights = self.normalize_weights(weights)
 
         kwargs.update(
-            mtx=norm_mtx, weights=norm_weights, dtypes=None
+            matrix=norm_mtx, weights=norm_weights, dtypes=None
         )
 
         return kwargs

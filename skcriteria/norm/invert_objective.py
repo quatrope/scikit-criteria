@@ -31,15 +31,15 @@ from ..data import Objective
 # =============================================================================
 
 
-def invert(mtx: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def invert(matrix: np.ndarray, mask: np.ndarray) -> np.ndarray:
     """Inverts all the columns selected by the mask.
 
     Parameters
     ----------
-    mtx: :py:class:`numpy.ndarray` like.
+    matrix: :py:class:`numpy.ndarray` like.
         2D array.
     mask: :py:class:`numpy.ndarray` like.
-        Boolean array like with the same elements as columns has the ``mtx``.
+        Boolean array like with the same elements as columns has the ``matrix``.
 
     Returns
     -------
@@ -70,7 +70,7 @@ def invert(mtx: np.ndarray, mask: np.ndarray) -> np.ndarray:
                [4. , 0.2, 6. ]]
 
     """
-    inv_mtx = np.array(mtx, dtype=float)
+    inv_mtx = np.array(matrix, dtype=float)
 
     inverted_values = 1.0 / inv_mtx[:, mask]
     inv_mtx[:, mask] = inverted_values
@@ -93,7 +93,7 @@ class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
 
     def normalize_data(
         self,
-        mtx: np.ndarray,
+        matrix: np.ndarray,
         objectives: np.ndarray,
         dtypes: np.ndarray,
         **kwargs,
@@ -112,7 +112,7 @@ class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
         minimize_mask = np.equal(objectives, Objective.MIN.value)
 
         # execute the normalizer
-        inv_mtx = invert(mtx, minimize_mask)
+        inv_mtx = invert(matrix, minimize_mask)
 
         # new objective array
         inv_objectives = np.full(
@@ -126,6 +126,6 @@ class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
         )
 
         kwargs.update(
-            mtx=inv_mtx, objectives=inv_objectives, dtypes=inv_dtypes
+            matrix=inv_mtx, objectives=inv_objectives, dtypes=inv_dtypes
         )
         return kwargs

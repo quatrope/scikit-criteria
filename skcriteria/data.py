@@ -231,7 +231,7 @@ class DecisionMatrix:
     @classmethod
     def from_mcda_data(
         cls,
-        mtx: Iterable[float],
+        matrix: Iterable[float],
         objectives: Iterable,
         weights: Optional[Iterable] = None,
         anames: Optional[Iterable] = None,
@@ -245,7 +245,7 @@ class DecisionMatrix:
 
         Parameters
         ----------
-        mtx: Iterable
+        matrix: Iterable
             The matrix of alternatives. Where every row is an alternative
             and every column is a criteria.
 
@@ -260,12 +260,12 @@ class DecisionMatrix:
         anames: Iterable o None (default ``None``)
             Optional names of the alternatives. If is ``None``,
             al the alternatives are names "A[n]" where n is the number of
-            the row of `mtx` statring at 0.
+            the row of `matrix` statring at 0.
 
         cnames: Iterable o None (default ``None``)
             Optional names of the criteria. If is ``None``,
             al the alternatives are names "C[m]" where m is the number of
-            the columns of `mtx` statring at 0.
+            the columns of `matrix` statring at 0.
 
         dtypes: Iterable o None (default ``None``)
             Optional types of the criteria. If is None, the type is inferred
@@ -301,11 +301,11 @@ class DecisionMatrix:
         """
         # first we need the number of alternatives and criteria
         try:
-            a_number, c_number = np.shape(mtx)
+            a_number, c_number = np.shape(matrix)
         except ValueError:
-            mtx_ndim = np.ndim(mtx)
+            matrix_ndim = np.ndim(matrix)
             raise ValueError(
-                f"'mtx' must have 2 dimensions, found {mtx_ndim} instead"
+                f"'matrix' must have 2 dimensions, found {matrix_ndim} instead"
             )
 
         anames = np.asarray(
@@ -327,7 +327,7 @@ class DecisionMatrix:
 
         weights = np.asarray(np.ones(c_number) if weights is None else weights)
 
-        data_df = pd.DataFrame(mtx, index=anames, columns=cnames)
+        data_df = pd.DataFrame(matrix, index=anames, columns=cnames)
 
         if dtypes is not None and len(dtypes) != c_number:
             raise ValueError(f"'dtypes' must have {c_number} elements")
@@ -350,7 +350,7 @@ class DecisionMatrix:
         return self._data_df.columns.to_numpy()
 
     @property
-    def mtx(self) -> np.ndarray:
+    def matrix(self) -> np.ndarray:
         """Alternatives matrix as 2D numpy array."""
         return self._data_df.to_numpy()
 
@@ -420,7 +420,7 @@ class DecisionMatrix:
            A1            4    5    6
 
         """
-        data = np.vstack((self._objectives, self._weights, self.mtx))
+        data = np.vstack((self._objectives, self._weights, self.matrix))
         index = np.hstack((["objectives", "weights"], self.anames))
         df = pd.DataFrame(data, index=index, columns=self.cnames, copy=True)
         return df

@@ -38,13 +38,13 @@ def test_bad_SumNormalizer_normalize_for():
 def test_SumNormalizer_simple_matrix():
 
     dm = skcriteria.mkdm(
-        mtx=[[1, 2, 3], [4, 5, 6]],
+        matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
         weights=[1, 2, 3],
     )
 
     expected = skcriteria.mkdm(
-        mtx=[[1 / 5, 2 / 7, 3 / 9], [4 / 5, 5 / 7, 6 / 9]],
+        matrix=[[1 / 5, 2 / 7, 3 / 9], [4 / 5, 5 / 7, 6 / 9]],
         objectives=[min, max, min],
         weights=[1, 2, 3],
         dtypes=[float, float, float],
@@ -69,7 +69,7 @@ def test_SumNormalizer_matrix(decision_matrix):
     )
 
     expected = skcriteria.mkdm(
-        mtx=dm.mtx / np.sum(dm.mtx, axis=0, keepdims=True, dtype=float),
+        matrix=dm.matrix / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,
@@ -86,13 +86,13 @@ def test_SumNormalizer_matrix(decision_matrix):
 def test_SumNormalizer_simple_weights():
 
     dm = skcriteria.mkdm(
-        mtx=[[1, 2, 3], [4, 5, 6]],
+        matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
         weights=[1, 2, 3],
     )
 
     expected = skcriteria.mkdm(
-        mtx=[[1, 2, 3], [4, 5, 6]],
+        matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
         weights=[1 / 6, 2 / 6, 3 / 6],
         dtypes=[int, int, int],
@@ -117,7 +117,7 @@ def test_SumNormalizer_weights(decision_matrix):
     )
 
     expected = skcriteria.mkdm(
-        mtx=dm.mtx,
+        matrix=dm.matrix,
         objectives=dm.objectives,
         weights=dm.weights / np.sum(dm.weights),
         anames=dm.anames,
@@ -162,7 +162,9 @@ def test_sum_norm_weights(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    nmtx = sum_normalizer.sum_norm(dm.mtx, axis=0)
-    expected = dm.mtx / np.sum(dm.mtx, axis=0, keepdims=True, dtype=float)
+    nmtx = sum_normalizer.sum_norm(dm.matrix, axis=0)
+    expected = dm.matrix / np.sum(
+        dm.matrix, axis=0, keepdims=True, dtype=float
+    )
 
     assert np.all(nmtx == expected)

@@ -32,11 +32,11 @@ from skcriteria.norm import invert_objective
 def test_MinimizeToMaximizeNormalizer_simple():
 
     dm = skcriteria.mkdm(
-        mtx=[[1, 2, 3], [4, 5, 6]], objectives=[min, max, min]
+        matrix=[[1, 2, 3], [4, 5, 6]], objectives=[min, max, min]
     )
 
     expected = skcriteria.mkdm(
-        mtx=[[1, 2, 1 / 3], [1 / 4, 5, 1 / 6]], objectives=[max, max, max]
+        matrix=[[1, 2, 1 / 3], [1 / 4, 5, 1 / 6]], objectives=[max, max, max]
     )
 
     normalizer = invert_objective.MinimizeToMaximizeNormalizer()
@@ -57,7 +57,7 @@ def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
         min_objectives_proportion=1.0,
     )
     expected = skcriteria.mkdm(
-        mtx=1.0 / dm.mtx,
+        matrix=1.0 / dm.matrix,
         objectives=np.full(20, 1, dtype=int),
         weights=dm.weights,
         anames=dm.anames,
@@ -83,13 +83,13 @@ def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
     )
 
     minimize_mask = dm.objectives_values == -1
-    expected_mtx = np.array(dm.mtx, dtype=float)
+    expected_mtx = np.array(dm.matrix, dtype=float)
     expected_mtx[:, minimize_mask] = 1.0 / expected_mtx[:, minimize_mask]
 
     inv_dtypes = np.where(dm.objectives_values == -1, float, dm.dtypes)
 
     expected = skcriteria.mkdm(
-        mtx=expected_mtx,
+        matrix=expected_mtx,
         objectives=np.full(20, 1, dtype=int),
         weights=dm.weights,
         anames=dm.anames,
@@ -121,11 +121,11 @@ def test_invert_all_min(decision_matrix):
     )
 
     rmtx = invert_objective.invert(
-        dm.mtx, dm.objectives_values == skcriteria.Objective.MIN.value
+        dm.matrix, dm.objectives_values == skcriteria.Objective.MIN.value
     )
 
     assert np.all(dm.objectives_values == -1)
-    assert np.all(rmtx == 1.0 / dm.mtx)
+    assert np.all(rmtx == 1.0 / dm.matrix)
 
 
 def test_invert_50percent_min(decision_matrix):
@@ -140,11 +140,11 @@ def test_invert_50percent_min(decision_matrix):
     )
 
     rmtx = invert_objective.invert(
-        dm.mtx, dm.objectives_values == skcriteria.Objective.MIN.value
+        dm.matrix, dm.objectives_values == skcriteria.Objective.MIN.value
     )
 
-    original_maximize = dm.mtx[:, dm.objectives_values == 1]
-    original_minimize = dm.mtx[:, dm.objectives_values == -1]
+    original_maximize = dm.matrix[:, dm.objectives_values == 1]
+    original_minimize = dm.matrix[:, dm.objectives_values == -1]
 
     result_maximize = rmtx[:, dm.objectives_values == 1]
     result_minimize = rmtx[:, dm.objectives_values == -1]
