@@ -25,6 +25,7 @@ import numpy as np
 
 from ..base import BaseDecisionMaker, NormalizerMixin
 from ..data import Objective
+from ..utils import doc_inherit
 
 # =============================================================================
 # FUNCTIONS
@@ -92,6 +93,7 @@ class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
 
     """
 
+    @doc_inherit(NormalizerMixin.normalize_data)
     def normalize_data(
         self,
         matrix: np.ndarray,
@@ -99,16 +101,6 @@ class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
         dtypes: np.ndarray,
         **kwargs,
     ) -> dict:
-        """Execute the transformation over the provided data.
-
-        Returns
-        -------
-        :py:class:`dict`
-            A dictionary with all the values of the normalized decision matrix.
-            This parameters will be provided into
-            :py:method:`DecisionMatrix.from_mcda_data`.
-
-        """
         # check where we need to normalize
         minimize_mask = np.equal(objectives, Objective.MIN.value)
 

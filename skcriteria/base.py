@@ -19,6 +19,7 @@ import inspect
 import numpy as np
 
 from .data import DecisionMatrix
+from .utils import doc_inherit
 
 # =============================================================================
 # BASE DECISION MAKER CLASS
@@ -93,7 +94,7 @@ class NormalizerMixin:
     _skcriteria_dm_type = "normalizer"
 
     def normalize_data(self, **kwargs) -> dict:  # noqa: D401
-        """Generic implementation of the normalizer logic.
+        """Apply the normalizer logic to all the decision matrix as parameters.
 
         Parameters
         ----------
@@ -108,11 +109,10 @@ class NormalizerMixin:
             :py:method:`DecisionMatrix.from_mcda_data`.
 
         """
-        raise NotImplementedError()  # noqa
+        raise NotImplementedError()
 
     def normalize(self, dm) -> DecisionMatrix:
-        """Perform normalization on `dm` and returns normalized \
-        version of it.
+        """Perform normalization on `dm` and returns normalized version of it.
 
         Parameters
         ----------
@@ -173,7 +173,7 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
         return self._normalize_for
 
     def normalize_weights(self, weights: np.ndarray) -> np.ndarray:
-        """Execute the normalize method over the matrix.
+        """Execute the normalize method over the weights.
 
         Parameters
         ----------
@@ -204,19 +204,10 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
         """
         raise NotImplementedError()
 
+    @doc_inherit(NormalizerMixin.normalize_data)
     def normalize_data(
         self, matrix: np.ndarray, weights: np.ndarray, **kwargs
     ) -> dict:
-        """Execute the transformation over the provided data.
-
-        Returns
-        -------
-        :py:class:`dict`
-            A dictionary with all the values of the normalized decision matrix.
-            This parameters will be provided into
-            :py:method:`DecisionMatrix.from_mcda_data`.
-
-        """
         if self._normalize_for == self.FOR_MATRIX:
             norm_mtx = self.normalize_matrix(matrix)
             norm_weights = weights

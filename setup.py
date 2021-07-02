@@ -29,7 +29,7 @@ import skcriteria  # noqa
 # CONSTANTS
 # =============================================================================
 
-REQUIREMENTS = ["numpy", "attrs", "pandas", "pyquery"]
+REQUIREMENTS = ["numpy", "attrs", "pandas", "pyquery", "custom_inherit"]
 
 
 # =============================================================================
