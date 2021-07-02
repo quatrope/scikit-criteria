@@ -8,9 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""Multiple decorator to use inside scikit-criteria
-
-"""
+"""Multiple decorator to use inside scikit-criteria."""
 
 # =============================================================================
 # IMPORTS
@@ -24,7 +22,9 @@ from custom_inherit import doc_inherit as _doc_inherit
 
 
 def doc_inherit(parent):
-    """Returns a function/method decorator that, given parent, updates
+    """Inherit the 'parent' docstring.
+
+    Returns a function/method decorator that, given parent, updates
     the docstring of the decorated function/method based on the `numpy`
     style and the corresponding attribute of parent.
 

@@ -156,10 +156,10 @@ class NormalizerMixin:
 
 
 class MatrixAndWeightNormalizerMixin(NormalizerMixin):
-    """Mixin class for all normalizers capable of normalize weighs and matrix.
+    """Mixin capable of normalize weighs and matrix together or separately.
 
     The normalizer that implements this mixin can be configured to normalize
-    weights or matrix separately so that only that part of the DecisionMatrix
+    `weights`, `matrix` or `both` so only that part of the DecisionMatrix
     is altered.
 
     This mixin require to redefine ``normalize_weights`` and
@@ -169,9 +169,14 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
 
     _FOR_WEIGHTS = "weights"
     _FOR_MATRIX = "matrix"
+    _FOR_BOTH = "both"
 
-    def __init__(self, normalize_for: str = "matrix") -> None:
-        if normalize_for not in (self._FOR_MATRIX, self._FOR_WEIGHTS):
+    def __init__(self, normalize_for: str) -> None:
+        if normalize_for not in (
+            self._FOR_MATRIX,
+            self._FOR_WEIGHTS,
+            self._FOR_BOTH,
+        ):
             raise ValueError(
                 f"'normalize_for' can only be '{self._FOR_WEIGHTS}' or "
                 f"'{self._FOR_MATRIX}'', found '{normalize_for}'"
@@ -219,11 +224,13 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
     def normalize_data(
         self, matrix: np.ndarray, weights: np.ndarray, **kwargs
     ) -> dict:
-        if self._normalize_for == self._FOR_MATRIX:
+        norm_mtx = matrix
+        norm_weights = weights
+
+        if self._normalize_for in (self._FOR_MATRIX, self._FOR_BOTH):
             norm_mtx = self.normalize_matrix(matrix)
-            norm_weights = weights
-        else:
-            norm_mtx = matrix
+
+        if self._normalize_for in (self._FOR_WEIGHTS, self._FOR_BOTH):
             norm_weights = self.normalize_weights(weights)
 
         kwargs.update(matrix=norm_mtx, weights=norm_weights, dtypes=None)

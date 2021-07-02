@@ -93,7 +93,13 @@ def test_MatrixAndWeightNormalizerMixin_normalize_for():
         pass
 
     foo = Foo("matrix")
-    assert foo.normalize_for == Foo.FOR_MATRIX
+    assert foo.normalize_for == Foo._FOR_MATRIX
 
     foo = Foo("weights")
-    assert foo.normalize_for == Foo.FOR_WEIGHTS
+    assert foo.normalize_for == Foo._FOR_WEIGHTS
+
+    foo = Foo("matrix")
+    assert foo.normalize_for == Foo._FOR_MATRIX
+
+    foo = Foo("both")
+    assert foo.normalize_for == Foo._FOR_BOTH

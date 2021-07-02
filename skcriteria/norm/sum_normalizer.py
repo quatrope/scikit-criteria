@@ -33,6 +33,40 @@ from ..utils import doc_inherit
 
 
 def sum_norm(arr: np.ndarray, axis=None) -> np.ndarray:
+    r"""Divide of every value on the array by sum of values along an axis.
+
+    .. math::
+
+        \overline{X}_{ij} = \frac{X_{ij}}{\sum\limits_{j=1}^m X_{ij}}
+
+    Parameters
+    ----------
+    matrix: :py:class:`numpy.ndarray` like.
+        A array with values
+    axis : :py:class:`int` optional
+        Axis along which to operate.  By default, flattened input is used.
+
+    Returns
+    -------
+    :py:class:`numpy.ndarray`
+        array of ratios
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> mtx = [[1, 2], [3, 4]]
+        >>> norm.sum(mtx) # ratios with the sum of the array
+        array([[ 0.1       ,  0.2       ],
+               [ 0.30000001,  0.40000001]])
+        >>> norm.sum(mtx, axis=0) # ratios with the sum of the array by column
+        array([[ 0.25      ,  0.33333334],
+               [ 0.75      ,  0.66666669]])
+        >>> norm.sum(mtx, axis=1) # ratios with the sum of the array by row
+        array([[ 0.33333334,  0.66666669],
+               [ 0.42857143,  0.5714286 ]])
+
+    """
     new_arr = np.array(arr, dtype=float)
     sumval = np.sum(new_arr, axis=axis, keepdims=True)
     return new_arr / sumval

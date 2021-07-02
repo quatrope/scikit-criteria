@@ -49,10 +49,10 @@ def invert(matrix: np.ndarray, mask: np.ndarray) -> np.ndarray:
         New matrix with the selected columns inverted. The result matrix
         dtype float.
 
-    Example
-    -------
-
+    Examples
+    --------
     .. code-block:: pycon
+
         >>> norm.invert([
         ...     [1, 2, 3],
         ...     [4, 5, 6]
