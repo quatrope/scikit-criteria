@@ -16,6 +16,7 @@
 
 from .invert_objective import MinimizeToMaximizeNormalizer, invert
 from .sum_normalizer import SumNormalizer, sum_norm
+from .vector_normalizer import VectorNormalizer, vector_norm
 
 # =============================================================================
 # ALL
@@ -26,4 +27,6 @@ __all__ = [
     "invert",
     "SumNormalizer",
     "sum_norm",
+    "VectorNormalizer",
+    "vector_norm",
 ]
