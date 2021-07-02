@@ -427,18 +427,115 @@ class DecisionMatrix:
 
     # CMP =====================================================================
 
-    def __eq__(self, other):
-        """dm.__eq__(other) <==> dm == other."""
-        return (
-            isinstance(other, DecisionMatrix)
-            and self._data_df.equals(other._data_df)
-            and np.array_equal(self._objectives, other._objectives)
-            and np.array_equal(self._weights, other._weights)
-        )
+    @property
+    def shape(self) -> tuple:
+        """Return a tuple with (number_of_alternatives, number_of_criteria).
 
-    def __ne__(self, other):
-        """dm.__ne__(other) <==> dm != other."""
-        return not self == other
+        dm.shape <==> np.shape(dm)
+
+        """
+        return np.shape(self._data_df)
+
+    def __len__(self) -> int:
+        """Return the number ot alternatives.
+
+        dm.__len__() <==> len(dm).
+
+        """
+        return len(self._data_df)
+
+    def equals(self, other):
+        """Return True if the decision matrix are equal.
+
+        This method calls `DecisionMatrix.aquals` whitout tolerance.
+
+        Parameters
+        ----------
+        other : :py:class:`skcriteria.DecisionMatrix`
+            Other instance to compare.
+
+        Returns
+        -------
+        equals : :py:class:`bool:py:class:`
+            Returns True if the two dm are equals.
+
+        See Also
+        --------
+        aequals, :py:function:`numpy.isclose`, :py:function:`numpy.all`,
+        :py:function:`numpy.any`, :py:function:`numpy.equal`,
+        :py:function:`numpy.allclose`.
+
+        """
+        return self.aequals(other, 0, 0, False)
+
+    def aequals(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
+        """Return True if the decision matrix are equal within a tolerance.
+
+        The tolerance values are positive, typically very small numbers.  The
+        relative difference (`rtol` * abs(`b`)) and the absolute difference
+        `atol` are added together to compare against the absolute difference
+        between `a` and `b`.
+
+        NaNs are treated as equal if they are in the same place and if
+        ``equal_nan=True``.  Infs are treated as equal if they are in the same
+        place and of the same sign in both arrays.
+
+        The proceeds as follows:
+
+        - If ``other`` is the same object return ``True``.
+        - If ``other`` is not instance of 'DecisionMatrix', has different shape
+          'cnames', 'anames' or 'objectives' returns ``False``.
+        - Next check the 'weights' and the matrix itself using the provided
+          tolerance.
+
+        Parameters
+        ----------
+        other : :py:class:`skcriteria.DecisionMatrix`
+            Other instance to compare.
+        rtol : float
+            The relative tolerance parameter
+            (see Notes in :py:function:`numpy.allclose`).
+        atol : float
+            The absolute tolerance parameter
+            (see Notes in :py:function:`numpy.allclose`).
+        equal_nan : bool
+            Whether to compare NaN's as equal.  If True, NaN's in dm will be
+            considered equal to NaN's in `other` in the output array.
+
+        Returns
+        -------
+        aequals : :py:class:`bool:py:class:`
+            Returns True if the two dm are equal within the given
+            tolerance; False otherwise.
+
+        See Also
+        --------
+        equals, :py:function:`numpy.isclose`, :py:function:`numpy.all`,
+        :py:function:`numpy.any`, :py:function:`numpy.equal`,
+        :py:function:`numpy.allclose`.
+
+        """
+        return (self is other) or (
+            isinstance(other, DecisionMatrix)
+            and np.shape(self) == np.shape(other)
+            and np.array_equal(self.cnames, other.cnames)
+            and np.array_equal(self.anames, other.anames)
+            and np.array_equal(self.objectives, other.objectives)
+            and np.allclose(
+                self.weights,
+                other.weights,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+            )
+            and np.allclose(
+                self.matrix,
+                other.matrix,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+            )
+        )
 
     # repr ====================================================================
     def _get_cow_headers(self):
@@ -451,7 +548,7 @@ class DecisionMatrix:
 
     def _get_axc_dimensions(self):
         """Dimension foote with AxC (Alternativs x Criteria)."""
-        a_number, c_number = np.shape(self._data_df)
+        a_number, c_number = self.shape
         dimensions = f"{a_number} Alternatives x {c_number} Criteria"
         return dimensions
 

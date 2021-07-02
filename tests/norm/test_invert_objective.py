@@ -43,7 +43,7 @@ def test_MinimizeToMaximizeNormalizer_simple():
 
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
@@ -68,7 +68,7 @@ def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
 
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
@@ -101,7 +101,7 @@ def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
 
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 # =============================================================================

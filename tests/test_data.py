@@ -205,7 +205,7 @@ def test_copy(data_values):
     copy = dm.copy()
 
     assert dm is not copy
-    assert dm == copy
+    assert dm.equals(copy)
 
 
 def test_self_eq(data_values):
@@ -221,7 +221,7 @@ def test_self_eq(data_values):
     same = dm
 
     assert dm is same
-    assert dm == same
+    assert dm.equals(same)
 
 
 def test_self_ne(data_values):
@@ -244,7 +244,7 @@ def test_self_ne(data_values):
         anames=oanames,
         cnames=ocnames,
     )
-    assert dm != other
+    assert not dm.equals(other)
 
 
 def test_simple_repr():
@@ -495,3 +495,77 @@ def test_mtx_ndim3(data_values):
             anames=anames,
             cnames=cnames,
         )
+
+
+def test_len(decision_matrix):
+    dm1 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    dm2 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=30,
+        max_criteria=30,
+    )
+
+    dm3 = decision_matrix(
+        seed=42,
+        min_alternatives=100,
+        max_alternatives=100,
+        min_criteria=30,
+        max_criteria=30,
+    )
+
+    assert len(dm1) == len(dm2)
+    assert len(dm1) != len(dm3) and len(dm2) != len(dm3)
+
+
+def test_shape(decision_matrix):
+    dm1 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    dm2 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    dm3 = decision_matrix(
+        seed=42,
+        min_alternatives=100,
+        max_alternatives=100,
+        min_criteria=30,
+        max_criteria=30,
+    )
+
+    dm4 = decision_matrix(
+        seed=42,
+        min_alternatives=20,
+        max_alternatives=20,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    assert dm1.shape == dm2.shape
+
+    assert dm1.shape != dm3.shape and dm1.shape != dm4.shape
+    assert dm2.shape != dm3.shape and dm2.shape != dm4.shape
+
+
+def test_len_vs_shape_ncriteria(decision_matrix):
+    dm = decision_matrix(seed=42)
+
+    assert (len(dm), len(dm.cnames)) == np.shape(dm) == dm.shape

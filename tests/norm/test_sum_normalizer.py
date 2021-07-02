@@ -47,7 +47,7 @@ def test_SumNormalizer_simple_matrix():
 
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 def test_SumNormalizer_matrix(decision_matrix):
@@ -74,7 +74,7 @@ def test_SumNormalizer_matrix(decision_matrix):
     normalizer = sum_normalizer.SumNormalizer(normalize_for="matrix")
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 def test_SumNormalizer_simple_weights():
@@ -96,7 +96,7 @@ def test_SumNormalizer_simple_weights():
 
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 def test_SumNormalizer_weights(decision_matrix):
@@ -122,7 +122,7 @@ def test_SumNormalizer_weights(decision_matrix):
     normalizer = sum_normalizer.SumNormalizer(normalize_for="weights")
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 def test_SumNormalizer_simple_both():
@@ -144,7 +144,7 @@ def test_SumNormalizer_simple_both():
 
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 def test_SumNormalizer_both(decision_matrix):
@@ -171,7 +171,7 @@ def test_SumNormalizer_both(decision_matrix):
     normalizer = sum_normalizer.SumNormalizer(normalize_for="both")
     result = normalizer.normalize(dm)
 
-    assert result == expected
+    assert result.equals(expected)
 
 
 # =============================================================================
