@@ -19,8 +19,6 @@
 
 import numpy as np
 
-import pytest
-
 import skcriteria
 from skcriteria.norm import sum_normalizer
 
@@ -28,11 +26,6 @@ from skcriteria.norm import sum_normalizer
 # =============================================================================
 # TEST CLASSES
 # =============================================================================
-
-
-def test_bad_SumNormalizer_normalize_for():
-    with pytest.raises(ValueError):
-        sum_normalizer.SumNormalizer(normalize_for="mtx")
 
 
 def test_SumNormalizer_simple_matrix():
@@ -127,6 +120,55 @@ def test_SumNormalizer_weights(decision_matrix):
     )
 
     normalizer = sum_normalizer.SumNormalizer(normalize_for="weights")
+    result = normalizer.normalize(dm)
+
+    assert result == expected
+
+
+def test_SumNormalizer_simple_both():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6]],
+        objectives=[min, max, min],
+        weights=[1, 2, 3],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[[1 / 5, 2 / 7, 3 / 9], [4 / 5, 5 / 7, 6 / 9]],
+        objectives=[min, max, min],
+        weights=[1 / 6, 2 / 6, 3 / 6],
+        dtypes=[float, float, float],
+    )
+
+    normalizer = sum_normalizer.SumNormalizer(normalize_for="both")
+
+    result = normalizer.normalize(dm)
+
+    assert result == expected
+
+
+def test_SumNormalizer_both(decision_matrix):
+
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=dm.matrix
+        / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
+        objectives=dm.objectives,
+        weights=dm.weights / np.sum(dm.weights),
+        anames=dm.anames,
+        cnames=dm.cnames,
+        dtypes=dm.dtypes,
+    )
+
+    normalizer = sum_normalizer.SumNormalizer(normalize_for="both")
     result = normalizer.normalize(dm)
 
     assert result == expected
