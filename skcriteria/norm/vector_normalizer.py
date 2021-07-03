@@ -8,8 +8,8 @@
 # DOCS
 # =============================================================================
 
-"""Implementation of functionalities for normalize based o the total norm of \
-vector defined by values on an array..
+"""Implementation of functionalities for normalize based o the norm of \
+vector defined by values on an array.
 
 In addition to the main functionality, an agnostic function is offered
 to normalize an array along an arbitrary axis.
@@ -63,15 +63,21 @@ def vector_norm(arr: np.ndarray, axis=None) -> np.ndarray:
 
         >>> from skcriteria import norm
         >>> mtx = [[1, 2], [3, 4]]
-        >>> norm.vector(mtx) # ratios with the vector value of the array
+
+        # ratios with the vector value of the array
+        >>> norm.vector_norm(mtx)
         array([[ 0.18257418,  0.36514837],
                [ 0.54772252,  0.73029673]])
-        >>> norm.vector(mtx, axis=0) # ratios by column
+
+        # ratios by column
+        >>> norm.vector_norm(mtx, axis=0)
         array([[ 0.31622776,  0.44721359],
-            [ 0.94868326,  0.89442718]])
-        >>> norm.vector(mtx, axis=1) # ratios by row
+               [ 0.94868326,  0.89442718]])
+
+        # ratios by row
+        >>> norm.vector_norm(mtx, axis=1)
         array([[ 0.44721359,  0.89442718],
-            [ 0.60000002,  0.80000001]])
+               [ 0.60000002,  0.80000001]])
 
     """
     new_arr = np.array(arr, dtype=float)
