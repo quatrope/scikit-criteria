@@ -93,7 +93,7 @@ class NormalizerMixin:
 
     _skcriteria_dm_type = "normalizer"
 
-    def normalize_data(self, **kwargs) -> dict:  # noqa: D401
+    def normalize_data(self, **kwargs) -> dict:
         """Apply the normalizer logic to all the decision matrix as parameters.
 
         Parameters
