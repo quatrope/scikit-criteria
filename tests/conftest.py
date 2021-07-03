@@ -18,7 +18,7 @@
 # =============================================================================
 
 import functools
-import string
+
 
 import numpy as np
 
@@ -31,8 +31,6 @@ from skcriteria import data
 # CONSTANTS
 # =============================================================================
 
-
-CHARS = tuple(string.ascii_letters + string.digits)
 
 MAXS_O_ALIAS = list(data.Objective._MAX_ALIASES.value)
 MINS_O_ALIAS = list(data.Objective._MIN_ALIASES.value)
