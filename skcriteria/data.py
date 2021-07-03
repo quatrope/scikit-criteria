@@ -25,8 +25,6 @@ import enum
 import functools
 from typing import Iterable, Optional
 
-import attr
-
 import numpy as np
 
 import pandas as pd
@@ -116,20 +114,7 @@ class Objective(enum.Enum):
 # DATA CLASS
 # =============================================================================
 
-# converters
-def _as_df(df):
-    return df.copy() if isinstance(df, pd.DataFrame) else pd.DataFrame(df)
 
-
-def _as_objective_array(arr):
-    return np.array([Objective.construct_from_alias(a) for a in arr])
-
-
-def _as_float_array(arr):
-    return np.array(arr, dtype=float)
-
-
-@attr.s(frozen=True, repr=False, cmp=False)
 class DecisionMatrix:
     """Representation of all data needed in the MCDA analysis.
 
@@ -203,17 +188,25 @@ class DecisionMatrix:
 
     """
 
-    _data_df: pd.DataFrame = attr.ib(converter=_as_df)
-    _objectives: np.ndarray = attr.ib(converter=_as_objective_array)
-    _weights: np.ndarray = attr.ib(converter=_as_float_array)
+    def __init__(
+        self,
+        data_df: pd.DataFrame,
+        objectives: np.ndarray,
+        weights: np.ndarray,
+    ) -> None:
 
-    def __attrs_post_init__(self):
-        """Execute the last shape validation.
+        self._data_df = (
+            data_df.copy()
+            if isinstance(data_df, pd.DataFrame)
+            else pd.DataFrame(data_df)
+        )
 
-        Check if the number of columns in in the `data_df` are the same as in
-        the `objectives` and `weights`.
+        self._objectives = np.array(
+            [Objective.construct_from_alias(a) for a in objectives]
+        )
 
-        """
+        self._weights = np.array(weights, dtype=float)
+
         lens = {
             "c_number": len(self._data_df.columns),
             "objectives": len(self._objectives),
