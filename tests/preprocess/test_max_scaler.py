@@ -43,7 +43,7 @@ def test_MaxScaler_simple_matrix():
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(transform_for="matrix")
+    scaler = MaxScaler(target="matrix")
 
     result = scaler.transform(dm)
 
@@ -70,7 +70,7 @@ def test_MaxScaler_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(transform_for="matrix")
+    scaler = MaxScaler(target="matrix")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
@@ -91,7 +91,7 @@ def test_MaxScaler_simple_weights():
         dtypes=[int, int, int],
     )
 
-    scaler = MaxScaler(transform_for="weights")
+    scaler = MaxScaler(target="weights")
 
     result = scaler.transform(dm)
 
@@ -118,7 +118,7 @@ def test_MaxScaler_weights(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(transform_for="weights")
+    scaler = MaxScaler(target="weights")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
@@ -139,7 +139,7 @@ def test_MaxScaler_simple_both():
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(transform_for="both")
+    scaler = MaxScaler(target="both")
 
     result = scaler.transform(dm)
 
@@ -166,7 +166,7 @@ def test_MaxScaler_both(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(transform_for="both")
+    scaler = MaxScaler(target="both")
     result = scaler.transform(dm)
 
     assert result.equals(expected)

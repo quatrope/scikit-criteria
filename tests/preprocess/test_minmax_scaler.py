@@ -46,7 +46,7 @@ def test_MinMaxScaler_simple_matrix():
         dtypes=[float, float, float],
     )
 
-    scaler = MinMaxScaler(transform_for="matrix")
+    scaler = MinMaxScaler(target="matrix")
 
     result = scaler.transform(dm)
 
@@ -77,7 +77,7 @@ def test_MinMaxScaler_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MinMaxScaler(transform_for="matrix")
+    scaler = MinMaxScaler(target="matrix")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
@@ -98,7 +98,7 @@ def test_MinMaxScaler_simple_weights():
         dtypes=[int, int, int],
     )
 
-    scaler = MinMaxScaler(transform_for="weights")
+    scaler = MinMaxScaler(target="weights")
 
     result = scaler.transform(dm)
 
@@ -126,7 +126,7 @@ def test_MinMaxScaler_weights(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MinMaxScaler(transform_for="weights")
+    scaler = MinMaxScaler(target="weights")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
@@ -150,7 +150,7 @@ def test_MinMaxScaler_simple_both():
         dtypes=[float, float, float],
     )
 
-    scaler = MinMaxScaler(transform_for="both")
+    scaler = MinMaxScaler(target="both")
 
     result = scaler.transform(dm)
 
@@ -182,7 +182,7 @@ def test_MinMaxScaler_both(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MinMaxScaler(transform_for="both")
+    scaler = MinMaxScaler(target="both")
     result = scaler.transform(dm)
 
     assert result.equals(expected)

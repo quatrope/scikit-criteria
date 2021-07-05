@@ -166,26 +166,26 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
 
     """
 
-    _FOR_WEIGHTS = "weights"
-    _FOR_MATRIX = "matrix"
-    _FOR_BOTH = "both"
+    _TARGET_WEIGHTS = "weights"
+    _TARGET_MATRIX = "matrix"
+    _TARGET_BOTH = "both"
 
-    def __init__(self, transform_for: str) -> None:
-        if transform_for not in (
-            self._FOR_MATRIX,
-            self._FOR_WEIGHTS,
-            self._FOR_BOTH,
+    def __init__(self, target: str) -> None:
+        if target not in (
+            self._TARGET_MATRIX,
+            self._TARGET_WEIGHTS,
+            self._TARGET_BOTH,
         ):
             raise ValueError(
-                f"'transform_for' can only be '{self._FOR_WEIGHTS}' or "
-                f"'{self._FOR_MATRIX}'', found '{transform_for}'"
+                f"'target' can only be '{self._TARGET_WEIGHTS}' or "
+                f"'{self._TARGET_MATRIX}'', found '{target}'"
             )
-        self._transform_for = transform_for
+        self._target = target
 
     @property
-    def transform_for(self) -> str:
-        """Determine which part of the DecisionMatrix will be targeted."""
-        return self._transform_for
+    def target(self) -> str:
+        """Determine which part of the DecisionMatrix will be transformed."""
+        return self._target
 
     def transform_weights(self, weights: np.ndarray) -> np.ndarray:
         """Execute the transform method over the weights.
@@ -226,10 +226,10 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         norm_mtx = matrix
         norm_weights = weights
 
-        if self._transform_for in (self._FOR_MATRIX, self._FOR_BOTH):
+        if self._target in (self._TARGET_MATRIX, self._TARGET_BOTH):
             norm_mtx = self.transform_matrix(matrix)
 
-        if self._transform_for in (self._FOR_WEIGHTS, self._FOR_BOTH):
+        if self._target in (self._TARGET_WEIGHTS, self._TARGET_BOTH):
             norm_weights = self.transform_weights(weights)
 
         kwargs.update(matrix=norm_mtx, weights=norm_weights, dtypes=None)

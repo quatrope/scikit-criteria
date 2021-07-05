@@ -43,7 +43,7 @@ def test_SumScaler_simple_matrix():
         dtypes=[float, float, float],
     )
 
-    scaler = SumScaler(transform_for="matrix")
+    scaler = SumScaler(target="matrix")
 
     result = scaler.transform(dm)
 
@@ -71,7 +71,7 @@ def test_SumScaler_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = SumScaler(transform_for="matrix")
+    scaler = SumScaler(target="matrix")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
@@ -92,7 +92,7 @@ def test_SumScaler_simple_weights():
         dtypes=[int, int, int],
     )
 
-    scaler = SumScaler(transform_for="weights")
+    scaler = SumScaler(target="weights")
 
     result = scaler.transform(dm)
 
@@ -119,7 +119,7 @@ def test_SumScaler_weights(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = SumScaler(transform_for="weights")
+    scaler = SumScaler(target="weights")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
@@ -140,7 +140,7 @@ def test_SumScaler_simple_both():
         dtypes=[float, float, float],
     )
 
-    scaler = SumScaler(transform_for="both")
+    scaler = SumScaler(target="both")
 
     result = scaler.transform(dm)
 
@@ -168,7 +168,7 @@ def test_SumScaler_both(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = SumScaler(transform_for="both")
+    scaler = SumScaler(target="both")
     result = scaler.transform(dm)
 
     assert result.equals(expected)

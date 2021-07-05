@@ -97,20 +97,20 @@ def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
         Foo("mtx")
 
 
-def test_SKCMatrixAndWeightTransformerMixin_transform_for():
+def test_SKCMatrixAndWeightTransformerMixin_target():
     class Foo(
         base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
     ):
         pass
 
     foo = Foo("matrix")
-    assert foo.transform_for == Foo._FOR_MATRIX
+    assert foo.target == Foo._TARGET_MATRIX
 
     foo = Foo("weights")
-    assert foo.transform_for == Foo._FOR_WEIGHTS
+    assert foo.target == Foo._TARGET_WEIGHTS
 
     foo = Foo("matrix")
-    assert foo.transform_for == Foo._FOR_MATRIX
+    assert foo.target == Foo._TARGET_MATRIX
 
     foo = Foo("both")
-    assert foo.transform_for == Foo._FOR_BOTH
+    assert foo.target == Foo._TARGET_BOTH

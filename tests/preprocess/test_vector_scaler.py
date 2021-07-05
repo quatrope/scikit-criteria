@@ -46,7 +46,7 @@ def test_VectorScaler_simple_matrix():
         dtypes=[float, float, float],
     )
 
-    scaler = VectorScaler(transform_for="matrix")
+    scaler = VectorScaler(target="matrix")
 
     result = scaler.transform(dm)
 
@@ -73,7 +73,7 @@ def test_VectorScaler_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = VectorScaler(transform_for="matrix")
+    scaler = VectorScaler(target="matrix")
     result = scaler.transform(dm)
 
     assert result.aequals(expected)
@@ -94,7 +94,7 @@ def test_VectorScaler_simple_weights():
         dtypes=[int, int, int],
     )
 
-    scaler = VectorScaler(transform_for="weights")
+    scaler = VectorScaler(target="weights")
 
     result = scaler.transform(dm)
 
@@ -121,7 +121,7 @@ def test_VectorScaler_weights(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = VectorScaler(transform_for="weights")
+    scaler = VectorScaler(target="weights")
     result = scaler.transform(dm)
 
     assert result.aequals(expected)
@@ -145,7 +145,7 @@ def test_VectorScaler_simple_both():
         dtypes=[float, float, float],
     )
 
-    scaler = VectorScaler(transform_for="both")
+    scaler = VectorScaler(target="both")
 
     result = scaler.transform(dm)
 
@@ -172,7 +172,7 @@ def test_VectorScaler_both(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = VectorScaler(transform_for="both")
+    scaler = VectorScaler(target="both")
     result = scaler.transform(dm)
 
     assert result.aequals(expected)
