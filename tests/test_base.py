@@ -57,6 +57,20 @@ def test_not_implemented_SKCTransformerMixin():
         Foo()
 
 
+def test_transform_data_not_implemethed_SKCMatrixAndWeightTransformerMixin(
+    decision_matrix,
+):
+    class Foo(base.SKCTransformerMixin, base.SKCBaseDecisionMaker):
+        def transform_data(self, **kwargs) -> dict:
+            return super().transform_data(**kwargs)
+
+    transformer = Foo()
+    dm = decision_matrix(seed=42)
+
+    with pytest.raises(NotImplementedError):
+        transformer.transform(dm)
+
+
 def test_not_implemented_SKCMatrixAndWeightTransformerMixin():
     class Foo(
         base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
@@ -85,6 +99,44 @@ def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
 
     with pytest.raises(ValueError):
         Foo("mtx")
+
+
+def test_transform_weights_not_implemethed_SKCMatrixAndWeightTransformerMixin(
+    decision_matrix,
+):
+    class Foo(
+        base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
+    ):
+        def transform_matrix(self, matrix):
+            super().transform_matrix(matrix)
+
+        def transform_weights(self, weights):
+            return weights
+
+    transformer = Foo("matrix")
+    dm = decision_matrix(seed=42)
+
+    with pytest.raises(NotImplementedError):
+        transformer.transform(dm)
+
+
+def test_transform_weight_not_implemethed_SKCMatrixAndWeightTransformerMixin(
+    decision_matrix,
+):
+    class Foo(
+        base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
+    ):
+        def transform_matrix(self, matrix):
+            return matrix
+
+        def transform_weights(self, weights):
+            super().transform_weights(weights)
+
+    transformer = Foo("weights")
+    dm = decision_matrix(seed=42)
+
+    with pytest.raises(NotImplementedError):
+        transformer.transform(dm)
 
 
 def test_SKCMatrixAndWeightTransformerMixin_target():
