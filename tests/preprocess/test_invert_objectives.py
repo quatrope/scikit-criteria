@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.norm.invert_objective
+"""test for skcriteria.preprocess.invert_objectives
 
 """
 
@@ -21,7 +21,7 @@ import numpy as np
 
 
 import skcriteria
-from skcriteria.norm import invert_objective
+from skcriteria.preprocess import MinimizeToMaximize, invert
 
 
 # =============================================================================
@@ -29,7 +29,7 @@ from skcriteria.norm import invert_objective
 # =============================================================================
 
 
-def test_MinimizeToMaximizeNormalizer_simple():
+def test_MinimizeToMaximize_simple():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]], objectives=[min, max, min]
@@ -39,14 +39,14 @@ def test_MinimizeToMaximizeNormalizer_simple():
         matrix=[[1, 2, 1 / 3], [1 / 4, 5, 1 / 6]], objectives=[max, max, max]
     )
 
-    normalizer = invert_objective.MinimizeToMaximizeNormalizer()
+    inv = MinimizeToMaximize()
 
-    result = normalizer.normalize(dm)
+    result = inv.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
+def test_MinimizeToMaximize_all_min(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -64,14 +64,14 @@ def test_MinimizeToMaximizeNormalizer_all_min(decision_matrix):
         cnames=dm.cnames,
     )
 
-    normalizer = invert_objective.MinimizeToMaximizeNormalizer()
+    inv = MinimizeToMaximize()
 
-    result = normalizer.normalize(dm)
+    result = inv.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
+def test_MinimizeToMaximize_50percent_min(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -97,9 +97,9 @@ def test_MinimizeToMaximizeNormalizer_50percent_min(decision_matrix):
         dtypes=inv_dtypes,
     )
 
-    normalizer = invert_objective.MinimizeToMaximizeNormalizer()
+    inv = MinimizeToMaximize()
 
-    result = normalizer.normalize(dm)
+    result = inv.transform(dm)
 
     assert result.equals(expected)
 
@@ -120,7 +120,7 @@ def test_invert_all_min(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    rmtx = invert_objective.invert(
+    rmtx = invert(
         dm.matrix, dm.objectives_values == skcriteria.Objective.MIN.value
     )
 
@@ -139,7 +139,7 @@ def test_invert_50percent_min(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    rmtx = invert_objective.invert(
+    rmtx = invert(
         dm.matrix, dm.objectives_values == skcriteria.Objective.MIN.value
     )
 

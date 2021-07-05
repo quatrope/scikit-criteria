@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.norm.sum_normalizer
+"""test for skcriteria.preprocess.max_scaler.
 
 """
 
@@ -20,7 +20,7 @@
 import numpy as np
 
 import skcriteria
-from skcriteria.norm import sum_normalizer
+from skcriteria.preprocess import MaxScaler, scale_by_max
 
 
 # =============================================================================
@@ -28,7 +28,7 @@ from skcriteria.norm import sum_normalizer
 # =============================================================================
 
 
-def test_SumNormalizer_simple_matrix():
+def test_MaxScaler_simple_matrix():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -37,20 +37,20 @@ def test_SumNormalizer_simple_matrix():
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1 / 5, 2 / 7, 3 / 9], [4 / 5, 5 / 7, 6 / 9]],
+        matrix=[[1 / 4, 2 / 5, 3 / 6], [4 / 4, 5 / 5, 6 / 6]],
         objectives=[min, max, min],
         weights=[1, 2, 3],
         dtypes=[float, float, float],
     )
 
-    normalizer = sum_normalizer.SumNormalizer(normalize_for="matrix")
+    scaler = MaxScaler(transform_for="matrix")
 
-    result = normalizer.normalize(dm)
+    result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_SumNormalizer_matrix(decision_matrix):
+def test_MaxScaler_matrix(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -62,8 +62,7 @@ def test_SumNormalizer_matrix(decision_matrix):
     )
 
     expected = skcriteria.mkdm(
-        matrix=dm.matrix
-        / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
+        matrix=dm.matrix / np.max(dm.matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,
@@ -71,13 +70,13 @@ def test_SumNormalizer_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    normalizer = sum_normalizer.SumNormalizer(normalize_for="matrix")
-    result = normalizer.normalize(dm)
+    scaler = MaxScaler(transform_for="matrix")
+    result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_SumNormalizer_simple_weights():
+def test_MaxScaler_simple_weights():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -88,18 +87,18 @@ def test_SumNormalizer_simple_weights():
     expected = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
-        weights=[1 / 6, 2 / 6, 3 / 6],
+        weights=[1 / 3, 2 / 3, 3 / 3],
         dtypes=[int, int, int],
     )
 
-    normalizer = sum_normalizer.SumNormalizer(normalize_for="weights")
+    scaler = MaxScaler(transform_for="weights")
 
-    result = normalizer.normalize(dm)
+    result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_SumNormalizer_weights(decision_matrix):
+def test_MaxScaler_weights(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -113,19 +112,19 @@ def test_SumNormalizer_weights(decision_matrix):
     expected = skcriteria.mkdm(
         matrix=dm.matrix,
         objectives=dm.objectives,
-        weights=dm.weights / np.sum(dm.weights),
+        weights=dm.weights / np.max(dm.weights),
         anames=dm.anames,
         cnames=dm.cnames,
         dtypes=dm.dtypes,
     )
 
-    normalizer = sum_normalizer.SumNormalizer(normalize_for="weights")
-    result = normalizer.normalize(dm)
+    scaler = MaxScaler(transform_for="weights")
+    result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_SumNormalizer_simple_both():
+def test_MaxScaler_simple_both():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -134,20 +133,20 @@ def test_SumNormalizer_simple_both():
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1 / 5, 2 / 7, 3 / 9], [4 / 5, 5 / 7, 6 / 9]],
+        matrix=[[1 / 4, 2 / 5, 3 / 6], [4 / 4, 5 / 5, 6 / 6]],
         objectives=[min, max, min],
-        weights=[1 / 6, 2 / 6, 3 / 6],
+        weights=[1 / 3, 2 / 3, 3 / 3],
         dtypes=[float, float, float],
     )
 
-    normalizer = sum_normalizer.SumNormalizer(normalize_for="both")
+    scaler = MaxScaler(transform_for="both")
 
-    result = normalizer.normalize(dm)
+    result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_SumNormalizer_both(decision_matrix):
+def test_MaxScaler_both(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -159,17 +158,16 @@ def test_SumNormalizer_both(decision_matrix):
     )
 
     expected = skcriteria.mkdm(
-        matrix=dm.matrix
-        / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
+        matrix=dm.matrix / np.max(dm.matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
-        weights=dm.weights / np.sum(dm.weights),
+        weights=dm.weights / np.max(dm.weights),
         anames=dm.anames,
         cnames=dm.cnames,
         dtypes=dm.dtypes,
     )
 
-    normalizer = sum_normalizer.SumNormalizer(normalize_for="both")
-    result = normalizer.normalize(dm)
+    scaler = MaxScaler(transform_for="both")
+    result = scaler.transform(dm)
 
     assert result.equals(expected)
 
@@ -179,7 +177,7 @@ def test_SumNormalizer_both(decision_matrix):
 # =============================================================================
 
 
-def test_sum_norm_mtx(decision_matrix):
+def test_scale_by_max_mtx(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -189,13 +187,13 @@ def test_sum_norm_mtx(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    nweights = sum_normalizer.sum_norm(dm.weights, axis=0)
-    expected = dm.weights / np.sum(dm.weights)
+    nweights = scale_by_max(dm.weights, axis=0)
+    expected = dm.weights / np.max(dm.weights)
 
     assert np.all(nweights == expected)
 
 
-def test_sum_norm_weights(decision_matrix):
+def test_scale_by_max_weights(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -205,9 +203,7 @@ def test_sum_norm_weights(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    nmtx = sum_normalizer.sum_norm(dm.matrix, axis=0)
-    expected = dm.matrix / np.sum(
-        dm.matrix, axis=0, keepdims=True, dtype=float
-    )
+    nmtx = scale_by_max(dm.matrix, axis=0)
+    expected = dm.matrix / np.max(dm.matrix, axis=0, keepdims=True)
 
     assert np.all(nmtx == expected)

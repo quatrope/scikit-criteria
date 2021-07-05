@@ -32,12 +32,12 @@ def test_no__skcriteria_dm_type():
 
     with pytest.raises(TypeError):
 
-        class Foo(base.BaseDecisionMaker):
+        class Foo(base.SKCBaseDecisionMaker):
             pass
 
 
 def test_repr():
-    class Foo(base.BaseDecisionMaker):
+    class Foo(base.SKCBaseDecisionMaker):
         _skcriteria_dm_type = "foo"
 
         def __init__(self, foo, faa):
@@ -49,57 +49,68 @@ def test_repr():
     assert repr(foo) == "Foo(faa=1, foo=2)"
 
 
-def test_not_implemented_NormalizerMixin(decision_matrix):
+def test_not_implemented_SKCTransformerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.NormalizerMixin, base.BaseDecisionMaker):
+    class Foo(base.SKCTransformerMixin, base.SKCBaseDecisionMaker):
         pass
 
     foo = Foo()
 
     with pytest.raises(NotImplementedError):
-        foo.normalize(dm)
+        foo.transform(dm)
 
 
-def test_not_implemented_MatrixAndWeightNormalizerMixin(decision_matrix):
+def test_not_implemented_SKCMatrixAndWeightTransformerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.MatrixAndWeightNormalizerMixin, base.BaseDecisionMaker):
+    class Foo(
+        base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
+    ):
         pass
 
     foo = Foo("matrix")
 
     with pytest.raises(NotImplementedError):
-        foo.normalize(dm)
+        foo.transform(dm)
 
     foo = Foo("weights")
 
     with pytest.raises(NotImplementedError):
-        foo.normalize(dm)
+        foo.transform(dm)
+
+    foo = Foo("both")
+
+    with pytest.raises(NotImplementedError):
+        foo.transform(dm)
 
 
-def test_bad_normalize_for_MatrixAndWeightNormalizerMixin():
-    class Foo(base.MatrixAndWeightNormalizerMixin, base.BaseDecisionMaker):
+def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
+    class Foo(
+        base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
+    ):
         pass
 
     with pytest.raises(ValueError):
-        Foo(normalize_for="mtx")
+        Foo("mtx")
 
 
-def test_MatrixAndWeightNormalizerMixin_normalize_for():
-    class Foo(base.MatrixAndWeightNormalizerMixin, base.BaseDecisionMaker):
+def test_SKCMatrixAndWeightTransformerMixin_transform_for():
+    class Foo(
+        base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
+    ):
         pass
 
     foo = Foo("matrix")
-    assert foo.normalize_for == Foo._FOR_MATRIX
+    assert foo.transform_for == Foo._FOR_MATRIX
 
     foo = Foo("weights")
-    assert foo.normalize_for == Foo._FOR_WEIGHTS
+    assert foo.transform_for == Foo._FOR_WEIGHTS
 
     foo = Foo("matrix")
-    assert foo.normalize_for == Foo._FOR_MATRIX
+    assert foo.transform_for == Foo._FOR_MATRIX
 
     foo = Foo("both")
-    assert foo.normalize_for == Foo._FOR_BOTH
+    assert foo.transform_for == Foo._FOR_BOTH

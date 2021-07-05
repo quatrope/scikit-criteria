@@ -14,25 +14,25 @@
 # IMPORTS
 # =============================================================================
 
-from .invert_objective import MinimizeToMaximizeNormalizer, invert
-from .max_normalizer import MaxNormalizer, max_norm
-from .range_normalizer import RangeNormalizer, range_norm
-from .sum_normalizer import SumNormalizer, sum_norm
-from .vector_normalizer import VectorNormalizer, vector_norm
+from .invert_objectives import MinimizeToMaximize, invert
+from .max_scaler import MaxScaler, scale_by_max
+from .minmax_scaler import MinMaxScaler, scale_by_minmax
+from .sum_scaler import SumScaler, scale_by_sum
+from .vector_scaler import VectorScaler, scale_by_vector
 
 # =============================================================================
 # ALL
 # =============================================================================
 
 __all__ = [
-    "MinimizeToMaximizeNormalizer",
+    "MinimizeToMaximize",
     "invert",
-    "MaxNormalizer",
-    "max_norm",
-    "RangeNormalizer",
-    "range_norm",
-    "SumNormalizer",
-    "sum_norm",
-    "VectorNormalizer",
-    "vector_norm",
+    "MaxScaler",
+    "scale_by_max",
+    "MinMaxScaler",
+    "scale_by_minmax",
+    "SumScaler",
+    "scale_by_sum",
+    "VectorScaler",
+    "scale_by_vector",
 ]

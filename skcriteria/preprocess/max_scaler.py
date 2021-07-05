@@ -8,10 +8,10 @@
 # DOCS
 # =============================================================================
 
-"""Functionalities for normalize based o the max value of a vector.
+"""Functionalities for scale data based o the max value of a vector.
 
-In addition to the main functionality, an agnostic function is offered
-to normalize an array along an arbitrary axis.
+In addition to the main functionality, an MCDA agnostic function is offered
+to scale data on an array along an arbitrary axis.
 
 """
 
@@ -23,7 +23,7 @@ to normalize an array along an arbitrary axis.
 
 import numpy as np
 
-from ..base import BaseDecisionMaker, MatrixAndWeightNormalizerMixin
+from ..base import SKCBaseDecisionMaker, SKCMatrixAndWeightTransformerMixin
 from ..utils import doc_inherit
 
 
@@ -32,7 +32,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def max_norm(arr, axis=None):
+def scale_by_max(arr, axis=None):
     r"""Divide of every value on the array by max value along an axis.
 
     .. math::
@@ -55,21 +55,21 @@ def max_norm(arr, axis=None):
     --------
     .. code-block:: pycon
 
-        >>> from skcriteria import norm
+        >>> from skcriteria.preprocess import scale_by_max
         >>> mtx = [[1, 2], [3, 4]]
 
         # ratios with the max value of the array
-        >>> norm.max_norm(mtx)
+        >>> scale_by_max(mtx)
         array([[ 0.25,  0.5 ],
-            [ 0.75,  1.  ]])
+               [ 0.75,  1.  ]])
 
         # ratios with the max value of the arr by column
-        >>> norm.max_norm(mtx, axis=0)
+        >>> scale_by_max(mtx, axis=0)
         array([[ 0.33333334,  0.5],
                [ 1.        ,  1. ]])
 
         # ratios with the max value of the array by row
-        >>> norm.max_norm(mtx, axis=1)
+        >>> scale_by_max(mtx, axis=1)
         array([[ 0.5 ,  1.],
                [ 0.75,  1.]])
 
@@ -79,24 +79,24 @@ def max_norm(arr, axis=None):
     return new_arr / maxval
 
 
-class MaxNormalizer(MatrixAndWeightNormalizerMixin, BaseDecisionMaker):
-    r"""Normalizer based on the maximum values.
+class MaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+    r"""Scaler based on the maximum values.
 
     .. math::
 
         \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
 
-    If the normalizer is configured to work with 'matrix' each value
+    If the scaler is configured to work with 'matrix' each value
     of each criteria is divided by the maximum value of that criteria.
     In other hand if is configure to work with 'weights',
     each value of weight is divided by the maximum value the weights.
 
     """
 
-    @doc_inherit(MatrixAndWeightNormalizerMixin.normalize_weights)
-    def normalize_weights(self, weights: np.ndarray) -> np.ndarray:
-        return max_norm(weights, axis=None)
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_weights)
+    def transform_weights(self, weights: np.ndarray) -> np.ndarray:
+        return scale_by_max(weights, axis=None)
 
-    @doc_inherit(MatrixAndWeightNormalizerMixin.normalize_matrix)
-    def normalize_matrix(self, matrix: np.ndarray) -> np.ndarray:
-        return max_norm(matrix, axis=0)
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_matrix)
+    def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+        return scale_by_max(matrix, axis=0)

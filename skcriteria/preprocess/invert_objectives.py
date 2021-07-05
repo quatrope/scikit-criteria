@@ -23,7 +23,7 @@ that inverts columns of a matrix based on a mask.
 
 import numpy as np
 
-from ..base import BaseDecisionMaker, NormalizerMixin
+from ..base import SKCBaseDecisionMaker, SKCTransformerMixin
 from ..data import Objective
 from ..utils import doc_inherit
 
@@ -53,7 +53,8 @@ def invert(matrix: np.ndarray, mask: np.ndarray) -> np.ndarray:
     --------
     .. code-block:: pycon
 
-        >>> norm.invert([
+        >>> from skcriteria import invert
+        >>> invert([
         ...     [1, 2, 3],
         ...     [4, 5, 6]
         ... ],
@@ -61,7 +62,7 @@ def invert(matrix: np.ndarray, mask: np.ndarray) -> np.ndarray:
         array([[1.        , 2.        , 0.33333333],
                [0.25      , 5.        , 0.16666667]])
 
-        >>> norm.invert([
+        >>> invert([
         ...     [1, 2, 3],
         ...     [4, 5, 6]
         ... ],
@@ -80,7 +81,7 @@ def invert(matrix: np.ndarray, mask: np.ndarray) -> np.ndarray:
     return inv_mtx
 
 
-class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
+class MinimizeToMaximize(SKCTransformerMixin, SKCBaseDecisionMaker):
     r"""Transform all minimization criteria  into maximization ones.
 
     The transformations are made by calculating the inverse value of
@@ -93,18 +94,18 @@ class MinimizeToMaximizeNormalizer(NormalizerMixin, BaseDecisionMaker):
 
     """
 
-    @doc_inherit(NormalizerMixin.normalize_data)
-    def normalize_data(
+    @doc_inherit(SKCTransformerMixin.transform_data)
+    def transform_data(
         self,
         matrix: np.ndarray,
         objectives: np.ndarray,
         dtypes: np.ndarray,
         **kwargs,
     ) -> dict:
-        # check where we need to normalize
+        # check where we need to transform
         minimize_mask = np.equal(objectives, Objective.MIN.value)
 
-        # execute the normalizer
+        # execute the transformation
         inv_mtx = invert(matrix, minimize_mask)
 
         # new objective array

@@ -8,11 +8,11 @@
 # DOCS
 # =============================================================================
 
-"""Implementation of functionalities for normalize based o the norm of \
+"""Implementation of functionalities for scale based o the norm of \
 vector defined by values on an array.
 
-In addition to the main functionality, an agnostic function is offered
-to normalize an array along an arbitrary axis.
+In addition to the main functionality, an MCDA agnostic function is offered
+to scale an array along an arbitrary axis.
 
 """
 
@@ -24,7 +24,7 @@ to normalize an array along an arbitrary axis.
 import numpy as np
 from numpy import linalg
 
-from ..base import BaseDecisionMaker, MatrixAndWeightNormalizerMixin
+from ..base import SKCBaseDecisionMaker, SKCMatrixAndWeightTransformerMixin
 from ..utils import doc_inherit
 
 
@@ -33,7 +33,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def vector_norm(arr: np.ndarray, axis=None) -> np.ndarray:
+def scale_by_vector(arr: np.ndarray, axis=None) -> np.ndarray:
     r"""Divide the array by norm of values defined vector along an axis.
 
     Calculates the set of ratios as the square roots of the sum of squared
@@ -61,21 +61,21 @@ def vector_norm(arr: np.ndarray, axis=None) -> np.ndarray:
     --------
     .. code-block:: pycon
 
-        >>> from skcriteria import norm
+        >>> from skcriteria.preprocess import scale_by_vector
         >>> mtx = [[1, 2], [3, 4]]
 
         # ratios with the vector value of the array
-        >>> norm.vector_norm(mtx)
+        >>> scale_by_vector(mtx)
         array([[ 0.18257418,  0.36514837],
                [ 0.54772252,  0.73029673]])
 
         # ratios by column
-        >>> norm.vector_norm(mtx, axis=0)
+        >>> scale_by_vector(mtx, axis=0)
         array([[ 0.31622776,  0.44721359],
                [ 0.94868326,  0.89442718]])
 
         # ratios by row
-        >>> norm.vector_norm(mtx, axis=1)
+        >>> scale_by_vector(mtx, axis=1)
         array([[ 0.44721359,  0.89442718],
                [ 0.60000002,  0.80000001]])
 
@@ -85,15 +85,15 @@ def vector_norm(arr: np.ndarray, axis=None) -> np.ndarray:
     return new_arr / frob
 
 
-class VectorNormalizer(MatrixAndWeightNormalizerMixin, BaseDecisionMaker):
-    r"""Normalizer based on the norm of the vector..
+class VectorScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+    r"""Scaler based on the norm of the vector..
 
     .. math::
 
         \overline{X}_{ij} =
         \frac{X_{ij}}{\sqrt{\sum\limits_{j=1}^m X_{ij}^{2}}}
 
-    If the normalizer is configured to work with 'matrix' each value
+    If the scaler is configured to work with 'matrix' each value
     of each criteria is divided by the norm of the vector defined by the values
     of that criteria.
     In other hand if is configure to work with 'weights',
@@ -102,10 +102,10 @@ class VectorNormalizer(MatrixAndWeightNormalizerMixin, BaseDecisionMaker):
 
     """
 
-    @doc_inherit(MatrixAndWeightNormalizerMixin.normalize_weights)
-    def normalize_weights(self, weights: np.ndarray) -> np.ndarray:
-        return vector_norm(weights, axis=None)
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_weights)
+    def transform_weights(self, weights: np.ndarray) -> np.ndarray:
+        return scale_by_vector(weights, axis=None)
 
-    @doc_inherit(MatrixAndWeightNormalizerMixin.normalize_matrix)
-    def normalize_matrix(self, matrix: np.ndarray) -> np.ndarray:
-        return vector_norm(matrix, axis=0)
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_matrix)
+    def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+        return scale_by_vector(matrix, axis=0)

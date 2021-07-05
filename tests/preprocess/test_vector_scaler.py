@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.norm.range_normalizer
+"""test for skcriteria.preprocess.vector_scaler.
 
 """
 
@@ -20,7 +20,7 @@
 import numpy as np
 
 import skcriteria
-from skcriteria.norm import range_normalizer
+from skcriteria.preprocess import VectorScaler, scale_by_vector
 
 
 # =============================================================================
@@ -28,7 +28,7 @@ from skcriteria.norm import range_normalizer
 # =============================================================================
 
 
-def test_RangeNormalizer_simple_matrix():
+def test_VectorScaler_simple_matrix():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -38,22 +38,22 @@ def test_RangeNormalizer_simple_matrix():
 
     expected = skcriteria.mkdm(
         matrix=[
-            [(1 - 1) / (4 - 1), (2 - 2) / (5 - 2), (3 - 3) / (6 - 3)],
-            [(4 - 1) / (4 - 1), (5 - 2) / (5 - 2), (6 - 3) / (6 - 3)],
+            [1 / 4.123105626, 2 / 5.385164807, 3 / 6.708203932],
+            [4 / 4.123105626, 5 / 5.385164807, 6 / 6.708203932],
         ],
         objectives=[min, max, min],
         weights=[1, 2, 3],
         dtypes=[float, float, float],
     )
 
-    normalizer = range_normalizer.RangeNormalizer(normalize_for="matrix")
+    scaler = VectorScaler(transform_for="matrix")
 
-    result = normalizer.normalize(dm)
+    result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
-def test_RangeNormalizer_matrix(decision_matrix):
+def test_VectorScaler_matrix(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -64,12 +64,8 @@ def test_RangeNormalizer_matrix(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    mtx = dm.matrix
-    mtx_min = np.min(mtx, axis=0, keepdims=True)
-    mtx_max = np.max(mtx, axis=0, keepdims=True)
-
     expected = skcriteria.mkdm(
-        matrix=(mtx - mtx_min) / (mtx_max - mtx_min),
+        matrix=dm.matrix / np.sqrt(np.sum(np.power(dm.matrix, 2), axis=0)),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,
@@ -77,13 +73,13 @@ def test_RangeNormalizer_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    normalizer = range_normalizer.RangeNormalizer(normalize_for="matrix")
-    result = normalizer.normalize(dm)
+    scaler = VectorScaler(transform_for="matrix")
+    result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
-def test_RangeNormalizer_simple_weights():
+def test_VectorScaler_simple_weights():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -94,18 +90,18 @@ def test_RangeNormalizer_simple_weights():
     expected = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
-        weights=[(1 - 1) / (3 - 1), (2 - 1) / (3 - 1), (3 - 1) / (3 - 1)],
+        weights=[1 / 3.741657387, 2 / 3.741657387, 3 / 3.741657387],
         dtypes=[int, int, int],
     )
 
-    normalizer = range_normalizer.RangeNormalizer(normalize_for="weights")
+    scaler = VectorScaler(transform_for="weights")
 
-    result = normalizer.normalize(dm)
+    result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
-def test_RangeNormalizer_weights(decision_matrix):
+def test_VectorScaler_weights(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -119,20 +115,19 @@ def test_RangeNormalizer_weights(decision_matrix):
     expected = skcriteria.mkdm(
         matrix=dm.matrix,
         objectives=dm.objectives,
-        weights=(dm.weights - np.min(dm.weights))
-        / (np.max(dm.weights) - np.min(dm.weights)),
+        weights=dm.weights / np.sqrt(np.sum(np.power(dm.weights, 2))),
         anames=dm.anames,
         cnames=dm.cnames,
         dtypes=dm.dtypes,
     )
 
-    normalizer = range_normalizer.RangeNormalizer(normalize_for="weights")
-    result = normalizer.normalize(dm)
+    scaler = VectorScaler(transform_for="weights")
+    result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
-def test_RangeNormalizer_simple_both():
+def test_VectorScaler_simple_both():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -142,22 +137,22 @@ def test_RangeNormalizer_simple_both():
 
     expected = skcriteria.mkdm(
         matrix=[
-            [(1 - 1) / (4 - 1), (2 - 2) / (5 - 2), (3 - 3) / (6 - 3)],
-            [(4 - 1) / (4 - 1), (5 - 2) / (5 - 2), (6 - 3) / (6 - 3)],
+            [1 / 4.123105626, 2 / 5.385164807, 3 / 6.708203932],
+            [4 / 4.123105626, 5 / 5.385164807, 6 / 6.708203932],
         ],
         objectives=[min, max, min],
-        weights=[(1 - 1) / (3 - 1), (2 - 1) / (3 - 1), (3 - 1) / (3 - 1)],
+        weights=[1 / 3.741657387, 2 / 3.741657387, 3 / 3.741657387],
         dtypes=[float, float, float],
     )
 
-    normalizer = range_normalizer.RangeNormalizer(normalize_for="both")
+    scaler = VectorScaler(transform_for="both")
 
-    result = normalizer.normalize(dm)
+    result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
-def test_RangeNormalizer_both(decision_matrix):
+def test_VectorScaler_both(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -168,24 +163,19 @@ def test_RangeNormalizer_both(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    mtx = dm.matrix
-    mtx_min = np.min(mtx, axis=0, keepdims=True)
-    mtx_max = np.max(mtx, axis=0, keepdims=True)
-
     expected = skcriteria.mkdm(
-        matrix=(mtx - mtx_min) / (mtx_max - mtx_min),
+        matrix=dm.matrix / np.sqrt(np.sum(np.power(dm.matrix, 2), axis=0)),
         objectives=dm.objectives,
-        weights=(dm.weights - np.min(dm.weights))
-        / (np.max(dm.weights) - np.min(dm.weights)),
+        weights=dm.weights / np.sqrt(np.sum(np.power(dm.weights, 2))),
         anames=dm.anames,
         cnames=dm.cnames,
         dtypes=dm.dtypes,
     )
 
-    normalizer = range_normalizer.RangeNormalizer(normalize_for="both")
-    result = normalizer.normalize(dm)
+    scaler = VectorScaler(transform_for="both")
+    result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 # =============================================================================
@@ -193,7 +183,7 @@ def test_RangeNormalizer_both(decision_matrix):
 # =============================================================================
 
 
-def test_range_norm_mtx(decision_matrix):
+def test_scale_by_vector_mtx(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -203,16 +193,13 @@ def test_range_norm_mtx(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    nweights = range_normalizer.range_norm(dm.weights, axis=0)
-    expected = (
-        (dm.weights - np.min(dm.weights))
-        / (np.max(dm.weights) - np.min(dm.weights)),
-    )
+    nweights = scale_by_vector(dm.weights, axis=0)
+    expected = dm.weights / np.sqrt(np.sum(np.power(dm.weights, 2)))
 
     assert np.all(nweights == expected)
 
 
-def test_range_norm_weights(decision_matrix):
+def test_scale_by_vector_weights(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -222,11 +209,7 @@ def test_range_norm_weights(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    nmtx = range_normalizer.range_norm(dm.matrix, axis=0)
-
-    mtx = dm.matrix
-    mtx_min = np.min(mtx, axis=0, keepdims=True)
-    mtx_max = np.max(mtx, axis=0, keepdims=True)
-    expected = ((mtx - mtx_min) / (mtx_max - mtx_min),)
+    nmtx = scale_by_vector(dm.matrix, axis=0)
+    expected = dm.matrix / np.sqrt(np.sum(np.power(dm.matrix, 2), axis=0))
 
     assert np.all(nmtx == expected)

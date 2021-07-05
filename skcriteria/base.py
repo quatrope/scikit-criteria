@@ -32,7 +32,7 @@ _IGNORE_PARAMS = (
 )
 
 
-class BaseDecisionMaker:
+class SKCBaseDecisionMaker:
     """Base class for all decision maker in scikit-criteria.
 
     Notes
@@ -56,7 +56,7 @@ class BaseDecisionMaker:
 
         if (
             cls._skcriteria_parameters is None
-            and cls.__init__ is not BaseDecisionMaker.__init__
+            and cls.__init__ is not SKCBaseDecisionMaker.__init__
         ):
             signature = inspect.signature(cls.__init__)
             parameters = set()
@@ -84,17 +84,17 @@ class BaseDecisionMaker:
 
 
 # =============================================================================
-# NORMALIZER MIXIN
+# SKCTransformer MIXIN
 # =============================================================================
 
 
-class NormalizerMixin:
-    """Mixin class for all normalizers in scikit-criteria."""
+class SKCTransformerMixin:
+    """Mixin class for all transformer in scikit-criteria."""
 
-    _skcriteria_dm_type = "normalizer"
+    _skcriteria_dm_type = "transformer"
 
-    def normalize_data(self, **kwargs) -> dict:
-        """Apply the normalizer logic to all the decision matrix as parameters.
+    def transform_data(self, **kwargs) -> dict:
+        """Apply the transformation logic to the decision matrix parameters.
 
         Parameters
         ----------
@@ -104,25 +104,24 @@ class NormalizerMixin:
         Returns
         -------
         :py:class:`dict`
-            A dictionary with all the values of the normalized decision matrix.
-            This parameters will be provided into
-            :py:method:`DecisionMatrix.from_mcda_data`.
+            A dictionary with all the values of the decision matrix
+            transformed.
 
         """
         raise NotImplementedError()
 
-    def normalize(self, dm) -> DecisionMatrix:
-        """Perform normalization on `dm` and returns normalized version of it.
+    def transform(self, dm) -> DecisionMatrix:
+        """Perform transformation on `dm`.
 
         Parameters
         ----------
         dm: :py:class:`skcriteria.data.DecisionMatrix`
-            The decision matrix to normalize.
+            The decision matrix to transform.
 
         Returns
         -------
         :py:class:`skcriteria.data.DecisionMatrix`
-            Normalized decision matrix.
+            Transformed decision matrix.
 
         """
         mtx = dm.matrix
@@ -141,7 +140,7 @@ class NormalizerMixin:
             dtypes=dtypes,
         )
 
-        nkwargs = self.normalize_data(
+        nkwargs = self.transform_data(
             matrix=mtx,
             objectives=objectives,
             weights=weights,
@@ -155,15 +154,15 @@ class NormalizerMixin:
         return norm_dm
 
 
-class MatrixAndWeightNormalizerMixin(NormalizerMixin):
-    """Mixin capable of normalize weighs and matrix together or separately.
+class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
+    """Mixin capable of transform weights and matrixindependently..
 
-    The normalizer that implements this mixin can be configured to normalize
+    Transformer that implements this mixin can be configured to transform
     `weights`, `matrix` or `both` so only that part of the DecisionMatrix
     is altered.
 
-    This mixin require to redefine ``normalize_weights`` and
-    ``normalize_matrix``, instead of ``normalize_data``.
+    This mixin require to redefine ``transform_weights`` and
+    ``transform_matrix``, instead of ``transform_data``.
 
     """
 
@@ -171,25 +170,25 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
     _FOR_MATRIX = "matrix"
     _FOR_BOTH = "both"
 
-    def __init__(self, normalize_for: str) -> None:
-        if normalize_for not in (
+    def __init__(self, transform_for: str) -> None:
+        if transform_for not in (
             self._FOR_MATRIX,
             self._FOR_WEIGHTS,
             self._FOR_BOTH,
         ):
             raise ValueError(
-                f"'normalize_for' can only be '{self._FOR_WEIGHTS}' or "
-                f"'{self._FOR_MATRIX}'', found '{normalize_for}'"
+                f"'transform_for' can only be '{self._FOR_WEIGHTS}' or "
+                f"'{self._FOR_MATRIX}'', found '{transform_for}'"
             )
-        self._normalize_for = normalize_for
+        self._transform_for = transform_for
 
     @property
-    def normalize_for(self) -> str:
-        """Determine if the normalizer will alter the 'matrix' or 'weights'."""
-        return self._normalize_for
+    def transform_for(self) -> str:
+        """Determine which part of the DecisionMatrix will be targeted."""
+        return self._transform_for
 
-    def normalize_weights(self, weights: np.ndarray) -> np.ndarray:
-        """Execute the normalize method over the weights.
+    def transform_weights(self, weights: np.ndarray) -> np.ndarray:
+        """Execute the transform method over the weights.
 
         Parameters
         ----------
@@ -204,8 +203,8 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
         """
         raise NotImplementedError()
 
-    def normalize_matrix(self, matrix: np.ndarray) -> np.ndarray:
-        """Execute the normalize method over the matrix.
+    def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+        """Execute the transform method over the matrix.
 
         Parameters
         ----------
@@ -220,18 +219,18 @@ class MatrixAndWeightNormalizerMixin(NormalizerMixin):
         """
         raise NotImplementedError()
 
-    @doc_inherit(NormalizerMixin.normalize_data)
-    def normalize_data(
+    @doc_inherit(SKCTransformerMixin.transform_data)
+    def transform_data(
         self, matrix: np.ndarray, weights: np.ndarray, **kwargs
     ) -> dict:
         norm_mtx = matrix
         norm_weights = weights
 
-        if self._normalize_for in (self._FOR_MATRIX, self._FOR_BOTH):
-            norm_mtx = self.normalize_matrix(matrix)
+        if self._transform_for in (self._FOR_MATRIX, self._FOR_BOTH):
+            norm_mtx = self.transform_matrix(matrix)
 
-        if self._normalize_for in (self._FOR_WEIGHTS, self._FOR_BOTH):
-            norm_weights = self.normalize_weights(weights)
+        if self._transform_for in (self._FOR_WEIGHTS, self._FOR_BOTH):
+            norm_weights = self.transform_weights(weights)
 
         kwargs.update(matrix=norm_mtx, weights=norm_weights, dtypes=None)
 
