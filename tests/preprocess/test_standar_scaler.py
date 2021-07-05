@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocess.max_scaler.
+"""test for skcriteria.preprocess.standar_scaler.
 
 """
 
@@ -20,7 +20,7 @@
 import numpy as np
 
 import skcriteria
-from skcriteria.preprocess import MaxScaler, scale_by_max
+from skcriteria.preprocess import StandarScaler, scale_by_stdscore
 
 
 # =============================================================================
@@ -28,7 +28,7 @@ from skcriteria.preprocess import MaxScaler, scale_by_max
 # =============================================================================
 
 
-def test_MaxScaler_simple_matrix():
+def test_StandarScaler_simple_matrix():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -37,20 +37,23 @@ def test_MaxScaler_simple_matrix():
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1 / 4, 2 / 5, 3 / 6], [4 / 4, 5 / 5, 6 / 6]],
+        matrix=[
+            [(1 - 2.5) / 1.5, (2 - 3.5) / 1.5, (3 - 4.5) / 1.5],
+            [(4 - 2.5) / 1.5, (5 - 3.5) / 1.5, (6 - 4.5) / 1.5],
+        ],
         objectives=[min, max, min],
         weights=[1, 2, 3],
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(target="matrix")
+    scaler = StandarScaler(target="matrix")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_matrix(decision_matrix):
+def test_StandarScaler_matrix(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -62,7 +65,8 @@ def test_MaxScaler_matrix(decision_matrix):
     )
 
     expected = skcriteria.mkdm(
-        matrix=dm.matrix / np.max(dm.matrix, axis=0, keepdims=True),
+        matrix=(dm.matrix - np.mean(dm.matrix, axis=0, keepdims=True))
+        / np.std(dm.matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,
@@ -70,13 +74,13 @@ def test_MaxScaler_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="matrix")
+    scaler = StandarScaler(target="matrix")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_simple_weights():
+def test_StandarScaler_simple_weights():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -87,18 +91,22 @@ def test_MaxScaler_simple_weights():
     expected = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
-        weights=[1 / 3, 2 / 3, 3 / 3],
+        weights=[
+            (1 - 2) / 0.816496580927726,
+            (2 - 2) / 0.816496580927726,
+            (3 - 2) / 0.816496580927726,
+        ],
         dtypes=[int, int, int],
     )
 
-    scaler = MaxScaler(target="weights")
+    scaler = StandarScaler(target="weights")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_weights(decision_matrix):
+def test_StandarScaler_weights(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -112,19 +120,19 @@ def test_MaxScaler_weights(decision_matrix):
     expected = skcriteria.mkdm(
         matrix=dm.matrix,
         objectives=dm.objectives,
-        weights=dm.weights / np.max(dm.weights),
+        weights=(dm.weights - np.mean(dm.weights)) / np.std(dm.weights),
         anames=dm.anames,
         cnames=dm.cnames,
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="weights")
+    scaler = StandarScaler(target="weights")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_simple_both():
+def test_StandarScaler_simple_both():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -133,20 +141,27 @@ def test_MaxScaler_simple_both():
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1 / 4, 2 / 5, 3 / 6], [4 / 4, 5 / 5, 6 / 6]],
+        matrix=[
+            [(1 - 2.5) / 1.5, (2 - 3.5) / 1.5, (3 - 4.5) / 1.5],
+            [(4 - 2.5) / 1.5, (5 - 3.5) / 1.5, (6 - 4.5) / 1.5],
+        ],
         objectives=[min, max, min],
-        weights=[1 / 3, 2 / 3, 3 / 3],
+        weights=[
+            (1 - 2) / 0.816496580927726,
+            (2 - 2) / 0.816496580927726,
+            (3 - 2) / 0.816496580927726,
+        ],
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(target="both")
+    scaler = StandarScaler(target="both")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_both(decision_matrix):
+def test_StandarScaler_both(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -158,15 +173,16 @@ def test_MaxScaler_both(decision_matrix):
     )
 
     expected = skcriteria.mkdm(
-        matrix=dm.matrix / np.max(dm.matrix, axis=0, keepdims=True),
+        matrix=(dm.matrix - np.mean(dm.matrix, axis=0, keepdims=True))
+        / np.std(dm.matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
-        weights=dm.weights / np.max(dm.weights),
+        weights=(dm.weights - np.mean(dm.weights)) / np.std(dm.weights),
         anames=dm.anames,
         cnames=dm.cnames,
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="both")
+    scaler = StandarScaler(target="both")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
@@ -177,7 +193,7 @@ def test_MaxScaler_both(decision_matrix):
 # =============================================================================
 
 
-def test_scale_by_max_weights(decision_matrix):
+def test_scale_by_stdscore_weights(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -187,13 +203,13 @@ def test_scale_by_max_weights(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    nweights = scale_by_max(dm.weights, axis=0)
-    expected = dm.weights / np.max(dm.weights)
+    nweights = scale_by_stdscore(dm.weights, axis=0)
+    expected = (dm.weights - np.mean(dm.weights)) / np.std(dm.weights)
 
     assert np.all(nweights == expected)
 
 
-def test_scale_by_max_matrix(decision_matrix):
+def test_scale_by_stdscore_matrix(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -203,7 +219,9 @@ def test_scale_by_max_matrix(decision_matrix):
         min_objectives_proportion=1.0,
     )
 
-    nmtx = scale_by_max(dm.matrix, axis=0)
-    expected = dm.matrix / np.max(dm.matrix, axis=0, keepdims=True)
+    nmtx = scale_by_stdscore(dm.matrix, axis=0)
+    expected = (
+        dm.matrix - np.mean(dm.matrix, axis=0, keepdims=True)
+    ) / np.std(dm.matrix, axis=0, keepdims=True)
 
     assert np.all(nmtx == expected)

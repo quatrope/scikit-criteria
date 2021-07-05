@@ -193,7 +193,7 @@ def test_MinMaxScaler_both(decision_matrix):
 # =============================================================================
 
 
-def test_scale_by_minmax_mtx(decision_matrix):
+def test_scale_by_minmax_weights(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
@@ -212,7 +212,7 @@ def test_scale_by_minmax_mtx(decision_matrix):
     assert np.all(nweights == expected)
 
 
-def test_scale_by_minmax_weights(decision_matrix):
+def test_scale_by_minmax_matrix(decision_matrix):
 
     dm = decision_matrix(
         min_alternatives=10,
