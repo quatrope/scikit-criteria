@@ -14,6 +14,7 @@
 # IMPORTS
 # =============================================================================ç
 
+import abc
 import inspect
 
 import numpy as np
@@ -88,11 +89,12 @@ class SKCBaseDecisionMaker:
 # =============================================================================
 
 
-class SKCTransformerMixin:
+class SKCTransformerMixin(metaclass=abc.ABCMeta):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
 
+    @abc.abstractmethod
     def transform_data(self, **kwargs) -> dict:
         """Apply the transformation logic to the decision matrix parameters.
 
@@ -187,6 +189,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         """Determine which part of the DecisionMatrix will be transformed."""
         return self._target
 
+    @abc.abstractmethod
     def transform_weights(self, weights: np.ndarray) -> np.ndarray:
         """Execute the transform method over the weights.
 
@@ -203,6 +206,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
     def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
         """Execute the transform method over the matrix.
 
