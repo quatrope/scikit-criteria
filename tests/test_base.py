@@ -49,6 +49,15 @@ def test_repr():
     assert repr(foo) == "Foo(faa=1, foo=2)"
 
 
+def test_repr_no_params():
+    class Foo(base.SKCBaseDecisionMaker):
+        _skcriteria_dm_type = "foo"
+
+    foo = Foo()
+
+    assert repr(foo) == "Foo()"
+
+
 def test_not_implemented_SKCTransformerMixin():
     class Foo(base.SKCTransformerMixin, base.SKCBaseDecisionMaker):
         pass

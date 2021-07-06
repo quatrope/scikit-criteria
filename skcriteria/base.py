@@ -72,10 +72,13 @@ class SKCBaseDecisionMaker:
     def __repr__(self) -> str:
         """x.__repr__() <==> repr(x)."""
         cls_name = type(self).__name__
+
         parameters = []
-        for pname in sorted(self._skcriteria_parameters):
-            pvalue = getattr(self, pname)
-            parameters.append(f"{pname}={repr(pvalue)}")
+        if self._skcriteria_parameters:
+            for pname in sorted(self._skcriteria_parameters):
+                pvalue = getattr(self, pname)
+                parameters.append(f"{pname}={repr(pvalue)}")
+
         str_parameters = ", ".join(parameters)
         return f"{cls_name}({str_parameters})"
 
