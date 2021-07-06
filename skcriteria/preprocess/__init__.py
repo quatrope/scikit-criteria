@@ -17,6 +17,7 @@
 from .invert_objectives import MinimizeToMaximize, invert
 from .max_scaler import MaxScaler, scale_by_max
 from .minmax_scaler import MinMaxScaler, scale_by_minmax
+from .push_negatives import PushNegatives, push_negatives
 from .standar_scaler import StandarScaler, scale_by_stdscore
 from .sum_scaler import SumScaler, scale_by_sum
 from .vector_scaler import VectorScaler, scale_by_vector
@@ -32,6 +33,8 @@ __all__ = [
     "scale_by_max",
     "MinMaxScaler",
     "scale_by_minmax",
+    "PushNegatives",
+    "push_negatives",
     "StandarScaler",
     "scale_by_stdscore",
     "SumScaler",
