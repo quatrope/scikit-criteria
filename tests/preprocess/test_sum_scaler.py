@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.norm.sum_scaler.
+"""test for skcriteria.preprocess.sum_scaler.
 
 """
 
