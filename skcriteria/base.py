@@ -176,6 +176,15 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
     _TARGET_BOTH = "both"
 
     def __init__(self, target: str) -> None:
+        self.target = target
+
+    @property
+    def target(self) -> str:
+        """Determine which part of the DecisionMatrix will be transformed."""
+        return self._target
+
+    @target.setter
+    def target(self, target: str) -> None:
         if target not in (
             self._TARGET_MATRIX,
             self._TARGET_WEIGHTS,
@@ -186,11 +195,6 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
                 f"'{self._TARGET_MATRIX}'', found '{target}'"
             )
         self._target = target
-
-    @property
-    def target(self) -> str:
-        """Determine which part of the DecisionMatrix will be transformed."""
-        return self._target
 
     @abc.abstractmethod
     def transform_weights(self, weights: np.ndarray) -> np.ndarray:

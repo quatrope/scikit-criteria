@@ -14,6 +14,7 @@
 # IMPORTS
 # =============================================================================
 
+from .add_eps_to_zero import AddEpsToZero, add_eps_to_zero
 from .invert_objectives import MinimizeToMaximize, invert
 from .max_scaler import MaxScaler, scale_by_max
 from .minmax_scaler import MinMaxScaler, scale_by_minmax
@@ -27,6 +28,8 @@ from .vector_scaler import VectorScaler, scale_by_vector
 # =============================================================================
 
 __all__ = [
+    "AddEpsToZero",
+    "add_eps_to_zero",
     "MinimizeToMaximize",
     "invert",
     "MaxScaler",
