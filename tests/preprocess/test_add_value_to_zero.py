@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocess.add_eps_to_zero
+"""test for skcriteria.preprocess.add_value_to_zero
 
 """
 
@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.preprocess import AddEpsToZero, add_eps_to_zero
+from skcriteria.preprocess import AddValueToZero, add_value_to_zero
 
 
 # =============================================================================
@@ -30,7 +30,7 @@ from skcriteria.preprocess import AddEpsToZero, add_eps_to_zero
 # =============================================================================
 
 
-def test_AddEpsToZero_simple_matrix():
+def test_AddValueToZero_simple_matrix():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
@@ -44,14 +44,14 @@ def test_AddEpsToZero_simple_matrix():
         weights=[1, 2, 0],
     )
 
-    scaler = AddEpsToZero(eps=0.5, target="matrix")
+    scaler = AddValueToZero(value=0.5, target="matrix")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_AddEpsToZero_simple_matrix_gt0():
+def test_AddValueToZero_simple_matrix_gt0():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -65,14 +65,14 @@ def test_AddEpsToZero_simple_matrix_gt0():
         weights=[1, 2, 3],
     )
 
-    scaler = AddEpsToZero(eps=0.5, target="matrix")
+    scaler = AddValueToZero(value=0.5, target="matrix")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_AddEpsToZero_simple_weights():
+def test_AddValueToZero_simple_weights():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
@@ -86,14 +86,14 @@ def test_AddEpsToZero_simple_weights():
         weights=[1.5, 2.5, 0.5],
     )
 
-    scaler = AddEpsToZero(eps=0.5, target="weights")
+    scaler = AddValueToZero(value=0.5, target="weights")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_AddEpsToZero_simple_weights_gt0():
+def test_AddValueToZero_simple_weights_gt0():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -107,14 +107,14 @@ def test_AddEpsToZero_simple_weights_gt0():
         weights=[1, 2, 3],
     )
 
-    scaler = AddEpsToZero(eps=0.5, target="weights")
+    scaler = AddValueToZero(value=0.5, target="weights")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_AddEpsToZero_simple_both():
+def test_AddValueToZero_simple_both():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
@@ -128,14 +128,14 @@ def test_AddEpsToZero_simple_both():
         weights=[1.5, 2.5, 0.5],
     )
 
-    scaler = AddEpsToZero(eps=0.5, target="both")
+    scaler = AddValueToZero(value=0.5, target="both")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_AddEpsToZero_simple_both_gt0():
+def test_AddValueToZero_simple_both_gt0():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -149,7 +149,7 @@ def test_AddEpsToZero_simple_both_gt0():
         weights=[1, 2, 3],
     )
 
-    scaler = AddEpsToZero(eps=0.5, target="both")
+    scaler = AddValueToZero(value=0.5, target="both")
 
     result = scaler.transform(dm)
 
@@ -165,8 +165,8 @@ def test_AddEpsToZero_simple_both_gt0():
     "arr, expected",
     [([1, 2, 0], [1.5, 2.5, 0.5]), ([1, 2, 3], [1, 2, 3])],
 )
-def test_add_eps_to_zero_1D(arr, expected):
-    result = add_eps_to_zero(arr, eps=0.5)
+def test_add_value_to_zero_1D(arr, expected):
+    result = add_value_to_zero(arr, value=0.5)
     assert np.all(result == expected)
 
 
@@ -181,6 +181,6 @@ def test_add_eps_to_zero_1D(arr, expected):
         ([[1, 2, 3], [4, 5, 6]], 1, [[1, 2, 3], [4, 5, 6]]),
     ],
 )
-def test_add_eps_to_zero_2D_columns(arr, axis, expected):
-    arr = add_eps_to_zero(arr, eps=0.5, axis=axis)
+def test_add_value_to_zero_2D_columns(arr, axis, expected):
+    arr = add_value_to_zero(arr, value=0.5, axis=axis)
     assert np.all(arr == expected)

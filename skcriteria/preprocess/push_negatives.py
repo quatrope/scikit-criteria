@@ -11,7 +11,7 @@
 """Functionalities for remove negatives from criteria.
 
 In addition to the main functionality, an MCDA agnostic function is offered
-to scale data on an array along an arbitrary axis.
+to push negatives values on an array along an arbitrary axis.
 
 """
 
@@ -55,7 +55,7 @@ def push_negatives(arr: np.ndarray, axis=None) -> np.ndarray:
     Returns
     -------
     :py:class:`numpy.ndarray`
-        array of ratios
+        array with all values >= 0.
 
     Examples
     --------

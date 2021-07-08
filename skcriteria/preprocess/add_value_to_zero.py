@@ -8,10 +8,10 @@
 # DOCS
 # =============================================================================
 
-"""Functionalities to add an small number (epsilon) when an array has a zero.
+"""Functionalities to add an value when an array has a zero.
 
 In addition to the main functionality, an MCDA agnostic function is offered
-to add eps to zero on an array along an arbitrary axis.
+to add value to zero on an array along an arbitrary axis.
 
 """
 
@@ -32,18 +32,18 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def add_eps_to_zero(arr, eps, axis=None):
-    r"""Add eps if the axis has a value 0.
+def add_value_to_zero(arr, value, axis=None):
+    r"""Add value if the axis has a value 0.
 
     .. math::
 
-        \overline{X}_{ij} = X_{ij} + \epsilon
+        \overline{X}_{ij} = X_{ij} + value
 
     Parameters
     ----------
     arr: :py:class:`numpy.ndarray` like.
         A array with values
-    eps: number
+    value: number
         Number to add if the axis has a 0.
     axis : :py:class:`int` optional
         Axis along which to operate.  By default, flattened input is used.
@@ -51,57 +51,59 @@ def add_eps_to_zero(arr, eps, axis=None):
     Returns
     -------
     :py:class:`numpy.ndarray`
-        array with all values >= eps.
+        array with all values >= value.
 
     Examples
     --------
     .. code-block:: pycon
 
-        >>> from skcriteria import add_eps_to_zero
-        >>> mtx = [[1, 2], [3, 4]]
-        >>> mtx_w0 = [[0, 1], [2,3]]
-        >>> add_eps_to_zero(mtx)
-        array([[1, 2],
-            [3, 4]])
+        >>> from skcriteria import add_to_zero
 
-        # added epsilon
-        >>> add_eps_to_zero(mtx_w0, eps=0.5)
+        # no zero
+        >>> mtx = [[1, 2], [3, 4]]
+        >>> add_to_zero(mtx, value=0.5)
+        array([[1, 2],
+               [3, 4]])
+
+        # with zero
+        >>> mtx = [[0, 1], [2,3]]
+        >>> add_to_zero(mtx, value=0.5)
         array([[ 0.5, 1.5],
-            [ 2.5, 3.5]])
+               [ 2.5, 3.5]])
 
     """
     arr = np.asarray(arr)
     zeros = np.any(arr == 0, axis=axis, keepdims=True)
-    increment = zeros * eps
+    increment = zeros * value
     return arr + increment
 
 
-class AddEpsToZero(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
-    r"""Add eps if the matrix/weight whe has a value 0.
+class AddValueToZero(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+    r"""Add value if the matrix/weight whe has a value 0.
 
     .. math::
 
-        \overline{X}_{ij} = X_{ij} + \epsilon
+        \overline{X}_{ij} = X_{ij} + value
 
     """
 
-    def __init__(self, eps, target):
+    def __init__(self, value, target):
         super().__init__(target=target)
-        self.eps = eps
+        self.value = value
 
     @property
-    def eps(self):
+    def value(self):
         """Value to add to the matrix/weight when a zero is found."""
         return self._eps
 
-    @eps.setter
-    def eps(self, eps):
-        self._eps = float(eps)
+    @value.setter
+    def value(self, value):
+        self._eps = float(value)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_weights)
     def transform_weights(self, weights: np.ndarray) -> np.ndarray:
-        return add_eps_to_zero(weights, eps=self.eps, axis=None)
+        return add_value_to_zero(weights, value=self.value, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_matrix)
     def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
-        return add_eps_to_zero(matrix, eps=self.eps, axis=0)
+        return add_value_to_zero(matrix, value=self.value, axis=0)
