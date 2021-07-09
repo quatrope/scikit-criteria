@@ -154,6 +154,24 @@ def test_PushNegatives_simple_both_ge0():
     assert result.equals(expected)
 
 
+def test_PushNegatives_no_change_original_dm():
+
+    dm = skcriteria.mkdm(
+        matrix=[[-1, 0, 3], [0, -5, 6]],
+        objectives=[min, max, min],
+        weights=[1, -2, 0],
+    )
+
+    expected = dm.copy()
+
+    tfm = PushNegatives(target="both")
+    dmt = tfm.transform(dm)
+
+    assert (
+        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
+    )
+
+
 # =============================================================================
 # TEST FUNCTIONS
 # =============================================================================

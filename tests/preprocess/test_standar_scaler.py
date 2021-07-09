@@ -188,6 +188,27 @@ def test_StandarScaler_both(decision_matrix):
     assert result.equals(expected)
 
 
+def test_StandarScaler_no_change_original_dm(decision_matrix):
+
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    expected = dm.copy()
+
+    scaler = StandarScaler(target="both")
+    dmt = scaler.transform(dm)
+
+    assert (
+        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
+    )
+
+
 # =============================================================================
 # TEST FUNCTIONS
 # =============================================================================
