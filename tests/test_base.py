@@ -17,10 +17,11 @@
 # IMPORTS
 # =============================================================================
 
+import numpy as np
 
 import pytest
 
-from skcriteria import base
+from skcriteria import base, data
 
 
 # =============================================================================
@@ -58,7 +59,12 @@ def test_repr_no_params():
     assert repr(foo) == "Foo()"
 
 
-def test_not_implemented_SKCTransformerMixin():
+# =============================================================================
+# TRANSFORMER
+# =============================================================================
+
+
+def test_not_redefined_SKCTransformerMixin():
     class Foo(base.SKCTransformerMixin, base.SKCBaseDecisionMaker):
         pass
 
@@ -66,7 +72,12 @@ def test_not_implemented_SKCTransformerMixin():
         Foo()
 
 
-def test_transform_data_not_implemethed_SKCMatrixAndWeightTransformerMixin(
+# =============================================================================
+# MATRIX AND WEIGHT TRANSFORMER
+# =============================================================================
+
+
+def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
     class Foo(base.SKCTransformerMixin, base.SKCBaseDecisionMaker):
@@ -80,7 +91,7 @@ def test_transform_data_not_implemethed_SKCMatrixAndWeightTransformerMixin(
         transformer.transform(dm)
 
 
-def test_not_implemented_SKCMatrixAndWeightTransformerMixin():
+def test_not_redefined_SKCMatrixAndWeightTransformerMixin():
     class Foo(
         base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseDecisionMaker
     ):
@@ -110,7 +121,7 @@ def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
         Foo("mtx")
 
 
-def test_transform_weights_not_implemethed_SKCMatrixAndWeightTransformerMixin(
+def test_transform_weights_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
     class Foo(
@@ -129,7 +140,7 @@ def test_transform_weights_not_implemethed_SKCMatrixAndWeightTransformerMixin(
         transformer.transform(dm)
 
 
-def test_transform_weight_not_implemethed_SKCMatrixAndWeightTransformerMixin(
+def test_transform_weight_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
     class Foo(
@@ -169,3 +180,53 @@ def test_SKCMatrixAndWeightTransformerMixin_target():
 
     foo = Foo("both")
     assert foo.target == Foo._TARGET_BOTH
+
+
+# =============================================================================
+# MATRIX AND WEIGHT TRANSFORMER
+# =============================================================================
+
+
+def test_weight_matrix_not_implemented_SKCWeighterMixin(decision_matrix):
+    class Foo(base.SKCWeighterMixin, base.SKCBaseDecisionMaker):
+        def _weight_matrix(self, matrix) -> dict:
+            return super()._weight_matrix(matrix)
+
+    transformer = Foo()
+    dm = decision_matrix(seed=42)
+
+    with pytest.raises(NotImplementedError):
+        transformer.transform(dm)
+
+
+def test_not_redefined_SKCWeighterMixin():
+    class Foo(base.SKCWeighterMixin, base.SKCBaseDecisionMaker):
+        pass
+
+    with pytest.raises(TypeError):
+        Foo()
+
+
+def test_flow_SKCWeighterMixin(decision_matrix):
+
+    dm = decision_matrix(seed=42)
+    expected_weights = np.ones(dm.matrix.shape[1]) * 42
+
+    class Foo(base.SKCWeighterMixin, base.SKCBaseDecisionMaker):
+        def _weight_matrix(self, matrix) -> dict:
+            return expected_weights
+
+    transformer = Foo()
+
+    expected = data.mkdm(
+        matrix=dm.matrix,
+        objectives=dm.objectives,
+        weights=expected_weights,
+        dtypes=dm.dtypes,
+        anames=dm.anames,
+        cnames=dm.cnames,
+    )
+
+    result = transformer.transform(dm)
+
+    assert result.equals(expected)

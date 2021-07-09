@@ -273,13 +273,10 @@ class SKCWeighterMixin(SKCTransformerMixin):
         raise NotImplementedError()
 
     @doc_inherit(SKCTransformerMixin._transform_data)
-    def _transform_data(
-        self, matrix: np.ndarray, weights: np.ndarray, **kwargs
-    ) -> dict:
-        mtx = matrix
+    def _transform_data(self, matrix: np.ndarray, **kwargs) -> dict:
 
-        new_weights = self._weight_matrix(self, mtx)
+        new_weights = self._weight_matrix(matrix)
 
-        kwargs.update(weights=new_weights, dtypes=None)
+        kwargs.update(matrix=matrix, weights=new_weights)
 
         return kwargs
