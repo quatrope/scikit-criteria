@@ -74,9 +74,9 @@ def scale_by_max(arr, axis=None):
                [ 0.75,  1.]])
 
     """
-    new_arr = np.array(arr, dtype=float)
-    maxval = np.max(new_arr, axis=axis, keepdims=True)
-    return new_arr / maxval
+    arr = np.asarray(arr, dtype=float)
+    maxval = np.max(arr, axis=axis, keepdims=True)
+    return arr / maxval
 
 
 class MaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):

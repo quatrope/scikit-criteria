@@ -1,8 +1,6 @@
 import inspect
-import os
 import pathlib
 from typing import Text
-
 
 import attr
 
@@ -29,7 +27,6 @@ def check_test_structure(test_dir, reference_dir):
     if not reference_dir.exists():
         raise OSError(f"'{reference_dir}' do no exist")
 
-    tests = list(test_dir.glob("**/*.py"))
     reference = list(reference_dir.glob("**/*.py"))
 
     result = {}
@@ -81,7 +78,7 @@ class CLI:
             if k.startswith("_"):
                 continue
             v = getattr(self, k)
-            if inspect.ismethod(v) and not k.startswith("_"):
+            if inspect.ismethod(v):
                 decorator = app.command()
                 decorator(v)
         return app

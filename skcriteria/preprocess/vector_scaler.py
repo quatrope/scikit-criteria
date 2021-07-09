@@ -80,9 +80,9 @@ def scale_by_vector(arr: np.ndarray, axis=None) -> np.ndarray:
                [ 0.60000002,  0.80000001]])
 
     """
-    new_arr = np.array(arr, dtype=float)
-    frob = linalg.norm(new_arr, None, axis=axis)
-    return new_arr / frob
+    arr = np.asarray(arr, dtype=float)
+    frob = linalg.norm(arr, None, axis=axis)
+    return arr / frob
 
 
 class VectorScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):

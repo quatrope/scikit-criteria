@@ -79,10 +79,10 @@ def scale_by_minmax(arr, axis=None):
               [0., 1.]])
 
     """
-    new_arr = np.array(arr, dtype=float)
-    minval = np.min(new_arr, axis=axis, keepdims=True)
-    maxval = np.max(new_arr, axis=axis, keepdims=True)
-    return (new_arr - minval) / (maxval - minval)
+    arr = np.asarray(arr, dtype=float)
+    minval = np.min(arr, axis=axis, keepdims=True)
+    maxval = np.max(arr, axis=axis, keepdims=True)
+    return (arr - minval) / (maxval - minval)
 
 
 class MinMaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):

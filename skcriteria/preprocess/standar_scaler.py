@@ -76,10 +76,10 @@ def scale_by_stdscore(arr, axis=None):
                [-1.,  1.]])
 
     """
-    new_arr = np.array(arr, dtype=float)
-    mean = np.mean(new_arr, axis=axis, keepdims=True)
-    std = np.std(new_arr, axis=axis, keepdims=True)
-    return (new_arr - mean) / std
+    arr = np.asarray(arr, dtype=float)
+    mean = np.mean(arr, axis=axis, keepdims=True)
+    std = np.std(arr, axis=axis, keepdims=True)
+    return (arr - mean) / std
 
 
 class StandarScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):

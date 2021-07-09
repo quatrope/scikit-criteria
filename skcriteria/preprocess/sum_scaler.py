@@ -73,9 +73,9 @@ def scale_by_sum(arr: np.ndarray, axis=None) -> np.ndarray:
                [ 0.42857143,  0.5714286 ]])
 
     """
-    new_arr = np.array(arr, dtype=float)
-    sumval = np.sum(new_arr, axis=axis, keepdims=True)
-    return new_arr / sumval
+    arr = np.asarray(arr, dtype=float)
+    sumval = np.sum(arr, axis=axis, keepdims=True)
+    return arr / sumval
 
 
 class SumScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
