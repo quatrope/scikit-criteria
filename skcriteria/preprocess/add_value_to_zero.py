@@ -100,10 +100,10 @@ class AddValueToZero(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     def value(self, value):
         self._eps = float(value)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_weights)
-    def transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
         return add_value_to_zero(weights, value=self.value, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_matrix)
-    def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
         return add_value_to_zero(matrix, value=self.value, axis=0)

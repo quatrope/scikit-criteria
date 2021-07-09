@@ -98,7 +98,7 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
     _skcriteria_dm_type = "transformer"
 
     @abc.abstractmethod
-    def transform_data(self, **kwargs) -> dict:
+    def _transform_data(self, **kwargs) -> dict:
         """Apply the transformation logic to the decision matrix parameters.
 
         Parameters
@@ -145,7 +145,7 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
             dtypes=dtypes,
         )
 
-        nkwargs = self.transform_data(
+        nkwargs = self._transform_data(
             matrix=mtx,
             objectives=objectives,
             weights=weights,
@@ -166,8 +166,8 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
     `weights`, `matrix` or `both` so only that part of the DecisionMatrix
     is altered.
 
-    This mixin require to redefine ``transform_weights`` and
-    ``transform_matrix``, instead of ``transform_data``.
+    This mixin require to redefine ``_transform_weights`` and
+    ``__transform_matrix``, instead of ``_transform_data``.
 
     """
 
@@ -197,7 +197,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         self._target = target
 
     @abc.abstractmethod
-    def transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
         """Execute the transform method over the weights.
 
         Parameters
@@ -214,7 +214,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
         """Execute the transform method over the matrix.
 
         Parameters
@@ -230,19 +230,56 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         """
         raise NotImplementedError()
 
-    @doc_inherit(SKCTransformerMixin.transform_data)
-    def transform_data(
+    @doc_inherit(SKCTransformerMixin._transform_data)
+    def _transform_data(
         self, matrix: np.ndarray, weights: np.ndarray, **kwargs
     ) -> dict:
         norm_mtx = matrix
         norm_weights = weights
 
         if self._target in (self._TARGET_MATRIX, self._TARGET_BOTH):
-            norm_mtx = self.transform_matrix(matrix)
+            norm_mtx = self._transform_matrix(matrix)
 
         if self._target in (self._TARGET_WEIGHTS, self._TARGET_BOTH):
-            norm_weights = self.transform_weights(weights)
+            norm_weights = self._transform_weights(weights)
 
         kwargs.update(matrix=norm_mtx, weights=norm_weights, dtypes=None)
+
+        return kwargs
+
+
+# =============================================================================
+# SK WEIGHTER
+# =============================================================================
+
+
+class SKCWeighterMixin(SKCTransformerMixin):
+    @abc.abstractmethod
+    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
+        """Execute the transform method over the matrix and return an array
+        of weights.
+
+        Parameters
+        ----------
+        matrix: :py:class:`numpy.ndarray`
+            The decision matrix to weights.
+
+        Returns
+        -------
+        :py:class:`numpy.ndarray`
+            An array of weights.
+
+        """
+        raise NotImplementedError()
+
+    @doc_inherit(SKCTransformerMixin._transform_data)
+    def _transform_data(
+        self, matrix: np.ndarray, weights: np.ndarray, **kwargs
+    ) -> dict:
+        mtx = matrix
+
+        new_weights = self._weight_matrix(self, mtx)
+
+        kwargs.update(weights=new_weights, dtypes=None)
 
         return kwargs

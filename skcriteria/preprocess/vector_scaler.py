@@ -102,10 +102,10 @@ class VectorScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_weights)
-    def transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
         return scale_by_vector(weights, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin.transform_matrix)
-    def transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
         return scale_by_vector(matrix, axis=0)

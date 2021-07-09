@@ -94,8 +94,8 @@ class MinimizeToMaximize(SKCTransformerMixin, SKCBaseDecisionMaker):
 
     """
 
-    @doc_inherit(SKCTransformerMixin.transform_data)
-    def transform_data(
+    @doc_inherit(SKCTransformerMixin._transform_data)
+    def _transform_data(
         self,
         matrix: np.ndarray,
         objectives: np.ndarray,
