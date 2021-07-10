@@ -160,14 +160,14 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
 
 
 class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
-    """Mixin capable of transform weights and matrixindependently..
+    """Transform weights and matrix together or independently.
 
-    Transformer that implements this mixin can be configured to transform
+    The Transformer that implements this mixin can be configured to transform
     `weights`, `matrix` or `both` so only that part of the DecisionMatrix
     is altered.
 
     This mixin require to redefine ``_transform_weights`` and
-    ``__transform_matrix``, instead of ``_transform_data``.
+    ``_transform_matrix``, instead of ``_transform_data``.
 
     """
 
@@ -254,10 +254,16 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
 
 
 class SKCWeighterMixin(SKCTransformerMixin):
+    """Mixin capable of determine the weights of the matrix.
+
+    This mixin require to redefine ``_weight_matrix``, instead of
+    ``_transform_data``.
+
+    """
+
     @abc.abstractmethod
     def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
-        """Execute the transform method over the matrix and return an array
-        of weights.
+        """Transform the matrix and return an array of weights.
 
         Parameters
         ----------
