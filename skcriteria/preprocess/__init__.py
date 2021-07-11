@@ -16,12 +16,19 @@
 
 from .add_value_to_zero import AddValueToZero, add_value_to_zero
 from .invert_objectives import MinimizeToMaximize, invert
-from .max_scaler import MaxScaler, scale_by_max
-from .minmax_scaler import MinMaxScaler, scale_by_minmax
 from .push_negatives import PushNegatives, push_negatives
-from .standar_scaler import StandarScaler, scale_by_stdscore
-from .sum_scaler import SumScaler, scale_by_sum
-from .vector_scaler import VectorScaler, scale_by_vector
+from .scalers import (
+    MaxScaler,
+    MinMaxScaler,
+    StandarScaler,
+    SumScaler,
+    VectorScaler,
+    scale_by_max,
+    scale_by_minmax,
+    scale_by_stdscore,
+    scale_by_sum,
+    scale_by_vector,
+)
 
 # =============================================================================
 # ALL
