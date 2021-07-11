@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocess.invert_objectives
+"""test for skcriteria.preprocessing.invert_objectives
 
 """
 
@@ -21,7 +21,7 @@ import numpy as np
 
 
 import skcriteria
-from skcriteria.preprocess import MinimizeToMaximize, invert
+from skcriteria.preprocessing import MinimizeToMaximize, invert
 
 
 # =============================================================================

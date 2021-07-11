@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocess.add_value_to_zero
+"""test for skcriteria.preprocessing.add_value_to_zero
 
 """
 
@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.preprocess import AddValueToZero, add_value_to_zero
+from skcriteria.preprocessing import AddValueToZero, add_value_to_zero
 
 
 # =============================================================================

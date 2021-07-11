@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocess.minmax_scaler
+"""test for skcriteria.preprocessing.minmax_scaler
 
 """
 
@@ -20,7 +20,7 @@
 import numpy as np
 
 import skcriteria
-from skcriteria.preprocess import (
+from skcriteria.preprocessing import (
     MaxScaler,
     MinMaxScaler,
     StandarScaler,

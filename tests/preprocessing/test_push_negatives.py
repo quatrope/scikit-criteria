@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocess.push_negatives
+"""test for skcriteria.preprocessing.push_negatives
 
 """
 
@@ -20,7 +20,7 @@
 import numpy as np
 
 import skcriteria
-from skcriteria.preprocess import PushNegatives, push_negatives
+from skcriteria.preprocessing import PushNegatives, push_negatives
 
 
 # =============================================================================
