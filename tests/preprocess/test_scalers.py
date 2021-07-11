@@ -20,7 +20,6 @@
 import numpy as np
 
 import skcriteria
-
 from skcriteria.preprocess import (
     MaxScaler,
     MinMaxScaler,
