@@ -15,6 +15,7 @@
 # =============================================================================
 
 from .add_value_to_zero import AddValueToZero, add_value_to_zero
+from .distance import CenitDistance, cenit_distance
 from .invert_objectives import MinimizeToMaximize, invert
 from .push_negatives import PushNegatives, push_negatives
 from .scalers import (
@@ -30,6 +31,14 @@ from .scalers import (
     scale_by_vector,
 )
 
+# from .weighters import (
+# EqualWeighter,
+# StdWeighter,
+# EntropyWeighter,
+# Critiq,
+
+# )
+
 # =============================================================================
 # ALL
 # =============================================================================
@@ -37,6 +46,8 @@ from .scalers import (
 __all__ = [
     "AddValueToZero",
     "add_value_to_zero",
+    "CenitDistance",
+    "cenit_distance",
     "MinimizeToMaximize",
     "invert",
     "MaxScaler",
