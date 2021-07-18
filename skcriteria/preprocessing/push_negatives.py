@@ -19,6 +19,7 @@ to push negatives values on an array along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
+from typing import Optional
 
 import numpy as np
 
@@ -31,7 +32,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def push_negatives(arr: np.ndarray, axis=None) -> np.ndarray:
+def push_negatives(arr: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
     r"""Increment the array until all the valuer are sean >= 0.
 
     If an array has negative values this function increment the values

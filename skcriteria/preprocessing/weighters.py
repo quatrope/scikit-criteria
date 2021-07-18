@@ -24,7 +24,6 @@ import numpy as np
 
 import scipy.stats
 
-# from .scalers import scale_by_ideal_point
 from ..base import SKCBaseDecisionMaker, SKCWeighterMixin
 from ..utils import doc_inherit
 
@@ -34,16 +33,27 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def same_weight(matrix, value) -> np.ndarray:
+def equal_weights(matrix: np.ndarray, base_value: float = 1) -> np.ndarray:
     ncriteria = np.shape(matrix)[1]
-    weights = value / ncriteria
+    weights = base_value / ncriteria
     return np.full(ncriteria, weights, dtype=float)
 
 
-class SameWeight(SKCWeighterMixin, SKCBaseDecisionMaker):
+class EqualWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
+    def __init__(self, base_value: float = 1) -> None:
+        self.base_value = base_value
+
+    @property
+    def base_value(self) -> float:
+        return self._base_value
+
+    @base_value.setter
+    def base_value(self, v) -> None:
+        self._base_value = float(v)
+
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix):
-        return same_weight(matrix)
+    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
+        return equal_weights(matrix, self.base_value)
 
 
 # =============================================================================
@@ -51,14 +61,14 @@ class SameWeight(SKCWeighterMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def std_weights(matrix):
+def std_weights(matrix: np.ndarray) -> np.ndarray:
     std = np.std(matrix, axis=0)
     return std / np.sum(std)
 
 
-class StdWeight(SKCWeighterMixin, SKCBaseDecisionMaker):
+class StdWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix):
+    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
         return std_weights(matrix)
 
 
@@ -67,14 +77,14 @@ class StdWeight(SKCWeighterMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def entropy_weights(matrix):
+def entropy_weights(matrix: np.ndarray) -> np.ndarray:
     entropy = scipy.stats.entropy(matrix, axis=0)
     return entropy / np.sum(entropy)
 
 
-class EntropyWeights(SKCWeighterMixin, SKCBaseDecisionMaker):
+class EntropyWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix):
+    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
         return entropy_weights(matrix)
 
 

@@ -22,6 +22,7 @@ import numpy as np
 from .data import DecisionMatrix
 from .utils import doc_inherit
 
+
 # =============================================================================
 # BASE DECISION MAKER CLASS
 # =============================================================================

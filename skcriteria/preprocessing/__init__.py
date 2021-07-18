@@ -30,14 +30,14 @@ from .scalers import (
     scale_by_sum,
     scale_by_vector,
 )
-
-# from .weighters import (
-# EqualWeighter,
-# StdWeighter,
-# EntropyWeighter,
-# Critiq,
-
-# )
+from .weighters import (
+    EntropyWeighter,
+    EqualWeighter,
+    StdWeighter,
+    entropy_weights,
+    equal_weights,
+    std_weights,
+)
 
 # =============================================================================
 # ALL
@@ -45,21 +45,27 @@ from .scalers import (
 
 __all__ = [
     "AddValueToZero",
-    "add_value_to_zero",
     "CenitDistance",
-    "cenit_distance",
-    "MinimizeToMaximize",
-    "invert",
+    "EntropyWeighter",
+    "EqualWeighter",
     "MaxScaler",
-    "scale_by_max",
     "MinMaxScaler",
-    "scale_by_minmax",
+    "MinimizeToMaximize",
     "PushNegatives",
-    "push_negatives",
     "StandarScaler",
-    "scale_by_stdscore",
+    "StdWeighter",
     "SumScaler",
-    "scale_by_sum",
     "VectorScaler",
+    "add_value_to_zero",
+    "cenit_distance",
+    "entropy_weights",
+    "equal_weights",
+    "invert",
+    "push_negatives",
+    "scale_by_max",
+    "scale_by_minmax",
+    "scale_by_stdscore",
+    "scale_by_sum",
     "scale_by_vector",
+    "std_weights",
 ]
