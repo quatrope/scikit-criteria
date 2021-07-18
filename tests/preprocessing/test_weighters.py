@@ -1,0 +1,219 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
+# Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# All rights reserved.
+
+# =============================================================================
+# DOCS
+# =============================================================================
+
+"""test for skcriteria.preprocessing.weighters
+
+"""
+
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+import numpy as np
+
+import scipy
+
+import skcriteria
+from skcriteria.preprocessing import (
+    EntropyWeighter,
+    EqualWeighter,
+    StdWeighter,
+    entropy_weights,
+    equal_weights,
+    std_weights,
+)
+
+# =============================================================================
+# TEST EQUAL WEIGHTERS
+# =============================================================================
+
+
+def test_EqualWeighter_simple_matrix():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2], [4, 5]],
+        objectives=[min, max],
+        weights=[1, 2],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[[1, 2], [4, 5]],
+        objectives=[min, max],
+        weights=[1, 1],
+    )
+
+    weighter = EqualWeighter(base_value=2)
+
+    result = weighter.transform(dm)
+
+    assert result.equals(expected)
+
+
+def test_EqualWeighter(decision_matrix):
+
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=dm.matrix,
+        objectives=dm.objectives,
+        weights=[1 / 20] * 20,
+        anames=dm.anames,
+        cnames=dm.cnames,
+        dtypes=dm.dtypes,
+    )
+
+    weighter = EqualWeighter()
+    result = weighter.transform(dm)
+
+    assert result.equals(expected)
+
+
+# TEST FUNCTIONS ==============================================================
+
+
+def test_equal_weights():
+    mtx = [[1, 2], [4, 5]]
+    weights = equal_weights(mtx, 2)
+    assert np.all(weights == [1, 1])
+
+    weights = equal_weights(mtx, 1)
+    assert np.all(weights == [0.5, 0.5])
+
+
+# =============================================================================
+# STD
+# =============================================================================
+
+
+def test_StdWeighter_simple_matrix():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2], [4, 16]],
+        objectives=[min, max],
+        weights=[1, 2],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[[1, 2], [4, 16]],
+        objectives=[min, max],
+        weights=[0.176471, 0.82352],
+    )
+
+    weighter = StdWeighter()
+
+    result = weighter.transform(dm)
+    assert result.aequals(expected, atol=1e-5)
+
+
+def test_StdWeighter(decision_matrix):
+
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    std = np.std(dm.matrix, axis=0)
+
+    expected = skcriteria.mkdm(
+        matrix=dm.matrix,
+        objectives=dm.objectives,
+        weights=std / np.sum(std),
+        anames=dm.anames,
+        cnames=dm.cnames,
+        dtypes=dm.dtypes,
+    )
+
+    weighter = StdWeighter()
+    result = weighter.transform(dm)
+
+    assert result.equals(expected)
+
+
+# TEST FUNCTIONS ==============================================================
+
+
+def test_std_weights():
+    mtx = [[1, 2], [4, 16]]
+    weights = std_weights(mtx)
+    assert np.allclose(weights, [0.176471, 0.82352], atol=1e-5)
+
+
+# =============================================================================
+# STD
+# =============================================================================
+
+
+def test_EntropyWeighter_simple_matrix():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2], [4, 16]],
+        objectives=[min, max],
+        weights=[1, 2],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[[1, 2], [4, 16]],
+        objectives=[min, max],
+        weights=[0.589239, 0.410761],
+    )
+
+    weighter = EntropyWeighter()
+
+    result = weighter.transform(dm)
+    assert result.aequals(expected, atol=1e-5)
+
+
+def test_EntropyWeighter(decision_matrix):
+
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    entropy = scipy.stats.entropy(dm.matrix, axis=0)
+
+    expected = skcriteria.mkdm(
+        matrix=dm.matrix,
+        objectives=dm.objectives,
+        weights=entropy / np.sum(entropy),
+        anames=dm.anames,
+        cnames=dm.cnames,
+        dtypes=dm.dtypes,
+    )
+
+    weighter = EntropyWeighter()
+    result = weighter.transform(dm)
+
+    assert result.equals(expected)
+
+
+# TEST FUNCTIONS ==============================================================
+
+
+def test_entropy_weights():
+    mtx = [[1, 2], [4, 16]]
+    weights = entropy_weights(mtx)
+    assert np.allclose(weights, [0.589239, 0.410761], atol=1e-5)
