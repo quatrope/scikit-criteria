@@ -21,8 +21,6 @@ are offered to scale an array along an arbitrary axis.
 # =============================================================================
 
 
-from typing import Optional
-
 import numpy as np
 from numpy import linalg
 
@@ -35,9 +33,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def scale_by_stdscore(
-    arr: np.ndarray, axis: Optional[int] = None
-) -> np.ndarray:
+def scale_by_stdscore(arr, axis=None):
     r"""Standardize the values by removing the mean and divided by the std-dev.
 
     The standard score of a sample `x` is calculated as:
@@ -100,11 +96,11 @@ class StandarScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     """
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights):
         return scale_by_stdscore(weights, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         return scale_by_stdscore(matrix, axis=0)
 
 
@@ -113,7 +109,7 @@ class StandarScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def scale_by_vector(arr: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
+def scale_by_vector(arr, axis=None):
     r"""Divide the array by norm of values defined vector along an axis.
 
     Calculates the set of ratios as the square roots of the sum of squared
@@ -183,11 +179,11 @@ class VectorScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     """
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights):
         return scale_by_vector(weights, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         return scale_by_vector(matrix, axis=0)
 
 
@@ -196,7 +192,7 @@ class VectorScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def scale_by_minmax(arr: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
+def scale_by_minmax(arr, axis=None):
     r"""Fraction of the range normalizer.
 
     Subtracts to each value of the array the minimum and then divides
@@ -265,11 +261,11 @@ class MinMaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     """
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights):
         return scale_by_minmax(weights, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         return scale_by_minmax(matrix, axis=0)
 
 
@@ -278,7 +274,7 @@ class MinMaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def scale_by_sum(arr: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
+def scale_by_sum(arr, axis=None):
     r"""Divide of every value on the array by sum of values along an axis.
 
     .. math::
@@ -340,11 +336,11 @@ class SumScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     """
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights):
         return scale_by_sum(weights, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         return scale_by_sum(matrix, axis=0)
 
 
@@ -353,7 +349,7 @@ class SumScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def scale_by_max(arr: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
+def scale_by_max(arr, axis=None):
     r"""Divide of every value on the array by max value along an axis.
 
     .. math::
@@ -415,9 +411,9 @@ class MaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     """
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights):
         return scale_by_max(weights, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         return scale_by_max(matrix, axis=0)

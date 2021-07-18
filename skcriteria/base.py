@@ -17,8 +17,6 @@
 import abc
 import inspect
 
-import numpy as np
-
 from .data import DecisionMatrix
 from .utils import doc_inherit
 
@@ -198,7 +196,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         self._target = target
 
     @abc.abstractmethod
-    def _transform_weights(self, weights: np.ndarray):
+    def _transform_weights(self, weights):
         """Execute the transform method over the weights.
 
         Parameters
@@ -232,9 +230,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         raise NotImplementedError()
 
     @doc_inherit(SKCTransformerMixin._transform_data)
-    def _transform_data(
-        self, matrix: np.ndarray, weights: np.ndarray, **kwargs
-    ):
+    def _transform_data(self, matrix, weights, **kwargs):
         norm_mtx = matrix
         norm_weights = weights
 

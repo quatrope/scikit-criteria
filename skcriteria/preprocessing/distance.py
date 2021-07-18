@@ -32,7 +32,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def cenit_distance(matrix: np.ndarray, objectives: np.ndarray) -> np.ndarray:
+def cenit_distance(matrix, objectives):
     matrix = np.asarray(matrix, dtype=float)
 
     maxs = np.max(matrix, axis=0)
@@ -48,9 +48,7 @@ def cenit_distance(matrix: np.ndarray, objectives: np.ndarray) -> np.ndarray:
 
 class CenitDistance(SKCTransformerMixin, SKCBaseDecisionMaker):
     @doc_inherit(SKCTransformerMixin._transform_data)
-    def _transform_data(
-        self, matrix: np.ndarray, objectives: np.ndarray, **kwargs
-    ) -> dict:
+    def _transform_data(self, matrix, objectives, **kwargs):
 
         distance_mtx = cenit_distance(matrix, objectives)
 

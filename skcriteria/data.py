@@ -218,7 +218,7 @@ class DecisionMatrix:
     def from_mcda_data(
         cls,
         matrix,
-        objectives: Iterable,
+        objectives,
         weights=None,
         anames=None,
         cnames=None,

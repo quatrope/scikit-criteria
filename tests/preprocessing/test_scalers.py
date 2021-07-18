@@ -666,6 +666,7 @@ def test_VectorScaler_no_change_original_dm(decision_matrix):
 def test_scale_by_vector_weights(decision_matrix):
 
     dm = decision_matrix(
+        seed=42,
         min_alternatives=10,
         max_alternatives=10,
         min_criteria=20,
@@ -682,6 +683,7 @@ def test_scale_by_vector_weights(decision_matrix):
 def test_scale_by_vector_matrix(decision_matrix):
 
     dm = decision_matrix(
+        seed=42,
         min_alternatives=10,
         max_alternatives=10,
         min_criteria=20,

@@ -21,8 +21,6 @@ to add value to zero on an array along an arbitrary axis.
 # =============================================================================
 
 
-from typing import Optional
-
 import numpy as np
 
 from ..base import SKCBaseDecisionMaker, SKCMatrixAndWeightTransformerMixin
@@ -34,9 +32,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def add_value_to_zero(
-    arr: np.ndarray, value: float, axis: Optional[int] = None
-):
+def add_value_to_zero(arr, value, axis=None):
     r"""Add value if the axis has a value 0.
 
     .. math::
@@ -105,9 +101,9 @@ class AddValueToZero(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
         self._eps = float(value)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights):
         return add_value_to_zero(weights, value=self.value, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         return add_value_to_zero(matrix, value=self.value, axis=0)

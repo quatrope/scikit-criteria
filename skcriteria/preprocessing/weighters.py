@@ -33,26 +33,26 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def equal_weights(matrix: np.ndarray, base_value: float = 1) -> np.ndarray:
+def equal_weights(matrix, base_value=1):
     ncriteria = np.shape(matrix)[1]
     weights = base_value / ncriteria
     return np.full(ncriteria, weights, dtype=float)
 
 
 class EqualWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
-    def __init__(self, base_value: float = 1) -> None:
+    def __init__(self, base_value=1):
         self.base_value = base_value
 
     @property
-    def base_value(self) -> float:
+    def base_value(self):
         return self._base_value
 
     @base_value.setter
-    def base_value(self, v) -> None:
+    def base_value(self, v):
         self._base_value = float(v)
 
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _weight_matrix(self, matrix):
         return equal_weights(matrix, self.base_value)
 
 
@@ -61,14 +61,14 @@ class EqualWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def std_weights(matrix: np.ndarray) -> np.ndarray:
+def std_weights(matrix):
     std = np.std(matrix, axis=0)
     return std / np.sum(std)
 
 
 class StdWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _weight_matrix(self, matrix):
         return std_weights(matrix)
 
 
@@ -77,14 +77,14 @@ class StdWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
 # =============================================================================
 
 
-def entropy_weights(matrix: np.ndarray) -> np.ndarray:
+def entropy_weights(matrix):
     entropy = scipy.stats.entropy(matrix, axis=0)
     return entropy / np.sum(entropy)
 
 
 class EntropyWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _weight_matrix(self, matrix):
         return entropy_weights(matrix)
 
 

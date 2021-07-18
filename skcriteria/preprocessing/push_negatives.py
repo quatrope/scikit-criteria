@@ -19,8 +19,6 @@ to push negatives values on an array along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
-from typing import Optional
-
 import numpy as np
 
 from ..base import SKCBaseDecisionMaker, SKCMatrixAndWeightTransformerMixin
@@ -32,7 +30,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def push_negatives(arr: np.ndarray, axis: Optional[int] = None) -> np.ndarray:
+def push_negatives(arr, axis):
     r"""Increment the array until all the valuer are sean >= 0.
 
     If an array has negative values this function increment the values
@@ -109,9 +107,9 @@ class PushNegatives(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     """
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights):
         return push_negatives(weights, axis=None)
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         return push_negatives(matrix, axis=0)

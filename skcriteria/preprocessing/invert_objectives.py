@@ -32,7 +32,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-def invert(matrix: np.ndarray, mask: np.ndarray) -> np.ndarray:
+def invert(matrix, mask):
     """Inverts all the columns selected by the mask.
 
     Parameters
@@ -95,13 +95,7 @@ class MinimizeToMaximize(SKCTransformerMixin, SKCBaseDecisionMaker):
     """
 
     @doc_inherit(SKCTransformerMixin._transform_data)
-    def _transform_data(
-        self,
-        matrix: np.ndarray,
-        objectives: np.ndarray,
-        dtypes: np.ndarray,
-        **kwargs,
-    ) -> dict:
+    def _transform_data(self, matrix, objectives, dtypes, **kwargs):
         # check where we need to transform
         minimize_mask = np.equal(objectives, Objective.MIN.value)
 
