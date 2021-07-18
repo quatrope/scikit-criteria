@@ -49,7 +49,7 @@ class SKCBaseDecisionMaker:
     _skcriteria_dm_type = None
     _skcriteria_parameters = None
 
-    def __init_subclass__(cls) -> None:
+    def __init_subclass__(cls):
         """Validate if the subclass are well formed."""
         decisor_type = cls._skcriteria_dm_type
 
@@ -70,7 +70,7 @@ class SKCBaseDecisionMaker:
                     parameters.add(name)
             cls._skcriteria_parameters = frozenset(parameters)
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         """x.__repr__() <==> repr(x)."""
         cls_name = type(self).__name__
 
@@ -83,7 +83,7 @@ class SKCBaseDecisionMaker:
         str_parameters = ", ".join(parameters)
         return f"{cls_name}({str_parameters})"
 
-    def validate_data(self, **kwargs) -> None:
+    def validate_data(self, **kwargs):
         """Validate all the data previously to send to the real algorithm."""
         pass
 
@@ -99,7 +99,7 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
     _skcriteria_dm_type = "transformer"
 
     @abc.abstractmethod
-    def _transform_data(self, **kwargs) -> dict:
+    def _transform_data(self, **kwargs):
         """Apply the transformation logic to the decision matrix parameters.
 
         Parameters
@@ -116,7 +116,7 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def transform(self, dm) -> DecisionMatrix:
+    def transform(self, dm):
         """Perform transformation on `dm`.
 
         Parameters
@@ -176,16 +176,16 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
     _TARGET_MATRIX = "matrix"
     _TARGET_BOTH = "both"
 
-    def __init__(self, target: str) -> None:
+    def __init__(self, target):
         self.target = target
 
     @property
-    def target(self) -> str:
+    def target(self):
         """Determine which part of the DecisionMatrix will be transformed."""
         return self._target
 
     @target.setter
-    def target(self, target: str) -> None:
+    def target(self, target):
         if target not in (
             self._TARGET_MATRIX,
             self._TARGET_WEIGHTS,
@@ -198,7 +198,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         self._target = target
 
     @abc.abstractmethod
-    def _transform_weights(self, weights: np.ndarray) -> np.ndarray:
+    def _transform_weights(self, weights: np.ndarray):
         """Execute the transform method over the weights.
 
         Parameters
@@ -215,7 +215,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _transform_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _transform_matrix(self, matrix):
         """Execute the transform method over the matrix.
 
         Parameters
@@ -234,7 +234,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
     @doc_inherit(SKCTransformerMixin._transform_data)
     def _transform_data(
         self, matrix: np.ndarray, weights: np.ndarray, **kwargs
-    ) -> dict:
+    ):
         norm_mtx = matrix
         norm_weights = weights
 
@@ -263,7 +263,7 @@ class SKCWeighterMixin(SKCTransformerMixin):
     """
 
     @abc.abstractmethod
-    def _weight_matrix(self, matrix: np.ndarray) -> np.ndarray:
+    def _weight_matrix(self, matrix):
         """Transform the matrix and return an array of weights.
 
         Parameters
@@ -280,7 +280,7 @@ class SKCWeighterMixin(SKCTransformerMixin):
         raise NotImplementedError()
 
     @doc_inherit(SKCTransformerMixin._transform_data)
-    def _transform_data(self, matrix: np.ndarray, **kwargs) -> dict:
+    def _transform_data(self, matrix, **kwargs):
 
         new_weights = self._weight_matrix(matrix)
 

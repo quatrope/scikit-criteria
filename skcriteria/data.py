@@ -19,11 +19,9 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 # IMPORTS
 # =============================================================================
 
-from __future__ import annotations
 
 import enum
 import functools
-from typing import Iterable, Optional
 
 import numpy as np
 
@@ -188,12 +186,7 @@ class DecisionMatrix:
 
     """
 
-    def __init__(
-        self,
-        data_df: pd.DataFrame,
-        objectives: np.ndarray,
-        weights: np.ndarray,
-    ) -> None:
+    def __init__(self, data_df, objectives, weights):
 
         self._data_df = (
             data_df.copy()
@@ -224,13 +217,13 @@ class DecisionMatrix:
     @classmethod
     def from_mcda_data(
         cls,
-        matrix: Iterable[float],
+        matrix,
         objectives: Iterable,
-        weights: Optional[Iterable] = None,
-        anames: Optional[Iterable] = None,
-        cnames: Optional[Iterable] = None,
-        dtypes: Optional[Iterable] = None,
-    ) -> DecisionMatrix:
+        weights=None,
+        anames=None,
+        cnames=None,
+        dtypes=None,
+    ):
         """Create a new DecisionMatrix object.
 
         This method receives the parts of the matrix, in what conceptually
@@ -333,27 +326,27 @@ class DecisionMatrix:
     # MCDA ====================================================================
 
     @property
-    def anames(self) -> np.ndarray:
+    def anames(self):
         """Names of the alternatives."""
         return self._data_df.index.to_numpy()
 
     @property
-    def cnames(self) -> np.ndarray:
+    def cnames(self):
         """Names of the criteria."""
         return self._data_df.columns.to_numpy()
 
     @property
-    def matrix(self) -> np.ndarray:
+    def matrix(self):
         """Alternatives matrix as 2D numpy array."""
         return self._data_df.to_numpy()
 
     @property
-    def weights(self) -> np.ndarray:
+    def weights(self):
         """Weights of the criteria."""
         return np.copy(self._weights)
 
     @property
-    def objectives_values(self) -> np.ndarray:
+    def objectives_values(self):
         """Objectives of the criteria as ``int``.
 
         - Minimize = Objective.MIN.value
@@ -363,18 +356,18 @@ class DecisionMatrix:
         return np.array([o.value for o in self._objectives], dtype=int)
 
     @property
-    def objectives(self) -> np.ndarray:
+    def objectives(self):
         """Objectives of the criteria as ``Objective`` instances."""
         return np.copy(self._objectives)
 
     @property
-    def dtypes(self) -> np.ndarray:
+    def dtypes(self):
         """Dtypes of the criteria."""
         return self._data_df.dtypes.to_numpy()
 
     # UTILITIES ===============================================================
 
-    def copy(self) -> DecisionMatrix:
+    def copy(self):
         """Return a deep copy of the current DecisionMatrix."""
         return DecisionMatrix(
             data_df=self._data_df,
@@ -382,7 +375,7 @@ class DecisionMatrix:
             weights=self._weights,
         )
 
-    def to_dataframe(self) -> pd.DataFrame:
+    def to_dataframe(self):
         """Convert the entire DecisionMatrix into a dataframe.
 
         The objectives and weights ara added as rows before the alternatives.
@@ -421,7 +414,7 @@ class DecisionMatrix:
     # CMP =====================================================================
 
     @property
-    def shape(self) -> tuple:
+    def shape(self):
         """Return a tuple with (number_of_alternatives, number_of_criteria).
 
         dm.shape <==> np.shape(dm)
@@ -429,7 +422,7 @@ class DecisionMatrix:
         """
         return np.shape(self._data_df)
 
-    def __len__(self) -> int:
+    def __len__(self):
         """Return the number ot alternatives.
 
         dm.__len__() <==> len(dm).
@@ -545,7 +538,7 @@ class DecisionMatrix:
         dimensions = f"{a_number} Alternatives x {c_number} Criteria"
         return dimensions
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         """dm.__repr__() <==> repr(dm)."""
         header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
@@ -560,7 +553,7 @@ class DecisionMatrix:
 
         return string
 
-    def _repr_html_(self) -> str:
+    def _repr_html_(self):
         """Return a html representation for a particular DecisionMatrix.
 
         Mainly for IPython notebook.
