@@ -31,9 +31,11 @@ from .scalers import (
     scale_by_vector,
 )
 from .weighters import (
+    Critic,
     EntropyWeighter,
     EqualWeighter,
     StdWeighter,
+    critic_weights,
     entropy_weights,
     equal_weights,
     std_weights,
@@ -46,6 +48,7 @@ from .weighters import (
 __all__ = [
     "AddValueToZero",
     "CenitDistance",
+    "Critic",
     "EntropyWeighter",
     "EqualWeighter",
     "MaxScaler",
@@ -58,6 +61,7 @@ __all__ = [
     "VectorScaler",
     "add_value_to_zero",
     "cenit_distance",
+    "critic_weights",
     "entropy_weights",
     "equal_weights",
     "invert",

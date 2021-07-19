@@ -23,6 +23,8 @@ import scipy
 
 import skcriteria
 from skcriteria.preprocessing import (
+    Critic,
+    critic_weights,
     EntropyWeighter,
     EqualWeighter,
     StdWeighter,
@@ -217,3 +219,76 @@ def test_entropy_weights():
     mtx = [[1, 2], [4, 16]]
     weights = entropy_weights(mtx)
     assert np.allclose(weights, [0.589239, 0.410761], atol=1e-5)
+
+
+# =============================================================================
+# CRITIC
+# =============================================================================
+
+
+def test_Critic_diakoulaki1995determining():
+    """
+    Data from:
+        Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
+        Determining objective weights in multiple criteria problems:
+        The critic method. Computers & Operations Research, 22(7), 763-770.
+    """
+
+    dm = skcriteria.mkdm(
+        matrix=[
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98],
+        ],
+        objectives=[max, max, max],
+        weights=[61, 1.08, 4.33],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98],
+        ],
+        objectives=[max, max, max],
+        weights=[0.20222554, 0.48090173, 0.31687273],
+    )
+
+    weighter = Critic()
+
+    result = weighter.transform(dm)
+    assert result.aequals(expected)
+
+
+# TEST FUNCTIONS ==============================================================
+
+
+def test_crrici_weight_weights_diakoulaki1995determining():
+    """
+    Data from:
+        Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
+        Determining objective weights in multiple criteria problems:
+        The critic method. Computers & Operations Research, 22(7), 763-770.
+    """
+    mtx = [
+        [61, 1.08, 4.33],
+        [20.7, 0.26, 4.34],
+        [16.3, 1.98, 2.53],
+        [9, 3.29, 1.65],
+        [5.4, 2.77, 2.33],
+        [4, 4.12, 1.21],
+        [-6.1, 3.52, 2.10],
+        [-34.6, 3.31, 0.98],
+    ]
+    weights = critic_weights(mtx)
+    assert np.allclose(weights, [0.20222554, 0.48090173, 0.31687273])

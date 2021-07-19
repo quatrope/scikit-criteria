@@ -21,12 +21,11 @@ to push negatives values on an array along an arbitrary axis.
 
 
 import numpy as np
-
 import scipy.stats
 
 from ..base import SKCBaseDecisionMaker, SKCWeighterMixin
 from ..utils import doc_inherit
-
+from .distance import cenit_distance
 
 # =============================================================================
 # SAME WEIGHT
@@ -52,7 +51,7 @@ class EqualWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
         self._base_value = float(v)
 
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix):
+    def _weight_matrix(self, matrix, **kwargs):
         return equal_weights(matrix, self.base_value)
 
 
@@ -68,7 +67,7 @@ def std_weights(matrix):
 
 class StdWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix):
+    def _weight_matrix(self, matrix, **kwargs):
         return std_weights(matrix)
 
 
@@ -84,7 +83,7 @@ def entropy_weights(matrix):
 
 class EntropyWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
     @doc_inherit(SKCWeighterMixin._weight_matrix)
-    def _weight_matrix(self, matrix):
+    def _weight_matrix(self, matrix, **kwargs):
         return entropy_weights(matrix)
 
 
@@ -92,5 +91,60 @@ class EntropyWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
 #
 # =============================================================================
 
-# def critiq(mtx. scale=True):
-#     mtx = scale_by_ideal_point(mtx, axis=0) if scale else np.asarray(mtx)
+
+def pearson_correlation(arr):
+    return np.corrcoef(arr)
+
+
+def spearman_correlation(arr):
+    return scipy.stats.spearmanr(arr.T, axis=0).correlation
+
+
+def critic_weights(
+    matrix, objectives, correlation=pearson_correlation, scale=True
+):
+    matrix = np.asarray(matrix, dtype=float)
+    matrix = cenit_distance(matrix, objectives=objectives) if scale else matrix
+
+    dindex = np.std(matrix)
+    corr_m1 = 1 - correlation(matrix.T)
+    uweights = dindex * np.sum(corr_m1, axis=0)
+    weights = uweights / np.sum(uweights)
+    return weights
+
+
+class Critic(SKCWeighterMixin, SKCBaseDecisionMaker):
+    def __init__(self, correlation="pearson", scale=True):
+        self.correlation = correlation
+        self.scale = scale
+
+    @property
+    def scale(self):
+        return self._scale
+
+    @scale.setter
+    def scale(self, v):
+        self._scale = bool(v)
+
+    @property
+    def correlation(self):
+        return self.correlation
+
+    @correlation.setter
+    def correlation(self, v):
+        if v == "pearson":
+            self._correlation = pearson_correlation
+        elif v == "spearman":
+            self._correlation = spearman_correlation
+        elif callable(v):
+            self._correlation = v
+        else:
+            raise TypeError(
+                "correlation must be 'pearson', 'spearmen' or callable"
+            )
+
+    @doc_inherit(SKCWeighterMixin._weight_matrix)
+    def _weight_matrix(self, matrix, objectives, **kwargs):
+        return critic_weights(
+            matrix, objectives, correlation=self.correlation, scale=self.scale
+        )

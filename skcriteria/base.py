@@ -259,13 +259,17 @@ class SKCWeighterMixin(SKCTransformerMixin):
     """
 
     @abc.abstractmethod
-    def _weight_matrix(self, matrix):
+    def _weight_matrix(self, matrix, objectives, weights):
         """Transform the matrix and return an array of weights.
 
         Parameters
         ----------
         matrix: :py:class:`numpy.ndarray`
             The decision matrix to weights.
+        objectives: :py:class:`numpy.ndarray`
+            The objectives in numeric format.
+        weights: :py:class:`numpy.ndarray`
+            The original weights
 
         Returns
         -------
@@ -276,10 +280,14 @@ class SKCWeighterMixin(SKCTransformerMixin):
         raise NotImplementedError()
 
     @doc_inherit(SKCTransformerMixin._transform_data)
-    def _transform_data(self, matrix, **kwargs):
+    def _transform_data(self, matrix, objectives, weights, **kwargs):
 
-        new_weights = self._weight_matrix(matrix)
+        new_weights = self._weight_matrix(
+            matrix=matrix, objectives=objectives, weights=weights
+        )
 
-        kwargs.update(matrix=matrix, weights=new_weights)
+        kwargs.update(
+            matrix=matrix, objectives=objectives, weights=new_weights
+        )
 
         return kwargs
