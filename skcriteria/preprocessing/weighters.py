@@ -140,7 +140,7 @@ class Critic(SKCWeighterMixin, SKCBaseDecisionMaker):
             self._correlation = v
         else:
             raise TypeError(
-                "correlation must be 'pearson', 'spearmen' or callable"
+                "correlation must be 'pearson', 'spearman' or callable"
             )
 
     @doc_inherit(SKCWeighterMixin._weight_matrix)
