@@ -19,18 +19,21 @@
 
 import numpy as np
 
+import pytest
+
 import scipy
 
 import skcriteria
 from skcriteria.preprocessing import (
     Critic,
-    critic_weights,
     EntropyWeighter,
     EqualWeighter,
     StdWeighter,
+    critic_weights,
     entropy_weights,
     equal_weights,
     std_weights,
+    weighters,
 )
 
 # =============================================================================
@@ -270,10 +273,44 @@ def test_Critic_diakoulaki1995determining():
     assert result.aequals(expected)
 
 
+def test_Critic_bad_correlation():
+    with pytest.raises(ValueError):
+        Critic(correlation="foo")
+    with pytest.raises(ValueError):
+        Critic(correlation=1)
+
+
 # TEST FUNCTIONS ==============================================================
 
 
-def test_crrici_weight_weights_diakoulaki1995determining():
+@pytest.mark.parametrize(
+    "scale, correlation, result",
+    [
+        (
+            True,
+            weighters.pearson_correlation,
+            [0.20222554, 0.48090173, 0.31687273],
+        ),
+        (
+            False,
+            weighters.pearson_correlation,
+            [0.86874234, 0.08341434, 0.04784331],
+        ),
+        (
+            True,
+            weighters.spearman_correlation,
+            [0.21454645, 0.4898563, 0.29559726],
+        ),
+        (
+            False,
+            weighters.spearman_correlation,
+            [0.87672195, 0.08082369, 0.04245436],
+        ),
+    ],
+)
+def test_critic_weight_weights_diakoulaki1995determining(
+    scale, correlation, result
+):
     """
     Data from:
         Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
@@ -290,5 +327,7 @@ def test_crrici_weight_weights_diakoulaki1995determining():
         [-6.1, 3.52, 2.10],
         [-34.6, 3.31, 0.98],
     ]
-    weights = critic_weights(mtx)
-    assert np.allclose(weights, [0.20222554, 0.48090173, 0.31687273])
+    weights = critic_weights(
+        mtx, objectives=[1, 1, 1], scale=scale, correlation=correlation
+    )
+    assert np.allclose(weights, result)

@@ -21,11 +21,13 @@ to push negatives values on an array along an arbitrary axis.
 
 
 import numpy as np
+
 import scipy.stats
 
+from .distance import cenit_distance
 from ..base import SKCBaseDecisionMaker, SKCWeighterMixin
 from ..utils import doc_inherit
-from .distance import cenit_distance
+
 
 # =============================================================================
 # SAME WEIGHT
@@ -106,7 +108,8 @@ def critic_weights(
     matrix = np.asarray(matrix, dtype=float)
     matrix = cenit_distance(matrix, objectives=objectives) if scale else matrix
 
-    dindex = np.std(matrix)
+    dindex = np.std(matrix, axis=0)
+
     corr_m1 = 1 - correlation(matrix.T)
     uweights = dindex * np.sum(corr_m1, axis=0)
     weights = uweights / np.sum(uweights)
@@ -114,6 +117,11 @@ def critic_weights(
 
 
 class Critic(SKCWeighterMixin, SKCBaseDecisionMaker):
+    CORRELATION = {
+        "pearson": pearson_correlation,
+        "spearman": spearman_correlation,
+    }
+
     def __init__(self, correlation="pearson", scale=True):
         self.correlation = correlation
         self.scale = scale
@@ -128,20 +136,15 @@ class Critic(SKCWeighterMixin, SKCBaseDecisionMaker):
 
     @property
     def correlation(self):
-        return self.correlation
+        return self._correlation
 
     @correlation.setter
     def correlation(self, v):
-        if v == "pearson":
-            self._correlation = pearson_correlation
-        elif v == "spearman":
-            self._correlation = spearman_correlation
-        elif callable(v):
-            self._correlation = v
-        else:
-            raise TypeError(
-                "correlation must be 'pearson', 'spearman' or callable"
-            )
+        correlation_func = self.CORRELATION.get(v, v)
+        if not callable(correlation_func):
+            corr_keys = ", ".join(f"'{c}'" for c in self.CORRELATION)
+            raise ValueError(f"Correlation must be {corr_keys} or callable")
+        self._correlation = correlation_func
 
     @doc_inherit(SKCWeighterMixin._weight_matrix)
     def _weight_matrix(self, matrix, objectives, **kwargs):
