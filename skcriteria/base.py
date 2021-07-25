@@ -20,7 +20,6 @@ import inspect
 from .data import DecisionMatrix
 from .utils import doc_inherit
 
-
 # =============================================================================
 # BASE DECISION MAKER CLASS
 # =============================================================================
@@ -33,7 +32,7 @@ _IGNORE_PARAMS = (
 
 
 class SKCBaseDecisionMaker:
-    """Base class for all decision maker in scikit-criteria.
+    """Base class for all class in scikit-criteria.
 
     Notes
     -----
@@ -81,9 +80,19 @@ class SKCBaseDecisionMaker:
         str_parameters = ", ".join(parameters)
         return f"{cls_name}({str_parameters})"
 
-    def validate_data(self, **kwargs):
+
+# =============================================================================
+# VALIDATOR MIXIN
+# =============================================================================
+
+
+class SKCDataValidatorMixin(metaclass=abc.ABCMeta):
+    """Mixin class to add a _validate_data method."""
+
+    @abc.abstractmethod
+    def _validate_data(self, **kwargs):
         """Validate all the data previously to send to the real algorithm."""
-        pass
+        raise NotImplementedError()
 
 
 # =============================================================================
@@ -91,7 +100,7 @@ class SKCBaseDecisionMaker:
 # =============================================================================
 
 
-class SKCTransformerMixin(metaclass=abc.ABCMeta):
+class SKCTransformerMixin(SKCDataValidatorMixin, metaclass=abc.ABCMeta):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
@@ -135,7 +144,7 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
         cnames = dm.cnames
         dtypes = dm.dtypes
 
-        self.validate_data(
+        self._validate_data(
             matrix=mtx,
             objectives=objectives,
             weights=weights,
@@ -144,7 +153,7 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
             dtypes=dtypes,
         )
 
-        nkwargs = self._transform_data(
+        transformed_kwargs = self._transform_data(
             matrix=mtx,
             objectives=objectives,
             weights=weights,
@@ -153,9 +162,9 @@ class SKCTransformerMixin(metaclass=abc.ABCMeta):
             dtypes=dtypes,
         )
 
-        norm_dm = DecisionMatrix.from_mcda_data(**nkwargs)
+        transformed_dm = DecisionMatrix.from_mcda_data(**transformed_kwargs)
 
-        return norm_dm
+        return transformed_dm
 
 
 class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):

@@ -23,7 +23,11 @@ that inverts columns of a matrix based on a mask.
 
 import numpy as np
 
-from ..base import SKCBaseDecisionMaker, SKCTransformerMixin
+from ..base import (
+    SKCBaseDecisionMaker,
+    SKCDataValidatorMixin,
+    SKCTransformerMixin,
+)
 from ..data import Objective
 from ..utils import doc_inherit
 
@@ -93,6 +97,10 @@ class MinimizeToMaximize(SKCTransformerMixin, SKCBaseDecisionMaker):
     ones thar are converted to ``numpy.float64``.
 
     """
+
+    @doc_inherit(SKCDataValidatorMixin._validate_data)
+    def _validate_data(self, **kwargs):
+        pass
 
     @doc_inherit(SKCTransformerMixin._transform_data)
     def _transform_data(self, matrix, objectives, dtypes, **kwargs):

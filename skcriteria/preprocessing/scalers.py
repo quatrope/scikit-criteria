@@ -24,9 +24,12 @@ are offered to scale an array along an arbitrary axis.
 import numpy as np
 from numpy import linalg
 
-from ..base import SKCBaseDecisionMaker, SKCMatrixAndWeightTransformerMixin
+from ..base import (
+    SKCBaseDecisionMaker,
+    SKCDataValidatorMixin,
+    SKCMatrixAndWeightTransformerMixin,
+)
 from ..utils import doc_inherit
-
 
 # =============================================================================
 # STANDAR SCALER
@@ -94,6 +97,10 @@ class StandarScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     of the training samples or one if `with_std=False`.
 
     """
+
+    @doc_inherit(SKCDataValidatorMixin._validate_data)
+    def _validate_data(self, **kwargs):
+        pass
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
     def _transform_weights(self, weights):
@@ -178,6 +185,10 @@ class VectorScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 
     """
 
+    @doc_inherit(SKCDataValidatorMixin._validate_data)
+    def _validate_data(self, **kwargs):
+        pass
+
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_vector(weights, axis=None)
@@ -260,6 +271,10 @@ class MinMaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 
     """
 
+    @doc_inherit(SKCDataValidatorMixin._validate_data)
+    def _validate_data(self, **kwargs):
+        pass
+
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_minmax(weights, axis=None)
@@ -335,6 +350,10 @@ class SumScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
 
     """
 
+    @doc_inherit(SKCDataValidatorMixin._validate_data)
+    def _validate_data(self, **kwargs):
+        pass
+
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_sum(weights, axis=None)
@@ -409,6 +428,10 @@ class MaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
     each value of weight is divided by the maximum value the weights.
 
     """
+
+    @doc_inherit(SKCDataValidatorMixin._validate_data)
+    def _validate_data(self, **kwargs):
+        pass
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
     def _transform_weights(self, weights):
