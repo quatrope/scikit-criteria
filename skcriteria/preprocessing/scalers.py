@@ -24,11 +24,7 @@ are offered to scale an array along an arbitrary axis.
 import numpy as np
 from numpy import linalg
 
-from ..base import (
-    SKCBaseDecisionMaker,
-    SKCDataValidatorMixin,
-    SKCMatrixAndWeightTransformerMixin,
-)
+from ..base import SKCDataValidatorMixin, SKCMatrixAndWeightTransformerMixin
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -86,7 +82,7 @@ def scale_by_stdscore(arr, axis=None):
     return (arr - mean) / std
 
 
-class StandarScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+class StandarScaler(SKCMatrixAndWeightTransformerMixin):
     """Standardize the dm by removing the mean and scaling to unit variance.
 
     The standard score of a sample `x` is calculated as:
@@ -168,7 +164,7 @@ def scale_by_vector(arr, axis=None):
     return arr / frob
 
 
-class VectorScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+class VectorScaler(SKCMatrixAndWeightTransformerMixin):
     r"""Scaler based on the norm of the vector..
 
     .. math::
@@ -256,7 +252,7 @@ def scale_by_minmax(arr, axis=None):
     return (arr - minval) / (maxval - minval)
 
 
-class MinMaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+class MinMaxScaler(SKCMatrixAndWeightTransformerMixin):
     r"""Scaler based on the range.
 
     .. math::
@@ -335,7 +331,7 @@ def scale_by_sum(arr, axis=None):
     return arr / sumval
 
 
-class SumScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+class SumScaler(SKCMatrixAndWeightTransformerMixin):
     r"""Scalerbased on the total sum of values.
 
     .. math::
@@ -415,7 +411,7 @@ def scale_by_max(arr, axis=None):
     return arr / maxval
 
 
-class MaxScaler(SKCMatrixAndWeightTransformerMixin, SKCBaseDecisionMaker):
+class MaxScaler(SKCMatrixAndWeightTransformerMixin):
     r"""Scaler based on the maximum values.
 
     .. math::

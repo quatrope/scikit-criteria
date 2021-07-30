@@ -25,11 +25,7 @@ import numpy as np
 import scipy.stats
 
 from .distance import cenit_distance
-from ..base import (
-    SKCBaseDecisionMaker,
-    SKCDataValidatorMixin,
-    SKCWeighterMixin,
-)
+from ..base import SKCDataValidatorMixin, SKCWeighterMixin
 from ..utils import doc_inherit
 
 
@@ -44,7 +40,7 @@ def equal_weights(matrix, base_value=1):
     return np.full(ncriteria, weights, dtype=float)
 
 
-class EqualWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
+class EqualWeighter(SKCWeighterMixin):
     def __init__(self, base_value=1):
         self.base_value = base_value
 
@@ -75,7 +71,7 @@ def std_weights(matrix):
     return std / np.sum(std)
 
 
-class StdWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
+class StdWeighter(SKCWeighterMixin):
     @doc_inherit(SKCDataValidatorMixin._validate_data)
     def _validate_data(self, **kwargs):
         pass
@@ -95,7 +91,7 @@ def entropy_weights(matrix):
     return entropy / np.sum(entropy)
 
 
-class EntropyWeighter(SKCWeighterMixin, SKCBaseDecisionMaker):
+class EntropyWeighter(SKCWeighterMixin):
     @doc_inherit(SKCDataValidatorMixin._validate_data)
     def _validate_data(self, **kwargs):
         pass
@@ -132,7 +128,7 @@ def critic_weights(
     return weights
 
 
-class Critic(SKCWeighterMixin, SKCBaseDecisionMaker):
+class Critic(SKCWeighterMixin):
     CORRELATION = {
         "pearson": pearson_correlation,
         "spearman": spearman_correlation,

@@ -23,11 +23,7 @@ that inverts columns of a matrix based on a mask.
 
 import numpy as np
 
-from ..base import (
-    SKCBaseDecisionMaker,
-    SKCDataValidatorMixin,
-    SKCTransformerMixin,
-)
+from ..base import SKCDataValidatorMixin, SKCTransformerMixin
 from ..data import Objective
 from ..utils import doc_inherit
 
@@ -85,7 +81,7 @@ def invert(matrix, mask):
     return inv_mtx
 
 
-class MinimizeToMaximize(SKCTransformerMixin, SKCBaseDecisionMaker):
+class MinimizeToMaximize(SKCTransformerMixin):
     r"""Transform all minimization criteria  into maximization ones.
 
     The transformations are made by calculating the inverse value of

@@ -100,7 +100,9 @@ class SKCDataValidatorMixin(metaclass=abc.ABCMeta):
 # =============================================================================
 
 
-class SKCTransformerMixin(SKCDataValidatorMixin, metaclass=abc.ABCMeta):
+class SKCTransformerMixin(
+    SKCDataValidatorMixin, SKCBaseDecisionMaker, metaclass=abc.ABCMeta
+):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
@@ -137,32 +139,13 @@ class SKCTransformerMixin(SKCDataValidatorMixin, metaclass=abc.ABCMeta):
             Transformed decision matrix.
 
         """
-        mtx = dm.matrix
-        objectives = dm.objectives_values
-        weights = dm.weights
-        anames = dm.anames
-        cnames = dm.cnames
-        dtypes = dm.dtypes
+        data = dm.to_dict()
 
-        self._validate_data(
-            matrix=mtx,
-            objectives=objectives,
-            weights=weights,
-            anames=anames,
-            cnames=cnames,
-            dtypes=dtypes,
-        )
+        self._validate_data(**data)
 
-        transformed_kwargs = self._transform_data(
-            matrix=mtx,
-            objectives=objectives,
-            weights=weights,
-            anames=anames,
-            cnames=cnames,
-            dtypes=dtypes,
-        )
+        transformed_data = self._transform_data(**data)
 
-        transformed_dm = DecisionMatrix.from_mcda_data(**transformed_kwargs)
+        transformed_dm = DecisionMatrix.from_mcda_data(**transformed_data)
 
         return transformed_dm
 
@@ -269,7 +252,7 @@ class SKCWeighterMixin(SKCTransformerMixin):
 
     @abc.abstractmethod
     def _weight_matrix(self, matrix, objectives, weights):
-        """Transform the matrix and return an array of weights.
+        """Calculate a new array of weights.
 
         Parameters
         ----------
@@ -300,3 +283,49 @@ class SKCWeighterMixin(SKCTransformerMixin):
         )
 
         return kwargs
+
+
+# =============================================================================
+#
+# =============================================================================
+
+
+class SKCRankerMixin(
+    SKCDataValidatorMixin, SKCBaseDecisionMaker, metaclass=abc.ABCMeta
+):
+    """Mixin class for all transformer in scikit-criteria."""
+
+    _skcriteria_dm_type = "ranker"
+
+    @abc.abstractmethod
+    def _rank_data(self, **kwargs):
+        pass
+
+    @abc.abstractmethod
+    def _get_result_class(self):
+        pass
+
+    def rank(self, dm):
+        """Perform transformation on `dm`.
+
+        Parameters
+        ----------
+        dm: :py:class:`skcriteria.data.DecisionMatrix`
+            The decision matrix to transform.
+
+        Returns
+        -------
+        :py:class:`skcriteria.data.DecisionMatrix`
+            Transformed decision matrix.
+
+        """
+        data = dm.to_dict()
+
+        self._validate_data(**data)
+
+        rank, extra = self._rank_data(**data)
+
+        anames = data["anames"]
+        transformed_dm = self._make_result(anames, rank, extra)
+
+        return transformed_dm

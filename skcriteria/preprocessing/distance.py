@@ -23,11 +23,7 @@ that inverts columns of a matrix based on a mask.
 
 import numpy as np
 
-from ..base import (
-    SKCBaseDecisionMaker,
-    SKCDataValidatorMixin,
-    SKCTransformerMixin,
-)
+from ..base import SKCDataValidatorMixin, SKCTransformerMixin
 from ..data import Objective
 from ..utils import doc_inherit
 
@@ -50,7 +46,7 @@ def cenit_distance(matrix, objectives):
     return (matrix - nadir) / (cenit - nadir)
 
 
-class CenitDistance(SKCTransformerMixin, SKCBaseDecisionMaker):
+class CenitDistance(SKCTransformerMixin):
     @doc_inherit(SKCDataValidatorMixin._validate_data)
     def _validate_data(self, **kwargs):
         pass

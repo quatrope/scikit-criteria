@@ -411,6 +411,16 @@ class DecisionMatrix:
         df = pd.DataFrame(data, index=index, columns=self.cnames, copy=True)
         return df
 
+    def to_dict(self):
+        return {
+            "matrix": self.matrix,
+            "objectives": self.objectives_values,
+            "weights": self.weights,
+            "anames": self.anames,
+            "cnames": self.cnames,
+            "dtypes": self.dtypes,
+        }
+
     def describe(self, **kwargs):
         """Generate descriptive statistics.
 
