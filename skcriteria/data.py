@@ -411,6 +411,25 @@ class DecisionMatrix:
         df = pd.DataFrame(data, index=index, columns=self.cnames, copy=True)
         return df
 
+    def describe(self, **kwargs):
+        """Generate descriptive statistics.
+
+        Descriptive statistics include those that summarize the central
+        tendency, dispersion and shape of a dataset's distribution,
+        excluding ``NaN`` values.
+
+        Parameters
+        ----------
+        Same parameters as ``pandas.DataFrame.describe()``.
+
+        Returns
+        -------
+        ``pandas.DataFrame``
+            Summary statistics of DecisionMatrix provided.
+
+        """
+        return self._data_df.describe(**kwargs)
+
     # CMP =====================================================================
 
     @property
