@@ -19,7 +19,6 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 # IMPORTS
 # =============================================================================
 
-
 import enum
 import functools
 
@@ -28,6 +27,8 @@ import numpy as np
 import pandas as pd
 
 import pyquery as pq
+
+from .utils import Bunch
 
 
 # =============================================================================
@@ -620,3 +621,45 @@ class DecisionMatrix:
 def mkdm(*args, **kwargs):
     """Alias for DecisionMatrix.from_mcda_data."""
     return DecisionMatrix.from_mcda_data(*args, **kwargs)
+
+
+# =============================================================================
+# RESULTS
+# =============================================================================
+
+
+class RankResult:
+
+    _result_column = "Rank"
+
+    def __init__(self, *, method, anames, rank, extra):
+        self._validate_result(rank)
+        self._method = str(method)
+        self._extra = Bunch(method, extra)
+        self._rank_df = pd.DataFrame(
+            rank, index=anames, columns=[self._result_column]
+        )
+
+    def _validate_result(self, values):
+        length = len(values)
+        expected = np.arange(length) + 1
+        if not np.array_equal(np.sort(values), expected):
+            raise ValueError(f"{values} don't loke like rank")
+
+    @property
+    def method(self):
+        return self._method
+
+    @property
+    def anames(self):
+        return self._rank_df.index.to_numpy()
+
+    @property
+    def extra_(self):
+        return self._extra
+
+    @property
+    def rank_(self):
+        return self._rank_df.Rank.to_numpy()
+
+    e_ = extra_

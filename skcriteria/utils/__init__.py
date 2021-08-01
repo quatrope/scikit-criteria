@@ -14,6 +14,7 @@
 # IMPORTS
 # =============================================================================
 
+from .bunch import Bunch
 from .decorators import doc_inherit
 
 # =============================================================================
@@ -22,4 +23,5 @@ from .decorators import doc_inherit
 
 __all__ = [
     "doc_inherit",
+    "Bunch"
 ]

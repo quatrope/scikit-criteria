@@ -113,9 +113,7 @@ class MinimizeToMaximize(SKCTransformerMixin):
 
         # we are trying to preserve the original dtype as much as possible
         # only the minimize criteria are changed.
-        inv_dtypes = np.where(
-            objectives == Objective.MIN.value, inv_mtx.dtype, dtypes
-        )
+        inv_dtypes = np.where(minimize_mask, inv_mtx.dtype, dtypes)
 
         kwargs.update(
             matrix=inv_mtx, objectives=inv_objectives, dtypes=inv_dtypes
