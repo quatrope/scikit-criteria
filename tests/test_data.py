@@ -192,6 +192,11 @@ def test_no_provide_cnames_and_anames(data_values):
     np.testing.assert_array_equal(dm.cnames, cnames)
 
 
+# =============================================================================
+# UTILITIES
+# =============================================================================
+
+
 def test_copy(data_values):
     mtx, objectives, weights, anames, cnames = data_values(seed=42)
 
@@ -206,6 +211,153 @@ def test_copy(data_values):
 
     assert dm is not copy
     assert dm.equals(copy)
+
+
+def test_to_dataframe(data_values):
+
+    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        anames=anames,
+        cnames=cnames,
+    )
+
+    df = dm.to_dataframe()
+
+    rows = np.vstack((construct_objectives(objectives), weights, mtx))
+    expected = pd.DataFrame(
+        rows, index=["objectives", "weights"] + anames, columns=cnames
+    )
+
+    pd.testing.assert_frame_equal(df, expected)
+
+
+def test_to_dict(data_values):
+
+    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        anames=anames,
+        cnames=cnames,
+    )
+
+    expected = {
+        "matrix": mtx,
+        "objectives": construct_objectives_values(objectives),
+        "weights": weights,
+        "anames": np.asarray(anames),
+        "cnames": np.asarray(cnames),
+        "dtypes": np.full(len(weights), float),
+    }
+
+    result = dm.to_dict()
+
+    cmp = {k: (np.all(result[k] == expected[k])) for k in result.keys()}
+    assert np.all(cmp.values())
+
+
+def test_describe(data_values):
+
+    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        anames=anames,
+        cnames=cnames,
+    )
+
+    expected = pd.DataFrame(mtx, columns=cnames, index=anames).describe()
+
+    result = dm.describe()
+
+    assert result.equals(expected)
+
+
+# =============================================================================
+# CMP
+# =============================================================================
+
+
+def test_len(decision_matrix):
+    dm1 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    dm2 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=30,
+        max_criteria=30,
+    )
+
+    dm3 = decision_matrix(
+        seed=42,
+        min_alternatives=100,
+        max_alternatives=100,
+        min_criteria=30,
+        max_criteria=30,
+    )
+
+    assert len(dm1) == len(dm2)
+    assert len(dm1) != len(dm3) and len(dm2) != len(dm3)
+
+
+def test_shape(decision_matrix):
+    dm1 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    dm2 = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    dm3 = decision_matrix(
+        seed=42,
+        min_alternatives=100,
+        max_alternatives=100,
+        min_criteria=30,
+        max_criteria=30,
+    )
+
+    dm4 = decision_matrix(
+        seed=42,
+        min_alternatives=20,
+        max_alternatives=20,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    assert dm1.shape == dm2.shape
+
+    assert dm1.shape != dm3.shape and dm1.shape != dm4.shape
+    assert dm2.shape != dm3.shape and dm2.shape != dm4.shape
+
+
+def test_len_vs_shape_ncriteria(decision_matrix):
+    dm = decision_matrix(seed=42)
+
+    assert (len(dm), len(dm.cnames)) == np.shape(dm) == dm.shape
 
 
 def test_self_eq(data_values):
@@ -245,6 +397,11 @@ def test_self_ne(data_values):
         cnames=ocnames,
     )
     assert not dm.equals(other)
+
+
+# =============================================================================
+# REPR
+# =============================================================================
 
 
 def test_simple_repr():
@@ -334,28 +491,6 @@ def test_simple_html():
         )
 
     assert remove_white_spaces(expected) == remove_white_spaces(result)
-
-
-def test_to_dataframe(data_values):
-
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
-
-    dm = data.mkdm(
-        matrix=mtx,
-        objectives=objectives,
-        weights=weights,
-        anames=anames,
-        cnames=cnames,
-    )
-
-    df = dm.to_dataframe()
-
-    rows = np.vstack((construct_objectives(objectives), weights, mtx))
-    expected = pd.DataFrame(
-        rows, index=["objectives", "weights"] + anames, columns=cnames
-    )
-
-    pd.testing.assert_frame_equal(df, expected)
 
 
 # =============================================================================
@@ -495,77 +630,3 @@ def test_mtx_ndim3(data_values):
             anames=anames,
             cnames=cnames,
         )
-
-
-def test_len(decision_matrix):
-    dm1 = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    dm2 = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=30,
-        max_criteria=30,
-    )
-
-    dm3 = decision_matrix(
-        seed=42,
-        min_alternatives=100,
-        max_alternatives=100,
-        min_criteria=30,
-        max_criteria=30,
-    )
-
-    assert len(dm1) == len(dm2)
-    assert len(dm1) != len(dm3) and len(dm2) != len(dm3)
-
-
-def test_shape(decision_matrix):
-    dm1 = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    dm2 = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    dm3 = decision_matrix(
-        seed=42,
-        min_alternatives=100,
-        max_alternatives=100,
-        min_criteria=30,
-        max_criteria=30,
-    )
-
-    dm4 = decision_matrix(
-        seed=42,
-        min_alternatives=20,
-        max_alternatives=20,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    assert dm1.shape == dm2.shape
-
-    assert dm1.shape != dm3.shape and dm1.shape != dm4.shape
-    assert dm2.shape != dm3.shape and dm2.shape != dm4.shape
-
-
-def test_len_vs_shape_ncriteria(decision_matrix):
-    dm = decision_matrix(seed=42)
-
-    assert (len(dm), len(dm.cnames)) == np.shape(dm) == dm.shape

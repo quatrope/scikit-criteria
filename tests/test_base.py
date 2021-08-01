@@ -285,3 +285,86 @@ def test_flow_SKCWeighterMixin(decision_matrix):
     result = transformer.transform(dm)
 
     assert result.equals(expected)
+
+
+# =============================================================================
+# SKCRankerMixin
+# =============================================================================
+
+
+@pytest.mark.parametrize(
+    "not_redefine", ["_rank_data", "_make_result", "_validate_data"]
+)
+def test_not_redefined_SKCRankerMixin(not_redefine):
+    content = {}
+    for method_name in ["_rank_data", "_make_result", "_validate_data"]:
+        if method_name != not_redefine:
+            content[method_name] = lambda **kws: None
+
+    Foo = type("Foo", (base.SKCRankerMixin,), content)
+
+    with pytest.raises(TypeError):
+        Foo()
+
+
+def test_flow_SKCRankerMixin(decision_matrix):
+
+    dm = decision_matrix(seed=42)
+
+    class Foo(base.SKCRankerMixin):
+        def _validate_data(self, **kwargs):
+            ...
+
+        def _rank_data(self, anames, **kwargs):
+            return np.arange(len(anames)) + 1, {}
+
+        def _make_result(self, anames, rank, extra):
+            return {"anames": anames, "rank": rank, "extra": extra}
+
+    ranker = Foo()
+
+    result = ranker.rank(dm)
+
+    assert np.all(result["anames"] == dm.anames)
+    assert np.all(result["rank"] == np.arange(len(dm.anames)) + 1)
+    assert result["extra"] == {}
+
+
+def test_rank_data_not_implemented_SKCRankerMixin(decision_matrix):
+
+    dm = decision_matrix(seed=42)
+
+    class Foo(base.SKCRankerMixin):
+        def _validate_data(self, **kwargs):
+            ...
+
+        def _rank_data(self, **kwargs):
+            super()._rank_data(**kwargs)
+
+        def _make_result(self, anames, rank, extra):
+            return {"anames": anames, "rank": rank, "extra": extra}
+
+    ranker = Foo()
+
+    with pytest.raises(NotImplementedError):
+        ranker.rank(dm)
+
+
+def test_make_result_not_implemented_SKCRankerMixin(decision_matrix):
+
+    dm = decision_matrix(seed=42)
+
+    class Foo(base.SKCRankerMixin):
+        def _validate_data(self, **kwargs):
+            ...
+
+        def _rank_data(self, anames, **kwargs):
+            return np.arange(len(anames)) + 1, {}
+
+        def _make_result(self, **kwargs):
+            super()._make_result(**kwargs)
+
+    ranker = Foo()
+
+    with pytest.raises(NotImplementedError):
+        ranker.rank(dm)

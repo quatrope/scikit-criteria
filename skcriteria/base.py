@@ -299,26 +299,13 @@ class SKCRankerMixin(
 
     @abc.abstractmethod
     def _rank_data(self, **kwargs):
-        pass
+        raise NotImplementedError()
 
     @abc.abstractmethod
-    def _get_result_class(self):
-        pass
+    def _make_result(self, anames, rank, extra):
+        raise NotImplementedError()
 
     def rank(self, dm):
-        """Perform transformation on `dm`.
-
-        Parameters
-        ----------
-        dm: :py:class:`skcriteria.data.DecisionMatrix`
-            The decision matrix to transform.
-
-        Returns
-        -------
-        :py:class:`skcriteria.data.DecisionMatrix`
-            Transformed decision matrix.
-
-        """
         data = dm.to_dict()
 
         self._validate_data(**data)
@@ -326,6 +313,8 @@ class SKCRankerMixin(
         rank, extra = self._rank_data(**data)
 
         anames = data["anames"]
-        transformed_dm = self._make_result(anames, rank, extra)
+        transformed_dm = self._make_result(
+            anames=anames, rank=rank, extra=extra
+        )
 
         return transformed_dm
