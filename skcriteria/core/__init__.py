@@ -8,44 +8,39 @@
 # DOCS
 # =============================================================================
 
-"""Scikit-Criteria is a collections of algorithms, methods and \
-techniques for multiple-criteria decision analysis."""
+"""Core functionalities for skcriteria.
+
+- Base classes.
+- Data types.
+
+"""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import os
-
-if os.getenv("__SKCRITERIA_IN_SETUP__") != "True":
-    from .core import DecisionMatrix, Objective, mkdm
-
-del os
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-__all__ = ["DecisionMatrix", "Objective", "mkdm"]
-
-__version__ = ("0", "9")
-
-NAME = "scikit-criteria"
-
-DOC = __doc__
-
-VERSION = ".".join(__version__)
-
-AUTHORS = "Cabral & Luczywo"
-
-EMAIL = "jbcabral@unc.edu.ar"
-
-URL = "http://scikit-criteria.org/"
-
-LICENSE = "3 Clause BSD"
-
-KEYWORDS = (
-    "muticriteria mcda mcdm".split()
-    + "weightedsum weightedproduct simus topsis moora electre".split()
+from ._base import (
+    SKCBaseDecisionMaker,
+    SKCDataValidatorMixin,
+    SKCMatrixAndWeightTransformerMixin,
+    SKCRankerMixin,
+    SKCTransformerMixin,
+    SKCWeighterMixin,
 )
+from ._data import DecisionMatrix, Objective, mkdm
+
+# =============================================================================
+# ALL
+# =============================================================================
+
+__all__ = [
+    "DecisionMatrix",
+    "Objective",
+    "SKCBaseDecisionMaker",
+    "SKCDataValidatorMixin",
+    "SKCMatrixAndWeightTransformerMixin",
+    "SKCRankerMixin",
+    "SKCTransformerMixin",
+    "SKCWeighterMixin",
+    "mkdm",
+]

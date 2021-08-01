@@ -21,7 +21,8 @@ import numpy as np
 
 import pytest
 
-from skcriteria import base, data
+from skcriteria import mkdm
+from skcriteria.core import _base as base
 
 
 # =============================================================================
@@ -273,7 +274,7 @@ def test_flow_SKCWeighterMixin(decision_matrix):
 
     transformer = Foo()
 
-    expected = data.mkdm(
+    expected = mkdm(
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=expected_weights,

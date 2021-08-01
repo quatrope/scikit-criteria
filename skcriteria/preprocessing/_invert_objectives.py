@@ -23,8 +23,7 @@ that inverts columns of a matrix based on a mask.
 
 import numpy as np
 
-from ..base import SKCDataValidatorMixin, SKCTransformerMixin
-from ..data import Objective
+from ..core import Objective, SKCDataValidatorMixin, SKCTransformerMixin
 from ..utils import doc_inherit
 
 # =============================================================================

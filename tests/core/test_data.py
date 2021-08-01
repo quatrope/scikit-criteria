@@ -23,7 +23,7 @@ import pandas as pd
 
 import pytest
 
-from skcriteria import data
+from skcriteria.core import _data as data
 
 
 # =============================================================================
