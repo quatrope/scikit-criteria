@@ -24,7 +24,7 @@ are offered to scale an array along an arbitrary axis.
 import numpy as np
 from numpy import linalg
 
-from ..core import SKCDataValidatorMixin, SKCMatrixAndWeightTransformerMixin
+from ..base import SKCDataValidatorMixin, SKCMatrixAndWeightTransformerMixin
 from ..utils import doc_inherit
 
 # =============================================================================

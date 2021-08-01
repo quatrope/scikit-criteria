@@ -25,7 +25,7 @@ import numpy as np
 import scipy.stats
 
 from ._distance import cenit_distance
-from ..core import SKCDataValidatorMixin, SKCWeighterMixin
+from ..base import SKCDataValidatorMixin, SKCWeighterMixin
 from ..utils import doc_inherit
 
 

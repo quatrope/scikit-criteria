@@ -23,7 +23,7 @@ to add value to zero on an array along an arbitrary axis.
 
 import numpy as np
 
-from ..core import SKCDataValidatorMixin, SKCMatrixAndWeightTransformerMixin
+from ..base import SKCDataValidatorMixin, SKCMatrixAndWeightTransformerMixin
 from ..utils import doc_inherit
 
 # =============================================================================

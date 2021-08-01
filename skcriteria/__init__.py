@@ -18,7 +18,7 @@ techniques for multiple-criteria decision analysis."""
 import os
 
 if os.getenv("__SKCRITERIA_IN_SETUP__") != "True":
-    from .core import DecisionMatrix, Objective, mkdm
+    from .data import DecisionMatrix, Objective, mkdm
 
 del os
 

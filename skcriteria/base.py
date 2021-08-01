@@ -17,8 +17,8 @@
 import abc
 import inspect
 
-from ._data import DecisionMatrix
-from ..utils import doc_inherit
+from .data import DecisionMatrix
+from .utils import doc_inherit
 
 # =============================================================================
 # BASE DECISION MAKER CLASS
