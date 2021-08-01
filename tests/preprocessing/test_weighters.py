@@ -32,8 +32,9 @@ from skcriteria.preprocessing import (
     critic_weights,
     entropy_weights,
     equal_weights,
+    pearson_correlation,
+    spearman_correlation,
     std_weights,
-    weighters,
 )
 
 # =============================================================================
@@ -288,22 +289,22 @@ def test_Critic_bad_correlation():
     [
         (
             True,
-            weighters.pearson_correlation,
+            pearson_correlation,
             [0.20222554, 0.48090173, 0.31687273],
         ),
         (
             False,
-            weighters.pearson_correlation,
+            pearson_correlation,
             [0.86874234, 0.08341434, 0.04784331],
         ),
         (
             True,
-            weighters.spearman_correlation,
+            spearman_correlation,
             [0.21454645, 0.4898563, 0.29559726],
         ),
         (
             False,
-            weighters.spearman_correlation,
+            spearman_correlation,
             [0.87672195, 0.08082369, 0.04245436],
         ),
     ],

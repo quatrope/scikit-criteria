@@ -14,11 +14,11 @@
 # IMPORTS
 # =============================================================================
 
-from .add_value_to_zero import AddValueToZero, add_value_to_zero
-from .distance import CenitDistance, cenit_distance
-from .invert_objectives import MinimizeToMaximize, invert
-from .push_negatives import PushNegatives, push_negatives
-from .scalers import (
+from ._add_value_to_zero import AddValueToZero, add_value_to_zero
+from ._distance import CenitDistance, cenit_distance
+from ._invert_objectives import MinimizeToMaximize, invert
+from ._push_negatives import PushNegatives, push_negatives
+from ._scalers import (
     MaxScaler,
     MinMaxScaler,
     StandarScaler,
@@ -30,7 +30,7 @@ from .scalers import (
     scale_by_sum,
     scale_by_vector,
 )
-from .weighters import (
+from ._weighters import (
     Critic,
     EntropyWeighter,
     EqualWeighter,
@@ -38,6 +38,8 @@ from .weighters import (
     critic_weights,
     entropy_weights,
     equal_weights,
+    pearson_correlation,
+    spearman_correlation,
     std_weights,
 )
 
@@ -71,5 +73,7 @@ __all__ = [
     "scale_by_stdscore",
     "scale_by_sum",
     "scale_by_vector",
+    "pearson_correlation",
+    "spearman_correlation",
     "std_weights",
 ]

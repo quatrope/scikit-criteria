@@ -31,11 +31,13 @@ def check_test_structure(test_dir, reference_dir):
 
     result = {}
     for ref in reference:
-        if ref.name.startswith("_"):
+        if ref.name == "__init__.py":
             continue
 
         # essentially we remove the parent dir
         *dirs, ref_name = ref.relative_to(reference_dir).parts
+        while ref_name.startswith("_"):
+            ref_name = ref_name[1:]
 
         search_dir = test_dir
         for subdir in dirs:
