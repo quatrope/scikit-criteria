@@ -630,3 +630,34 @@ def test_mtx_ndim3(data_values):
             anames=anames,
             cnames=cnames,
         )
+
+
+# =============================================================================
+# RANK RESULT
+# =============================================================================
+
+
+def test_RankResult():
+    method = "foo"
+    anames = ["a", "b", "c"]
+    rank = [1, 2, 3]
+    extra = {"alfa": 1}
+
+    result = data.RankResult(
+        method=method, anames=anames, rank=rank, extra=extra
+    )
+
+    assert np.all(result.method == method)
+    assert np.all(result.anames == anames)
+    assert np.all(result.rank_ == rank)
+    assert np.all(result.extra_ == result.e_ == extra)
+
+
+@pytest.mark.parametrize("rank", [[1, 2, 5], [1, 1, 1], [1, 2, 2], [1, 2]])
+def test_RankResult_invalid_rank(rank):
+    method = "foo"
+    anames = ["a", "b", "c"]
+    extra = {"alfa": 1}
+
+    with pytest.raises(ValueError):
+        data.RankResult(method=method, anames=anames, rank=rank, extra=extra)

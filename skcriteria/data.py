@@ -632,7 +632,7 @@ class RankResult:
 
     _result_column = "Rank"
 
-    def __init__(self, *, method, anames, rank, extra):
+    def __init__(self, method, anames, rank, extra):
         self._validate_result(rank)
         self._method = str(method)
         self._extra = Bunch(method, extra)
@@ -655,11 +655,11 @@ class RankResult:
         return self._rank_df.index.to_numpy()
 
     @property
-    def extra_(self):
-        return self._extra
-
-    @property
     def rank_(self):
         return self._rank_df.Rank.to_numpy()
+
+    @property
+    def extra_(self):
+        return self._extra
 
     e_ = extra_
