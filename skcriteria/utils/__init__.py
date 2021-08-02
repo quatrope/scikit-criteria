@@ -21,7 +21,4 @@ from .decorators import doc_inherit
 # ALL
 # =============================================================================
 
-__all__ = [
-    "doc_inherit",
-    "Bunch"
-]
+__all__ = ["doc_inherit", "Bunch"]
