@@ -23,7 +23,7 @@ to add value to zero on an array along an arbitrary axis.
 
 import numpy as np
 
-from ..base import SKCDataValidatorMixin, SKCMatrixAndWeightTransformerMixin
+from ..base import SKCMatrixAndWeightTransformerMixin
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -98,10 +98,6 @@ class AddValueToZero(SKCMatrixAndWeightTransformerMixin):
     @value.setter
     def value(self, value):
         self._eps = float(value)
-
-    @doc_inherit(SKCDataValidatorMixin._validate_data)
-    def _validate_data(self, **kwargs):
-        pass
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
     def _transform_weights(self, weights):

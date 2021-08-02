@@ -86,23 +86,12 @@ class SKCBaseDecisionMaker:
 # =============================================================================
 
 
-class SKCDataValidatorMixin(metaclass=abc.ABCMeta):
-    """Mixin class to add a _validate_data method."""
-
-    @abc.abstractmethod
-    def _validate_data(self, **kwargs):
-        """Validate all the data previously to send to the real algorithm."""
-        raise NotImplementedError()
-
-
 # =============================================================================
 # SKCTransformer MIXIN
 # =============================================================================
 
 
-class SKCTransformerMixin(
-    SKCDataValidatorMixin, SKCBaseDecisionMaker, metaclass=abc.ABCMeta
-):
+class SKCTransformerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
@@ -140,8 +129,6 @@ class SKCTransformerMixin(
 
         """
         data = dm.to_dict()
-
-        self._validate_data(**data)
 
         transformed_data = self._transform_data(**data)
 
@@ -290,12 +277,15 @@ class SKCWeighterMixin(SKCTransformerMixin):
 # =============================================================================
 
 
-class SKCRankerMixin(
-    SKCDataValidatorMixin, SKCBaseDecisionMaker, metaclass=abc.ABCMeta
-):
+class SKCRankerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "ranker"
+
+    @abc.abstractmethod
+    def _validate_data(self, **kwargs):
+        """Validate all the data previously to send to the real algorithm."""
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def _rank_data(self, **kwargs):

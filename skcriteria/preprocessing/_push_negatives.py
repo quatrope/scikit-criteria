@@ -21,7 +21,7 @@ to push negatives values on an array along an arbitrary axis.
 
 import numpy as np
 
-from ..base import SKCDataValidatorMixin, SKCMatrixAndWeightTransformerMixin
+from ..base import SKCMatrixAndWeightTransformerMixin
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -104,10 +104,6 @@ class PushNegatives(SKCMatrixAndWeightTransformerMixin):
             \end{cases}
 
     """
-
-    @doc_inherit(SKCDataValidatorMixin._validate_data)
-    def _validate_data(self, **kwargs):
-        pass
 
     @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
     def _transform_weights(self, weights):

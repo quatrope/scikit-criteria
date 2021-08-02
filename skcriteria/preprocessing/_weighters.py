@@ -25,7 +25,7 @@ import numpy as np
 import scipy.stats
 
 from ._distance import cenit_distance
-from ..base import SKCDataValidatorMixin, SKCWeighterMixin
+from ..base import SKCWeighterMixin
 from ..utils import doc_inherit
 
 
@@ -52,10 +52,6 @@ class EqualWeighter(SKCWeighterMixin):
     def base_value(self, v):
         self._base_value = float(v)
 
-    @doc_inherit(SKCDataValidatorMixin._validate_data)
-    def _validate_data(self, **kwargs):
-        pass
-
     @doc_inherit(SKCWeighterMixin._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return equal_weights(matrix, self.base_value)
@@ -72,10 +68,6 @@ def std_weights(matrix):
 
 
 class StdWeighter(SKCWeighterMixin):
-    @doc_inherit(SKCDataValidatorMixin._validate_data)
-    def _validate_data(self, **kwargs):
-        pass
-
     @doc_inherit(SKCWeighterMixin._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return std_weights(matrix)
@@ -92,10 +84,6 @@ def entropy_weights(matrix):
 
 
 class EntropyWeighter(SKCWeighterMixin):
-    @doc_inherit(SKCDataValidatorMixin._validate_data)
-    def _validate_data(self, **kwargs):
-        pass
-
     @doc_inherit(SKCWeighterMixin._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return entropy_weights(matrix)
@@ -157,10 +145,6 @@ class Critic(SKCWeighterMixin):
             corr_keys = ", ".join(f"'{c}'" for c in self.CORRELATION)
             raise ValueError(f"Correlation must be {corr_keys} or callable")
         self._correlation = correlation_func
-
-    @doc_inherit(SKCDataValidatorMixin._validate_data)
-    def _validate_data(self, **kwargs):
-        pass
 
     @doc_inherit(SKCWeighterMixin._weight_matrix)
     def _weight_matrix(self, matrix, objectives, **kwargs):
