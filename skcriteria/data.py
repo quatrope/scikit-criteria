@@ -635,7 +635,7 @@ class RankResult:
     def __init__(self, method, anames, rank, extra):
         self._validate_result(rank)
         self._method = str(method)
-        self._extra = Bunch(method, extra)
+        self._extra = Bunch("extra", extra)
         self._rank_df = pd.DataFrame(
             rank, index=anames, columns=[self._result_column]
         )
@@ -663,3 +663,69 @@ class RankResult:
         return self._extra
 
     e_ = extra_
+
+    # CMP =====================================================================
+
+    @property
+    def shape(self):
+        """Tuple with (number_of_alternatives, number_of_alternatives).
+
+        rank.shape <==> np.shape(rank)
+
+        """
+        return np.shape(self._rank_df)
+
+    def __len__(self):
+        """Return the number ot alternatives.
+
+        rank.__len__() <==> len(rank).
+
+        """
+        return len(self._rank_df)
+
+    def equals(self, other):
+        """Check if the alternatives and ranking are the same.
+
+        The method doesn't check the method or the extra parameters.
+
+        """
+        return (self is other) or (
+            isinstance(other, RankResult)
+            and self._rank_df.equals(other._rank_df)
+        )
+
+    # REPR ====================================================================
+
+    def __repr__(self):
+        """rank.__repr__() <==> repr(rank)."""
+
+        kwargs = {"show_dimensions": False}
+
+        # retrieve the original string
+        df = self._rank_df.T
+        original_string = df.to_string(**kwargs)
+
+        # add dimension
+        string = f"{original_string}\n[Method: {self.method}]"
+
+        return string
+
+    def _repr_html_(self):
+        """Return a html representation for a particular ranking result.
+
+        Mainly for IPython notebook.
+        """
+
+        # retrieve the original string
+        df = self._rank_df.T
+        original_html = df.style.background_gradient(axis=1)._repr_html_()
+
+        # add dimension
+        html = (
+            "<div class='rankresult'>\n"
+            f"{original_html}"
+            f"<em class='rankresult-method'>Method: {self.method}</em>\n"
+            "</div>"
+        )
+
+        return html

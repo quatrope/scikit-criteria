@@ -16,9 +16,10 @@
 
 from .bunch import Bunch
 from .decorators import doc_inherit
+from .rank import rank
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["doc_inherit", "Bunch"]
+__all__ = ["doc_inherit", "rank", "Bunch"]

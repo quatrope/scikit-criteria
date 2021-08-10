@@ -303,8 +303,6 @@ class SKCRankerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
         rank, extra = self._rank_data(**data)
 
         anames = data["anames"]
-        transformed_dm = self._make_result(
-            anames=anames, rank=rank, extra=extra
-        )
+        result = self._make_result(anames=anames, rank=rank, extra=extra)
 
-        return transformed_dm
+        return result
