@@ -89,18 +89,6 @@ def test_EqualWeighter(decision_matrix):
     assert result.equals(expected)
 
 
-# TEST FUNCTIONS ==============================================================
-
-
-def test_equal_weights():
-    mtx = [[1, 2], [4, 5]]
-    weights = equal_weights(mtx, 2)
-    assert np.all(weights == [1, 1])
-
-    weights = equal_weights(mtx, 1)
-    assert np.all(weights == [0.5, 0.5])
-
-
 # =============================================================================
 # STD
 # =============================================================================
@@ -154,15 +142,6 @@ def test_StdWeighter(decision_matrix):
     assert result.equals(expected)
 
 
-# TEST FUNCTIONS ==============================================================
-
-
-def test_std_weights():
-    mtx = [[1, 2], [4, 16]]
-    weights = std_weights(mtx)
-    assert np.allclose(weights, [0.176471, 0.82352], atol=1e-5)
-
-
 # =============================================================================
 # STD
 # =============================================================================
@@ -214,15 +193,6 @@ def test_EntropyWeighter(decision_matrix):
     result = weighter.transform(dm)
 
     assert result.equals(expected)
-
-
-# TEST FUNCTIONS ==============================================================
-
-
-def test_entropy_weights():
-    mtx = [[1, 2], [4, 16]]
-    weights = entropy_weights(mtx)
-    assert np.allclose(weights, [0.589239, 0.410761], atol=1e-5)
 
 
 # =============================================================================
@@ -279,9 +249,6 @@ def test_Critic_bad_correlation():
         Critic(correlation="foo")
     with pytest.raises(ValueError):
         Critic(correlation=1)
-
-
-# TEST FUNCTIONS ==============================================================
 
 
 @pytest.mark.parametrize(

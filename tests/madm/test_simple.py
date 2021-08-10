@@ -23,7 +23,7 @@ import pytest
 
 import skcriteria
 from skcriteria.data import RankResult
-from skcriteria.madm import WSM
+from skcriteria.madm import WeightedSumModel
 from skcriteria.preprocessing import MinimizeToMaximize, SumScaler
 
 # =============================================================================
@@ -38,9 +38,11 @@ def test_SAM():
         objectives=[max, max, max],
     )
 
-    expected = RankResult("WSM", ["A0", "A1"], [2, 1], {"score": [4.0, 11.0]})
+    expected = RankResult(
+        "WeightedSumModel", ["A0", "A1"], [2, 1], {"score": [4.0, 11.0]}
+    )
 
-    ranker = WSM()
+    ranker = WeightedSumModel()
 
     result = ranker.rank(dm)
 
@@ -56,7 +58,7 @@ def test_SAM_minimize_fail():
         objectives=[max, min, max],
     )
 
-    ranker = WSM()
+    ranker = WeightedSumModel()
 
     with pytest.raises(ValueError):
         ranker.rank(dm)
@@ -92,7 +94,7 @@ def test_SAM_kracka2010ranking():
         dm = t.transform(dm)
 
     expected = RankResult(
-        "WSM",
+        "WeightedSumModel",
         ["A0", "A1", "A2", "A3", "A4", "A5"],
         [6, 1, 3, 4, 5, 2],
         {
@@ -107,7 +109,7 @@ def test_SAM_kracka2010ranking():
         },
     )
 
-    ranker = WSM()
+    ranker = WeightedSumModel()
     result = ranker.rank(dm)
 
     assert result.equals(expected)

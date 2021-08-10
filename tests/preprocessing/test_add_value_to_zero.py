@@ -172,33 +172,3 @@ def test_AddValueToZero_no_change_original_dm():
     assert (
         dm.equals(expected) and not dmt.equals(expected) and dm is not expected
     )
-
-
-# =============================================================================
-# TEST FUNCTIONS
-# =============================================================================
-
-
-@pytest.mark.parametrize(
-    "arr, expected",
-    [([1, 2, 0], [1.5, 2.5, 0.5]), ([1, 2, 3], [1, 2, 3])],
-)
-def test_add_value_to_zero_1D(arr, expected):
-    result = add_value_to_zero(arr, value=0.5)
-    assert np.all(result == expected)
-
-
-@pytest.mark.parametrize(
-    "arr, axis, expected",
-    [
-        ([[0, 0, 3], [4, 5, 6]], None, [[0.5, 0.5, 3.5], [4.5, 5.5, 6.5]]),
-        ([[1, 2, 3], [4, 5, 6]], None, [[1, 2, 3], [4, 5, 6]]),
-        ([[0, 0, 3], [4, 5, 6]], 0, [[0.5, 0.5, 3], [4.5, 5.5, 6]]),
-        ([[1, 2, 3], [4, 5, 6]], 0, [[1, 2, 3], [4, 5, 6]]),
-        ([[0, 0, 3], [4, 5, 6]], 1, [[0.5, 0.5, 3.5], [4, 5, 6]]),
-        ([[1, 2, 3], [4, 5, 6]], 1, [[1, 2, 3], [4, 5, 6]]),
-    ],
-)
-def test_add_value_to_zero_2D_columns(arr, axis, expected):
-    arr = add_value_to_zero(arr, value=0.5, axis=axis)
-    assert np.all(arr == expected)

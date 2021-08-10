@@ -33,40 +33,7 @@ from ..utils import doc_inherit, rank
 
 
 def wsm(matrix, weights):
-    r"""Caclculate a ranking using the the weighted sum model.
-
-    The score is calculates by
-
-    .. math::
-
-        A_{i}^{WSM-score} = \sum_{j=1}^{n} w_j a_{ij},\ for\ i = 1,2,3,...,m
-
-    For the maximization case, the best alternative is the one that yields
-    the maximum total performance value.
-
-    Parameters
-    ----------
-    matrix: :py:class:`numpy.ndarray` like.
-        Alternative matrix as 2D array.
-    weights: :py:class:`numpy.ndarray` like.
-        1-D Array with weights.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        Array with same elements as rows has the matrix.
-        The i-nth element has the ranking of the i-nth element of the row
-        array.
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria.madm import wsm
-        >>> wsm([[1, 2, 3], [4, 5, 6]], [0.25, 0.25, 0.5])
-        (array([2, 1]), array([2.25, 5.25]))
-
-    """
+    """Execute weighted sum model without any validation."""
     # calculate ranking by inner prodcut
 
     rank_mtx = np.inner(matrix, weights)
@@ -75,7 +42,7 @@ def wsm(matrix, weights):
     return rank(score, reverse=True), score
 
 
-class WSM(SKCRankerMixin):
+class WeightedSumModel(SKCRankerMixin):
     r"""The weighted sum model.
 
     WSM is the best known and simplest multi-criteria decision analysis for
@@ -124,7 +91,9 @@ class WSM(SKCRankerMixin):
     @doc_inherit(SKCRankerMixin._validate_data)
     def _validate_data(self, objectives, **kwargs):
         if Objective.MIN.value in objectives:
-            raise ValueError("SAM can't operate with minimize objective")
+            raise ValueError(
+                "WeightedSumModel can't operate with minimize objective"
+            )
 
     @doc_inherit(SKCRankerMixin._rank_data)
     def _rank_data(self, matrix, weights, **kwargs):
@@ -133,4 +102,45 @@ class WSM(SKCRankerMixin):
 
     @doc_inherit(SKCRankerMixin._make_result)
     def _make_result(self, anames, rank, extra):
-        return RankResult("WSM", anames=anames, rank=rank, extra=extra)
+        return RankResult(
+            "WeightedSumModel", anames=anames, rank=rank, extra=extra
+        )
+
+
+# =============================================================================
+# WPROD
+# =============================================================================
+
+
+def wpm(matrix, weights):
+    """Execute weighted product model without any validation."""
+
+    # instead of multiply we sum the logarithms
+    lmtx = np.log10(matrix)
+
+    # add the weights to the mtx
+    rank_mtx = np.multiply(lmtx, weights)
+
+    score = np.sum(rank_mtx, axis=1)
+
+    return rank.rankdata(score, reverse=True), score
+
+
+class WeightedProductModel(SKCRankerMixin):
+    @doc_inherit(SKCRankerMixin._validate_data)
+    def _validate_data(self, matrix, objectives, **kwargs):
+        if Objective.MIN.value in objectives:
+            raise ValueError("WSM can't operate with minimize objective")
+        if np.any(matrix <= 0):
+            raise ValueError("WPM can't operate with values <= 0")
+
+    @doc_inherit(SKCRankerMixin._rank_data)
+    def _rank_data(self, matrix, weights, **kwargs):
+        rank, score = wpm(matrix, weights)
+        return rank, {"score": score}
+
+    @doc_inherit(SKCRankerMixin._make_result)
+    def _make_result(self, anames, rank, extra):
+        return RankResult(
+            "WeightedProductModel", anames=anames, rank=rank, extra=extra
+        )

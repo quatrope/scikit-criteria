@@ -14,10 +14,10 @@
 # IMPORTS
 # =============================================================================
 
-from ._simple import WSM, wsm
+from ._simple import WeightedSumModel, wsm, WeightedProductModel, wpm
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["WSM", "wsm"]
+__all__ = ["WeightedSumModel", "WeightedProductModel", "wpm", "wsm"]

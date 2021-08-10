@@ -219,48 +219,6 @@ def test_MinMaxScaler_no_change_original_dm(decision_matrix):
     )
 
 
-# TEST FUNCTIONS ==============================================================
-
-
-def test_scale_by_minmax_weights(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nweights = scale_by_minmax(dm.weights, axis=0)
-    expected = (
-        (dm.weights - np.min(dm.weights))
-        / (np.max(dm.weights) - np.min(dm.weights)),
-    )
-
-    assert np.all(nweights == expected)
-
-
-def test_scale_by_minmax_matrix(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nmtx = scale_by_minmax(dm.matrix, axis=0)
-
-    mtx = dm.matrix
-    mtx_min = np.min(mtx, axis=0, keepdims=True)
-    mtx_max = np.max(mtx, axis=0, keepdims=True)
-    expected = ((mtx - mtx_min) / (mtx_max - mtx_min),)
-
-    assert np.all(nmtx == expected)
-
-
 # =============================================================================
 # TEST Standar scaler
 # =============================================================================
@@ -447,43 +405,6 @@ def test_StandarScaler_no_change_original_dm(decision_matrix):
     )
 
 
-# TEST FUNCTIONS ==============================================================
-
-
-def test_scale_by_stdscore_weights(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nweights = scale_by_stdscore(dm.weights, axis=0)
-    expected = (dm.weights - np.mean(dm.weights)) / np.std(dm.weights)
-
-    assert np.all(nweights == expected)
-
-
-def test_scale_by_stdscore_matrix(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nmtx = scale_by_stdscore(dm.matrix, axis=0)
-    expected = (
-        dm.matrix - np.mean(dm.matrix, axis=0, keepdims=True)
-    ) / np.std(dm.matrix, axis=0, keepdims=True)
-
-    assert np.all(nmtx == expected)
-
-
 # =============================================================================
 # TEST VECTOR SCALER
 # =============================================================================
@@ -660,43 +581,6 @@ def test_VectorScaler_no_change_original_dm(decision_matrix):
     )
 
 
-# TEST FUNCTIONS ==============================================================
-
-
-def test_scale_by_vector_weights(decision_matrix):
-
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nweights = scale_by_vector(dm.weights, axis=0)
-    expected = dm.weights / np.sqrt(np.sum(np.power(dm.weights, 2)))
-
-    assert np.all(nweights == expected)
-
-
-def test_scale_by_vector_matrix(decision_matrix):
-
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nmtx = scale_by_vector(dm.matrix, axis=0)
-    expected = dm.matrix / np.sqrt(np.sum(np.power(dm.matrix, 2), axis=0))
-
-    assert np.all(nmtx == expected)
-
-
 # =============================================================================
 # TEST SUM SCALER
 # =============================================================================
@@ -869,43 +753,6 @@ def test_SumScaler_no_change_original_dm(decision_matrix):
     )
 
 
-# TEST FUNCTIONS ==============================================================
-
-
-def test_scale_by_sum_weights(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nweights = scale_by_sum(dm.weights, axis=0)
-    expected = dm.weights / np.sum(dm.weights)
-
-    assert np.all(nweights == expected)
-
-
-def test_scale_by_sum_matrix(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nmtx = scale_by_sum(dm.matrix, axis=0)
-    expected = dm.matrix / np.sum(
-        dm.matrix, axis=0, keepdims=True, dtype=float
-    )
-
-    assert np.all(nmtx == expected)
-
-
 # =============================================================================
 # TEST MAX_SCALER
 # =============================================================================
@@ -1074,38 +921,3 @@ def test_MaxScaler_no_change_original_dm(decision_matrix):
     assert (
         dm.equals(expected) and not dmt.equals(expected) and dm is not expected
     )
-
-
-# TEST FUNCTIONS ==============================================================
-
-
-def test_scale_by_max_weights(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nweights = scale_by_max(dm.weights, axis=0)
-    expected = dm.weights / np.max(dm.weights)
-
-    assert np.all(nweights == expected)
-
-
-def test_scale_by_max_matrix(decision_matrix):
-
-    dm = decision_matrix(
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=20,
-        max_criteria=20,
-        min_objectives_proportion=1.0,
-    )
-
-    nmtx = scale_by_max(dm.matrix, axis=0)
-    expected = dm.matrix / np.max(dm.matrix, axis=0, keepdims=True)
-
-    assert np.all(nmtx == expected)
