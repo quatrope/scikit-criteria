@@ -21,6 +21,8 @@ import numpy as np
 
 import pandas as pd
 
+from pyquery import PyQuery
+
 import pytest
 
 from skcriteria import data
@@ -431,7 +433,8 @@ def test_simple_html():
         weights=[0.1, 0.2, 0.3],
     )
 
-    expected = """
+    expected = PyQuery(
+        """
         <div class="decisionmatrix">
             <div>
                 <style scoped="">
@@ -482,15 +485,11 @@ def test_simple_html():
             </em>
         </div>
     """
+    )
 
-    result = dm._repr_html_()
+    result = PyQuery(dm._repr_html_())
 
-    def remove_white_spaces(txt):
-        return "".join(
-            [line.strip() for line in txt.splitlines() if line.strip()]
-        )
-
-    assert remove_white_spaces(expected) == remove_white_spaces(result)
+    assert result.text() == expected.text()
 
 
 # =============================================================================
@@ -661,3 +660,92 @@ def test_RankResult_invalid_rank(rank):
 
     with pytest.raises(ValueError):
         data.RankResult(method=method, anames=anames, rank=rank, extra=extra)
+
+
+def test_RankResult_shape():
+    random = np.random.default_rng(seed=42)
+    length = random.integers(10, 100)
+
+    rank = np.arange(length) + 1
+    anames = [f"A.{r}" for r in rank]
+    method = "foo"
+    extra = {}
+
+    result = data.RankResult(
+        method=method, anames=anames, rank=rank, extra=extra
+    )
+
+    assert result.shape == (length, 1)
+
+
+def test_RankResult_len():
+    random = np.random.default_rng(seed=42)
+    length = random.integers(10, 100)
+
+    rank = np.arange(length) + 1
+    anames = [f"A.{r}" for r in rank]
+    method = "foo"
+    extra = {}
+
+    result = data.RankResult(
+        method=method, anames=anames, rank=rank, extra=extra
+    )
+
+    assert len(result) == length
+
+
+def test_RankResult_repr():
+    method = "foo"
+    anames = ["a", "b", "c"]
+    rank = [1, 2, 3]
+    extra = {"alfa": 1}
+
+    result = data.RankResult(
+        method=method, anames=anames, rank=rank, extra=extra
+    )
+
+    expected = "      a  b  c\n" "Rank  1  2  3\n" "[Method: foo]"
+
+    assert repr(result) == expected
+
+
+def test_RankResult_repr_html():
+    method = "foo"
+    anames = ["a", "b", "c"]
+    rank = [1, 2, 3]
+    extra = {"alfa": 1}
+
+    result = PyQuery(
+        data.RankResult(
+            method=method, anames=anames, rank=rank, extra=extra
+        )._repr_html_()
+    )
+
+    expected = PyQuery(
+        """
+        <div class='rankresult'>
+        <table id="T_cc7f5_" >
+            <thead>
+            <tr>
+                <th class="blank level0" ></th>
+                <th class="col_heading level0 col0" >a</th>
+                <th class="col_heading level0 col1" >b</th>
+                <th class="col_heading level0 col2" >c</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th id="T_cc7f5_level0_row0" class="row_heading level0 row0" >
+                    Rank
+                </th>
+                <td id="T_cc7f5_row0_col0" class="data row0 col0" >1</td>
+                <td id="T_cc7f5_row0_col1" class="data row0 col1" >2</td>
+                <td id="T_cc7f5_row0_col2" class="data row0 col2" >3</td>
+            </tr>
+            </tbody>
+        </table>
+        <em class='rankresult-method'>Method: foo</em>
+        </div>
+        """
+    )
+    assert result.remove("style").text() == expected.remove("style").text()
