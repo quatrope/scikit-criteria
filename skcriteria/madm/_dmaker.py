@@ -45,7 +45,7 @@
 
 import operator
 import uuid
-from collections import Mapping
+from collections.abc import Mapping
 
 import numpy as np
 

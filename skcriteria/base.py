@@ -47,7 +47,7 @@ __all__ = ['Data']
 # =============================================================================
 
 import abc
-from collections import Mapping
+from collections.abc import Mapping
 
 import numpy as np
 
