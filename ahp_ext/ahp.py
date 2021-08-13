@@ -16,7 +16,7 @@
 # IMPORTS
 # =============================================================================
 
-from collections import namedtuple
+from collections.abc import namedtuple
 
 import numpy as np
 

@@ -61,7 +61,7 @@ import skcriteria
 # =============================================================================
 
 REQUIREMENTS = [
-    "numpy", "scipy", "mock", "tabulate", "matplotlib", "PuLP-py3",
+    "numpy", "scipy", "mock", "tabulate", "matplotlib", "pulp",
     "json-tricks", "joblib", "attrs", "pytest"
 ]
 
