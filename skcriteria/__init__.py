@@ -44,7 +44,7 @@ techniques for multiple-criteria decision analysis.
 # CONSTANTS
 # =============================================================================
 
-__version__ = ("0", "2", "10")
+__version__ = ("0", "2", "11")
 
 NAME = "scikit-criteria"
 
