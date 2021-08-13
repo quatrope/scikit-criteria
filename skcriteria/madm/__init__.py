@@ -14,10 +14,18 @@
 # IMPORTS
 # =============================================================================
 
-from ._simple import WeightedProductModel, WeightedSumModel, wpm, wsm
+from ._maut import WeightedProductModel, WeightedSumModel, wpm, wsm
+from ._similarity import TOPSIS, topsis
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["WeightedSumModel", "WeightedProductModel", "wpm", "wsm"]
+__all__ = [
+    "TOPSIS",
+    "WeightedSumModel",
+    "WeightedProductModel",
+    "topsis",
+    "wpm",
+    "wsm",
+]

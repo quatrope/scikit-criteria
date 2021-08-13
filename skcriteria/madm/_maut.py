@@ -8,11 +8,10 @@
 # DOCS
 # =============================================================================
 
-"""Implementation of functionalities for inverting minimization criteria and \
-converting them into maximization ones.
-
-In addition to the main functionality, an agnostic MCDA function is offered
-that inverts columns of a matrix based on a mask.
+"""MAUT is a systematic method of identifying and analyzing multiple variables
+to provide a common basis for arriving at a decision. In the MAUT method, the
+key element is to derive a multi-attribute utility function for which single
+utility functions and their weighting factors are necessary.
 
 """
 
@@ -81,10 +80,11 @@ class WeightedSumModel(SKCRankerMixin):
     .. [fishburn1967additive] Fishburn, P. C. (1967). Letter to the
        editor-additive utilities with incomplete product sets: application
        to priorities and assignments. Operations Research, 15(3), 537-542.
-    .. [2] Weighted sum model. In Wikipedia, The Free Encyclopedia. Retrieved
-       from https://en.wikipedia.org/wiki/Weighted_sum_model
-    .. [3] Tzeng, G. H., & Huang, J. J. (2011). Multiple attribute decision
-       making: methods and applications. CRC press.
+    .. [enwiki:1033561221] Weighted sum model. In Wikipedia, The Free
+       Encyclopedia. Retrieved from
+       https://en.wikipedia.org/wiki/Weighted_sum_model
+    .. [tzeng2011multiple] Tzeng, G. H., & Huang, J. J. (2011). Multiple
+       attribute decision making: methods and applications. CRC press.
 
     """
 
@@ -127,12 +127,69 @@ def wpm(matrix, weights):
 
 
 class WeightedProductModel(SKCRankerMixin):
+    r"""The weighted product model (WPM) is a popular multi-criteria decision
+    analysis method. It is similar to the weighted sum model.
+    The main difference is that instead of addition in the main mathematical
+    operation now there is multiplication.
+
+    In general, suppose that a given MCDA problem is defined on :math:`m`
+    alternatives and :math:`n` decision criteria. Furthermore, let us assume
+    that all the criteria are benefit criteria, that is, the higher the values
+    are, the better it is. Next suppose that :math:`w_j` denotes the relative
+    weight of importance of the criterion :math:`C_j` and :math:`a_{ij}` is
+    the performance value of alternative :math:`A_i` when it is evaluated in
+    terms of criterion :math:`C_j`. Then, the total (i.e., when all the
+    criteria are considered simultaneously) importance of alternative
+    :math:`A_i`, denoted as :math:`A_{i}^{WPM-score}`, is defined as follows:
+
+    .. math::
+
+        A_{i}^{WPM-score} = \prod_{j=1}^{n} a_{ij}^{w_j},\ for\ i = 1,2,3,...,m
+
+    To avoid underflow, instead the multiplication of the values we add the
+    logarithms of the values; so :math:`A_{i}^{WPM-score}`, is finally defined
+    as:
+
+    .. math::
+
+        A_{i}^{WPM-score} = \sum_{j=1}^{n} w_j \log(a_{ij}),\
+                            for\ i = 1,2,3,...,m
+
+    For the maximization case, the best alternative is the one that yields
+    the maximum total performance value.
+
+    Raises
+    ------
+    ValueError:
+        If some objective is for minimization or some value in the matrix
+        is <= 0.
+
+    References
+    ----------
+
+    .. [bridgman1922] Bridgman, P.W. (1922). Dimensional Analysis.
+       New Haven, CT, U.S.A.: Yale University Press.
+
+    .. [miller1963executive] Miller, D.W.; M.K. Starr (1969).
+       Executive Decisions and Operations Research.
+       Englewood Cliffs, NJ, U.S.A.: Prentice-Hall, Inc.
+
+    .. [weny2007log] Wen, Y. (2007, September 16). Using log-transform to avoid
+       underflow problem in computing posterior probabilities.
+       from http://web.mit.edu/wenyang/www/log_transform_for_underflow.pdf
+
+    """
+
     @doc_inherit(SKCRankerMixin._validate_data)
     def _validate_data(self, matrix, objectives, **kwargs):
         if Objective.MIN.value in objectives:
-            raise ValueError("WSM can't operate with minimize objective")
+            raise ValueError(
+                "WeightedProductModel can't operate with minimize objective"
+            )
         if np.any(matrix <= 0):
-            raise ValueError("WPM can't operate with values <= 0")
+            raise ValueError(
+                "WeightedProductModel can't operate with values <= 0"
+            )
 
     @doc_inherit(SKCRankerMixin._rank_data)
     def _rank_data(self, matrix, weights, **kwargs):
