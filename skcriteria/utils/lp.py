@@ -56,23 +56,23 @@ import attr
 # =============================================================================
 
 SOLVERS = {
-    "pulp": pulp.solvers.PULP_CBC_CMD,
+    "pulp": pulp.PULP_CBC_CMD,
 
-    'coin': pulp.solvers.COIN,
-    'coinmp_dll': pulp.solvers.COINMP_DLL,
+    'coin': pulp.COIN,
+    'coinmp_dll': pulp.COINMP_DLL,
 
-    'cplex': pulp.solvers.CPLEX,
-    'cplex_dll': pulp.solvers.CPLEX_DLL,
-    'cplex_py': pulp.solvers.CPLEX_PY,
+    'cplex': pulp.CPLEX,
+    # 'cplex_dll': pulp.CPLEX_DLL,
+    'cplex_py': pulp.CPLEX_PY,
 
-    'glpk': pulp.solvers.GLPK,
-    'glpk_py': pulp.solvers.PYGLPK,
+    'glpk': pulp.GLPK,
+    'glpk_py': pulp.PYGLPK,
 
-    'gurobi': pulp.solvers.GUROBI,
-    'gurobi_cmd': pulp.solvers.GUROBI_CMD,
+    'gurobi': pulp.GUROBI,
+    'gurobi_cmd': pulp.GUROBI_CMD,
 
-    'xpress': pulp.solvers.XPRESS,
-    'yaposib': pulp.solvers.YAPOSIB
+    'xpress': pulp.XPRESS,
+    'yaposib': pulp.YAPOSIB
 }
 
 
