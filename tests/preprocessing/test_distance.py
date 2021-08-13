@@ -17,11 +17,8 @@
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
-
 import skcriteria
-from skcriteria.preprocessing import CenitDistance, cenit_distance
+from skcriteria.preprocessing import CenitDistance
 
 
 # =============================================================================

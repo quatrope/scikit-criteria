@@ -23,7 +23,7 @@ import pytest
 
 import skcriteria
 from skcriteria.data import RankResult
-from skcriteria.madm import WeightedSumModel
+from skcriteria.madm import WeightedProductModel, WeightedSumModel
 from skcriteria.preprocessing import MinimizeToMaximize, SumScaler
 
 # =============================================================================
@@ -31,7 +31,7 @@ from skcriteria.preprocessing import MinimizeToMaximize, SumScaler
 # =============================================================================
 
 
-def test_SAM():
+def test_WeightedSumModel():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
@@ -51,7 +51,7 @@ def test_SAM():
     assert np.all(result.e_.score == expected.e_.score)
 
 
-def test_SAM_minimize_fail():
+def test_WeightedSumModel_minimize_fail():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
@@ -64,7 +64,7 @@ def test_SAM_minimize_fail():
         ranker.rank(dm)
 
 
-def test_SAM_kracka2010ranking():
+def test_WeightedSumModel_kracka2010ranking():
     """
     Data from:
         KRACKA, M; BRAUERS, W. K. M.; ZAVADSKAS, E. K. Ranking
@@ -110,6 +110,96 @@ def test_SAM_kracka2010ranking():
     )
 
     ranker = WeightedSumModel()
+    result = ranker.rank(dm)
+
+    assert result.equals(expected)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score)
+
+
+# =============================================================================
+# WPM
+# =============================================================================
+
+
+def test_WeightedProductModel():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6]],
+        objectives=[max, max, max],
+    )
+
+    expected = RankResult(
+        "WeightedProductModel",
+        ["A0", "A1"],
+        [2, 1],
+        {"score": [0.77815125, 2.07918125]},
+    )
+
+    ranker = WeightedProductModel()
+
+    result = ranker.rank(dm)
+
+    assert result.equals(expected)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score)
+
+
+def test_WeightedProductModel_minimize_fail():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6]],
+        objectives=[max, min, max],
+    )
+
+    ranker = WeightedProductModel()
+
+    with pytest.raises(ValueError):
+        ranker.rank(dm)
+
+
+def test_WeightedProductModel_with0_fail():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 0, 6]],
+        objectives=[max, max, max],
+    )
+
+    ranker = WeightedProductModel()
+
+    with pytest.raises(ValueError):
+        ranker.rank(dm)
+
+
+def test_WeightedProductModel_enwiki_1015567716():
+    """
+    Data from:
+
+        Weighted product model. (n.d.). Retrieved January 07, 2017,
+        from http://en.wikipedia.org/wiki/Weighted_product_model
+
+    """
+    dm = skcriteria.mkdm(
+        matrix=[
+            [25, 20, 15, 30],
+            [10, 30, 20, 30],
+            [30, 10, 30, 10],
+        ],
+        objectives=[max, max, max, max],
+        weights=[20, 15, 40, 25],
+    )
+
+    expected = RankResult(
+        "WeightedProductModel",
+        ["A0", "A1", "A2"],
+        [1, 2, 3],
+        {"score": [-0.50128589, -0.50448471, -0.52947246]},
+    )
+
+    transformer = SumScaler(target="both")
+    dm = transformer.transform(dm)
+
+    ranker = WeightedProductModel()
     result = ranker.rank(dm)
 
     assert result.equals(expected)

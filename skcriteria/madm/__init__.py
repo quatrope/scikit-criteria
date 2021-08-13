@@ -14,7 +14,7 @@
 # IMPORTS
 # =============================================================================
 
-from ._simple import WeightedSumModel, wsm, WeightedProductModel, wpm
+from ._simple import WeightedProductModel, WeightedSumModel, wpm, wsm
 
 # =============================================================================
 # ALL

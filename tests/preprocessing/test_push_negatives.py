@@ -17,10 +17,8 @@
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
 import skcriteria
-from skcriteria.preprocessing import PushNegatives, push_negatives
+from skcriteria.preprocessing import PushNegatives
 
 
 # =============================================================================

@@ -26,11 +26,6 @@ from skcriteria.preprocessing import (
     StandarScaler,
     SumScaler,
     VectorScaler,
-    scale_by_max,
-    scale_by_minmax,
-    scale_by_stdscore,
-    scale_by_sum,
-    scale_by_vector,
 )
 
 # =============================================================================

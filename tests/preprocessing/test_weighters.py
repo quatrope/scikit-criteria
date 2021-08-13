@@ -30,11 +30,8 @@ from skcriteria.preprocessing import (
     EqualWeighter,
     StdWeighter,
     critic_weights,
-    entropy_weights,
-    equal_weights,
     pearson_correlation,
     spearman_correlation,
-    std_weights,
 )
 
 # =============================================================================

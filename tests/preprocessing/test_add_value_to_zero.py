@@ -17,12 +17,8 @@
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
-import pytest
-
 import skcriteria
-from skcriteria.preprocessing import AddValueToZero, add_value_to_zero
+from skcriteria.preprocessing import AddValueToZero
 
 
 # =============================================================================

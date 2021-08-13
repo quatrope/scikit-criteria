@@ -123,7 +123,7 @@ def wpm(matrix, weights):
 
     score = np.sum(rank_mtx, axis=1)
 
-    return rank.rankdata(score, reverse=True), score
+    return rank(score, reverse=True), score
 
 
 class WeightedProductModel(SKCRankerMixin):
