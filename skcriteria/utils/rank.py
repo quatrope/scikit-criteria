@@ -8,10 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""This module contains functions for calculate and compare ranks (ordinal
-series)
-
-"""
+"""Functions for calculate and compare ranks (ordinal series)."""
 
 
 # =============================================================================
@@ -31,10 +28,8 @@ from scipy import stats
 def rank(arr, reverse=False):
     """Evaluate an array and return a 1 based ranking.
 
-
     Parameters
     ----------
-
     arr : (:py:class:`numpy.ndarray`, :py:class:`numpy.ndarray`)
         A array with values
 
@@ -53,7 +48,7 @@ def rank(arr, reverse=False):
     --------
     .. code-block:: pycon
 
-        >>> from skcriteria.util import rank
+        >>> from skcriteria.util.rank import rank
         >>> # the fastest (the lowest value) goes first
         >>> time_laps = [0.59, 1.2, 0.3]
         >>> rank(time_laps)

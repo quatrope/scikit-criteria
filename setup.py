@@ -37,7 +37,7 @@ REQUIREMENTS = [
     "jinja2",
     "custom_inherit",
     "matplotlib",
-    "pulp"
+    "pulp",
 ]
 
 

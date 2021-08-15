@@ -23,6 +23,7 @@ the underlining PuLP model
 import pulp
 
 from .bunch import Bunch
+from .decorators import doc_inherit
 
 
 # =============================================================================
@@ -43,14 +44,53 @@ class _Var(pulp.LpVariable):
 
 
 class Float(_Var):
+    """:class:`pulp.LpVariable` with :class:`pulp.LpContinuous` category.
+
+    Example
+    -------
+    This two codes are equivalent.
+
+    .. code-block:: python
+
+        x = pulp.LpVariable("x", cat=pulp.LpContinuous)  # pure PuLP
+        x = lp.Float("x")  # skcriteria.utils.lp version
+
+    """
+
     var_type = pulp.LpContinuous
 
 
 class Int(_Var):
+    """:class:`pulp.LpVariable` with :class:`pulp.LpInteger` category.
+
+    Example
+    -------
+    This two codes are equivalent.
+
+    .. code-block:: python
+
+        x = pulp.LpVariable("x", cat=pulp.LpInteger)  # pure PuLP
+        x = lp.Int("x")  # skcriteria.utils.lp version
+
+    """
+
     var_type = pulp.LpInteger
 
 
 class Bool(_Var):
+    """:class:`pulp.LpVariable` with :class:`pulp.LpBinary` category.
+
+    Example
+    -------
+    This two codes are equivalent.
+
+    .. code-block:: python
+
+        x = pulp.LpVariable("x", cat=pulp.LpBinary)  # pure PuLP
+        x = lp.Bool("x")  # skcriteria.utils.lp version
+
+    """
+
     var_type = pulp.LpBinary
 
 
@@ -60,12 +100,62 @@ class Bool(_Var):
 
 
 class _LPBase:
+    """Creates a LP problem with a way better sintax than PuLP.
+
+    Parameters
+    ----------
+    z: :class:`LpAffineExpression`
+        A linear combination of :class:`LpVariables<LpVariable>`.
+    name: str (default="no-name")
+        Name of the problem.
+    solver: None, str or any :class:`pulp.LpSolver` instance (default=None)
+        Solver of the problem. If it's None, the default solver is used.
+    solver_kwds: dict
+        Dictionary of keyword arguments for the solver.
+
+    Example
+    -------
+
+    .. code-block:: python
+
+        # variable declaration
+        x0 = lp.Float("x0", low=0)
+        x1 = lp.Float("x1", low=0)
+        x2 = lp.Float("x2", low=0)
+
+        # model
+        model = lp.Maximize(  # or lp.Minimize
+            z=250 * x0 + 130 * x1 + 350 * x2
+        )
+
+        # constraints
+        model.subject_to(
+            120 * x0 + 200 * x1 + 340 * x2 <= 500,
+            -20 * x0 + -40 * x1 + -15 * x2 <= -15,
+            800 * x0 + 1000 * x1 + 600 * x2 <= 1000,
+        )
+
+    Also you can create the model and the constraints in one "line".
+
+    .. code-block:: python
+
+        model = lp.Maximize(   or lp.Minimize
+            z=250 * x0 + 130 * x1 + 350 * x2, solver=solver
+        ).subject_to(
+            120 * x0 + 200 * x1 + 340 * x2 <= 500,
+            -20 * x0 + -40 * x1 + -15 * x2 <= -15,
+            800 * x0 + 1000 * x1 + 600 * x2 <= 1000,
+        )
+
+    """
+
     def __init__(self, z, name="no-name", solver=None, **solver_kwds):
+        """Create an instance of problem solver."""
         problem = pulp.LpProblem(name, self.sense)
-        if solver:
+        if solver is not None:
             if isinstance(solver, str):
                 solver = pulp.getSolver(solver.upper(), **solver_kwds)
-            problem.solver = solver
+            problem.setSolver(solver)
 
         problem += z, "Z"
 
@@ -86,11 +176,35 @@ class _LPBase:
         return Bunch("variables", self._problem.variablesDict())
 
     def subject_to(self, *args):
+        """Add a constraint to a underliying puLP problem.
+
+        Parameters
+        ----------
+        args: tuple
+            Multiple :class:`LpAffineExpression`
+
+        Returns
+        -------
+        self:
+            Return the same instance.
+
+
+        """
         for c in args:
             self._problem += c
         return self
 
     def solve(self):
+        """Solve the underlying problem and create a report as a dict.
+
+        The method copy the original problem, and then solve it.
+
+        Returns
+        -------
+        result: dict-like.
+            Report of the problem as dict-like.
+
+        """
         problem = self._problem.copy()
         problem.solve()
 
@@ -120,9 +234,15 @@ class _LPBase:
 # =============================================================================
 
 
+@doc_inherit(_LPBase)
 class Minimize(_LPBase):
+    """Creates a Minimize LP problem with a way better sintax than PuLP."""
+
     sense = pulp.LpMinimize
 
 
+@doc_inherit(_LPBase)
 class Maximize(_LPBase):
+    """Creates a Maximize LP problem with a way better sintax than PuLP."""
+
     sense = pulp.LpMaximize

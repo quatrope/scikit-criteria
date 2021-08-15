@@ -413,6 +413,7 @@ class DecisionMatrix:
         return df
 
     def to_dict(self):
+        """Return a dict representation of the data."""
         return {
             "matrix": self.matrix,
             "objectives": self.objectives_values,
