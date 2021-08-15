@@ -14,6 +14,7 @@
 # IMPORTS
 # =============================================================================
 
+from . import lp
 from .bunch import Bunch
 from .decorators import doc_inherit
 from .rank import rank
@@ -22,4 +23,4 @@ from .rank import rank
 # ALL
 # =============================================================================
 
-__all__ = ["doc_inherit", "rank", "Bunch"]
+__all__ = ["doc_inherit", "rank", "Bunch", "lp"]
