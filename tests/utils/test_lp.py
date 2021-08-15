@@ -17,6 +17,8 @@
 # IMPORTS
 # =============================================================================
 
+import numpy as np
+
 import pytest
 
 from skcriteria.utils import lp
@@ -26,7 +28,9 @@ from skcriteria.utils import lp
 # =============================================================================
 
 
-@pytest.mark.parametrize("solver", [None, "PULP_CBC_CMD"])
+@pytest.mark.parametrize(
+    "solver", [None, "PULP_CBC_CMD", "pulp", "PuLP", "PULP"]
+)
 def test_maximize(solver):
 
     x0 = lp.Float("x0", low=0)
@@ -48,8 +52,8 @@ def test_maximize(solver):
     result = model.solve()
     assert result.lp_status == "Optimal"
     assert result.lp_objective == 540
-    assert result.lp_variables == ["x0", "x1", "x2"]
-    assert result.lp_values == [0.2, 0.0, 1.4]
+    assert np.all(result.lp_variables == ["x0", "x1", "x2"])
+    assert np.all(result.lp_values == [0.2, 0.0, 1.4])
 
     expected_repr = (
         "Maximize(250*x0 + 130*x1 + 350*x2).subject_to(\n"
@@ -62,7 +66,9 @@ def test_maximize(solver):
     assert repr(model) == expected_repr
 
 
-@pytest.mark.parametrize("solver", [None, "PULP_CBC_CMD"])
+@pytest.mark.parametrize(
+    "solver", [None, "PULP_CBC_CMD", "pulp", "PuLP", "PULP"]
+)
 def test_minimize_from_matrix(solver):
 
     x0 = lp.Float("x0", low=0)
@@ -84,8 +90,8 @@ def test_minimize_from_matrix(solver):
     result = model.solve()
     assert result.lp_status == "Optimal"
     assert result.lp_objective == 325
-    assert result.lp_variables == ["x0", "x1", "x2"]
-    assert result.lp_values == [0.0, 2.5, 0.0]
+    assert np.all(result.lp_variables == ["x0", "x1", "x2"])
+    assert np.all(result.lp_values == [0.0, 2.5, 0.0])
 
     expected_repr = (
         "Minimize(250*x0 + 130*x1 + 350*x2).subject_to(\n"

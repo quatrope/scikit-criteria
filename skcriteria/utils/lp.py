@@ -20,6 +20,8 @@ the underlining PuLP model
 # IMPORTS
 # =============================================================================
 
+import numpy as np
+
 import pulp
 
 from .bunch import Bunch
@@ -110,6 +112,7 @@ class _LPBase:
         Name of the problem.
     solver: None, str or any :class:`pulp.LpSolver` instance (default=None)
         Solver of the problem. If it's None, the default solver is used.
+        PULP is an alias os None.
     solver_kwds: dict
         Dictionary of keyword arguments for the solver.
 
@@ -152,7 +155,7 @@ class _LPBase:
     def __init__(self, z, name="no-name", solver=None, **solver_kwds):
         """Create an instance of problem solver."""
         problem = pulp.LpProblem(name, self.sense)
-        if solver is not None:
+        if solver is not None and solver.upper() != "PULP":  # None == PULP
             if isinstance(solver, str):
                 solver = pulp.getSolver(solver.upper(), **solver_kwds)
             problem.setSolver(solver)
@@ -221,8 +224,8 @@ class _LPBase:
             "lp_status_code": problem.status,
             "lp_status": status,
             "lp_objective": objective,
-            "lp_variables": variables,
-            "lp_values": values,
+            "lp_variables": np.asarray(variables),
+            "lp_values": np.asarray(values),
             "lp_problem": problem,
         }
 
