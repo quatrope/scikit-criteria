@@ -27,6 +27,17 @@ import pulp
 from .bunch import Bunch
 from .decorators import doc_inherit
 
+# =============================================================================
+# UTILITIES
+# =============================================================================
+
+
+def is_solver_available(solver):
+    """Return True if the solver is available."""
+    return solver is None or solver.upper() in ["PULP"] + pulp.list_solvers(
+        onlyAvailable=True
+    )
+
 
 # =============================================================================
 # VARIABLES

@@ -29,6 +29,21 @@ from skcriteria.utils import lp
 
 
 @pytest.mark.parametrize(
+    "solver, expected",
+    [
+        (None, True),
+        ("PULP_CBC_CMD", True),
+        ("pulp", True),
+        ("PuLP", True),
+        ("PULP", True),
+        ("foo", False),
+    ],
+)
+def test_is_available(solver, expected):
+    assert lp.is_solver_available(solver) is expected
+
+
+@pytest.mark.parametrize(
     "solver", [None, "PULP_CBC_CMD", "pulp", "PuLP", "PULP"]
 )
 def test_maximize(solver):
