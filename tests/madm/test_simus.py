@@ -53,21 +53,64 @@ def test_SIMUS_munier24metodo():
     b = [None, 500, None, None]
 
     expected = RankResult(
-        "TOPSIS",
-        ["A0", "A1"],
-        [2, 1],
+        "SIMUS",
+        ["Proyecto 1", "Proyecto 2", "Proyecto 3"],
+        [3, 2, 1],
         {
-            "ideal": [1, 5, 6],
-            "anti_ideal": [0, 0, 3],
-            "similarity": [0.14639248, 0.85360752],
+            "method_1_score": [0.09090909, 0.66603535, 0.74305556],
+            "method_2_score": [-2.45454545, 0.99621211, 1.45833334],
+            "rank_by": 1,
         },
     )
 
     ranker = SIMUS()
     result = ranker.rank(dm, b=b)
 
-    # assert result.equals(expected)
-    # assert result.method == expected.method
-    # assert np.all(result.e_.ideal == expected.e_.ideal)
-    # assert np.allclose(result.e_.anti_ideal, expected.e_.anti_ideal)
-    # assert np.allclose(result.e_.similarity, expected.e_.similarity)
+    assert result.equals(expected)
+    assert result.method == expected.method
+    assert np.all(result.e_.b == b)
+    assert np.all(result.e_.rank_by == expected.e_.rank_by)
+    assert np.allclose(result.e_.method_1_score, expected.e_.method_1_score)
+    assert np.allclose(result.e_.method_2_score, expected.e_.method_2_score)
+
+
+def test_SIMUS_solver_not_available():
+    with pytest.raises(ValueError):
+        SIMUS(solver="fooo")
+
+
+def test_SIMUS_solver_incorrect_rank_by():
+    with pytest.raises(ValueError):
+        SIMUS(rank_by=3)
+
+
+def test_SIMUS_multiple_weights_warning():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [250, 120, 20, 800],
+            [130, 200, 40, 1000],
+            [350, 340, 15, 600],
+        ],
+        objectives=[max, max, min, max],
+        weights=[1, 2, 3, 4],
+    )
+
+    ranker = SIMUS()
+    with pytest.warns(UserWarning):
+        ranker.rank(dm)
+
+
+def test_SIMUS_incorrect_b():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [250, 120, 20, 800],
+            [130, 200, 40, 1000],
+            [350, 340, 15, 600],
+        ],
+        objectives=[max, max, min, max],
+    )
+    b = [1, 2, 3]
+
+    ranker = SIMUS()
+    with pytest.raises(ValueError):
+        ranker.rank(dm, b=b)

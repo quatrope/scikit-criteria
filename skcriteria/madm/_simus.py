@@ -216,8 +216,9 @@ class SIMUS(SKCRankerMixin):
 
     @solver.setter
     def solver(self, solver):
-        if isinstance(solver, lp.pulp.LpSolver) and not lp.is_solver_available(
-            solver
+        if not (
+            isinstance(solver, lp.pulp.LpSolver)
+            or lp.is_solver_available(solver)
         ):
             raise ValueError(f"solver {solver} not available")
         self._solver = solver
