@@ -16,15 +16,18 @@
 
 from ._maut import WeightedProductModel, WeightedSumModel, wpm, wsm
 from ._similarity import TOPSIS, topsis
+from ._simus import SIMUS, simus
 
 # =============================================================================
 # ALL
 # =============================================================================
 
 __all__ = [
+    "SIMUS",
     "TOPSIS",
     "WeightedSumModel",
     "WeightedProductModel",
+    "simus",
     "topsis",
     "wpm",
     "wsm",
