@@ -8,14 +8,13 @@
 # DOCS
 # =============================================================================
 
-"""SIMUS (Sequential Interactive Model for Urban Systems) Method"""
+"""SIMUS (Sequential Interactive Model for Urban Systems) Method."""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import operator
 import warnings
 
 import numpy as np
@@ -23,7 +22,7 @@ import numpy as np
 from ..base import SKCRankerMixin
 from ..data import Objective, RankResult
 from ..preprocessing import scale_by_sum
-from ..utils import doc_inherit, rank, lp
+from ..utils import doc_inherit, lp, rank
 
 # =============================================================================
 # INTERNAL FUNCTIONS
@@ -156,7 +155,7 @@ def _second_method(*, stages_results):
 
 
 def simus(matrix, objectives, b=None, rank_by=1, solver="pulp"):
-
+    """Execute SIMUS without any validation."""
     transposed_matrix = matrix.T
 
     # check the b array and complete the missing values
@@ -166,7 +165,7 @@ def simus(matrix, objectives, b=None, rank_by=1, solver="pulp"):
         maxs = np.max(transposed_matrix, axis=1)
 
         auto_b = np.where(objectives == Objective.MIN.value, mins, maxs)
-        b = np.where(b != None, b, auto_b)
+        b = np.where(b != None, b, auto_b)  # noqa
 
     # create and execute the stages
     stages, stages_results = _solve_stages(
@@ -206,12 +205,55 @@ def simus(matrix, objectives, b=None, rank_by=1, solver="pulp"):
 
 
 class SIMUS(SKCRankerMixin):
+    r"""SIMUS (Sequential Interactive Model for Urban Systems).
+
+    SIMUS developed by Nolberto Munier (2011) is a tool to aid decision-making
+    problems with multiple objectives. The method solves successive scenarios
+    formulated as linear programs. For each scenario, the decision-maker must
+    choose the criterion to be considered objective while the remaining
+    restrictions constitute the constrains system that the projects are subject
+    to. In each case, if there is a feasible solution that is optimum, it is
+    recorded in a matrix of efficient results. Then, from this matrix two
+    rankings allow the decision maker to compare results obtained by different
+    procedures. The first ranking is obtained through a linear weighting of
+    each column by a factor - equivalent of establishing a weight - and that
+    measures the participation of the corresponding project. In the second
+    ranking, the method uses dominance and subordinate relationships between
+    projects, concepts from the French school of MCDM.
+
+    Parameters
+    ----------
+    rank_by : 1 or 2 (default=1)
+        Witch of the two methods are used to calculate the ranking.
+        The two methods are executed always.
+    solver : str, (default="pulp")
+        Which solver to use to solve the underlying linear programs. The full
+        list are available in `pulp.listSolvers(True)`. "pulp" or None used
+        the default solver selected by "PuLP".
+
+    Warnings
+    --------
+    UserWarning:
+        If the method detect different weights by criteria.
+
+    Raises
+    ------
+    ValueError:
+        If the length of b does not match the number of criteria.
+
+    See
+    ---
+    `PuLP Documentation <https://coin-or.github.io/pulp/>`_
+
+    """
+
     def __init__(self, *, rank_by=1, solver="pulp"):
         self.solver = solver
         self.rank_by = rank_by
 
     @property
     def solver(self):
+        """Solver used by PuLP."""
         return self._solver
 
     @solver.setter
@@ -225,6 +267,7 @@ class SIMUS(SKCRankerMixin):
 
     @property
     def rank_by(self):
+        """Which of the two ranking provided by SIMUS is used."""
         return self._rank_by
 
     @rank_by.setter
@@ -277,6 +320,36 @@ class SIMUS(SKCRankerMixin):
         return RankResult("SIMUS", anames=anames, rank=rank, extra=extra)
 
     def rank(self, dm, *, b=None):
+        """Validate the decision matrix and calculate a ranking.
+
+        Parameters
+        ----------
+        dm: :py:class:`skcriteria.data.DecisionMatrix`
+            Decision matrix on which the ranking will be calculated.
+        b: :py:class:`numpy.ndarray`
+            Right-side-value of the LP problem,
+
+            SIMUS automatically assigns the vector of the right side (b) in
+            the constraints of linear programs.
+
+            If the criteria are to maximize, then the constraint is <=;
+            and if the column minimizes the constraint is >=.
+            The b/right side value limits of the constraint are chosen
+            automatically based on the minimum or maximum value of the
+            criteria/column if the constraint is <= or >= respectively.
+
+            The user provides "b" in some criteria and lets SIMUS choose
+            automatically others.  For example, if you want to limit the two
+            constraints of the dm with 4 criteria by the value 100,  b must be
+            `[None, 100, 100, None]` where None will be chosen automatically
+            by SIMUS.
+
+        Returns
+        -------
+        :py:class:`skcriteria.data.RankResult`
+            Ranking.
+
+        """
         data = dm.to_dict()
         b = b if b is None else np.asarray(b)
 

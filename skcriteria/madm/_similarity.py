@@ -8,11 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""Methods based on an aggregating function representing
-“closeness to the ideal”.
-
-
-"""
+"""Methods based on similarity function."""
 
 # =============================================================================
 # IMPORTS
@@ -34,7 +30,6 @@ from ..utils import doc_inherit, rank
 
 def topsis(matrix, objectives, weights):
     """Execute TOPSIS without any validation."""
-
     # apply weights
     wmtx = np.multiply(matrix, weights)
 
@@ -58,7 +53,9 @@ def topsis(matrix, objectives, weights):
 
 
 class TOPSIS(SKCRankerMixin):
-    """TOPSIS is based on the concept that the chosen alternative should have
+    """The Technique for Order of Preference by Similarity to Ideal Solution.
+
+    TOPSIS is based on the concept that the chosen alternative should have
     the shortest geometric distance from the ideal solution and the longest
     euclidean distance from the worst solution.
 
@@ -69,14 +66,11 @@ class TOPSIS(SKCRankerMixin):
 
     Warnings
     --------
-
     UserWarning:
         If some objective is to minimize.
 
-
     References
     ----------
-
     .. [hwang1981methods] Hwang, C. L., & Yoon, K. (1981). Methods for multiple
        attribute decision making. In Multiple attribute decision making
        (pp. 58-191). Springer, Berlin, Heidelberg.

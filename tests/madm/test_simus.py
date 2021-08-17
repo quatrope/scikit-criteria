@@ -24,7 +24,6 @@ import pytest
 import skcriteria
 from skcriteria.data import RankResult
 from skcriteria.madm import SIMUS
-from skcriteria.preprocessing import VectorScaler
 
 # =============================================================================
 # TEST CLASSES

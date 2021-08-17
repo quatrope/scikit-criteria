@@ -8,7 +8,9 @@
 # DOCS
 # =============================================================================
 
-"""MAUT is a systematic method of identifying and analyzing multiple variables
+"""Multi-attribute utility theory (MAUT).
+
+MAUT is a systematic method of identifying and analyzing multiple variables
 to provide a common basis for arriving at a decision. In the MAUT method, the
 key element is to derive a multi-attribute utility function for which single
 utility functions and their weighting factors are necessary.
@@ -76,7 +78,6 @@ class WeightedSumModel(SKCRankerMixin):
 
     References
     ----------
-
     .. [fishburn1967additive] Fishburn, P. C. (1967). Letter to the
        editor-additive utilities with incomplete product sets: application
        to priorities and assignments. Operations Research, 15(3), 537-542.
@@ -114,7 +115,6 @@ class WeightedSumModel(SKCRankerMixin):
 
 def wpm(matrix, weights):
     """Execute weighted product model without any validation."""
-
     # instead of multiply we sum the logarithms
     lmtx = np.log10(matrix)
 
@@ -127,7 +127,9 @@ def wpm(matrix, weights):
 
 
 class WeightedProductModel(SKCRankerMixin):
-    r"""The weighted product model (WPM) is a popular multi-criteria decision
+    r"""The weighted product model.
+
+    WPM is a popular multi-criteria decision
     analysis method. It is similar to the weighted sum model.
     The main difference is that instead of addition in the main mathematical
     operation now there is multiplication.
@@ -166,7 +168,6 @@ class WeightedProductModel(SKCRankerMixin):
 
     References
     ----------
-
     .. [bridgman1922] Bridgman, P.W. (1922). Dimensional Analysis.
        New Haven, CT, U.S.A.: Yale University Press.
 

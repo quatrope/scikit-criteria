@@ -296,6 +296,19 @@ class SKCRankerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     def rank(self, dm):
+        """Validate the decision matrix and calculate a ranking.
+
+        Parameters
+        ----------
+        dm: :py:class:`skcriteria.data.DecisionMatrix`
+            Decision matrix on which the ranking will be calculated.
+
+        Returns
+        -------
+        :py:class:`skcriteria.data.RankResult`
+            Ranking.
+
+        """
         data = dm.to_dict()
 
         self._validate_data(**data)
