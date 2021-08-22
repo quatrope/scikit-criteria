@@ -15,6 +15,7 @@
 # =============================================================================
 
 from ._maut import WeightedProductModel, WeightedSumModel, wpm, wsm
+from ._moora import RatioMOORA, ratio
 from ._similarity import TOPSIS, topsis
 from ._simus import SIMUS, simus
 
