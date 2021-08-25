@@ -17,9 +17,15 @@
 import numpy as np
 
 
+import pytest
+
 import skcriteria
 from skcriteria.data import RankResult
-from skcriteria.madm import RatioMOORA, ReferencePointMOORA
+from skcriteria.madm import (
+    FullMultiplicativeFormMOORA,
+    RatioMOORA,
+    ReferencePointMOORA,
+)
 from skcriteria.preprocessing import VectorScaler
 
 # =============================================================================
@@ -131,3 +137,118 @@ def test_ReferencePointMOORA_kracka2010ranking():
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)
     assert np.allclose(result.e_.reference_point, expected.e_.reference_point)
+
+
+def test_FullMultiplicativeFormMOORA_kracka2010ranking():
+    """
+    Data From:
+        KRACKA, M; BRAUERS, W. K. M.; ZAVADSKAS, E. K. Ranking
+        Heating Losses in a Building by Applying the MULTIMOORA . -
+        ISSN 1392 - 2785 Inz
+    """
+    dm = skcriteria.mkdm(
+        matrix=[
+            [33.95, 23.78, 11.45, 39.97, 29.44, 167.10, 3.852],
+            [38.9, 4.17, 6.32, 0.01, 4.29, 132.52, 25.184],
+            [37.59, 9.36, 8.23, 4.35, 10.22, 136.71, 10.845],
+            [30.44, 37.59, 13.91, 74.08, 45.10, 198.34, 2.186],
+            [36.21, 14.79, 9.17, 17.77, 17.06, 148.3, 6.610],
+            [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935],
+        ],
+        objectives=[min, min, min, min, max, min, max],
+        anames=["A1", "A2", "A3", "A4", "A5", "A6"],
+        cnames=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+    )
+
+    expected = RankResult(
+        "FullMultiplicativeFormMOORA",
+        ["A1", "A2", "A3", "A4", "A5", "A6"],
+        [5, 1, 3, 6, 4, 2],
+        {
+            "score": np.log(
+                [3.4343, 148689.356, 120.3441, 0.7882, 16.2917, 252.9155]
+            ),
+        },
+    )
+
+    transformer = VectorScaler(target="matrix")
+    dm = transformer.transform(dm)
+
+    ranker = FullMultiplicativeFormMOORA()
+    result = ranker.rank(dm)
+
+    assert result.equals(expected)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
+
+
+def test_FullMultiplicativeFormMOORA_only_minimize():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+        ],
+        objectives=[min, min, min],
+    )
+
+    expected = RankResult(
+        "FullMultiplicativeFormMOORA",
+        ["A0", "A1", "A2"],
+        [1, 2, 3],
+        {
+            "score": np.log([398.42074767, 19.92103738, 4.74310414]),
+        },
+    )
+
+    transformer = VectorScaler(target="matrix")
+    dm = transformer.transform(dm)
+
+    ranker = FullMultiplicativeFormMOORA()
+    result = ranker.rank(dm)
+
+    assert result.equals(expected)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
+
+
+def test_FullMultiplicativeFormMOORA_only_maximize():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [1, 2, 3],
+            [4, 5, 6],
+            [7, 8, 9],
+        ],
+        objectives=[max, max, max],
+    )
+
+    expected = RankResult(
+        "FullMultiplicativeFormMOORA",
+        ["A0", "A1", "A2"],
+        [3, 2, 1],
+        {
+            "score": np.log([0.00682264, 0.13645283, 0.57310187]),
+        },
+    )
+
+    transformer = VectorScaler(target="matrix")
+    dm = transformer.transform(dm)
+
+    ranker = FullMultiplicativeFormMOORA()
+    result = ranker.rank(dm)
+
+    assert result.equals(expected)
+    assert result.method == expected.method
+
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
+
+
+def test_FullMultiplicativeFormMOORA_with0_fail():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 0, 6]],
+        objectives=[max, max, max],
+    )
+
+    ranker = FullMultiplicativeFormMOORA()
+    with pytest.raises(ValueError):
+        ranker.rank(dm)

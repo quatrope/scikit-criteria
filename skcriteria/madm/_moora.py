@@ -91,3 +91,52 @@ class ReferencePointMOORA(SKCRankerMixin):
         return RankResult(
             "ReferencePointMOORA", anames=anames, rank=rank, extra=extra
         )
+
+
+# =============================================================================
+# FULL MULTIPLICATIVE FORM
+# =============================================================================
+
+
+def fmf(matrix, objectives, weights):
+
+    weighted_matrix = np.log(np.multiply(matrix, weights))
+
+    if Objective.MAX.value in objectives:
+        max_columns = weighted_matrix[:, objectives == Objective.MAX.value]
+        Aj = np.sum(max_columns, axis=1)
+    else:
+        Aj = 1.0
+
+    if Objective.MIN.value in objectives:
+        min_columns = weighted_matrix[:, objectives == Objective.MIN.value]
+        Bj = np.sum(min_columns, axis=1)
+    else:
+        Bj = 0.0
+
+    score = Aj - Bj
+
+    return rank(score, reverse=True), score
+
+
+class FullMultiplicativeFormMOORA(SKCRankerMixin):
+    @doc_inherit(SKCRankerMixin._validate_data)
+    def _validate_data(self, matrix, **kwargs):
+        if np.any(matrix <= 0):
+            raise ValueError(
+                "FullMultiplicativeFormMOORA can't operate with values <= 0"
+            )
+
+    @doc_inherit(SKCRankerMixin._rank_data)
+    def _rank_data(self, matrix, objectives, weights, **kwargs):
+        rank, score = fmf(matrix, objectives, weights)
+        return rank, {"score": score}
+
+    @doc_inherit(SKCRankerMixin._make_result)
+    def _make_result(self, anames, rank, extra):
+        return RankResult(
+            "FullMultiplicativeFormMOORA",
+            anames=anames,
+            rank=rank,
+            extra=extra,
+        )

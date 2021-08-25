@@ -15,7 +15,14 @@
 # =============================================================================
 
 from ._maut import WeightedProductModel, WeightedSumModel, wpm, wsm
-from ._moora import RatioMOORA, ReferencePointMOORA, ratio, refpoint
+from ._moora import (
+    FullMultiplicativeFormMOORA,
+    RatioMOORA,
+    ReferencePointMOORA,
+    fmf,
+    ratio,
+    refpoint,
+)
 from ._similarity import TOPSIS, topsis
 from ._simus import SIMUS, simus
 
@@ -24,12 +31,14 @@ from ._simus import SIMUS, simus
 # =============================================================================
 
 __all__ = [
+    "FullMultiplicativeFormMOORA",
     "RatioMOORA",
     "ReferencePointMOORA",
     "SIMUS",
     "TOPSIS",
     "WeightedSumModel",
     "WeightedProductModel",
+    "fmf",
     "ratio",
     "refpoint",
     "simus",
