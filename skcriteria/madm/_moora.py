@@ -119,12 +119,12 @@ def fmf(matrix, objectives, weights):
     return rank(score, reverse=True), score
 
 
-class FullMultiplicativeFormMOORA(SKCRankerMixin):
+class FullMultiplicativeForm(SKCRankerMixin):
     @doc_inherit(SKCRankerMixin._validate_data)
     def _validate_data(self, matrix, **kwargs):
         if np.any(matrix <= 0):
             raise ValueError(
-                "FullMultiplicativeFormMOORA can't operate with values <= 0"
+                "FullMultiplicativeForm can't operate with values <= 0"
             )
 
     @doc_inherit(SKCRankerMixin._rank_data)
@@ -135,7 +135,7 @@ class FullMultiplicativeFormMOORA(SKCRankerMixin):
     @doc_inherit(SKCRankerMixin._make_result)
     def _make_result(self, anames, rank, extra):
         return RankResult(
-            "FullMultiplicativeFormMOORA",
+            "FullMultiplicativeForm",
             anames=anames,
             rank=rank,
             extra=extra,

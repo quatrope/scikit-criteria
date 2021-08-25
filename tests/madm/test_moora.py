@@ -22,7 +22,7 @@ import pytest
 import skcriteria
 from skcriteria.data import RankResult
 from skcriteria.madm import (
-    FullMultiplicativeFormMOORA,
+    FullMultiplicativeForm,
     RatioMOORA,
     ReferencePointMOORA,
 )
@@ -139,7 +139,7 @@ def test_ReferencePointMOORA_kracka2010ranking():
     assert np.allclose(result.e_.reference_point, expected.e_.reference_point)
 
 
-def test_FullMultiplicativeFormMOORA_kracka2010ranking():
+def test_FullMultiplicativeForm_kracka2010ranking():
     """
     Data From:
         KRACKA, M; BRAUERS, W. K. M.; ZAVADSKAS, E. K. Ranking
@@ -161,7 +161,7 @@ def test_FullMultiplicativeFormMOORA_kracka2010ranking():
     )
 
     expected = RankResult(
-        "FullMultiplicativeFormMOORA",
+        "FullMultiplicativeForm",
         ["A1", "A2", "A3", "A4", "A5", "A6"],
         [5, 1, 3, 6, 4, 2],
         {
@@ -174,7 +174,7 @@ def test_FullMultiplicativeFormMOORA_kracka2010ranking():
     transformer = VectorScaler(target="matrix")
     dm = transformer.transform(dm)
 
-    ranker = FullMultiplicativeFormMOORA()
+    ranker = FullMultiplicativeForm()
     result = ranker.rank(dm)
 
     assert result.equals(expected)
@@ -182,7 +182,7 @@ def test_FullMultiplicativeFormMOORA_kracka2010ranking():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
 
 
-def test_FullMultiplicativeFormMOORA_only_minimize():
+def test_FullMultiplicativeForm_only_minimize():
     dm = skcriteria.mkdm(
         matrix=[
             [1, 2, 3],
@@ -193,7 +193,7 @@ def test_FullMultiplicativeFormMOORA_only_minimize():
     )
 
     expected = RankResult(
-        "FullMultiplicativeFormMOORA",
+        "FullMultiplicativeForm",
         ["A0", "A1", "A2"],
         [1, 2, 3],
         {
@@ -204,7 +204,7 @@ def test_FullMultiplicativeFormMOORA_only_minimize():
     transformer = VectorScaler(target="matrix")
     dm = transformer.transform(dm)
 
-    ranker = FullMultiplicativeFormMOORA()
+    ranker = FullMultiplicativeForm()
     result = ranker.rank(dm)
 
     assert result.equals(expected)
@@ -212,7 +212,7 @@ def test_FullMultiplicativeFormMOORA_only_minimize():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
 
 
-def test_FullMultiplicativeFormMOORA_only_maximize():
+def test_FullMultiplicativeForm_only_maximize():
     dm = skcriteria.mkdm(
         matrix=[
             [1, 2, 3],
@@ -223,7 +223,7 @@ def test_FullMultiplicativeFormMOORA_only_maximize():
     )
 
     expected = RankResult(
-        "FullMultiplicativeFormMOORA",
+        "FullMultiplicativeForm",
         ["A0", "A1", "A2"],
         [3, 2, 1],
         {
@@ -234,7 +234,7 @@ def test_FullMultiplicativeFormMOORA_only_maximize():
     transformer = VectorScaler(target="matrix")
     dm = transformer.transform(dm)
 
-    ranker = FullMultiplicativeFormMOORA()
+    ranker = FullMultiplicativeForm()
     result = ranker.rank(dm)
 
     assert result.equals(expected)
@@ -243,12 +243,12 @@ def test_FullMultiplicativeFormMOORA_only_maximize():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
 
 
-def test_FullMultiplicativeFormMOORA_with0_fail():
+def test_FullMultiplicativeForm_with0_fail():
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 0, 6]],
         objectives=[max, max, max],
     )
 
-    ranker = FullMultiplicativeFormMOORA()
+    ranker = FullMultiplicativeForm()
     with pytest.raises(ValueError):
         ranker.rank(dm)
