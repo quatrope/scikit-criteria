@@ -189,7 +189,7 @@ def simus(matrix, objectives, b=None, rank_by=1, solver="pulp"):
 
     # calculate ranking
     score = [method_1_score, method_2_score][rank_by - 1]
-    ranking = rank(score, reverse=True)
+    ranking = rank.rank_values(score, reverse=True)
 
     return (
         ranking,

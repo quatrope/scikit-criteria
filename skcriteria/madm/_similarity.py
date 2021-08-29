@@ -49,7 +49,12 @@ def topsis(matrix, objectives, weights):
     similarity = d_worst / (d_better + d_worst)
 
     # compute the rank and return the result
-    return rank(similarity, reverse=True), ideal, anti_ideal, similarity
+    return (
+        rank.rank_values(similarity, reverse=True),
+        ideal,
+        anti_ideal,
+        similarity,
+    )
 
 
 class TOPSIS(SKCRankerMixin):

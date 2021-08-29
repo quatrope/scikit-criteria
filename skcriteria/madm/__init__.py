@@ -17,9 +17,11 @@
 from ._maut import WeightedProductModel, WeightedSumModel, wpm, wsm
 from ._moora import (
     FullMultiplicativeForm,
+    MultiMOORA,
     RatioMOORA,
     ReferencePointMOORA,
     fmf,
+    multimoora,
     ratio,
     refpoint,
 )
@@ -32,6 +34,7 @@ from ._simus import SIMUS, simus
 
 __all__ = [
     "FullMultiplicativeForm",
+    "MultiMOORA",
     "RatioMOORA",
     "ReferencePointMOORA",
     "SIMUS",
@@ -39,6 +42,7 @@ __all__ = [
     "WeightedSumModel",
     "WeightedProductModel",
     "fmf",
+    "multimoora",
     "ratio",
     "refpoint",
     "simus",

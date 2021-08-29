@@ -40,7 +40,7 @@ def wsm(matrix, weights):
     rank_mtx = np.inner(matrix, weights)
     score = np.squeeze(rank_mtx)
 
-    return rank(score, reverse=True), score
+    return rank.rank_values(score, reverse=True), score
 
 
 class WeightedSumModel(SKCRankerMixin):
@@ -123,7 +123,7 @@ def wpm(matrix, weights):
 
     score = np.sum(rank_mtx, axis=1)
 
-    return rank(score, reverse=True), score
+    return rank.rank_values(score, reverse=True), score
 
 
 class WeightedProductModel(SKCRankerMixin):
