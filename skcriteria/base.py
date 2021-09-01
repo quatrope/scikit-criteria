@@ -31,7 +31,7 @@ _IGNORE_PARAMS = (
 )
 
 
-class SKCBaseDecisionMaker:
+class SKCBaseDecisionMaker(metaclass=abc.ABCMeta):
     """Base class for all class in scikit-criteria.
 
     Notes
@@ -86,7 +86,7 @@ class SKCBaseDecisionMaker:
 # =============================================================================
 
 
-class SKCTransformerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
+class SKCTransformerMixin(SKCBaseDecisionMaker):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
@@ -272,7 +272,7 @@ class SKCWeighterMixin(SKCTransformerMixin):
 # =============================================================================
 
 
-class SKCDecisionMakerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
+class SKCDecisionMakerMixin(SKCBaseDecisionMaker):
     """Mixin class for all decisor based methods in scikit-criteria."""
 
     _skcriteria_dm_type = "decision_maker"
