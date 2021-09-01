@@ -14,6 +14,7 @@
 # IMPORTS
 # =============================================================================
 
+from ._electre import ELECTRE1, electre1
 from ._maut import WeightedProductModel, WeightedSumModel, wpm, wsm
 from ._moora import (
     FullMultiplicativeForm,
@@ -33,6 +34,7 @@ from ._simus import SIMUS, simus
 # =============================================================================
 
 __all__ = [
+    "ELECTRE1",
     "FullMultiplicativeForm",
     "MultiMOORA",
     "RatioMOORA",
@@ -41,6 +43,7 @@ __all__ = [
     "TOPSIS",
     "WeightedSumModel",
     "WeightedProductModel",
+    "electre1",
     "fmf",
     "multimoora",
     "ratio",

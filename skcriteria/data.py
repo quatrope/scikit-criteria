@@ -23,6 +23,8 @@ import abc
 import enum
 import functools
 
+from matplotlib import cm, colors
+
 import numpy as np
 
 import pandas as pd
@@ -653,6 +655,10 @@ class ResultBase(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @property
+    def values(self):
+        return self._rank_df[self._skcriteria_result_column].to_numpy()
+
+    @property
     def method(self):
         return self._method
 
@@ -712,6 +718,21 @@ class ResultBase(metaclass=abc.ABCMeta):
 
         return string
 
+
+class RankResult(ResultBase):
+
+    _skcriteria_result_column = "Rank"
+
+    def _validate_result(self, values):
+        length = len(values)
+        expected = np.arange(length) + 1
+        if not np.array_equal(np.sort(values), expected):
+            raise ValueError(f"The data {values} doesn't look like a ranking")
+
+    @property
+    def rank_(self):
+        return self.values
+
     def _repr_html_(self):
         """Return a html representation for a particular result.
 
@@ -733,16 +754,39 @@ class ResultBase(metaclass=abc.ABCMeta):
         return html
 
 
-class RankResult(ResultBase):
+class KernelResult(ResultBase):
 
-    _skcriteria_result_column = "Rank"
+    _skcriteria_result_column = "Kernel"
 
     def _validate_result(self, values):
-        length = len(values)
-        expected = np.arange(length) + 1
-        if not np.array_equal(np.sort(values), expected):
-            raise ValueError(f"The data {values} doesn't look like a ranking")
+        if np.asarray(values).dtype != bool:
+            raise ValueError(f"The data {values} doesn't look like a kernel")
 
     @property
-    def rank_(self):
-        return self._rank_df[self._skcriteria_result_column].to_numpy()
+    def kernel_(self):
+        return self.values
+
+    @property
+    def kernelwhere_(self):
+        return np.where(self.kernel_)[0]
+
+    def _repr_html_(self):
+        """Return a html representation for a particular result.
+
+        Mainly for IPython notebook.
+        """
+
+        cmap = cm.get_cmap("PuBu")
+        bool_colors = {
+            True: colors.to_hex(cmap.get_over()),
+            False: colors.to_hex(cmap.get_under()),
+        }
+
+        def color_negative_red(val):
+            bg = bool_colors[val]
+            fg = bool_colors[not val]
+            return f"background-color: {bg}; color: {fg}"
+
+        df = self._rank_df.T
+
+        return df.style.applymap(color_negative_red)._repr_html_()
