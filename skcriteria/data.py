@@ -666,21 +666,6 @@ class ResultBase(metaclass=abc.ABCMeta):
 
     e_ = extra_
 
-
-class RankResult(ResultBase):
-
-    _skcriteria_result_column = "Rank"
-
-    def _validate_result(self, values):
-        length = len(values)
-        expected = np.arange(length) + 1
-        if not np.array_equal(np.sort(values), expected):
-            raise ValueError(f"The data {values} doesn't look like a ranking")
-
-    @property
-    def rank_(self):
-        return self._rank_df[self._skcriteria_result_column].to_numpy()
-
     # CMP =====================================================================
 
     @property
@@ -714,7 +699,7 @@ class RankResult(ResultBase):
     # REPR ====================================================================
 
     def __repr__(self):
-        """rank.__repr__() <==> repr(rank)."""
+        """result.__repr__() <==> repr(result)."""
 
         kwargs = {"show_dimensions": False}
 
@@ -728,7 +713,7 @@ class RankResult(ResultBase):
         return string
 
     def _repr_html_(self):
-        """Return a html representation for a particular ranking result.
+        """Return a html representation for a particular result.
 
         Mainly for IPython notebook.
         """
@@ -739,10 +724,25 @@ class RankResult(ResultBase):
 
         # add dimension
         html = (
-            "<div class='rankresult'>\n"
+            "<div class='skcresult'>\n"
             f"{original_html}"
-            f"<em class='rankresult-method'>Method: {self.method}</em>\n"
+            f"<em class='skcresult-method'>Method: {self.method}</em>\n"
             "</div>"
         )
 
         return html
+
+
+class RankResult(ResultBase):
+
+    _skcriteria_result_column = "Rank"
+
+    def _validate_result(self, values):
+        length = len(values)
+        expected = np.arange(length) + 1
+        if not np.array_equal(np.sort(values), expected):
+            raise ValueError(f"The data {values} doesn't look like a ranking")
+
+    @property
+    def rank_(self):
+        return self._rank_df[self._skcriteria_result_column].to_numpy()
