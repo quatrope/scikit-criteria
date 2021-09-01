@@ -82,11 +82,6 @@ class SKCBaseDecisionMaker:
 
 
 # =============================================================================
-# VALIDATOR MIXIN
-# =============================================================================
-
-
-# =============================================================================
 # SKCTransformer MIXIN
 # =============================================================================
 
@@ -277,10 +272,10 @@ class SKCWeighterMixin(SKCTransformerMixin):
 # =============================================================================
 
 
-class SKCRankerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
-    """Mixin class for all transformer in scikit-criteria."""
+class SKCDecisionMakerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
+    """Mixin class for all decisor based methods in scikit-criteria."""
 
-    _skcriteria_dm_type = "ranker"
+    _skcriteria_dm_type = "decision_maker"
 
     @abc.abstractmethod
     def _validate_data(self, **kwargs):
@@ -288,15 +283,15 @@ class SKCRankerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _rank_data(self, **kwargs):
+    def _evaluate_data(self, **kwargs):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _make_result(self, anames, rank, extra):
+    def _make_result(self, anames, values, extra):
         raise NotImplementedError()
 
-    def rank(self, dm):
-        """Validate the decision matrix and calculate a ranking.
+    def evaluate(self, dm):
+        """Validate the dm and calculate and evaluate the alternatives.
 
         Parameters
         ----------
@@ -313,9 +308,11 @@ class SKCRankerMixin(SKCBaseDecisionMaker, metaclass=abc.ABCMeta):
 
         self._validate_data(**data)
 
-        rank, extra = self._rank_data(**data)
+        result_data, extra = self._evaluate_data(**data)
 
         anames = data["anames"]
-        result = self._make_result(anames=anames, rank=rank, extra=extra)
+        result = self._make_result(
+            anames=anames, values=result_data, extra=extra
+        )
 
         return result

@@ -76,7 +76,7 @@ def test_RatioMOORA_kracka2010ranking():
     dm = transformer.transform(dm)
 
     ranker = RatioMOORA()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -138,7 +138,7 @@ def test_ReferencePointMOORA_kracka2010ranking():
     dm = transformer.transform(dm)
 
     ranker = ReferencePointMOORA()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -187,7 +187,7 @@ def test_FullMultiplicativeForm_kracka2010ranking():
     dm = transformer.transform(dm)
 
     ranker = FullMultiplicativeForm()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -217,7 +217,7 @@ def test_FullMultiplicativeForm_only_minimize():
     dm = transformer.transform(dm)
 
     ranker = FullMultiplicativeForm()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -247,7 +247,7 @@ def test_FullMultiplicativeForm_only_maximize():
     dm = transformer.transform(dm)
 
     ranker = FullMultiplicativeForm()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -263,7 +263,7 @@ def test_FullMultiplicativeForm_with0_fail():
 
     ranker = FullMultiplicativeForm()
     with pytest.raises(ValueError):
-        ranker.rank(dm)
+        ranker.evaluate(dm)
 
 
 # =============================================================================
@@ -338,7 +338,7 @@ def test_MultiMOORA_kracka2010ranking():
     dm = transformer.transform(dm)
 
     ranker = MultiMOORA()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert np.all(result.e_.rank_matrix == expected.e_.rank_matrix)
@@ -357,4 +357,4 @@ def test_MultiMOORA_with0_fail():
 
     ranker = MultiMOORA()
     with pytest.raises(ValueError):
-        ranker.rank(dm)
+        ranker.evaluate(dm)

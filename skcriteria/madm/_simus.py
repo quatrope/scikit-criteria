@@ -19,7 +19,7 @@ import warnings
 
 import numpy as np
 
-from ..base import SKCRankerMixin
+from ..base import SKCDecisionMakerMixin
 from ..data import Objective, RankResult
 from ..preprocessing import scale_by_sum
 from ..utils import doc_inherit, lp, rank
@@ -204,7 +204,7 @@ def simus(matrix, objectives, b=None, rank_by=1, solver="pulp"):
     )
 
 
-class SIMUS(SKCRankerMixin):
+class SIMUS(SKCDecisionMakerMixin):
     r"""SIMUS (Sequential Interactive Model for Urban Systems).
 
     SIMUS developed by Nolberto Munier (2011) is a tool to aid decision-making
@@ -276,15 +276,15 @@ class SIMUS(SKCRankerMixin):
             raise ValueError("'rank_by' must be 1 or 2")
         self._rank_by = rank_by
 
-    @doc_inherit(SKCRankerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerMixin._validate_data)
     def _validate_data(self, objectives, weights, b, **kwargs):
         if len(np.unique(weights)) > 1:
             warnings.warn("SIMUS not take into account the weights")
         if b is not None and len(objectives) != len(b):
             raise ValueError("'b' must be the same leght as criteria or None")
 
-    @doc_inherit(SKCRankerMixin._rank_data)
-    def _rank_data(self, matrix, objectives, b, **kwargs):
+    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, b, **kwargs):
         (
             ranking,
             stages,
@@ -315,11 +315,11 @@ class SIMUS(SKCRankerMixin):
             "dominance_by_criteria": dominance_by_criteria,
         }
 
-    @doc_inherit(SKCRankerMixin._make_result)
-    def _make_result(self, anames, rank, extra):
-        return RankResult("SIMUS", anames=anames, rank=rank, extra=extra)
+    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    def _make_result(self, anames, values, extra):
+        return RankResult("SIMUS", anames=anames, values=values, extra=extra)
 
-    def rank(self, dm, *, b=None):
+    def evaluate(self, dm, *, b=None):
         """Validate the decision matrix and calculate a ranking.
 
         Parameters
@@ -355,9 +355,9 @@ class SIMUS(SKCRankerMixin):
 
         self._validate_data(b=b, **data)
 
-        rank, extra = self._rank_data(b=b, **data)
+        rank, extra = self._evaluate_data(b=b, **data)
 
         anames = data["anames"]
-        result = self._make_result(anames=anames, rank=rank, extra=extra)
+        result = self._make_result(anames=anames, values=rank, extra=extra)
 
         return result

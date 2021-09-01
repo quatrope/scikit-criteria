@@ -61,7 +61,7 @@ def test_SIMUS_munier24metodo():
     )
 
     ranker = SIMUS()
-    result = ranker.rank(dm, b=b)
+    result = ranker.evaluate(dm, b=b)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -94,7 +94,7 @@ def test_SIMUS_multiple_weights_warning():
 
     ranker = SIMUS()
     with pytest.warns(UserWarning):
-        ranker.rank(dm)
+        ranker.evaluate(dm)
 
 
 def test_SIMUS_incorrect_b():
@@ -110,4 +110,4 @@ def test_SIMUS_incorrect_b():
 
     ranker = SIMUS()
     with pytest.raises(ValueError):
-        ranker.rank(dm, b=b)
+        ranker.evaluate(dm, b=b)

@@ -19,7 +19,7 @@ import itertools as it
 
 import numpy as np
 
-from ..base import SKCRankerMixin
+from ..base import SKCDecisionMakerMixin
 from ..data import Objective, RankResult
 from ..utils import doc_inherit, rank
 
@@ -42,7 +42,7 @@ def ratio(matrix, objectives, weights):
     return rank.rank_values(score, reverse=True), score
 
 
-class RatioMOORA(SKCRankerMixin):
+class RatioMOORA(SKCDecisionMakerMixin):
     r"""Ratio based MOORA method.
 
     In MOORA the set of ratios are suggested to be normalized as the square
@@ -71,18 +71,20 @@ class RatioMOORA(SKCRankerMixin):
 
     """
 
-    @doc_inherit(SKCRankerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerMixin._validate_data)
     def _validate_data(self, **kwargs):
         ...
 
-    @doc_inherit(SKCRankerMixin._rank_data)
-    def _rank_data(self, matrix, objectives, weights, **kwargs):
+    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, score = ratio(matrix, objectives, weights)
         return rank, {"score": score}
 
-    @doc_inherit(SKCRankerMixin._make_result)
-    def _make_result(self, anames, rank, extra):
-        return RankResult("RatioMOORA", anames=anames, rank=rank, extra=extra)
+    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    def _make_result(self, anames, values, extra):
+        return RankResult(
+            "RatioMOORA", anames=anames, values=values, extra=extra
+        )
 
 
 # =============================================================================
@@ -106,7 +108,7 @@ def refpoint(matrix, objectives, weights):
     return rank.rank_values(score), score, reference_point
 
 
-class ReferencePointMOORA(SKCRankerMixin):
+class ReferencePointMOORA(SKCDecisionMakerMixin):
     r"""Rank the alternatives by distance to a reference point.
 
     The reference point is selected with the Min-Max Metric of Tchebycheff.
@@ -141,19 +143,19 @@ class ReferencePointMOORA(SKCRankerMixin):
 
     """
 
-    @doc_inherit(SKCRankerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerMixin._validate_data)
     def _validate_data(self, **kwargs):
         ...
 
-    @doc_inherit(SKCRankerMixin._rank_data)
-    def _rank_data(self, matrix, objectives, weights, **kwargs):
+    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, score, reference_point = refpoint(matrix, objectives, weights)
         return rank, {"score": score, "reference_point": reference_point}
 
-    @doc_inherit(SKCRankerMixin._make_result)
-    def _make_result(self, anames, rank, extra):
+    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    def _make_result(self, anames, values, extra):
         return RankResult(
-            "ReferencePointMOORA", anames=anames, rank=rank, extra=extra
+            "ReferencePointMOORA", anames=anames, values=values, extra=extra
         )
 
 
@@ -183,7 +185,7 @@ def fmf(matrix, objectives, weights):
     return rank.rank_values(score, reverse=True), score
 
 
-class FullMultiplicativeForm(SKCRankerMixin):
+class FullMultiplicativeForm(SKCDecisionMakerMixin):
     r"""Non-linear, non-additive ranking method method.
 
     Full Multiplicative Form does not use weights and does not require
@@ -230,24 +232,24 @@ class FullMultiplicativeForm(SKCRankerMixin):
 
     """
 
-    @doc_inherit(SKCRankerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerMixin._validate_data)
     def _validate_data(self, matrix, **kwargs):
         if np.any(matrix <= 0):
             raise ValueError(
                 "FullMultiplicativeForm can't operate with values <= 0"
             )
 
-    @doc_inherit(SKCRankerMixin._rank_data)
-    def _rank_data(self, matrix, objectives, weights, **kwargs):
+    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, score = fmf(matrix, objectives, weights)
         return rank, {"score": score}
 
-    @doc_inherit(SKCRankerMixin._make_result)
-    def _make_result(self, anames, rank, extra):
+    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    def _make_result(self, anames, values, extra):
         return RankResult(
             "FullMultiplicativeForm",
             anames=anames,
-            rank=rank,
+            values=values,
             extra=extra,
         )
 
@@ -298,7 +300,7 @@ def multimoora(matrix, objectives, weights):
     )
 
 
-class MultiMOORA(SKCRankerMixin):
+class MultiMOORA(SKCDecisionMakerMixin):
     r"""Combination of RatioMOORA, RefPointMOORA and FullMultiplicativeForm.
 
     These three methods represent all possible methods with dimensionless
@@ -321,13 +323,13 @@ class MultiMOORA(SKCRankerMixin):
 
     """
 
-    @doc_inherit(SKCRankerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerMixin._validate_data)
     def _validate_data(self, matrix, **kwargs):
         if np.any(matrix <= 0):
             raise ValueError("MultiMOORA can't operate with values <= 0")
 
-    @doc_inherit(SKCRankerMixin._rank_data)
-    def _rank_data(self, matrix, objectives, weights, **kwargs):
+    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         (
             rank,
             score,
@@ -346,11 +348,11 @@ class MultiMOORA(SKCRankerMixin):
             "reference_point": reference_point,
         }
 
-    @doc_inherit(SKCRankerMixin._make_result)
-    def _make_result(self, anames, rank, extra):
+    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    def _make_result(self, anames, values, extra):
         return RankResult(
             "MultiMOORA",
             anames=anames,
-            rank=rank,
+            values=values,
             extra=extra,
         )

@@ -19,6 +19,7 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 # IMPORTS
 # =============================================================================
 
+import abc
 import enum
 import functools
 
@@ -28,7 +29,7 @@ import pandas as pd
 
 import pyquery as pq
 
-from .utils import Bunch
+from .utils import Bunch, doc_inherit
 
 
 # =============================================================================
@@ -629,23 +630,27 @@ def mkdm(*args, **kwargs):
 # =============================================================================
 
 
-class RankResult:
+class ResultBase(metaclass=abc.ABCMeta):
 
-    _result_column = "Rank"
+    _skcriteria_result_column = None
 
-    def __init__(self, method, anames, rank, extra):
-        self._validate_result(rank)
+    def __init_subclass__(cls):
+        """Validate if the subclass are well formed."""
+        result_column = cls._skcriteria_result_column
+        if result_column is None:
+            raise TypeError(f"{cls} must redefine '_skcriteria_result_column'")
+
+    def __init__(self, method, anames, values, extra):
+        self._validate_result(values)
         self._method = str(method)
         self._extra = Bunch("extra", extra)
         self._rank_df = pd.DataFrame(
-            rank, index=anames, columns=[self._result_column]
+            values, index=anames, columns=[self._skcriteria_result_column]
         )
 
+    @abc.abstractmethod
     def _validate_result(self, values):
-        length = len(values)
-        expected = np.arange(length) + 1
-        if not np.array_equal(np.sort(values), expected):
-            raise ValueError(f"{values} don't loke like rank")
+        raise NotImplementedError()
 
     @property
     def method(self):
@@ -656,14 +661,25 @@ class RankResult:
         return self._rank_df.index.to_numpy()
 
     @property
-    def rank_(self):
-        return self._rank_df.Rank.to_numpy()
-
-    @property
     def extra_(self):
         return self._extra
 
     e_ = extra_
+
+
+class RankResult(ResultBase):
+
+    _skcriteria_result_column = "Rank"
+
+    def _validate_result(self, values):
+        length = len(values)
+        expected = np.arange(length) + 1
+        if not np.array_equal(np.sort(values), expected):
+            raise ValueError(f"The data {values} doesn't look like a ranking")
+
+    @property
+    def rank_(self):
+        return self._rank_df[self._skcriteria_result_column].to_numpy()
 
     # CMP =====================================================================
 

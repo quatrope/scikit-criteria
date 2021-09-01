@@ -19,7 +19,7 @@ import warnings
 
 import numpy as np
 
-from ..base import SKCRankerMixin
+from ..base import SKCDecisionMakerMixin
 from ..data import Objective, RankResult
 from ..utils import doc_inherit, rank
 
@@ -57,7 +57,7 @@ def topsis(matrix, objectives, weights):
     )
 
 
-class TOPSIS(SKCRankerMixin):
+class TOPSIS(SKCDecisionMakerMixin):
     """The Technique for Order of Preference by Similarity to Ideal Solution.
 
     TOPSIS is based on the concept that the chosen alternative should have
@@ -86,7 +86,7 @@ class TOPSIS(SKCRankerMixin):
 
     """
 
-    @doc_inherit(SKCRankerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerMixin._validate_data)
     def _validate_data(self, objectives, **kwargs):
         if Objective.MIN.value in objectives:
             warnings.warn(
@@ -95,8 +95,8 @@ class TOPSIS(SKCRankerMixin):
                 "for these cases."
             )
 
-    @doc_inherit(SKCRankerMixin._rank_data)
-    def _rank_data(self, matrix, objectives, weights, **kwargs):
+    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, ideal, anti_ideal, similarity = topsis(
             matrix, objectives, weights
         )
@@ -106,6 +106,8 @@ class TOPSIS(SKCRankerMixin):
             "similarity": similarity,
         }
 
-    @doc_inherit(SKCRankerMixin._make_result)
-    def _make_result(self, anames, rank, extra):
-        return RankResult("TOPSIS", anames=anames, rank=rank, extra=extra)
+    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    def _make_result(self, anames, values, extra):
+        return RankResult(
+            "TOPSIS", anames=anames, values=values, extra=extra
+        )

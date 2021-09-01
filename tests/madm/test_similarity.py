@@ -50,7 +50,7 @@ def test_TOPSIS():
     )
 
     ranker = TOPSIS()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -69,7 +69,7 @@ def test_TOPSIS_minimize_warning():
     ranker = TOPSIS()
 
     with pytest.warns(UserWarning):
-        ranker.rank(dm)
+        ranker.evaluate(dm)
 
 
 def test_TOPSIS_tzeng2011multiple():
@@ -102,7 +102,7 @@ def test_TOPSIS_tzeng2011multiple():
     )
 
     ranker = TOPSIS()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method

@@ -44,7 +44,7 @@ def test_WeightedSumModel():
 
     ranker = WeightedSumModel()
 
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -61,7 +61,7 @@ def test_WeightedSumModel_minimize_fail():
     ranker = WeightedSumModel()
 
     with pytest.raises(ValueError):
-        ranker.rank(dm)
+        ranker.evaluate(dm)
 
 
 def test_WeightedSumModel_kracka2010ranking():
@@ -110,7 +110,7 @@ def test_WeightedSumModel_kracka2010ranking():
     )
 
     ranker = WeightedSumModel()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -138,7 +138,7 @@ def test_WeightedProductModel():
 
     ranker = WeightedProductModel()
 
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method
@@ -155,7 +155,7 @@ def test_WeightedProductModel_minimize_fail():
     ranker = WeightedProductModel()
 
     with pytest.raises(ValueError):
-        ranker.rank(dm)
+        ranker.evaluate(dm)
 
 
 def test_WeightedProductModel_with0_fail():
@@ -168,7 +168,7 @@ def test_WeightedProductModel_with0_fail():
     ranker = WeightedProductModel()
 
     with pytest.raises(ValueError):
-        ranker.rank(dm)
+        ranker.evaluate(dm)
 
 
 def test_WeightedProductModel_enwiki_1015567716():
@@ -200,7 +200,7 @@ def test_WeightedProductModel_enwiki_1015567716():
     dm = transformer.transform(dm)
 
     ranker = WeightedProductModel()
-    result = ranker.rank(dm)
+    result = ranker.evaluate(dm)
 
     assert result.equals(expected)
     assert result.method == expected.method

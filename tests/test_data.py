@@ -643,7 +643,7 @@ def test_RankResult():
     extra = {"alfa": 1}
 
     result = data.RankResult(
-        method=method, anames=anames, rank=rank, extra=extra
+        method=method, anames=anames, values=rank, extra=extra
     )
 
     assert np.all(result.method == method)
@@ -659,7 +659,7 @@ def test_RankResult_invalid_rank(rank):
     extra = {"alfa": 1}
 
     with pytest.raises(ValueError):
-        data.RankResult(method=method, anames=anames, rank=rank, extra=extra)
+        data.RankResult(method=method, anames=anames, values=rank, extra=extra)
 
 
 def test_RankResult_shape():
@@ -672,7 +672,7 @@ def test_RankResult_shape():
     extra = {}
 
     result = data.RankResult(
-        method=method, anames=anames, rank=rank, extra=extra
+        method=method, anames=anames, values=rank, extra=extra
     )
 
     assert result.shape == (length, 1)
@@ -688,7 +688,7 @@ def test_RankResult_len():
     extra = {}
 
     result = data.RankResult(
-        method=method, anames=anames, rank=rank, extra=extra
+        method=method, anames=anames, values=rank, extra=extra
     )
 
     assert len(result) == length
@@ -701,7 +701,7 @@ def test_RankResult_repr():
     extra = {"alfa": 1}
 
     result = data.RankResult(
-        method=method, anames=anames, rank=rank, extra=extra
+        method=method, anames=anames, values=rank, extra=extra
     )
 
     expected = "      a  b  c\n" "Rank  1  2  3\n" "[Method: foo]"
@@ -717,7 +717,7 @@ def test_RankResult_repr_html():
 
     result = PyQuery(
         data.RankResult(
-            method=method, anames=anames, rank=rank, extra=extra
+            method=method, anames=anames, values=rank, extra=extra
         )._repr_html_()
     )
 
