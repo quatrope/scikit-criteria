@@ -646,7 +646,7 @@ class ResultBase(metaclass=abc.ABCMeta):
         self._validate_result(values)
         self._method = str(method)
         self._extra = Bunch("extra", extra)
-        self._rank_df = pd.DataFrame(
+        self._result_df = pd.DataFrame(
             values, index=anames, columns=[self._skcriteria_result_column]
         )
 
@@ -656,7 +656,7 @@ class ResultBase(metaclass=abc.ABCMeta):
 
     @property
     def values(self):
-        return self._rank_df[self._skcriteria_result_column].to_numpy()
+        return self._result_df[self._skcriteria_result_column].to_numpy()
 
     @property
     def method(self):
@@ -664,7 +664,7 @@ class ResultBase(metaclass=abc.ABCMeta):
 
     @property
     def anames(self):
-        return self._rank_df.index.to_numpy()
+        return self._result_df.index.to_numpy()
 
     @property
     def extra_(self):
@@ -681,7 +681,7 @@ class ResultBase(metaclass=abc.ABCMeta):
         rank.shape <==> np.shape(rank)
 
         """
-        return np.shape(self._rank_df)
+        return np.shape(self._result_df)
 
     def __len__(self):
         """Return the number ot alternatives.
@@ -689,7 +689,7 @@ class ResultBase(metaclass=abc.ABCMeta):
         rank.__len__() <==> len(rank).
 
         """
-        return len(self._rank_df)
+        return len(self._result_df)
 
     def equals(self, other):
         """Check if the alternatives and ranking are the same.
@@ -699,7 +699,7 @@ class ResultBase(metaclass=abc.ABCMeta):
         """
         return (self is other) or (
             isinstance(other, RankResult)
-            and self._rank_df.equals(other._rank_df)
+            and self._result_df.equals(other._result_df)
         )
 
     # REPR ====================================================================
@@ -710,7 +710,7 @@ class ResultBase(metaclass=abc.ABCMeta):
         kwargs = {"show_dimensions": False}
 
         # retrieve the original string
-        df = self._rank_df.T
+        df = self._result_df.T
         original_string = df.to_string(**kwargs)
 
         # add dimension
@@ -740,7 +740,7 @@ class RankResult(ResultBase):
         """
 
         # retrieve the original string
-        df = self._rank_df.T
+        df = self._result_df.T
         original_html = df.style.background_gradient(axis=1)._repr_html_()
 
         # add metadata
@@ -787,7 +787,7 @@ class KernelResult(ResultBase):
             fg = bool_colors[not val]
             return f"background-color: {bg}; color: {fg}"
 
-        df = self._rank_df.T
+        df = self._result_df.T
 
         original_html = df.style.applymap(color_negative_red)._repr_html_()
 
