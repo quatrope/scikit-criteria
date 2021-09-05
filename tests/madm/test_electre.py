@@ -22,8 +22,8 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.preprocessing import scale_by_sum, SumScaler
-from skcriteria.madm._electre import concordance, discordance, ELECTRE1
+from skcriteria.madm._electre import ELECTRE1, concordance, discordance
+from skcriteria.preprocessing import SumScaler, scale_by_sum
 
 # =============================================================================
 # TESTS

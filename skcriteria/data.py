@@ -723,6 +723,7 @@ class RankResult(ResultBase):
 
     _skcriteria_result_column = "Rank"
 
+    @doc_inherit(ResultBase._validate_result)
     def _validate_result(self, values):
         length = len(values)
         expected = np.arange(length) + 1
@@ -758,6 +759,7 @@ class KernelResult(ResultBase):
 
     _skcriteria_result_column = "Kernel"
 
+    @doc_inherit(ResultBase._validate_result)
     def _validate_result(self, values):
         if np.asarray(values).dtype != bool:
             raise ValueError(f"The data {values} doesn't look like a kernel")

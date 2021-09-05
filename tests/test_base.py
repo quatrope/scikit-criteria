@@ -277,7 +277,7 @@ def test_validate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
             return np.arange(len(anames)) + 1, {}
 
         def _make_result(self, anames, values, extra):
-            return {"anames": anames, "rank": rank, "extra": extra}
+            return {"anames": anames, "rank": values, "extra": extra}
 
     ranker = Foo()
 
