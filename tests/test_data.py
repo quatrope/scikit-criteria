@@ -632,6 +632,31 @@ def test_mtx_ndim3(data_values):
 
 
 # =============================================================================
+# RESULT BASE
+# =============================================================================
+
+
+class test_ResultBase_skacriteria_result_column_no_defined:
+
+    with pytest.raises(TypeError):
+
+        class Foo(data.ResultBase):
+            def _validate_result(self, values):
+                pass
+
+
+class test_ResultBase_original_validare_result_fail:
+    class Foo(data.ResultBase):
+        _skcriteria_result_column = "foo"
+
+        def _validate_result(self, values):
+            return super()._validate_result(values)
+
+    with pytest.raises(NotImplementedError):
+        Foo("foo", ["abc"], [1, 2, 3], {})
+
+
+# =============================================================================
 # RANK RESULT
 # =============================================================================
 
@@ -723,7 +748,7 @@ def test_RankResult_repr_html():
 
     expected = PyQuery(
         """
-        <div class='rankresult'>
+        <div class='skcresult skcresult-rank'>
         <table id="T_cc7f5_" >
             <thead>
             <tr>
@@ -748,4 +773,64 @@ def test_RankResult_repr_html():
         </div>
         """
     )
+    assert result.remove("style").text() == expected.remove("style").text()
+
+
+# =============================================================================
+# KERNEL
+# =============================================================================
+
+
+@pytest.mark.parametrize("values", [[1, 2, 5], [True, False, 1], [1, 2, 3]])
+def test_KernelResult_invalid_rank(values):
+    method = "foo"
+    anames = ["a", "b", "c"]
+    extra = {"alfa": 1}
+
+    with pytest.raises(ValueError):
+        data.KernelResult(
+            method=method, anames=anames, values=values, extra=extra
+        )
+
+
+def test_KernelResult_repr_html():
+    method = "foo"
+    anames = ["a", "b", "c"]
+    rank = [True, False, True]
+    extra = {"alfa": 1}
+
+    result = PyQuery(
+        data.KernelResult(
+            method=method, anames=anames, values=rank, extra=extra
+        )._repr_html_()
+    )
+
+    expected = PyQuery(
+        """
+        <div class='rankresult'>
+        <table id="T_cc7f5_" >
+            <thead>
+            <tr>
+                <th class="blank level0" ></th>
+                <th class="col_heading level0 col0" >a</th>
+                <th class="col_heading level0 col1" >b</th>
+                <th class="col_heading level0 col2" >c</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th id="T_cc7f5_level0_row0" class="row_heading level0 row0" >
+                    Kernel
+                </th>
+                <td id="T_cc7f5_row0_col0" class="data row0 col0" >True</td>
+                <td id="T_cc7f5_row0_col1" class="data row0 col1" >False</td>
+                <td id="T_cc7f5_row0_col2" class="data row0 col2" >True</td>
+            </tr>
+            </tbody>
+        </table>
+        <em class='rankresult-method'>Method: foo</em>
+        </div>
+        """
+    )
+
     assert result.remove("style").text() == expected.remove("style").text()

@@ -743,9 +743,9 @@ class RankResult(ResultBase):
         df = self._rank_df.T
         original_html = df.style.background_gradient(axis=1)._repr_html_()
 
-        # add dimension
+        # add metadata
         html = (
-            "<div class='skcresult'>\n"
+            "<div class='skcresult-rank skcresult'>\n"
             f"{original_html}"
             f"<em class='skcresult-method'>Method: {self.method}</em>\n"
             "</div>"
@@ -789,4 +789,14 @@ class KernelResult(ResultBase):
 
         df = self._rank_df.T
 
-        return df.style.applymap(color_negative_red)._repr_html_()
+        original_html = df.style.applymap(color_negative_red)._repr_html_()
+
+        # add metadata
+        html = (
+            "<div class='skcresult-kernel skcresult'>\n"
+            f"{original_html}"
+            f"<em class='skcresult-method'>Method: {self.method}</em>\n"
+            "</div>"
+        )
+
+        return html

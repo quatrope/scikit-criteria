@@ -119,7 +119,7 @@ class ELECTRE1(SKCDecisionMakerMixin):
     @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         kernel, outrank, matrix_concordance, matrix_discordance = electre1(
-            matrix, objectives, weights, self._p, self._q
+            matrix, objectives, weights, self.p, self.q
         )
         return kernel, {
             "outrank": outrank,
