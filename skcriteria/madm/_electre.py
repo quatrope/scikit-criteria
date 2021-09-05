@@ -9,7 +9,7 @@ that originated in Europe in the mid-1960s. The acronym ELECTRE stands for:
 ELimination Et Choix Traduisant la REalité (ELimination and Choice Expressing
 REality).
 
-Usually the Electre Methods are used to discard some alternatives to the
+Usually the ELECTRE Methods are used to discard some alternatives to the
 problem, which are unacceptable. After that we can use another MCDA to select
 the best one. The Advantage of using the Electre Methods before is that we
 can apply another MCDA with a restricted set of alternatives saving much time.
