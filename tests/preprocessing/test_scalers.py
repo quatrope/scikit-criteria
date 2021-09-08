@@ -69,7 +69,7 @@ def test_MinMaxScaler_matrix(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    mtx = dm.matrix
+    mtx = dm.matrix.to_numpy()
     mtx_min = np.min(mtx, axis=0, keepdims=True)
     mtx_max = np.max(mtx, axis=0, keepdims=True)
 
@@ -173,7 +173,7 @@ def test_MinMaxScaler_both(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    mtx = dm.matrix
+    mtx = dm.matrix.to_numpy()
     mtx_min = np.min(mtx, axis=0, keepdims=True)
     mtx_max = np.max(mtx, axis=0, keepdims=True)
 
@@ -255,9 +255,10 @@ def test_StandarScaler_matrix(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
+    matrix = dm.matrix.to_numpy()
     expected = skcriteria.mkdm(
-        matrix=(dm.matrix - np.mean(dm.matrix, axis=0, keepdims=True))
-        / np.std(dm.matrix, axis=0, keepdims=True),
+        matrix=(matrix - np.mean(matrix, axis=0, keepdims=True))
+        / np.std(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,
@@ -363,9 +364,10 @@ def test_StandarScaler_both(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
+    matrix = dm.matrix.to_numpy()
     expected = skcriteria.mkdm(
-        matrix=(dm.matrix - np.mean(dm.matrix, axis=0, keepdims=True))
-        / np.std(dm.matrix, axis=0, keepdims=True),
+        matrix=(matrix - np.mean(matrix, axis=0, keepdims=True))
+        / np.std(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=(dm.weights - np.mean(dm.weights)) / np.std(dm.weights),
         anames=dm.anames,
@@ -614,9 +616,9 @@ def test_SumScaler_matrix(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
+    matrix = dm.matrix.to_numpy()
     expected = skcriteria.mkdm(
-        matrix=dm.matrix
-        / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
+        matrix=matrix / np.sum(matrix, axis=0, keepdims=True, dtype=float),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,
@@ -711,9 +713,9 @@ def test_SumScaler_both(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
+    matrix = dm.matrix.to_numpy()
     expected = skcriteria.mkdm(
-        matrix=dm.matrix
-        / np.sum(dm.matrix, axis=0, keepdims=True, dtype=float),
+        matrix=matrix / np.sum(matrix, axis=0, keepdims=True, dtype=float),
         objectives=dm.objectives,
         weights=dm.weights / np.sum(dm.weights),
         anames=dm.anames,
@@ -786,8 +788,9 @@ def test_MaxScaler_matrix(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
+    matrix = dm.matrix.to_numpy()
     expected = skcriteria.mkdm(
-        matrix=dm.matrix / np.max(dm.matrix, axis=0, keepdims=True),
+        matrix=matrix / np.max(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights,
         anames=dm.anames,
@@ -882,8 +885,9 @@ def test_MaxScaler_both(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
+    matrix = dm.matrix.to_numpy()
     expected = skcriteria.mkdm(
-        matrix=dm.matrix / np.max(dm.matrix, axis=0, keepdims=True),
+        matrix=matrix / np.max(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights / np.max(dm.weights),
         anames=dm.anames,

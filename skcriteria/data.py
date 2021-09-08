@@ -23,8 +23,6 @@ import abc
 import enum
 import functools
 
-from matplotlib import cm, colors
-
 import numpy as np
 
 import pandas as pd
@@ -32,7 +30,7 @@ import pandas as pd
 import pyquery as pq
 
 from .utils import Bunch, doc_inherit
-
+from .plot import DecisionMatrixPlotter
 
 # =============================================================================
 # CONSTANTS
@@ -198,11 +196,14 @@ class DecisionMatrix:
             else pd.DataFrame(data_df)
         )
 
-        self._objectives = np.array(
-            [Objective.construct_from_alias(a) for a in objectives]
+        self._objectives = pd.Series(
+            [Objective.construct_from_alias(a) for a in objectives],
+            index=self._data_df.columns,
         )
 
-        self._weights = np.array(weights, dtype=float)
+        self._weights = pd.Series(
+            weights, dtype=float, index=self._data_df.columns
+        )
 
         lens = {
             "c_number": len(self._data_df.columns),
@@ -328,6 +329,9 @@ class DecisionMatrix:
         return cls(data_df=data_df, objectives=objectives, weights=weights)
 
     # MCDA ====================================================================
+    #     This properties are usefull to access interactively to the
+    #     underlying data a. Except for anames and cnames all other properties
+    #     Expose the data as dataframes or series
 
     @property
     def anames(self):
@@ -341,13 +345,13 @@ class DecisionMatrix:
 
     @property
     def matrix(self):
-        """Alternatives matrix as 2D numpy array."""
-        return self._data_df.to_numpy()
+        """Alternatives matrix as pandas DataFrame."""
+        return self._data_df.copy()
 
     @property
     def weights(self):
         """Weights of the criteria."""
-        return np.copy(self._weights)
+        return self._weights.copy()
 
     @property
     def objectives_values(self):
@@ -357,17 +361,28 @@ class DecisionMatrix:
         - Maximize = Objective.MAX.value
 
         """
-        return np.array([o.value for o in self._objectives], dtype=int)
+        return pd.Series(
+            [o.value for o in self._objectives],
+            dtype=int,
+            index=self._data_df.columns,
+        )
 
     @property
     def objectives(self):
         """Objectives of the criteria as ``Objective`` instances."""
-        return np.copy(self._objectives)
+        return self._objectives.copy()
 
     @property
     def dtypes(self):
         """Dtypes of the criteria."""
-        return self._data_df.dtypes.to_numpy()
+        return self._data_df.dtypes.copy()
+
+    # PROPERTIES ==============================================================
+
+    @property
+    def plot(self):
+        """Plot accessor."""
+        return DecisionMatrixPlotter(self)
 
     # UTILITIES ===============================================================
 
@@ -416,14 +431,17 @@ class DecisionMatrix:
         return df
 
     def to_dict(self):
-        """Return a dict representation of the data."""
+        """Return a dict representation of the data.
+
+        All the values are represented as numpy array.
+        """
         return {
-            "matrix": self.matrix,
-            "objectives": self.objectives_values,
-            "weights": self.weights,
+            "matrix": self.matrix.to_numpy(),
+            "objectives": self.objectives_values.to_numpy(),
+            "weights": self.weights.to_numpy(),
+            "dtypes": self.dtypes.to_numpy(),
             "anames": self.anames,
             "cnames": self.cnames,
-            "dtypes": self.dtypes,
         }
 
     def describe(self, **kwargs):
@@ -740,9 +758,8 @@ class RankResult(ResultBase):
         Mainly for IPython notebook.
         """
 
-        # retrieve the original string
         df = self._result_df.T
-        original_html = df.style.background_gradient(axis=1)._repr_html_()
+        original_html = df.style._repr_html_()
 
         # add metadata
         html = (
@@ -778,20 +795,8 @@ class KernelResult(ResultBase):
         Mainly for IPython notebook.
         """
 
-        cmap = cm.get_cmap("PuBu")
-        bool_colors = {
-            True: colors.to_hex(cmap.get_over()),
-            False: colors.to_hex(cmap.get_under()),
-        }
-
-        def color_negative_red(val):
-            bg = bool_colors[val]
-            fg = bool_colors[not val]
-            return f"background-color: {bg}; color: {fg}"
-
         df = self._result_df.T
-
-        original_html = df.style.applymap(color_negative_red)._repr_html_()
+        original_html = df._repr_html_()
 
         # add metadata
         html = (
