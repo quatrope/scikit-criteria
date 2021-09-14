@@ -36,7 +36,7 @@ REQUIREMENTS = [
     "scipy",
     "jinja2",
     "custom_inherit",
-    "matplotlib",
+    "seaborn",
     "pulp",
 ]
 
