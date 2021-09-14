@@ -29,8 +29,9 @@ import pandas as pd
 
 import pyquery as pq
 
-from .utils import Bunch, doc_inherit
 from .plot import DecisionMatrixPlotter
+from .utils import Bunch, doc_inherit
+
 
 # =============================================================================
 # CONSTANTS
@@ -199,10 +200,14 @@ class DecisionMatrix:
         self._objectives = pd.Series(
             [Objective.construct_from_alias(a) for a in objectives],
             index=self._data_df.columns,
+            name="Objectives",
         )
 
         self._weights = pd.Series(
-            weights, dtype=float, index=self._data_df.columns
+            weights,
+            dtype=float,
+            index=self._data_df.columns,
+            name="Weights",
         )
 
         lens = {
@@ -363,7 +368,7 @@ class DecisionMatrix:
         """
         return pd.Series(
             [o.value for o in self._objectives],
-            dtype=int,
+            dtype=np.int8,
             index=self._data_df.columns,
         )
 
