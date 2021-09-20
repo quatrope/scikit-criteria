@@ -60,7 +60,7 @@ def test_MinimizeToMaximize_all_min(decision_matrix):
         matrix=1.0 / dm.matrix,
         objectives=np.full(20, 1, dtype=int),
         weights=dm.weights,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
     )
 
@@ -92,7 +92,7 @@ def test_MinimizeToMaximize_50percent_min(decision_matrix):
         matrix=expected_mtx,
         objectives=np.full(20, 1, dtype=int),
         weights=dm.weights,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=inv_dtypes,
     )

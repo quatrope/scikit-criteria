@@ -77,7 +77,7 @@ def test_MinMaxScaler_matrix(decision_matrix):
         matrix=(mtx - mtx_min) / (mtx_max - mtx_min),
         objectives=dm.objectives,
         weights=dm.weights,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -126,7 +126,7 @@ def test_MinMaxScaler_weights(decision_matrix):
         objectives=dm.objectives,
         weights=(dm.weights - np.min(dm.weights))
         / (np.max(dm.weights) - np.min(dm.weights)),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -182,7 +182,7 @@ def test_MinMaxScaler_both(decision_matrix):
         objectives=dm.objectives,
         weights=(dm.weights - np.min(dm.weights))
         / (np.max(dm.weights) - np.min(dm.weights)),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -261,7 +261,7 @@ def test_StandarScaler_matrix(decision_matrix):
         / np.std(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -313,7 +313,7 @@ def test_StandarScaler_weights(decision_matrix):
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=(dm.weights - np.mean(dm.weights)) / np.std(dm.weights),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -370,7 +370,7 @@ def test_StandarScaler_both(decision_matrix):
         / np.std(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=(dm.weights - np.mean(dm.weights)) / np.std(dm.weights),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -447,7 +447,7 @@ def test_VectorScaler_matrix(decision_matrix):
         matrix=dm.matrix / np.sqrt(np.sum(np.power(dm.matrix, 2), axis=0)),
         objectives=dm.objectives,
         weights=dm.weights,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -495,7 +495,7 @@ def test_VectorScaler_weights(decision_matrix):
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=dm.weights / np.sqrt(np.sum(np.power(dm.weights, 2))),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -546,7 +546,7 @@ def test_VectorScaler_both(decision_matrix):
         matrix=dm.matrix / np.sqrt(np.sum(np.power(dm.matrix, 2), axis=0)),
         objectives=dm.objectives,
         weights=dm.weights / np.sqrt(np.sum(np.power(dm.weights, 2))),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -621,7 +621,7 @@ def test_SumScaler_matrix(decision_matrix):
         matrix=matrix / np.sum(matrix, axis=0, keepdims=True, dtype=float),
         objectives=dm.objectives,
         weights=dm.weights,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -669,7 +669,7 @@ def test_SumScaler_weights(decision_matrix):
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=dm.weights / np.sum(dm.weights),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -718,7 +718,7 @@ def test_SumScaler_both(decision_matrix):
         matrix=matrix / np.sum(matrix, axis=0, keepdims=True, dtype=float),
         objectives=dm.objectives,
         weights=dm.weights / np.sum(dm.weights),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -793,7 +793,7 @@ def test_MaxScaler_matrix(decision_matrix):
         matrix=matrix / np.max(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -841,7 +841,7 @@ def test_MaxScaler_weights(decision_matrix):
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=dm.weights / np.max(dm.weights),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -890,7 +890,7 @@ def test_MaxScaler_both(decision_matrix):
         matrix=matrix / np.max(matrix, axis=0, keepdims=True),
         objectives=dm.objectives,
         weights=dm.weights / np.max(dm.weights),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )

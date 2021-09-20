@@ -81,9 +81,9 @@ class RatioMOORA(SKCDecisionMakerMixin):
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "RatioMOORA", anames=anames, values=values, extra=extra
+            "RatioMOORA", alternatives=alternatives, values=values, extra=extra
         )
 
 
@@ -153,9 +153,9 @@ class ReferencePointMOORA(SKCDecisionMakerMixin):
         return rank, {"score": score, "reference_point": reference_point}
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "ReferencePointMOORA", anames=anames, values=values, extra=extra
+            "ReferencePointMOORA", alternatives=alternatives, values=values, extra=extra
         )
 
 
@@ -245,10 +245,10 @@ class FullMultiplicativeForm(SKCDecisionMakerMixin):
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         return RankResult(
             "FullMultiplicativeForm",
-            anames=anames,
+            alternatives=alternatives,
             values=values,
             extra=extra,
         )
@@ -349,10 +349,10 @@ class MultiMOORA(SKCDecisionMakerMixin):
         }
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         return RankResult(
             "MultiMOORA",
-            anames=anames,
+            alternatives=alternatives,
             values=values,
             extra=extra,
         )

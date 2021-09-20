@@ -102,9 +102,9 @@ class WeightedSumModel(SKCDecisionMakerMixin):
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "WeightedSumModel", anames=anames, values=values, extra=extra
+            "WeightedSumModel", alternatives=alternatives, values=values, extra=extra
         )
 
 
@@ -198,10 +198,10 @@ class WeightedProductModel(SKCDecisionMakerMixin):
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         return RankResult(
             "WeightedProductModel",
-            anames=anames,
+            alternatives=alternatives,
             values=values,
             extra=extra,
         )

@@ -316,8 +316,8 @@ class SIMUS(SKCDecisionMakerMixin):
         }
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
-        return RankResult("SIMUS", anames=anames, values=values, extra=extra)
+    def _make_result(self, alternatives, values, extra):
+        return RankResult("SIMUS", alternatives=alternatives, values=values, extra=extra)
 
     def evaluate(self, dm, *, b=None):
         """Validate the decision matrix and calculate a ranking.
@@ -357,7 +357,7 @@ class SIMUS(SKCDecisionMakerMixin):
 
         rank, extra = self._evaluate_data(b=b, **data)
 
-        anames = data["anames"]
-        result = self._make_result(anames=anames, values=rank, extra=extra)
+        alternatives = data["alternatives"]
+        result = self._make_result(alternatives=alternatives, values=rank, extra=extra)
 
         return result

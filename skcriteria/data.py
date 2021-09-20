@@ -230,7 +230,7 @@ class DecisionMatrix:
         matrix,
         objectives,
         weights=None,
-        anames=None,
+        alternatives=None,
         criteria=None,
         dtypes=None,
     ):
@@ -253,7 +253,7 @@ class DecisionMatrix:
             Optional weights of the criteria. If is ``None`` all the criteria
             are weighted with 1.
 
-        anames: Iterable o None (default ``None``)
+        alternatives: Iterable o None (default ``None``)
             Optional names of the alternatives. If is ``None``,
             al the alternatives are names "A[n]" where n is the number of
             the row of `matrix` statring at 0.
@@ -304,13 +304,13 @@ class DecisionMatrix:
                 f"'matrix' must have 2 dimensions, found {matrix_ndim} instead"
             )
 
-        anames = np.asarray(
+        alternatives = np.asarray(
             [f"A{idx}" for idx in range(a_number)]
-            if anames is None
-            else anames
+            if alternatives is None
+            else alternatives
         )
-        if len(anames) != a_number:
-            raise ValueError(f"'anames' must have {a_number} elements")
+        if len(alternatives) != a_number:
+            raise ValueError(f"'alternatives' must have {a_number} elements")
 
         criteria = np.asarray(
             [f"C{idx}" for idx in range(c_number)]
@@ -323,7 +323,7 @@ class DecisionMatrix:
 
         weights = np.asarray(np.ones(c_number) if weights is None else weights)
 
-        data_df = pd.DataFrame(matrix, index=anames, columns=criteria)
+        data_df = pd.DataFrame(matrix, index=alternatives, columns=criteria)
 
         if dtypes is not None and len(dtypes) != c_number:
             raise ValueError(f"'dtypes' must have {c_number} elements")
@@ -335,11 +335,11 @@ class DecisionMatrix:
 
     # MCDA ====================================================================
     #     This properties are usefull to access interactively to the
-    #     underlying data a. Except for anames and criteria all other properties
+    #     underlying data a. Except for alternatives and criteria all other properties
     #     Expose the data as dataframes or series
 
     @property
-    def anames(self):
+    def alternatives(self):
         """Names of the alternatives."""
         return self._data_df.index.to_numpy()
 
@@ -431,7 +431,7 @@ class DecisionMatrix:
 
         """
         data = np.vstack((self._objectives, self._weights, self.matrix))
-        index = np.hstack((["objectives", "weights"], self.anames))
+        index = np.hstack((["objectives", "weights"], self.alternatives))
         df = pd.DataFrame(data, index=index, columns=self.criteria, copy=True)
         return df
 
@@ -445,7 +445,7 @@ class DecisionMatrix:
             "objectives": self.objectives_values.to_numpy(),
             "weights": self.weights.to_numpy(),
             "dtypes": self.dtypes.to_numpy(),
-            "anames": self.anames,
+            "alternatives": self.alternatives,
             "criteria": self.criteria,
         }
 
@@ -527,7 +527,7 @@ class DecisionMatrix:
 
         - If ``other`` is the same object return ``True``.
         - If ``other`` is not instance of 'DecisionMatrix', has different shape
-          'criteria', 'anames' or 'objectives' returns ``False``.
+          'criteria', 'alternatives' or 'objectives' returns ``False``.
         - Next check the 'weights' and the matrix itself using the provided
           tolerance.
 
@@ -562,7 +562,7 @@ class DecisionMatrix:
             isinstance(other, DecisionMatrix)
             and np.shape(self) == np.shape(other)
             and np.array_equal(self.criteria, other.criteria)
-            and np.array_equal(self.anames, other.anames)
+            and np.array_equal(self.alternatives, other.alternatives)
             and np.array_equal(self.objectives, other.objectives)
             and np.allclose(
                 self.weights,
@@ -665,12 +665,12 @@ class ResultBase(metaclass=abc.ABCMeta):
         if result_column is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_result_column'")
 
-    def __init__(self, method, anames, values, extra):
+    def __init__(self, method, alternatives, values, extra):
         self._validate_result(values)
         self._method = str(method)
         self._extra = Bunch("extra", extra)
         self._result_df = pd.DataFrame(
-            values, index=anames, columns=[self._skcriteria_result_column]
+            values, index=alternatives, columns=[self._skcriteria_result_column]
         )
 
     @abc.abstractmethod
@@ -686,7 +686,7 @@ class ResultBase(metaclass=abc.ABCMeta):
         return self._method
 
     @property
-    def anames(self):
+    def alternatives(self):
         return self._result_df.index.to_numpy()
 
     @property

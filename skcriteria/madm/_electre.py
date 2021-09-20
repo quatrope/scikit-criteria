@@ -180,7 +180,7 @@ class ELECTRE1(SKCDecisionMakerMixin):
         }
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         return KernelResult(
-            "ELECTRE1", anames=anames, values=values, extra=extra
+            "ELECTRE1", alternatives=alternatives, values=values, extra=extra
         )

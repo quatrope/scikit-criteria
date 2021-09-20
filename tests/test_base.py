@@ -213,7 +213,7 @@ def test_flow_SKCWeighterMixin(decision_matrix):
         objectives=dm.objectives,
         weights=expected_weights,
         dtypes=dm.dtypes,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
     )
 
@@ -235,18 +235,18 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
         def _validate_data(self, **kwargs):
             ...
 
-        def _evaluate_data(self, anames, **kwargs):
-            return np.arange(len(anames)) + 1, {}
+        def _evaluate_data(self, alternatives, **kwargs):
+            return np.arange(len(alternatives)) + 1, {}
 
-        def _make_result(self, anames, values, extra):
-            return {"anames": anames, "rank": values, "extra": extra}
+        def _make_result(self, alternatives, values, extra):
+            return {"alternatives": alternatives, "rank": values, "extra": extra}
 
     ranker = Foo()
 
     result = ranker.evaluate(dm)
 
-    assert np.all(result["anames"] == dm.anames)
-    assert np.all(result["rank"] == np.arange(len(dm.anames)) + 1)
+    assert np.all(result["alternatives"] == dm.alternatives)
+    assert np.all(result["rank"] == np.arange(len(dm.alternatives)) + 1)
     assert result["extra"] == {}
 
 
@@ -273,11 +273,11 @@ def test_validate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
         def _validate_data(self, **kwargs):
             super()._validate_data(**kwargs)
 
-        def _evaluate_data(self, anames, **kwargs):
-            return np.arange(len(anames)) + 1, {}
+        def _evaluate_data(self, alternatives, **kwargs):
+            return np.arange(len(alternatives)) + 1, {}
 
-        def _make_result(self, anames, values, extra):
-            return {"anames": anames, "rank": values, "extra": extra}
+        def _make_result(self, alternatives, values, extra):
+            return {"alternatives": alternatives, "rank": values, "extra": extra}
 
     ranker = Foo()
 
@@ -296,8 +296,8 @@ def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
         def _evaluate_data(self, **kwargs):
             super()._evaluate_data(**kwargs)
 
-        def _make_result(self, anames, values, extra):
-            return {"anames": anames, "rank": values, "extra": extra}
+        def _make_result(self, alternatives, values, extra):
+            return {"alternatives": alternatives, "rank": values, "extra": extra}
 
     ranker = Foo()
 
@@ -313,8 +313,8 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
         def _validate_data(self, **kwargs):
             ...
 
-        def _evaluate_data(self, anames, **kwargs):
-            return np.arange(len(anames)) + 1, {}
+        def _evaluate_data(self, alternatives, **kwargs):
+            return np.arange(len(alternatives)) + 1, {}
 
         def _make_result(self, **kwargs):
             super()._make_result(**kwargs)

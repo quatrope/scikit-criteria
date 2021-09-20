@@ -52,7 +52,7 @@ def test_RatioMOORA_kracka2010ranking():
             [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935],
         ],
         objectives=[min, min, min, min, max, min, max],
-        anames=["A1", "A2", "A3", "A4", "A5", "A6"],
+        alternatives=["A1", "A2", "A3", "A4", "A5", "A6"],
         criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 
@@ -105,7 +105,7 @@ def test_ReferencePointMOORA_kracka2010ranking():
             [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935],
         ],
         objectives=[min, min, min, min, max, min, max],
-        anames=["A1", "A2", "A3", "A4", "A5", "A6"],
+        alternatives=["A1", "A2", "A3", "A4", "A5", "A6"],
         criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 
@@ -168,7 +168,7 @@ def test_FullMultiplicativeForm_kracka2010ranking():
             [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935],
         ],
         objectives=[min, min, min, min, max, min, max],
-        anames=["A1", "A2", "A3", "A4", "A5", "A6"],
+        alternatives=["A1", "A2", "A3", "A4", "A5", "A6"],
         criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 
@@ -286,7 +286,7 @@ def test_MultiMOORA_kracka2010ranking():
             [37.8, 8.55, 7.97, 2.35, 9.25, 134.83, 11.935],
         ],
         objectives=[min, min, min, min, max, min, max],
-        anames=["A1", "A2", "A3", "A4", "A5", "A6"],
+        alternatives=["A1", "A2", "A3", "A4", "A5", "A6"],
         criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 

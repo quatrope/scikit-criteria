@@ -158,7 +158,7 @@ def test_kernel_sensibility_barba1997decisiones():
         ],
         weights=[0.25, 0.25, 0.10, 0.20, 0.20],
         objectives=[1, 1, 1, 1, 1],
-        anames=["A", "B", "D", "E", "G", "H"],
+        alternatives=["A", "B", "D", "E", "G", "H"],
     )
 
     ps = [0.50, 0.60, 0.70, 0.80, 0.89, 0.89, 0.89, 0.94, 1]

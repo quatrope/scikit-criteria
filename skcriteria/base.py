@@ -287,7 +287,7 @@ class SKCDecisionMakerMixin(SKCBaseMethod):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _make_result(self, anames, values, extra):
+    def _make_result(self, alternatives, values, extra):
         raise NotImplementedError()
 
     def evaluate(self, dm):
@@ -310,9 +310,9 @@ class SKCDecisionMakerMixin(SKCBaseMethod):
 
         result_data, extra = self._evaluate_data(**data)
 
-        anames = data["anames"]
+        alternatives = data["alternatives"]
         result = self._make_result(
-            anames=anames, values=result_data, extra=extra
+            alternatives=alternatives, values=result_data, extra=extra
         )
 
         return result

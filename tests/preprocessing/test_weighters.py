@@ -75,7 +75,7 @@ def test_EqualWeighter(decision_matrix):
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=[1 / 20] * 20,
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -128,7 +128,7 @@ def test_StdWeighter(decision_matrix):
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=std / np.sum(std),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
@@ -181,7 +181,7 @@ def test_EntropyWeighter(decision_matrix):
         matrix=dm.matrix,
         objectives=dm.objectives,
         weights=entropy / np.sum(entropy),
-        anames=dm.anames,
+        alternatives=dm.alternatives,
         criteria=dm.criteria,
         dtypes=dm.dtypes,
     )
