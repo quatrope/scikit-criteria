@@ -214,7 +214,7 @@ def test_flow_SKCWeighterMixin(decision_matrix):
         weights=expected_weights,
         dtypes=dm.dtypes,
         anames=dm.anames,
-        cnames=dm.cnames,
+        criteria=dm.criteria,
     )
 
     result = transformer.transform(dm)

@@ -74,14 +74,14 @@ def test_objective_to_string():
 
 def test_simple_creation(data_values):
 
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
 
     np.testing.assert_array_equal(dm.matrix, mtx)
@@ -93,18 +93,18 @@ def test_simple_creation(data_values):
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
-    np.testing.assert_array_equal(dm.cnames, cnames)
-    np.testing.assert_array_equal(dm.dtypes, [np.float64] * len(cnames))
+    np.testing.assert_array_equal(dm.criteria, criteria)
+    np.testing.assert_array_equal(dm.dtypes, [np.float64] * len(criteria))
 
 
 def test_no_provide_weights(data_values):
-    mtx, objectives, _, anames, cnames = data_values(seed=42)
+    mtx, objectives, _, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
 
     weights = np.ones(len(dm.objectives))
@@ -118,18 +118,18 @@ def test_no_provide_weights(data_values):
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
-    np.testing.assert_array_equal(dm.cnames, cnames)
+    np.testing.assert_array_equal(dm.criteria, criteria)
 
 
 def test_no_provide_anames(data_values):
 
-    mtx, objectives, weights, _, cnames = data_values(seed=42)
+    mtx, objectives, weights, _, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
-        cnames=cnames,
+        criteria=criteria,
     )
 
     anames = [f"A{idx}" for idx in range(mtx.shape[0])]
@@ -143,7 +143,7 @@ def test_no_provide_anames(data_values):
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
-    np.testing.assert_array_equal(dm.cnames, cnames)
+    np.testing.assert_array_equal(dm.criteria, criteria)
 
 
 def test_no_provide_cnames(data_values):
@@ -156,7 +156,7 @@ def test_no_provide_cnames(data_values):
         anames=anames,
     )
 
-    cnames = [f"C{idx}" for idx in range(mtx.shape[1])]
+    criteria = [f"C{idx}" for idx in range(mtx.shape[1])]
 
     np.testing.assert_array_equal(dm.matrix, mtx)
     np.testing.assert_array_equal(
@@ -167,7 +167,7 @@ def test_no_provide_cnames(data_values):
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
-    np.testing.assert_array_equal(dm.cnames, cnames)
+    np.testing.assert_array_equal(dm.criteria, criteria)
 
 
 def test_no_provide_cnames_and_anames(data_values):
@@ -180,7 +180,7 @@ def test_no_provide_cnames_and_anames(data_values):
     )
 
     anames = [f"A{idx}" for idx in range(mtx.shape[0])]
-    cnames = [f"C{idx}" for idx in range(mtx.shape[1])]
+    criteria = [f"C{idx}" for idx in range(mtx.shape[1])]
 
     np.testing.assert_array_equal(dm.matrix, mtx)
     np.testing.assert_array_equal(
@@ -191,7 +191,7 @@ def test_no_provide_cnames_and_anames(data_values):
     )
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.anames, anames)
-    np.testing.assert_array_equal(dm.cnames, cnames)
+    np.testing.assert_array_equal(dm.criteria, criteria)
 
 
 # =============================================================================
@@ -200,14 +200,14 @@ def test_no_provide_cnames_and_anames(data_values):
 
 
 def test_copy(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
     copy = dm.copy()
 
@@ -217,21 +217,21 @@ def test_copy(data_values):
 
 def test_to_dataframe(data_values):
 
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
 
     df = dm.to_dataframe()
 
     rows = np.vstack((construct_objectives(objectives), weights, mtx))
     expected = pd.DataFrame(
-        rows, index=["objectives", "weights"] + anames, columns=cnames
+        rows, index=["objectives", "weights"] + anames, columns=criteria
     )
 
     pd.testing.assert_frame_equal(df, expected)
@@ -239,14 +239,14 @@ def test_to_dataframe(data_values):
 
 def test_to_dict(data_values):
 
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
 
     expected = {
@@ -254,7 +254,7 @@ def test_to_dict(data_values):
         "objectives": construct_objectives_values(objectives),
         "weights": weights,
         "anames": np.asarray(anames),
-        "cnames": np.asarray(cnames),
+        "criteria": np.asarray(criteria),
         "dtypes": np.full(len(weights), float),
     }
 
@@ -266,17 +266,17 @@ def test_to_dict(data_values):
 
 def test_describe(data_values):
 
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
 
-    expected = pd.DataFrame(mtx, columns=cnames, index=anames).describe()
+    expected = pd.DataFrame(mtx, columns=criteria, index=anames).describe()
 
     result = dm.describe()
 
@@ -359,18 +359,18 @@ def test_shape(decision_matrix):
 def test_len_vs_shape_ncriteria(decision_matrix):
     dm = decision_matrix(seed=42)
 
-    assert (len(dm), len(dm.cnames)) == np.shape(dm) == dm.shape
+    assert (len(dm), len(dm.criteria)) == np.shape(dm) == dm.shape
 
 
 def test_self_eq(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
     same = dm
 
@@ -379,14 +379,14 @@ def test_self_eq(data_values):
 
 
 def test_self_ne(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
 
     dm = data.mkdm(
         matrix=mtx,
         objectives=objectives,
         weights=weights,
         anames=anames,
-        cnames=cnames,
+        criteria=criteria,
     )
 
     omtx, oobjectives, oweights, oanames, ocnames = data_values(seed=43)
@@ -396,7 +396,7 @@ def test_self_ne(data_values):
         objectives=oobjectives,
         weights=oweights,
         anames=oanames,
-        cnames=ocnames,
+        criteria=ocnames,
     )
     assert not dm.equals(other)
 
@@ -498,24 +498,24 @@ def test_simple_html():
 
 
 def test_no_provide_mtx(data_values):
-    _, objectives, weights, anames, cnames = data_values(seed=42)
+    _, objectives, weights, anames, criteria = data_values(seed=42)
     with pytest.raises(TypeError):
         data.mkdm(
             objectives=objectives,
             weights=weights,
-            cnames=cnames,
+            criteria=criteria,
             anames=anames,
         )
 
 
 def test_no_provide_objective(data_values):
-    mtx, _, weights, anames, cnames = data_values(seed=42)
+    mtx, _, weights, anames, criteria = data_values(seed=42)
     with pytest.raises(TypeError):
-        data.mkdm(mtxt=mtx, weights=weights, cnames=cnames, anames=anames)
+        data.mkdm(mtxt=mtx, weights=weights, criteria=criteria, anames=anames)
 
 
 def test_invalid_objective(data_values):
-    mtx, _, weights, anames, cnames = data_values(seed=42)
+    mtx, _, weights, anames, criteria = data_values(seed=42)
     objectives = [1, 2, 3, 4]
     with pytest.raises(ValueError):
         data.mkdm(
@@ -523,12 +523,12 @@ def test_invalid_objective(data_values):
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 
 def test_weight_no_float(data_values):
-    mtx, objectives, _, anames, cnames = data_values(seed=42)
+    mtx, objectives, _, anames, criteria = data_values(seed=42)
     weights = ["hola"]
     with pytest.raises(ValueError):
         data.mkdm(
@@ -536,12 +536,12 @@ def test_weight_no_float(data_values):
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 
 def test_missmatch_objective(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
     objectives = objectives[1:]
     with pytest.raises(ValueError):
         data.mkdm(
@@ -549,25 +549,25 @@ def test_missmatch_objective(data_values):
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 
 def test_missmatch_dtypes(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
     with pytest.raises(ValueError):
         data.mkdm(
             matrix=mtx,
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
             dtypes=[float],
         )
 
 
 def test_missmatch_weights(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
     weights = weights[1:]
     with pytest.raises(ValueError):
         data.mkdm(
@@ -575,12 +575,12 @@ def test_missmatch_weights(data_values):
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 
 def test_missmatch_anames(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
     anames = anames[1:]
     with pytest.raises(ValueError):
         data.mkdm(
@@ -588,25 +588,25 @@ def test_missmatch_anames(data_values):
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 
 def test_missmatch_cnames(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
-    cnames = cnames[1:]
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
+    criteria = criteria[1:]
     with pytest.raises(ValueError):
         data.mkdm(
             matrix=mtx,
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 
 def test_mtx_ndim1(data_values):
-    mtx, objectives, weights, anames, cnames = data_values(seed=42)
+    mtx, objectives, weights, anames, criteria = data_values(seed=42)
     mtx = mtx.flatten()
     with pytest.raises(ValueError):
         data.mkdm(
@@ -614,12 +614,12 @@ def test_mtx_ndim1(data_values):
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 
 def test_mtx_ndim3(data_values):
-    _, objectives, weights, anames, cnames = data_values(seed=42)
+    _, objectives, weights, anames, criteria = data_values(seed=42)
     mtx = [[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]
     with pytest.raises(ValueError):
         data.mkdm(
@@ -627,7 +627,7 @@ def test_mtx_ndim3(data_values):
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
 

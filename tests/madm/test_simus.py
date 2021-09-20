@@ -45,7 +45,7 @@ def test_SIMUS_munier24metodo():
         ],
         objectives=[max, max, min, max],
         anames=["Proyecto 1", "Proyecto 2", "Proyecto 3"],
-        cnames=["Criterio 1", "Criterio 2", "Criterio 3", "Criterio 4"],
+        criteria=["Criterio 1", "Criterio 2", "Criterio 3", "Criterio 4"],
     )
     b = [None, 500, None, None]
 

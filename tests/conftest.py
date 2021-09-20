@@ -107,9 +107,9 @@ def data_values():
 
         # create the names of the criteria and the alternatives
         anames = [f"A{idx}" for idx in range(alternatives_number)]
-        cnames = [f"C{idx}" for idx in range(criteria_number)]
+        criteria = [f"C{idx}" for idx in range(criteria_number)]
 
-        return mtx, objectives, weights, anames, cnames
+        return mtx, objectives, weights, anames, criteria
 
     return make
 
@@ -118,14 +118,14 @@ def data_values():
 def decision_matrix(data_values):
     @functools.wraps(data_values)
     def make(*args, **kwargs):
-        mtx, objectives, weights, anames, cnames = data_values(*args, **kwargs)
+        mtx, objectives, weights, anames, criteria = data_values(*args, **kwargs)
 
         dm = data.mkdm(
             matrix=mtx,
             objectives=objectives,
             weights=weights,
             anames=anames,
-            cnames=cnames,
+            criteria=criteria,
         )
 
         return dm

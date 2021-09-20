@@ -53,7 +53,7 @@ def test_RatioMOORA_kracka2010ranking():
         ],
         objectives=[min, min, min, min, max, min, max],
         anames=["A1", "A2", "A3", "A4", "A5", "A6"],
-        cnames=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 
     expected = RankResult(
@@ -106,7 +106,7 @@ def test_ReferencePointMOORA_kracka2010ranking():
         ],
         objectives=[min, min, min, min, max, min, max],
         anames=["A1", "A2", "A3", "A4", "A5", "A6"],
-        cnames=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 
     expected = RankResult(
@@ -169,7 +169,7 @@ def test_FullMultiplicativeForm_kracka2010ranking():
         ],
         objectives=[min, min, min, min, max, min, max],
         anames=["A1", "A2", "A3", "A4", "A5", "A6"],
-        cnames=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 
     expected = RankResult(
@@ -287,7 +287,7 @@ def test_MultiMOORA_kracka2010ranking():
         ],
         objectives=[min, min, min, min, max, min, max],
         anames=["A1", "A2", "A3", "A4", "A5", "A6"],
-        cnames=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
+        criteria=["x1", "x2", "x3", "x4", "x5", "x6", "x7"],
     )
 
     expected = RankResult(

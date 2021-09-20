@@ -76,7 +76,7 @@ class DecisionMatrixPlotter:
     def _criteria_labels(self):
         dm = self._dm
         labels = [
-            f"{c} {o.to_string()}" for c, o in zip(dm.cnames, dm.objectives)
+            f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
         ]
         return labels
 

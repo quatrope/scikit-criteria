@@ -231,7 +231,7 @@ class DecisionMatrix:
         objectives,
         weights=None,
         anames=None,
-        cnames=None,
+        criteria=None,
         dtypes=None,
     ):
         """Create a new DecisionMatrix object.
@@ -258,7 +258,7 @@ class DecisionMatrix:
             al the alternatives are names "A[n]" where n is the number of
             the row of `matrix` statring at 0.
 
-        cnames: Iterable o None (default ``None``)
+        criteria: Iterable o None (default ``None``)
             Optional names of the criteria. If is ``None``,
             al the alternatives are names "C[m]" where m is the number of
             the columns of `matrix` statring at 0.
@@ -312,30 +312,30 @@ class DecisionMatrix:
         if len(anames) != a_number:
             raise ValueError(f"'anames' must have {a_number} elements")
 
-        cnames = np.asarray(
+        criteria = np.asarray(
             [f"C{idx}" for idx in range(c_number)]
-            if cnames is None
-            else cnames
+            if criteria is None
+            else criteria
         )
 
-        if len(cnames) != c_number:
-            raise ValueError(f"'cnames' must have {c_number} elements")
+        if len(criteria) != c_number:
+            raise ValueError(f"'criteria' must have {c_number} elements")
 
         weights = np.asarray(np.ones(c_number) if weights is None else weights)
 
-        data_df = pd.DataFrame(matrix, index=anames, columns=cnames)
+        data_df = pd.DataFrame(matrix, index=anames, columns=criteria)
 
         if dtypes is not None and len(dtypes) != c_number:
             raise ValueError(f"'dtypes' must have {c_number} elements")
         elif dtypes is not None:
-            dtypes = {c: dt for c, dt in zip(cnames, dtypes)}
+            dtypes = {c: dt for c, dt in zip(criteria, dtypes)}
             data_df = data_df.astype(dtypes)
 
         return cls(data_df=data_df, objectives=objectives, weights=weights)
 
     # MCDA ====================================================================
     #     This properties are usefull to access interactively to the
-    #     underlying data a. Except for anames and cnames all other properties
+    #     underlying data a. Except for anames and criteria all other properties
     #     Expose the data as dataframes or series
 
     @property
@@ -344,7 +344,7 @@ class DecisionMatrix:
         return self._data_df.index.to_numpy()
 
     @property
-    def cnames(self):
+    def criteria(self):
         """Names of the criteria."""
         return self._data_df.columns.to_numpy()
 
@@ -432,7 +432,7 @@ class DecisionMatrix:
         """
         data = np.vstack((self._objectives, self._weights, self.matrix))
         index = np.hstack((["objectives", "weights"], self.anames))
-        df = pd.DataFrame(data, index=index, columns=self.cnames, copy=True)
+        df = pd.DataFrame(data, index=index, columns=self.criteria, copy=True)
         return df
 
     def to_dict(self):
@@ -446,7 +446,7 @@ class DecisionMatrix:
             "weights": self.weights.to_numpy(),
             "dtypes": self.dtypes.to_numpy(),
             "anames": self.anames,
-            "cnames": self.cnames,
+            "criteria": self.criteria,
         }
 
     def describe(self, **kwargs):
@@ -527,7 +527,7 @@ class DecisionMatrix:
 
         - If ``other`` is the same object return ``True``.
         - If ``other`` is not instance of 'DecisionMatrix', has different shape
-          'cnames', 'anames' or 'objectives' returns ``False``.
+          'criteria', 'anames' or 'objectives' returns ``False``.
         - Next check the 'weights' and the matrix itself using the provided
           tolerance.
 
@@ -561,7 +561,7 @@ class DecisionMatrix:
         return (self is other) or (
             isinstance(other, DecisionMatrix)
             and np.shape(self) == np.shape(other)
-            and np.array_equal(self.cnames, other.cnames)
+            and np.array_equal(self.criteria, other.criteria)
             and np.array_equal(self.anames, other.anames)
             and np.array_equal(self.objectives, other.objectives)
             and np.allclose(
@@ -584,7 +584,7 @@ class DecisionMatrix:
     def _get_cow_headers(self):
         """Columns names with COW (Criteria, Objective, Weight)."""
         headers = []
-        for c, o, w in zip(self.cnames, self.objectives, self.weights):
+        for c, o, w in zip(self.criteria, self.objectives, self.weights):
             header = f"{c}[{o.to_string()} {w}]"
             headers.append(header)
         return headers
@@ -615,7 +615,7 @@ class DecisionMatrix:
 
         Mainly for IPython notebook.
         """
-        header = dict(zip(self.cnames, self._get_cow_headers()))
+        header = dict(zip(self.criteria, self._get_cow_headers()))
         dimensions = self._get_axc_dimensions()
 
         # retrieve the original string
