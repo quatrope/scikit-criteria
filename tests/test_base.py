@@ -223,7 +223,7 @@ def test_flow_SKCWeighterMixin(decision_matrix):
 
 
 # =============================================================================
-# SKCDecisionMakerMixin
+# SKCDecisionMakerABC
 # =============================================================================
 
 
@@ -231,7 +231,7 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerMixin):
+    class Foo(base.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             ...
 
@@ -263,7 +263,7 @@ def test_not_redefined_SKCDecisionMakerMixin(not_redefine):
         if method_name != not_redefine:
             content[method_name] = lambda **kws: None
 
-    Foo = type("Foo", (base.SKCDecisionMakerMixin,), content)
+    Foo = type("Foo", (base.SKCDecisionMakerABC,), content)
 
     with pytest.raises(TypeError):
         Foo()
@@ -273,7 +273,7 @@ def test_validate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerMixin):
+    class Foo(base.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             super()._validate_data(**kwargs)
 
@@ -297,7 +297,7 @@ def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerMixin):
+    class Foo(base.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             ...
 
@@ -321,7 +321,7 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerMixin):
+    class Foo(base.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             ...
 

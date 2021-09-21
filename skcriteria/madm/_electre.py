@@ -22,7 +22,7 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 
 import numpy as np
 
-from ..base import SKCDecisionMakerMixin
+from ..base import SKCDecisionMakerABC
 from ..data import KernelResult, Objective
 from ..utils import doc_inherit
 
@@ -109,7 +109,7 @@ def electre1(matrix, objectives, weights, p=0.65, q=0.35):
     return kernel, outrank, matrix_concordance, matrix_discordance
 
 
-class ELECTRE1(SKCDecisionMakerMixin):
+class ELECTRE1(SKCDecisionMakerABC):
     """Find a the kernel solution through ELECTRE-1.
 
     The ELECTRE I model find the kernel solution in a situation where true
@@ -164,11 +164,11 @@ class ELECTRE1(SKCDecisionMakerMixin):
     def q(self, q):
         self._q = float(q)
 
-    @doc_inherit(SKCDecisionMakerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerABC._validate_data)
     def _validate_data(self, objectives, **kwargs):
         ...
 
-    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         kernel, outrank, matrix_concordance, matrix_discordance = electre1(
             matrix, objectives, weights, self.p, self.q
@@ -179,7 +179,7 @@ class ELECTRE1(SKCDecisionMakerMixin):
             "matrix_discordance": matrix_discordance,
         }
 
-    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return KernelResult(
             "ELECTRE1", alternatives=alternatives, values=values, extra=extra

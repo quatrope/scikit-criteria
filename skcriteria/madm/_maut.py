@@ -24,7 +24,7 @@ utility functions and their weighting factors are necessary.
 
 import numpy as np
 
-from ..base import SKCDecisionMakerMixin
+from ..base import SKCDecisionMakerABC
 from ..data import Objective, RankResult
 from ..utils import doc_inherit, rank
 
@@ -43,7 +43,7 @@ def wsm(matrix, weights):
     return rank.rank_values(score, reverse=True), score
 
 
-class WeightedSumModel(SKCDecisionMakerMixin):
+class WeightedSumModel(SKCDecisionMakerABC):
     r"""The weighted sum model.
 
     WSM is the best known and simplest multi-criteria decision analysis for
@@ -89,19 +89,19 @@ class WeightedSumModel(SKCDecisionMakerMixin):
 
     """
 
-    @doc_inherit(SKCDecisionMakerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerABC._validate_data)
     def _validate_data(self, objectives, **kwargs):
         if Objective.MIN.value in objectives:
             raise ValueError(
                 "WeightedSumModel can't operate with minimize objective"
             )
 
-    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, **kwargs):
         rank, score = wsm(matrix, weights)
         return rank, {"score": score}
 
-    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
             "WeightedSumModel",
@@ -129,7 +129,7 @@ def wpm(matrix, weights):
     return rank.rank_values(score, reverse=True), score
 
 
-class WeightedProductModel(SKCDecisionMakerMixin):
+class WeightedProductModel(SKCDecisionMakerABC):
     r"""The weighted product model.
 
     WPM is a popular multi-criteria decision
@@ -184,7 +184,7 @@ class WeightedProductModel(SKCDecisionMakerMixin):
 
     """
 
-    @doc_inherit(SKCDecisionMakerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerABC._validate_data)
     def _validate_data(self, matrix, objectives, **kwargs):
         if Objective.MIN.value in objectives:
             raise ValueError(
@@ -195,12 +195,12 @@ class WeightedProductModel(SKCDecisionMakerMixin):
                 "WeightedProductModel can't operate with values <= 0"
             )
 
-    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, **kwargs):
         rank, score = wpm(matrix, weights)
         return rank, {"score": score}
 
-    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
             "WeightedProductModel",

@@ -19,7 +19,7 @@ import warnings
 
 import numpy as np
 
-from ..base import SKCDecisionMakerMixin
+from ..base import SKCDecisionMakerABC
 from ..data import Objective, RankResult
 from ..preprocessing import scale_by_sum
 from ..utils import doc_inherit, lp, rank
@@ -204,7 +204,7 @@ def simus(matrix, objectives, b=None, rank_by=1, solver="pulp"):
     )
 
 
-class SIMUS(SKCDecisionMakerMixin):
+class SIMUS(SKCDecisionMakerABC):
     r"""SIMUS (Sequential Interactive Model for Urban Systems).
 
     SIMUS developed by Nolberto Munier (2011) is a tool to aid decision-making
@@ -276,14 +276,14 @@ class SIMUS(SKCDecisionMakerMixin):
             raise ValueError("'rank_by' must be 1 or 2")
         self._rank_by = rank_by
 
-    @doc_inherit(SKCDecisionMakerMixin._validate_data)
+    @doc_inherit(SKCDecisionMakerABC._validate_data)
     def _validate_data(self, objectives, weights, b, **kwargs):
         if len(np.unique(weights)) > 1:
             warnings.warn("SIMUS not take into account the weights")
         if b is not None and len(objectives) != len(b):
             raise ValueError("'b' must be the same leght as criteria or None")
 
-    @doc_inherit(SKCDecisionMakerMixin._evaluate_data)
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, b, **kwargs):
         (
             ranking,
@@ -315,7 +315,7 @@ class SIMUS(SKCDecisionMakerMixin):
             "dominance_by_criteria": dominance_by_criteria,
         }
 
-    @doc_inherit(SKCDecisionMakerMixin._make_result)
+    @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
             "SIMUS", alternatives=alternatives, values=values, extra=extra

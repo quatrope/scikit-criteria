@@ -272,7 +272,7 @@ class SKCWeighterABC(SKCTransformerABC):
 # =============================================================================
 
 
-class SKCDecisionMakerMixin(SKCMethodABC):
+class SKCDecisionMakerABC(SKCMethodABC):
     """Mixin class for all decisor based methods in scikit-criteria."""
 
     _skcriteria_dm_type = "decision_maker"
