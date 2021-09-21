@@ -647,13 +647,13 @@ class test_ResultBase_skacriteria_result_column_no_defined:
 
     with pytest.raises(TypeError):
 
-        class Foo(data.ResultBase):
+        class Foo(data.ResultABC):
             def _validate_result(self, values):
                 pass
 
 
 class test_ResultBase_original_validare_result_fail:
-    class Foo(data.ResultBase):
+    class Foo(data.ResultABC):
         _skcriteria_result_column = "foo"
 
         def _validate_result(self, values):

@@ -655,7 +655,7 @@ def mkdm(*args, **kwargs):
 # =============================================================================
 
 
-class ResultBase(metaclass=abc.ABCMeta):
+class ResultABC(metaclass=abc.ABCMeta):
 
     _skcriteria_result_column = None
 
@@ -744,11 +744,11 @@ class ResultBase(metaclass=abc.ABCMeta):
         return string
 
 
-class RankResult(ResultBase):
+class RankResult(ResultABC):
 
     _skcriteria_result_column = "Rank"
 
-    @doc_inherit(ResultBase._validate_result)
+    @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
         length = len(values)
         expected = np.arange(length) + 1
@@ -779,11 +779,11 @@ class RankResult(ResultBase):
         return html
 
 
-class KernelResult(ResultBase):
+class KernelResult(ResultABC):
 
     _skcriteria_result_column = "Kernel"
 
-    @doc_inherit(ResultBase._validate_result)
+    @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
         if np.asarray(values).dtype != bool:
             raise ValueError(f"The data {values} doesn't look like a kernel")
