@@ -224,7 +224,7 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
 # =============================================================================
 
 
-class SKCWeighterMixin(SKCTransformerABC):
+class SKCWeighterABC(SKCTransformerABC):
     """Mixin capable of determine the weights of the matrix.
 
     This mixin require to redefine ``_weight_matrix``, instead of

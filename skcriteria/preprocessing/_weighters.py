@@ -25,7 +25,7 @@ import numpy as np
 import scipy.stats
 
 from ._distance import cenit_distance
-from ..base import SKCWeighterMixin
+from ..base import SKCWeighterABC
 from ..utils import doc_inherit
 
 
@@ -40,7 +40,7 @@ def equal_weights(matrix, base_value=1):
     return np.full(ncriteria, weights, dtype=float)
 
 
-class EqualWeighter(SKCWeighterMixin):
+class EqualWeighter(SKCWeighterABC):
     def __init__(self, base_value=1):
         self.base_value = base_value
 
@@ -52,7 +52,7 @@ class EqualWeighter(SKCWeighterMixin):
     def base_value(self, v):
         self._base_value = float(v)
 
-    @doc_inherit(SKCWeighterMixin._weight_matrix)
+    @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return equal_weights(matrix, self.base_value)
 
@@ -67,8 +67,8 @@ def std_weights(matrix):
     return std / np.sum(std)
 
 
-class StdWeighter(SKCWeighterMixin):
-    @doc_inherit(SKCWeighterMixin._weight_matrix)
+class StdWeighter(SKCWeighterABC):
+    @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return std_weights(matrix)
 
@@ -83,8 +83,8 @@ def entropy_weights(matrix):
     return entropy / np.sum(entropy)
 
 
-class EntropyWeighter(SKCWeighterMixin):
-    @doc_inherit(SKCWeighterMixin._weight_matrix)
+class EntropyWeighter(SKCWeighterABC):
+    @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return entropy_weights(matrix)
 
@@ -116,7 +116,7 @@ def critic_weights(
     return weights
 
 
-class Critic(SKCWeighterMixin):
+class Critic(SKCWeighterABC):
     CORRELATION = {
         "pearson": pearson_correlation,
         "spearman": spearman_correlation,
@@ -146,7 +146,7 @@ class Critic(SKCWeighterMixin):
             raise ValueError(f"Correlation must be {corr_keys} or callable")
         self._correlation = correlation_func
 
-    @doc_inherit(SKCWeighterMixin._weight_matrix)
+    @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, objectives, **kwargs):
         return critic_weights(
             matrix, objectives, correlation=self.correlation, scale=self.scale
