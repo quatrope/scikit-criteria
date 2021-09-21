@@ -210,18 +210,6 @@ class DecisionMatrix:
             name="Weights",
         )
 
-        lens = {
-            "c_number": len(self._data_df.columns),
-            "objectives": len(self._objectives),
-            "weights": len(self._weights),
-        }
-        if len(set(lens.values())) > 1:
-            c_number = lens.pop("c_number")
-            raise ValueError(
-                "'objectives' and 'weights' must have the same number of "
-                f"columns in 'data_df {c_number}. Found {lens}."
-            )
-
     # CUSTOM CONSTRUCTORS =====================================================
 
     @classmethod

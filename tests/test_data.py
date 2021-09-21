@@ -72,7 +72,7 @@ def test_objective_to_string():
 # =============================================================================
 
 
-def test_simple_creation(data_values):
+def test_DecisionMatrix_simple_creation(data_values):
 
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
@@ -97,7 +97,7 @@ def test_simple_creation(data_values):
     np.testing.assert_array_equal(dm.dtypes, [np.float64] * len(criteria))
 
 
-def test_no_provide_weights(data_values):
+def test_DecisionMatrix_no_provide_weights(data_values):
     mtx, objectives, _, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -121,7 +121,7 @@ def test_no_provide_weights(data_values):
     np.testing.assert_array_equal(dm.criteria, criteria)
 
 
-def test_no_provide_anames(data_values):
+def test_DecisionMatrix_no_provide_anames(data_values):
 
     mtx, objectives, weights, _, criteria = data_values(seed=42)
 
@@ -146,7 +146,7 @@ def test_no_provide_anames(data_values):
     np.testing.assert_array_equal(dm.criteria, criteria)
 
 
-def test_no_provide_cnames(data_values):
+def test_DecisionMatrix_no_provide_cnames(data_values):
     mtx, objectives, weights, alternatives, _ = data_values(seed=42)
 
     dm = data.mkdm(
@@ -170,7 +170,7 @@ def test_no_provide_cnames(data_values):
     np.testing.assert_array_equal(dm.criteria, criteria)
 
 
-def test_no_provide_cnames_and_anames(data_values):
+def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
     mtx, objectives, weights, _, _ = data_values(seed=42)
 
     dm = data.mkdm(
@@ -195,11 +195,11 @@ def test_no_provide_cnames_and_anames(data_values):
 
 
 # =============================================================================
-# UTILITIES
+# DECISION MATRIX
 # =============================================================================
 
 
-def test_copy(data_values):
+def test_DecisionMatrix_copy(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -215,7 +215,7 @@ def test_copy(data_values):
     assert dm.equals(copy)
 
 
-def test_to_dataframe(data_values):
+def test_DecisionMatrix_to_dataframe(data_values):
 
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
@@ -237,7 +237,7 @@ def test_to_dataframe(data_values):
     pd.testing.assert_frame_equal(df, expected)
 
 
-def test_to_dict(data_values):
+def test_DecisionMatrix_to_dict(data_values):
 
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
@@ -264,7 +264,7 @@ def test_to_dict(data_values):
     assert np.all(cmp.values())
 
 
-def test_describe(data_values):
+def test_DecisionMatrix_describe(data_values):
 
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
@@ -290,7 +290,7 @@ def test_describe(data_values):
 # =============================================================================
 
 
-def test_len(decision_matrix):
+def test_DecisionMatrix_len(decision_matrix):
     dm1 = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -319,7 +319,7 @@ def test_len(decision_matrix):
     assert len(dm1) != len(dm3) and len(dm2) != len(dm3)
 
 
-def test_shape(decision_matrix):
+def test_DecisionMatrix_shape(decision_matrix):
     dm1 = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -358,13 +358,13 @@ def test_shape(decision_matrix):
     assert dm2.shape != dm3.shape and dm2.shape != dm4.shape
 
 
-def test_len_vs_shape_ncriteria(decision_matrix):
+def test_DecisionMatrix_len_vs_shape_ncriteria(decision_matrix):
     dm = decision_matrix(seed=42)
 
     assert (len(dm), len(dm.criteria)) == np.shape(dm) == dm.shape
 
 
-def test_self_eq(data_values):
+def test_DecisionMatrix_self_eq(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -380,7 +380,7 @@ def test_self_eq(data_values):
     assert dm.equals(same)
 
 
-def test_self_ne(data_values):
+def test_DecisionMatrix_self_ne(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -408,7 +408,7 @@ def test_self_ne(data_values):
 # =============================================================================
 
 
-def test_simple_repr():
+def test_mksm_simple_repr():
 
     dm = data.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
@@ -499,7 +499,7 @@ def test_simple_html():
 # =============================================================================
 
 
-def test_no_provide_mtx(data_values):
+def test_DecisionMatrix_no_provide_mtx(data_values):
     _, objectives, weights, alternatives, criteria = data_values(seed=42)
     with pytest.raises(TypeError):
         data.mkdm(
@@ -510,7 +510,7 @@ def test_no_provide_mtx(data_values):
         )
 
 
-def test_no_provide_objective(data_values):
+def test_DecisionMatrix_no_provide_objective(data_values):
     mtx, _, weights, alternatives, criteria = data_values(seed=42)
     with pytest.raises(TypeError):
         data.mkdm(
@@ -521,7 +521,7 @@ def test_no_provide_objective(data_values):
         )
 
 
-def test_invalid_objective(data_values):
+def test_DecisionMatrix_invalid_objective(data_values):
     mtx, _, weights, alternatives, criteria = data_values(seed=42)
     objectives = [1, 2, 3, 4]
     with pytest.raises(ValueError):
@@ -534,7 +534,7 @@ def test_invalid_objective(data_values):
         )
 
 
-def test_weight_no_float(data_values):
+def test_DecisionMatrix_weight_no_float(data_values):
     mtx, objectives, _, alternatives, criteria = data_values(seed=42)
     weights = ["hola"]
     with pytest.raises(ValueError):
@@ -547,7 +547,7 @@ def test_weight_no_float(data_values):
         )
 
 
-def test_missmatch_objective(data_values):
+def test_DecisionMatrix_missmatch_objective(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
     objectives = objectives[1:]
     with pytest.raises(ValueError):
@@ -560,7 +560,7 @@ def test_missmatch_objective(data_values):
         )
 
 
-def test_missmatch_dtypes(data_values):
+def test_DecisionMatrix_missmatch_dtypes(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
     with pytest.raises(ValueError):
         data.mkdm(
@@ -573,7 +573,7 @@ def test_missmatch_dtypes(data_values):
         )
 
 
-def test_missmatch_weights(data_values):
+def test_DecisionMatrix_missmatch_weights(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
     weights = weights[1:]
     with pytest.raises(ValueError):
@@ -586,7 +586,7 @@ def test_missmatch_weights(data_values):
         )
 
 
-def test_missmatch_anames(data_values):
+def test_DecisionMatrix_missmatch_anames(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
     alternatives = alternatives[1:]
     with pytest.raises(ValueError):
@@ -599,7 +599,7 @@ def test_missmatch_anames(data_values):
         )
 
 
-def test_missmatch_cnames(data_values):
+def test_DecisionMatrix_missmatch_cnames(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
     criteria = criteria[1:]
     with pytest.raises(ValueError):
@@ -612,7 +612,7 @@ def test_missmatch_cnames(data_values):
         )
 
 
-def test_mtx_ndim1(data_values):
+def test_DecisionMatrix_mtx_ndim1(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
     mtx = mtx.flatten()
     with pytest.raises(ValueError):
@@ -625,7 +625,7 @@ def test_mtx_ndim1(data_values):
         )
 
 
-def test_mtx_ndim3(data_values):
+def test_DecisionMatrix_mtx_ndim3(data_values):
     _, objectives, weights, alternatives, criteria = data_values(seed=42)
     mtx = [[[1, 2, 3], [4, 5, 6], [7, 8, 9]]]
     with pytest.raises(ValueError):
