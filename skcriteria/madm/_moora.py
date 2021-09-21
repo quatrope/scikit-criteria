@@ -155,7 +155,10 @@ class ReferencePointMOORA(SKCDecisionMakerMixin):
     @doc_inherit(SKCDecisionMakerMixin._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "ReferencePointMOORA", alternatives=alternatives, values=values, extra=extra
+            "ReferencePointMOORA",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
         )
 
 

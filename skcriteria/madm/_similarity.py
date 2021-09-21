@@ -108,4 +108,6 @@ class TOPSIS(SKCDecisionMakerMixin):
 
     @doc_inherit(SKCDecisionMakerMixin._make_result)
     def _make_result(self, alternatives, values, extra):
-        return RankResult("TOPSIS", alternatives=alternatives, values=values, extra=extra)
+        return RankResult(
+            "TOPSIS", alternatives=alternatives, values=values, extra=extra
+        )

@@ -239,7 +239,11 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
             return np.arange(len(alternatives)) + 1, {}
 
         def _make_result(self, alternatives, values, extra):
-            return {"alternatives": alternatives, "rank": values, "extra": extra}
+            return {
+                "alternatives": alternatives,
+                "rank": values,
+                "extra": extra,
+            }
 
     ranker = Foo()
 
@@ -277,7 +281,11 @@ def test_validate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
             return np.arange(len(alternatives)) + 1, {}
 
         def _make_result(self, alternatives, values, extra):
-            return {"alternatives": alternatives, "rank": values, "extra": extra}
+            return {
+                "alternatives": alternatives,
+                "rank": values,
+                "extra": extra,
+            }
 
     ranker = Foo()
 
@@ -297,7 +305,11 @@ def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
             super()._evaluate_data(**kwargs)
 
         def _make_result(self, alternatives, values, extra):
-            return {"alternatives": alternatives, "rank": values, "extra": extra}
+            return {
+                "alternatives": alternatives,
+                "rank": values,
+                "extra": extra,
+            }
 
     ranker = Foo()
 

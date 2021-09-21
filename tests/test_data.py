@@ -276,7 +276,9 @@ def test_describe(data_values):
         criteria=criteria,
     )
 
-    expected = pd.DataFrame(mtx, columns=criteria, index=alternatives).describe()
+    expected = pd.DataFrame(
+        mtx, columns=criteria, index=alternatives
+    ).describe()
 
     result = dm.describe()
 
@@ -511,7 +513,12 @@ def test_no_provide_mtx(data_values):
 def test_no_provide_objective(data_values):
     mtx, _, weights, alternatives, criteria = data_values(seed=42)
     with pytest.raises(TypeError):
-        data.mkdm(mtxt=mtx, weights=weights, criteria=criteria, alternatives=alternatives)
+        data.mkdm(
+            mtxt=mtx,
+            weights=weights,
+            criteria=criteria,
+            alternatives=alternatives,
+        )
 
 
 def test_invalid_objective(data_values):
@@ -684,7 +691,9 @@ def test_RankResult_invalid_rank(rank):
     extra = {"alfa": 1}
 
     with pytest.raises(ValueError):
-        data.RankResult(method=method, alternatives=alternatives, values=rank, extra=extra)
+        data.RankResult(
+            method=method, alternatives=alternatives, values=rank, extra=extra
+        )
 
 
 def test_RankResult_shape():
@@ -789,7 +798,10 @@ def test_KernelResult_invalid_rank(values):
 
     with pytest.raises(ValueError):
         data.KernelResult(
-            method=method, alternatives=alternatives, values=values, extra=extra
+            method=method,
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
         )
 
 

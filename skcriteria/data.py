@@ -335,8 +335,8 @@ class DecisionMatrix:
 
     # MCDA ====================================================================
     #     This properties are usefull to access interactively to the
-    #     underlying data a. Except for alternatives and criteria all other properties
-    #     Expose the data as dataframes or series
+    #     underlying data a. Except for alternatives and criteria all other
+    #     properties expose the data as dataframes or series
 
     @property
     def alternatives(self):
@@ -670,7 +670,9 @@ class ResultBase(metaclass=abc.ABCMeta):
         self._method = str(method)
         self._extra = Bunch("extra", extra)
         self._result_df = pd.DataFrame(
-            values, index=alternatives, columns=[self._skcriteria_result_column]
+            values,
+            index=alternatives,
+            columns=[self._skcriteria_result_column],
         )
 
     @abc.abstractmethod

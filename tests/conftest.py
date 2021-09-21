@@ -118,7 +118,9 @@ def data_values():
 def decision_matrix(data_values):
     @functools.wraps(data_values)
     def make(*args, **kwargs):
-        mtx, objectives, weights, alternatives, criteria = data_values(*args, **kwargs)
+        mtx, objectives, weights, alternatives, criteria = data_values(
+            *args, **kwargs
+        )
 
         dm = data.mkdm(
             matrix=mtx,

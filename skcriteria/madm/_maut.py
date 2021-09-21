@@ -104,7 +104,10 @@ class WeightedSumModel(SKCDecisionMakerMixin):
     @doc_inherit(SKCDecisionMakerMixin._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "WeightedSumModel", alternatives=alternatives, values=values, extra=extra
+            "WeightedSumModel",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
         )
 
 
