@@ -86,7 +86,7 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 # =============================================================================
 
 
-class SKCTransformerMixin(SKCMethodABC):
+class SKCTransformerABC(SKCMethodABC):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
@@ -132,7 +132,7 @@ class SKCTransformerMixin(SKCMethodABC):
         return transformed_dm
 
 
-class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
+class SKCMatrixAndWeightTransformerMixin(SKCTransformerABC):
     """Transform weights and matrix together or independently.
 
     The Transformer that implements this mixin can be configured to transform
@@ -203,7 +203,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
         """
         raise NotImplementedError()
 
-    @doc_inherit(SKCTransformerMixin._transform_data)
+    @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, weights, **kwargs):
         norm_mtx = matrix
         norm_weights = weights
@@ -224,7 +224,7 @@ class SKCMatrixAndWeightTransformerMixin(SKCTransformerMixin):
 # =============================================================================
 
 
-class SKCWeighterMixin(SKCTransformerMixin):
+class SKCWeighterMixin(SKCTransformerABC):
     """Mixin capable of determine the weights of the matrix.
 
     This mixin require to redefine ``_weight_matrix``, instead of
@@ -253,7 +253,7 @@ class SKCWeighterMixin(SKCTransformerMixin):
         """
         raise NotImplementedError()
 
-    @doc_inherit(SKCTransformerMixin._transform_data)
+    @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, weights, **kwargs):
 
         new_weights = self._weight_matrix(

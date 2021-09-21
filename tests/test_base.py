@@ -65,7 +65,7 @@ def test_repr_no_params():
 
 
 def test_not_redefined_SKCTransformerMixin():
-    class Foo(base.SKCTransformerMixin):
+    class Foo(base.SKCTransformerABC):
         pass
 
     with pytest.raises(TypeError):
@@ -80,7 +80,7 @@ def test_not_redefined_SKCTransformerMixin():
 def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
-    class Foo(base.SKCTransformerMixin):
+    class Foo(base.SKCTransformerABC):
         def _transform_data(self, **kwargs):
             return super()._transform_data(**kwargs)
 
