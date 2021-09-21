@@ -31,7 +31,7 @@ _IGNORE_PARAMS = (
 )
 
 
-class SKCBaseMethod(metaclass=abc.ABCMeta):
+class SKCMethodABC(metaclass=abc.ABCMeta):
     """Base class for all class in scikit-criteria.
 
     Notes
@@ -55,7 +55,7 @@ class SKCBaseMethod(metaclass=abc.ABCMeta):
 
         if (
             cls._skcriteria_parameters is None
-            and cls.__init__ is not SKCBaseMethod.__init__
+            and cls.__init__ is not SKCMethodABC.__init__
         ):
             signature = inspect.signature(cls.__init__)
             parameters = set()
@@ -86,7 +86,7 @@ class SKCBaseMethod(metaclass=abc.ABCMeta):
 # =============================================================================
 
 
-class SKCTransformerMixin(SKCBaseMethod):
+class SKCTransformerMixin(SKCMethodABC):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
@@ -272,7 +272,7 @@ class SKCWeighterMixin(SKCTransformerMixin):
 # =============================================================================
 
 
-class SKCDecisionMakerMixin(SKCBaseMethod):
+class SKCDecisionMakerMixin(SKCMethodABC):
     """Mixin class for all decisor based methods in scikit-criteria."""
 
     _skcriteria_dm_type = "decision_maker"

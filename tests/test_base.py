@@ -33,12 +33,12 @@ def test_no__skcriteria_dm_type():
 
     with pytest.raises(TypeError):
 
-        class Foo(base.SKCBaseMethod):
+        class Foo(base.SKCMethodABC):
             pass
 
 
 def test_repr():
-    class Foo(base.SKCBaseMethod):
+    class Foo(base.SKCMethodABC):
         _skcriteria_dm_type = "foo"
 
         def __init__(self, foo, faa):
@@ -51,7 +51,7 @@ def test_repr():
 
 
 def test_repr_no_params():
-    class Foo(base.SKCBaseMethod):
+    class Foo(base.SKCMethodABC):
         _skcriteria_dm_type = "foo"
 
     foo = Foo()
@@ -92,7 +92,7 @@ def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
 
 
 def test_not_redefined_SKCMatrixAndWeightTransformerMixin():
-    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseMethod):
+    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCMethodABC):
         pass
 
     with pytest.raises(TypeError):
@@ -106,7 +106,7 @@ def test_not_redefined_SKCMatrixAndWeightTransformerMixin():
 
 
 def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
-    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseMethod):
+    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCMethodABC):
         def _transform_matrix(self, matrix):
             ...
 
@@ -120,7 +120,7 @@ def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
 def test_transform_weights_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
-    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseMethod):
+    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCMethodABC):
         def _transform_matrix(self, matrix):
             super()._transform_matrix(matrix)
 
@@ -137,7 +137,7 @@ def test_transform_weights_not_implemented_SKCMatrixAndWeightTransformerMixin(
 def test_transform_weight_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
-    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseMethod):
+    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCMethodABC):
         def _transform_matrix(self, matrix):
             return matrix
 
@@ -152,7 +152,7 @@ def test_transform_weight_not_implemented_SKCMatrixAndWeightTransformerMixin(
 
 
 def test_SKCMatrixAndWeightTransformerMixin_target():
-    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCBaseMethod):
+    class Foo(base.SKCMatrixAndWeightTransformerMixin, base.SKCMethodABC):
         def _transform_matrix(self, matrix):
             ...
 
