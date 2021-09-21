@@ -24,7 +24,7 @@ are offered to scale an array along an arbitrary axis.
 import numpy as np
 from numpy import linalg
 
-from ..base import SKCMatrixAndWeightTransformerMixin
+from ..base import SKCMatrixAndWeightTransformerABC
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -82,7 +82,7 @@ def scale_by_stdscore(arr, axis=None):
     return (arr - mean) / std
 
 
-class StandarScaler(SKCMatrixAndWeightTransformerMixin):
+class StandarScaler(SKCMatrixAndWeightTransformerABC):
     """Standardize the dm by removing the mean and scaling to unit variance.
 
     The standard score of a sample `x` is calculated as:
@@ -94,11 +94,11 @@ class StandarScaler(SKCMatrixAndWeightTransformerMixin):
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_stdscore(weights, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
         return scale_by_stdscore(matrix, axis=0)
 
@@ -160,7 +160,7 @@ def scale_by_vector(arr, axis=None):
     return arr / frob
 
 
-class VectorScaler(SKCMatrixAndWeightTransformerMixin):
+class VectorScaler(SKCMatrixAndWeightTransformerABC):
     r"""Scaler based on the norm of the vector..
 
     .. math::
@@ -177,11 +177,11 @@ class VectorScaler(SKCMatrixAndWeightTransformerMixin):
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_vector(weights, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
         return scale_by_vector(matrix, axis=0)
 
@@ -244,7 +244,7 @@ def scale_by_minmax(arr, axis=None):
     return (arr - minval) / (maxval - minval)
 
 
-class MinMaxScaler(SKCMatrixAndWeightTransformerMixin):
+class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
     r"""Scaler based on the range.
 
     .. math::
@@ -259,11 +259,11 @@ class MinMaxScaler(SKCMatrixAndWeightTransformerMixin):
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_minmax(weights, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
         return scale_by_minmax(matrix, axis=0)
 
@@ -319,7 +319,7 @@ def scale_by_sum(arr, axis=None):
     return arr / sumval
 
 
-class SumScaler(SKCMatrixAndWeightTransformerMixin):
+class SumScaler(SKCMatrixAndWeightTransformerABC):
     r"""Scalerbased on the total sum of values.
 
     .. math::
@@ -334,11 +334,11 @@ class SumScaler(SKCMatrixAndWeightTransformerMixin):
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_sum(weights, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
         return scale_by_sum(matrix, axis=0)
 
@@ -395,7 +395,7 @@ def scale_by_max(arr, axis=None):
     return arr / maxval
 
 
-class MaxScaler(SKCMatrixAndWeightTransformerMixin):
+class MaxScaler(SKCMatrixAndWeightTransformerABC):
     r"""Scaler based on the maximum values.
 
     .. math::
@@ -409,10 +409,10 @@ class MaxScaler(SKCMatrixAndWeightTransformerMixin):
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
         return scale_by_max(weights, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
         return scale_by_max(matrix, axis=0)

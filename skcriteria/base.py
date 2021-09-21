@@ -132,7 +132,7 @@ class SKCTransformerABC(SKCMethodABC):
         return transformed_dm
 
 
-class SKCMatrixAndWeightTransformerMixin(SKCTransformerABC):
+class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
     """Transform weights and matrix together or independently.
 
     The Transformer that implements this mixin can be configured to transform

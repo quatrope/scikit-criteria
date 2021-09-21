@@ -21,7 +21,7 @@ to push negatives values on an array along an arbitrary axis.
 
 import numpy as np
 
-from ..base import SKCMatrixAndWeightTransformerMixin
+from ..base import SKCMatrixAndWeightTransformerABC
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -88,7 +88,7 @@ def push_negatives(arr, axis):
     return arr - delta
 
 
-class PushNegatives(SKCMatrixAndWeightTransformerMixin):
+class PushNegatives(SKCMatrixAndWeightTransformerABC):
     r"""Increment the matrix/weights until all the valuer are sean >= 0.
 
     If the matrix/weights has negative values this function increment the
@@ -105,10 +105,10 @@ class PushNegatives(SKCMatrixAndWeightTransformerMixin):
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_weights)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
         return push_negatives(weights, axis=None)
 
-    @doc_inherit(SKCMatrixAndWeightTransformerMixin._transform_matrix)
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
         return push_negatives(matrix, axis=0)
