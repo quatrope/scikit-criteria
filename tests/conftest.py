@@ -24,7 +24,7 @@ import numpy as np
 
 import pytest
 
-from skcriteria import data
+from skcriteria import core
 
 
 # =============================================================================
@@ -32,8 +32,8 @@ from skcriteria import data
 # =============================================================================
 
 
-MAXS_O_ALIAS = list(data.Objective._MAX_ALIASES.value)
-MINS_O_ALIAS = list(data.Objective._MIN_ALIASES.value)
+MAXS_O_ALIAS = list(core.Objective._MAX_ALIASES.value)
+MINS_O_ALIAS = list(core.Objective._MIN_ALIASES.value)
 
 
 # =============================================================================
@@ -122,7 +122,7 @@ def decision_matrix(data_values):
             *args, **kwargs
         )
 
-        dm = data.mkdm(
+        dm = core.mkdm(
             matrix=mtx,
             objectives=objectives,
             weights=weights,

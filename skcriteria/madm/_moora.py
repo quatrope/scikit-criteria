@@ -19,8 +19,7 @@ import itertools as it
 
 import numpy as np
 
-from ..base import SKCDecisionMakerABC
-from ..data import Objective, RankResult
+from ..core import Objective, RankResult, SKCDecisionMakerABC
 from ..utils import doc_inherit, rank
 
 # =============================================================================

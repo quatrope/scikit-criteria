@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.base
+"""test for skcriteria.methods
 
 """
 
@@ -21,8 +21,7 @@ import numpy as np
 
 import pytest
 
-from skcriteria import base, data
-
+from skcriteria.core import data, methods
 
 # =============================================================================
 # TESTS
@@ -33,12 +32,12 @@ def test_no__skcriteria_dm_type():
 
     with pytest.raises(TypeError):
 
-        class Foo(base.SKCMethodABC):
+        class Foo(methods.SKCMethodABC):
             pass
 
 
 def test_repr():
-    class Foo(base.SKCMethodABC):
+    class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
 
         def __init__(self, foo, faa):
@@ -51,7 +50,7 @@ def test_repr():
 
 
 def test_repr_no_params():
-    class Foo(base.SKCMethodABC):
+    class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
 
     foo = Foo()
@@ -65,7 +64,7 @@ def test_repr_no_params():
 
 
 def test_not_redefined_SKCTransformerMixin():
-    class Foo(base.SKCTransformerABC):
+    class Foo(methods.SKCTransformerABC):
         pass
 
     with pytest.raises(TypeError):
@@ -80,7 +79,7 @@ def test_not_redefined_SKCTransformerMixin():
 def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
-    class Foo(base.SKCTransformerABC):
+    class Foo(methods.SKCTransformerABC):
         def _transform_data(self, **kwargs):
             return super()._transform_data(**kwargs)
 
@@ -92,7 +91,7 @@ def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
 
 
 def test_not_redefined_SKCMatrixAndWeightTransformerMixin():
-    class Foo(base.SKCMatrixAndWeightTransformerABC, base.SKCMethodABC):
+    class Foo(methods.SKCMatrixAndWeightTransformerABC, methods.SKCMethodABC):
         pass
 
     with pytest.raises(TypeError):
@@ -106,7 +105,7 @@ def test_not_redefined_SKCMatrixAndWeightTransformerMixin():
 
 
 def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
-    class Foo(base.SKCMatrixAndWeightTransformerABC, base.SKCMethodABC):
+    class Foo(methods.SKCMatrixAndWeightTransformerABC, methods.SKCMethodABC):
         def _transform_matrix(self, matrix):
             ...
 
@@ -120,7 +119,7 @@ def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
 def test_transform_weights_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
-    class Foo(base.SKCMatrixAndWeightTransformerABC, base.SKCMethodABC):
+    class Foo(methods.SKCMatrixAndWeightTransformerABC, methods.SKCMethodABC):
         def _transform_matrix(self, matrix):
             super()._transform_matrix(matrix)
 
@@ -137,7 +136,7 @@ def test_transform_weights_not_implemented_SKCMatrixAndWeightTransformerMixin(
 def test_transform_weight_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
-    class Foo(base.SKCMatrixAndWeightTransformerABC, base.SKCMethodABC):
+    class Foo(methods.SKCMatrixAndWeightTransformerABC, methods.SKCMethodABC):
         def _transform_matrix(self, matrix):
             return matrix
 
@@ -152,7 +151,7 @@ def test_transform_weight_not_implemented_SKCMatrixAndWeightTransformerMixin(
 
 
 def test_SKCMatrixAndWeightTransformerMixin_target():
-    class Foo(base.SKCMatrixAndWeightTransformerABC, base.SKCMethodABC):
+    class Foo(methods.SKCMatrixAndWeightTransformerABC, methods.SKCMethodABC):
         def _transform_matrix(self, matrix):
             ...
 
@@ -178,7 +177,7 @@ def test_SKCMatrixAndWeightTransformerMixin_target():
 
 
 def test_weight_matrix_not_implemented_SKCWeighterMixin(decision_matrix):
-    class Foo(base.SKCWeighterABC):
+    class Foo(methods.SKCWeighterABC):
         def _weight_matrix(self, **kwargs):
             return super()._weight_matrix(**kwargs)
 
@@ -190,7 +189,7 @@ def test_weight_matrix_not_implemented_SKCWeighterMixin(decision_matrix):
 
 
 def test_not_redefined_SKCWeighterMixin():
-    class Foo(base.SKCWeighterABC):
+    class Foo(methods.SKCWeighterABC):
         pass
 
     with pytest.raises(TypeError):
@@ -202,7 +201,7 @@ def test_flow_SKCWeighterMixin(decision_matrix):
     dm = decision_matrix(seed=42)
     expected_weights = np.ones(dm.matrix.shape[1]) * 42
 
-    class Foo(base.SKCWeighterABC):
+    class Foo(methods.SKCWeighterABC):
         def _weight_matrix(self, matrix, **kwargs):
             return expected_weights
 
@@ -231,7 +230,7 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerABC):
+    class Foo(methods.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             ...
 
@@ -263,7 +262,7 @@ def test_not_redefined_SKCDecisionMakerMixin(not_redefine):
         if method_name != not_redefine:
             content[method_name] = lambda **kws: None
 
-    Foo = type("Foo", (base.SKCDecisionMakerABC,), content)
+    Foo = type("Foo", (methods.SKCDecisionMakerABC,), content)
 
     with pytest.raises(TypeError):
         Foo()
@@ -273,7 +272,7 @@ def test_validate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerABC):
+    class Foo(methods.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             super()._validate_data(**kwargs)
 
@@ -297,7 +296,7 @@ def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerABC):
+    class Foo(methods.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             ...
 
@@ -321,7 +320,7 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
-    class Foo(base.SKCDecisionMakerABC):
+    class Foo(methods.SKCDecisionMakerABC):
         def _validate_data(self, **kwargs):
             ...
 

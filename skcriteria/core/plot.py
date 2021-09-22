@@ -21,6 +21,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+# =============================================================================
+# PLOTTER OBJECT
+# =============================================================================
 class DecisionMatrixPlotter:
     """Make plots of DecisionMatrix."""
 

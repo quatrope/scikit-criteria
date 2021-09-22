@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.data import RankResult
+from skcriteria.core import RankResult
 from skcriteria.madm import SIMUS
 
 # =============================================================================

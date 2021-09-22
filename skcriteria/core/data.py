@@ -30,7 +30,7 @@ import pandas as pd
 import pyquery as pq
 
 from .plot import DecisionMatrixPlotter
-from .utils import Bunch, doc_inherit
+from ..utils import Bunch, doc_inherit
 
 
 # =============================================================================

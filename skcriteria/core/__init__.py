@@ -8,18 +8,44 @@
 # DOCS
 # =============================================================================
 
-"""Utilities for skcriteria."""
+"""Core functionalities and structures of skcriteria."""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from . import lp, rank
-from .bunch import Bunch
-from .decorators import doc_inherit
+from .data import (
+    DecisionMatrix,
+    KernelResult,
+    Objective,
+    RankResult,
+    ResultABC,
+    mkdm,
+)
+from .methods import (
+    SKCDecisionMakerABC,
+    SKCMatrixAndWeightTransformerABC,
+    SKCMethodABC,
+    SKCTransformerABC,
+    SKCWeighterABC,
+)
+from .plot import DecisionMatrixPlotter
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["doc_inherit", "rank", "Bunch", "lp", "dominance"]
+__all__ = [
+    "mkdm",
+    "DecisionMatrix",
+    "DecisionMatrixPlotter",
+    "KernelResult",
+    "Objective",
+    "RankResult",
+    "ResultABC",
+    "SKCDecisionMakerABC",
+    "SKCMatrixAndWeightTransformerABC",
+    "SKCMethodABC",
+    "SKCTransformerABC",
+    "SKCWeighterABC",
+]

@@ -25,7 +25,7 @@ from pyquery import PyQuery
 
 import pytest
 
-from skcriteria import data
+from skcriteria.core import data
 
 
 # =============================================================================

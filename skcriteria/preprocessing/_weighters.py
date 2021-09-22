@@ -24,8 +24,9 @@ import numpy as np
 
 import scipy.stats
 
+
 from ._distance import cenit_distance
-from ..base import SKCWeighterABC
+from ..core import SKCWeighterABC
 from ..utils import doc_inherit
 
 

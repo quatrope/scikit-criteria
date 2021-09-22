@@ -22,8 +22,7 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 
 import numpy as np
 
-from ..base import SKCDecisionMakerABC
-from ..data import KernelResult, Objective
+from ..core import KernelResult, Objective, SKCDecisionMakerABC
 from ..utils import doc_inherit
 
 # =============================================================================
