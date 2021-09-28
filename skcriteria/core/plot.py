@@ -32,20 +32,26 @@ class DecisionMatrixPlotter:
 
     # INTERNAL ================================================================
 
-    def __call__(self, kind="heatmap", **kwargs):
-        """Make plots of Series or DataFrame.
+    def __call__(self, plot_kind="heatmap", **kwargs):
+        """Make plots of a decision matrix.
 
         Parameters
         ----------
-        kind : str
+        plot_kind : str
             The kind of plot to produce:
-                - 'heatmap' : heat-map (default)
-                - 'bar' : vertical bar plot
-                - 'barh' : horizontal bar plot
-                - 'hist' : histogram
-                - 'box' : boxplot
-                - 'kde' : Kernel Density Estimation plot
-                - 'area' : area plot
+                - 'heatmap' : criteria heat-map (default).
+                - 'wheatmap' : weights heat-map.
+                - 'bar' : criteria vertical bar plot.
+                - 'wbar' : weights vertical bar plot.
+                - 'barh' : criteria horizontal bar plot.
+                - 'wbarh' : weights horizontal bar plot.
+                - 'hist' : criteria histogram.
+                - 'whist' : weights histogram.
+                - 'box' : criteria boxplot.
+                - 'wbox' : weights boxplot.
+                - 'kde' : criteria Kernel Density Estimation plot.
+                - 'wkde' : weightsKernel Density Estimation plot.
+                - 'area' : criteria area plot.
 
         **kwargs
             Options to pass to subjacent plotting method.
@@ -56,11 +62,11 @@ class DecisionMatrixPlotter:
            The ax used by the plot
 
         """
-        if kind.startswith("_"):
-            raise ValueError(f"invalid kind name '{kind}'")
-        method = getattr(self, kind, None)
-        if not inspect.ismethod(method):
-            raise ValueError(f"invalid kind name '{kind}'")
+        if plot_kind.startswith("_"):
+            raise ValueError(f"invalid plot_kind name '{plot_kind}'")
+        method = getattr(self, plot_kind, None)
+        if not callable(method):
+            raise ValueError(f"invalid plot_kind name '{plot_kind}'")
         return method(**kwargs)
 
     # PRIVATE =================================================================
@@ -132,7 +138,7 @@ class DecisionMatrixPlotter:
         if "ax" not in kwargs:
             # if the ax is provided by the user we assume that the figure
             # is already setted to the expected size. If it's not we resize the
-            # height to 1/5 od the original size.
+            # height to 1/5 of the original size.
             fig = ax.get_figure()
             size = fig.get_size_inches() / [1, 5]
             fig.set_size_inches(size)

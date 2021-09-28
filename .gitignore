@@ -61,3 +61,4 @@ target/
 setuptools-*.zip
 .pytest_cache
 .vscode/
+result_images/
