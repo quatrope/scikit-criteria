@@ -25,7 +25,7 @@ from pyquery import PyQuery
 
 import pytest
 
-from skcriteria.core import data
+from skcriteria.core import data, plot
 
 
 # =============================================================================
@@ -192,6 +192,26 @@ def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
+
+
+# =============================================================================
+# PROPERTIES
+# =============================================================================
+
+
+def test_DecisionMatrix_plot(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+
+    assert isinstance(dm.plot, plot.DecisionMatrixPlotter)
+    assert dm.plot._dm is dm
 
 
 # =============================================================================

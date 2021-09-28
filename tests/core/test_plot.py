@@ -21,8 +21,6 @@ from unittest import mock
 from matplotlib import pyplot as plt
 from matplotlib.testing.decorators import check_figures_equal
 
-import numpy as np
-
 import pytest
 
 import seaborn as sns
@@ -421,9 +419,6 @@ def test_plot_wbox(decision_matrix, fig_test, fig_ref):
     plotter.wbox(ax=test_ax)
 
     # EXPECTED
-    labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
-    ]
     weights = dm.weights.to_frame()
 
     exp_ax = fig_ref.subplots()
@@ -479,9 +474,6 @@ def test_plot_wkde(decision_matrix, fig_test, fig_ref):
     plotter.wkde(ax=test_ax)
 
     # EXPECTED
-    labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
-    ]
     weights = dm.weights.to_frame()
 
     exp_ax = fig_ref.subplots()
@@ -491,6 +483,7 @@ def test_plot_wkde(decision_matrix, fig_test, fig_ref):
 # =============================================================================
 # AREA
 # =============================================================================
+
 
 @pytest.mark.slow
 @check_figures_equal()
