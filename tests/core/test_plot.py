@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.plots
+"""test for skcriteria.core.plots
 
 """
 
