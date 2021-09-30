@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""Functionalities for remove negatives from criteria.
+"""Functionalities for weight the criteria.
 
 In addition to the main functionality, an MCDA agnostic function is offered
 to push negatives values on an array along an arbitrary axis.
