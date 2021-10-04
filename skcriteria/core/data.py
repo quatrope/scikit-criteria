@@ -644,6 +644,25 @@ def mkdm(*args, **kwargs):
 
 
 class ResultABC(metaclass=abc.ABCMeta):
+    """Base class to implement different types of results.
+
+    Any evaluation of the DecisionMatrix is expected to result in an object
+    that extends the functionalities of this class.
+
+    Parameters
+    ----------
+    method: str
+        Name of the method that generated the result.
+    alternatives: array-like
+        Names of the alternatives evaluated.
+    values: array-like
+        Values assigned to each alternative by the method, where the i-th
+        value refers to the valuation of the i-th. alternative.
+    extra: dict-like
+        Extra information provided by the method regarding the evaluation of
+        the alternatives.
+
+    """
 
     _skcriteria_result_column = None
 
@@ -665,22 +684,37 @@ class ResultABC(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def _validate_result(self, values):
+        """Validate that the values are the expected by the result type."""
         raise NotImplementedError()
 
     @property
     def values(self):
+        """Values assigned to each alternative by the method.
+
+        The i-th value refers to the valuation of the i-th. alternative.
+
+        """
         return self._result_df[self._skcriteria_result_column].to_numpy()
 
     @property
     def method(self):
+        """Name of the method that generated the result."""
         return self._method
 
     @property
     def alternatives(self):
+        """Names of the alternatives evaluated."""
         return self._result_df.index.to_numpy()
 
     @property
     def extra_(self):
+        """Additional information about the result.
+
+        Note
+        ----
+        ``e_`` is an alias for this property
+
+        """
         return self._extra
 
     e_ = extra_
@@ -719,7 +753,6 @@ class ResultABC(metaclass=abc.ABCMeta):
 
     def __repr__(self):
         """result.__repr__() <==> repr(result)."""
-
         kwargs = {"show_dimensions": False}
 
         # retrieve the original string
@@ -732,7 +765,14 @@ class ResultABC(metaclass=abc.ABCMeta):
         return string
 
 
+@doc_inherit(ResultABC)
 class RankResult(ResultABC):
+    """Ranking of alternatives.
+
+    This type of results is used by methods that generate a ranking of
+    alternatives.
+
+    """
 
     _skcriteria_result_column = "Rank"
 
@@ -745,14 +785,15 @@ class RankResult(ResultABC):
 
     @property
     def rank_(self):
+        """Alias for ``values``."""
         return self.values
 
     def _repr_html_(self):
         """Return a html representation for a particular result.
 
         Mainly for IPython notebook.
-        """
 
+        """
         df = self._result_df.T
         original_html = df.style._repr_html_()
 
@@ -767,7 +808,14 @@ class RankResult(ResultABC):
         return html
 
 
+@doc_inherit(ResultABC)
 class KernelResult(ResultABC):
+    """Separates the alternatives between good (kernel) and bad.
+
+    This type of results is used by methods that select which alternatives
+    are good and bad. The good alternatives are called "kernel"
+
+    """
 
     _skcriteria_result_column = "Kernel"
 
@@ -778,18 +826,20 @@ class KernelResult(ResultABC):
 
     @property
     def kernel_(self):
+        """Alias for ``values``."""
         return self.values
 
     @property
     def kernelwhere_(self):
+        """Indexes of the alternatives that are part of the kernel."""
         return np.where(self.kernel_)[0]
 
     def _repr_html_(self):
         """Return a html representation for a particular result.
 
         Mainly for IPython notebook.
-        """
 
+        """
         df = self._result_df.T
         original_html = df._repr_html_()
 
