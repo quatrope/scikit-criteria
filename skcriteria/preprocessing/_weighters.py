@@ -11,7 +11,7 @@
 """Functionalities for weight the criteria.
 
 In addition to the main functionality, an MCDA agnostic function is offered
-to push negatives values on an array along an arbitrary axis.
+to calculate weights to a metrix along an arbitrary axis.
 
 """
 
@@ -36,17 +36,59 @@ from ..utils import doc_inherit
 
 
 def equal_weights(matrix, base_value=1):
+    r"""Use the same weights for all criteria.
+
+    The result values are normalized by the number of columns.
+
+    .. math::
+
+        w_j = \frac{base\_value}{m}
+
+    Where $m$ is the number os columns/criteria in matrix.
+
+
+    Parameters
+    ----------
+    matrix: :py:class:`numpy.ndarray` like.
+        The matrix of alternatives on which to calculate weights.
+    base_value: int or float.
+        Value to be normalized by the number of criteria to create the weights.
+
+    Returns
+    -------
+    :py:class:`numpy.ndarray`
+        array of weights
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import equal_weights
+        >>> mtx = [[1, 2], [3, 4]]
+
+        >>> equal_weights(mtx)
+        array([0.5, 0.5])
+
+    """
     ncriteria = np.shape(matrix)[1]
     weights = base_value / ncriteria
     return np.full(ncriteria, weights, dtype=float)
 
 
 class EqualWeighter(SKCWeighterABC):
+    """Assigns the same weights to all criteria.
+
+    The algorithm calculates the weights as the ratio of ``base_value`` by the
+    total criteria.
+
+    """
+
     def __init__(self, base_value=1):
         self.base_value = base_value
 
     @property
     def base_value(self):
+        """Value to be normalized by the number of criteria."""
         return self._base_value
 
     @base_value.setter
