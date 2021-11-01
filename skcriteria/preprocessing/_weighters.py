@@ -206,6 +206,27 @@ class EntropyWeighter(SKCWeighterABC):
 
 
 def pearson_correlation(arr):
+    """Return Pearson product-moment correlation coefficients.
+
+    This function is a thin wrapper of ``numpy.corrcoef``.
+
+    Parameters
+    ----------
+    arr: array like
+        A 1-D array containing multiple variables and observations.
+        Each element represent an observation of a variable.
+
+    Returns
+    -------
+    float:
+        The correlation coefficient of the variables.
+
+    See Also
+    --------
+    numpy.corrcoef :
+        Return Pearson product-moment correlation coefficients.
+
+    """
     return np.corrcoef(arr)
 
 
