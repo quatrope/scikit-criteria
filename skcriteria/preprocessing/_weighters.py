@@ -106,11 +106,44 @@ class EqualWeighter(SKCWeighterABC):
 
 
 def std_weights(matrix):
+    r"""Calculate weights as the standard deviation of each criterion.
+
+    The result is normalized by the number of columns.
+
+    .. math::
+
+        w_j = \frac{base\_value}{m}
+
+    Where $m$ is the number os columns/criteria in matrix.
+
+    Parameters
+    ----------
+    matrix: :py:class:`numpy.ndarray` like.
+        The matrix of alternatives on which to calculate weights.
+
+    Returns
+    -------
+    :py:class:`numpy.ndarray`
+        array of weights
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import std_weights
+        >>> mtx = [[1, 2], [3, 4]]
+
+        >>> std_weights(mtx)
+         array([0.5, 0.5])
+
+    """
     std = np.std(matrix, axis=0)
     return std / np.sum(std)
 
 
 class StdWeighter(SKCWeighterABC):
+    """Set as weight the normalized standard deviation of each criterion."""
+
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return std_weights(matrix)
