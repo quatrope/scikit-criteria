@@ -155,11 +155,46 @@ class StdWeighter(SKCWeighterABC):
 
 
 def entropy_weights(matrix):
+    """Calculate the weights as the entropy of each criterion.
+
+    It uses the underlying ``scipy.stats.entropy`` function which assumes that
+    the values of the criteria are probabilities of a distribution.
+
+    This routine will normalize the criteria if they don’t sum to 1.
+
+    See Also
+    --------
+    scipy.stats.entropy :
+        Calculate the entropy of a distribution for given probability values.
+
+    Examples
+    --------
+    >>> from skcriteria.preprocess import entropy_weights
+    >>> mtx = [[1, 2], [3, 4]]
+
+    >>> entropy_weights(mtx)
+    array([0.46906241, 0.53093759])
+
+    """
     entropy = scipy.stats.entropy(matrix, axis=0)
     return entropy / np.sum(entropy)
 
 
 class EntropyWeighter(SKCWeighterABC):
+    """Assigns the entropy of the criteria as weights.
+
+    It uses the underlying ``scipy.stats.entropy`` function which assumes that
+    the values of the criteria are probabilities of a distribution.
+
+    This transformer will normalize the criteria if they don’t sum to 1.
+
+    See Also
+    --------
+    scipy.stats.entropy :
+        Calculate the entropy of a distribution for given probability values.
+
+    """
+
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return entropy_weights(matrix)
