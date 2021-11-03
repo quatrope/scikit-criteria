@@ -241,6 +241,19 @@ def test_Critic_diakoulaki1995determining():
     assert result.aequals(expected)
 
 
+def test_CRITIC_minimize_warning():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[max, min, max],
+    )
+
+    weighter = Critic()
+
+    with pytest.warns(UserWarning):
+        weighter.transform(dm)
+
+
 def test_Critic_bad_correlation():
     with pytest.raises(ValueError):
         Critic(correlation="foo")

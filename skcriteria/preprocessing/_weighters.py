@@ -19,6 +19,7 @@ to calculate weights to a metrix along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
+import warnings
 
 import numpy as np
 
@@ -26,7 +27,7 @@ import scipy.stats
 
 
 from ._distance import cenit_distance
-from ..core import SKCWeighterABC
+from ..core import Objective, SKCWeighterABC
 from ..utils import doc_inherit
 
 
@@ -213,13 +214,14 @@ def pearson_correlation(arr):
     Parameters
     ----------
     arr: array like
-        A 1-D array containing multiple variables and observations.
-        Each element represent an observation of a variable.
+        A 1-D or 2-D array containing multiple variables and observations.
+        Each row of arr represents a variable, and each column a single
+        observation of all those variables.
 
     Returns
     -------
-    float:
-        The correlation coefficient of the variables.
+    R: numpy.ndarray
+        The correlation coefficient matrix of the variables.
 
     See Also
     --------
@@ -231,12 +233,35 @@ def pearson_correlation(arr):
 
 
 def spearman_correlation(arr):
+    """Calculate a Spearman correlation coefficient.
+
+    This function is a thin wrapper of ``scipy.stats.spearmanr``.
+
+    Parameters
+    ----------
+    arr: array like
+        A 1-D or 2-D array containing multiple variables and observations.
+        Each row of arr represents a variable, and each column a single
+        observation of all those variables.
+
+    Returns
+    -------
+    R: numpy.ndarray
+        The correlation coefficient matrix of the variables.
+
+    See Also
+    --------
+    scipy.stats.spearmanr :
+        Calculate a Spearman correlation coefficient with associated p-value.
+
+    """
     return scipy.stats.spearmanr(arr.T, axis=0).correlation
 
 
 def critic_weights(
     matrix, objectives, correlation=pearson_correlation, scale=True
 ):
+    """Execute the CRITIC method without any validation."""
     matrix = np.asarray(matrix, dtype=float)
     matrix = cenit_distance(matrix, objectives=objectives) if scale else matrix
 
@@ -249,6 +274,45 @@ def critic_weights(
 
 
 class Critic(SKCWeighterABC):
+    """CRITIC (CRiteria Importance Through Intercriteria Correlation).
+
+    The method aims at the determination of objective weights of relative
+    importance in MCDM problems. The weights derived incorporate both contrast
+    intensity and conflict which are contained in the structure of the decision
+    problem.
+
+    Parameters
+    ----------
+    correlation: str ["pearson" or "spearman"] or callable. (default "pearson")
+        This is the correlation function used to evaluate the discordance
+        between two criteria. In other words, what conflict does one criterion
+        a criterion with  respect to the decision made by the other criteria.
+        By default the ``pearson`` correlation is used, and the ``kendall``
+        correlation is also available implemented.
+        It is also possible to provide a function that receives as a single
+        parameter, the matrix of alternatives, and returns the correlation
+        matrix.
+    scale: bool (default ``True``)
+        True if it is necessary to scale the data with
+        ``skcriteria.preprocesisng.cenit_distance`` prior to calculating the
+        correlation
+
+    Warnings
+    --------
+    UserWarning:
+        If some objective is to minimize. The original paper only suggests
+        using it against maximization criteria, but there is no real
+        mathematical constraint to use it for minimization.
+
+    References
+    ----------
+    .. [diakoulaki1995determining] Diakoulaki, D., Mavrotas, G., &
+       Papayannakis, L. (1995). Determining objective weights in multiple
+       criteria problems: The critic method. Computers & Operations Research,
+       22(7), 763-770.
+
+    """
+
     CORRELATION = {
         "pearson": pearson_correlation,
         "spearman": spearman_correlation,
@@ -260,6 +324,7 @@ class Critic(SKCWeighterABC):
 
     @property
     def scale(self):
+        """Return if it is necessary to scale the data."""
         return self._scale
 
     @scale.setter
@@ -268,6 +333,7 @@ class Critic(SKCWeighterABC):
 
     @property
     def correlation(self):
+        """Correlation function."""
         return self._correlation
 
     @correlation.setter
@@ -280,6 +346,13 @@ class Critic(SKCWeighterABC):
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, objectives, **kwargs):
+        if Objective.MIN.value in objectives:
+            warnings.warn(
+                "Although CRITIC can operate with minimization objectives, "
+                "this is not recommended. Consider reversing the weights "
+                "for these cases."
+            )
+
         return critic_weights(
             matrix, objectives, correlation=self.correlation, scale=self.scale
         )
