@@ -11,7 +11,7 @@
 """Functionalities for weight the criteria.
 
 In addition to the main functionality, an MCDA agnostic function is offered
-to calculate weights to a metrix along an arbitrary axis.
+to calculate weights to a matrix along an arbitrary axis.
 
 """
 
