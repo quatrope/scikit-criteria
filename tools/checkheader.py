@@ -8,7 +8,8 @@
 # DOCS
 # =============================================================================
 
-"""Tool to check if each python module has a corresponding test module."""
+"""Tool to check if the headers of all python files are correct."""
+
 
 # =============================================================================
 # IMPORTS
@@ -16,6 +17,7 @@
 
 import inspect
 import pathlib
+from typing import List, OrderedDict
 
 import attr
 
@@ -32,37 +34,22 @@ VERSION = "0.1"
 # =============================================================================
 
 
-def check_test_structure(test_dir, reference_dir):
+def lines_rstrip(text):
+    return "\n".join(line.rstrip() for line in text.splitlines())
 
-    test_dir = pathlib.Path(test_dir)
-    reference_dir = pathlib.Path(reference_dir)
 
-    if not test_dir.exists():
-        raise OSError(f"'{test_dir}' do no exist")
-    if not reference_dir.exists():
-        raise OSError(f"'{reference_dir}' do no exist")
+def check_file_header(fpath, header_tpl):
+    if not isinstance(fpath, pathlib.Path):
+        fpath = pathlib.Path(fpath)
 
-    reference = list(reference_dir.glob("**/*.py"))
+    lines = len(header_tpl.splitlines())
+    with open(fpath) as fp:
+        fheader = "".join(fp.readlines()[:lines])
+        fheader = lines_rstrip(fheader)
 
-    result = {}
-    for ref in reference:
-        if ref.name == "__init__.py":
-            continue
+    header_ok = fheader == header_tpl
 
-        # essentially we remove the parent dir
-        *dirs, ref_name = ref.relative_to(reference_dir).parts
-        while ref_name.startswith("_"):
-            ref_name = ref_name[1:]
-
-        search_dir = test_dir
-        for subdir in dirs:
-            search_dir /= subdir
-
-        search = search_dir / f"test_{ref_name}"
-
-        result[str(ref)] = (str(search), search.exists())
-
-    return result
+    return header_ok
 
 
 # =============================================================================
@@ -72,10 +59,7 @@ def check_test_structure(test_dir, reference_dir):
 
 @attr.s(frozen=True)
 class CLI:
-    """Check if the structure of test directory is equivalent to those of the
-    project.
-
-    """
+    """Check if python files contain the appropriate header."""
 
     footnotes = "\n".join(
         [
@@ -106,59 +90,69 @@ class CLI:
 
     def check(
         self,
-        test_dir: str = typer.Argument(
+        sources: List[pathlib.Path] = typer.Argument(
             ..., help="Path to the test structure."
         ),
-        reference_dir: str = typer.Option(
-            ..., help="Path to the reference structure."
+        header_template: pathlib.Path = typer.Option(
+            ..., help="Path to the header template."
         ),
         verbose: bool = typer.Option(
             default=False, help="Show all the result"
         ),
     ):
-        """Check if the structure of test directory is equivalent to those
-        of the project.
+        """Check if python files contain the appropriate header."""
 
-        """
+        results = OrderedDict()
+
         try:
-            check_result = check_test_structure(test_dir, reference_dir)
-        except Exception as err:
+
+            header_tpl = lines_rstrip(header_template.read_text())
+
+            for src in sources:
+                if src.is_dir():
+                    for fpath in src.glob("**/*.py"):
+                        results[fpath] = check_file_header(fpath, header_tpl)
+                elif src.suffix in (".py",):
+                    results[src] = check_file_header(src, header_tpl)
+                else:
+                    raise ValueError(f"Invalid file type {src.suffix}")
+
+        except OSError as err:
             typer.echo(typer.style(str(err), fg=typer.colors.RED))
             raise typer.Exit(code=1)
 
-        all_tests_exists = True
-        for ref, test_result in check_result.items():
-
-            test, test_exists = test_result
-
-            if test_exists:
+        all_headers_ok = True
+        for fpath, header_ok in results.items():
+            if header_ok:
                 fg = typer.colors.GREEN
-                status = ""
+                status = "HEADER MATCH"
             else:
-                all_tests_exists = False
+                all_headers_ok = False
                 fg = typer.colors.RED
-                status = typer.style("[NOT FOUND]", fg=typer.colors.YELLOW)
-
-            if verbose or not test_exists:
-                msg = f"{ref} -> {test} {status}"
+                status = typer.style(
+                    "HEADER DOES NOT MATCH", fg=typer.colors.YELLOW
+                )
+            if verbose or not header_ok:
+                msg = f"{fpath} -> {status}"
                 typer.echo(typer.style(msg, fg=fg))
 
-        if all_tests_exists:
+        if all_headers_ok:
             final_fg = typer.colors.GREEN
-            final_status = "Test structure ok!"
+            final_status = "All files has the correct header"
             exit_code = 0
         else:
             final_fg = typer.colors.RED
-            final_status = "Structure not equivalent!"
+            final_status = "Not all headers match!"
             exit_code = 1
 
         typer.echo("-------------------------------------")
         typer.echo(typer.style(final_status, fg=final_fg))
+
         raise typer.Exit(code=exit_code)
 
 
 def main():
-    """Run the checktestdir.py cli interface."""
+    """Run the checkheader.py cli interface."""
     cli = CLI()
     cli.run()
 
