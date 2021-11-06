@@ -7,7 +7,7 @@ jobs:
         - image: fkrull/multi-python
 
       parameters:
-        customer:
+        tox_env:
           type: string
 
       steps:
