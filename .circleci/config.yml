@@ -6,10 +6,14 @@ jobs:
       docker:
         - image: fkrull/multi-python
 
+      parameters:
+        customer:
+          type: string
+
       steps:
         - checkout
         - run: pip install tox
-        - run: tox -e << parameters.etox >>
+        - run: tox -e << parameters.tox_env >>
 
 
 
@@ -20,5 +24,5 @@ workflows:
   myproj:
     jobs:
       - toxify:
-          etox: 'style'
+          tox_env: 'style'
 
