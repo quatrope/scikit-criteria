@@ -31,4 +31,5 @@ workflows:
     jobs:
       - toxify:
           tox_env: 'style'
-
+      - toxify:
+          tox_env: 'docstyle'
