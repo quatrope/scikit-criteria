@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
 
-  toxify:
+  tox:
       docker:
         - image: fkrull/multi-python
 
@@ -19,7 +19,7 @@ jobs:
               . venv/bin/activate
               pip install tox
         - run:
-            name: run tests (<< parameters.tox_env >>)
+            name: run tox environment '<< parameters.tox_env >>'
             command: |
               . venv/bin/activate
               tox -e << parameters.tox_env >>
@@ -29,7 +29,7 @@ workflows:
 
   CI:
     jobs:
-      - toxify:
+      - tox:
           tox_env: 'style'
-      - toxify:
+      - tox:
           tox_env: 'docstyle'
