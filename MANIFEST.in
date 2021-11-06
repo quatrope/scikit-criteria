@@ -6,7 +6,8 @@ recursive-include skcriteria *.py
 exclude tox.ini
 exclude pyproject.toml
 exclude .header-template
+recursive-exclude ahp_ext *
 recursive-exclude tests *
-recursive-exclude docs *
+recursive-exclude doc *
 recursive-exclude res *
 recursive-exclude tools *
