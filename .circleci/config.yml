@@ -1,4 +1,4 @@
-version: 2.1
+version: 2
 
 jobs:
 
@@ -9,7 +9,7 @@ jobs:
       steps:
         - checkout
         - run: pip install tox
-        - run: tox -e << customer.etox >>
+        - run: tox -e << parameters.etox >>
 
 
 
@@ -20,4 +20,5 @@ workflows:
   myproj:
     jobs:
       - toxify:
-          customer: 'style'
+          etox: 'style'
+
