@@ -231,9 +231,6 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
     dm = decision_matrix(seed=42)
 
     class Foo(methods.SKCDecisionMakerABC):
-        def _validate_data(self, **kwargs):
-            ...
-
         def _evaluate_data(self, alternatives, **kwargs):
             return np.arange(len(alternatives)) + 1, {}
 
@@ -253,9 +250,7 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
     assert result["extra"] == {}
 
 
-@pytest.mark.parametrize(
-    "not_redefine", ["_evaluate_data", "_make_result", "_validate_data"]
-)
+@pytest.mark.parametrize("not_redefine", ["_evaluate_data", "_make_result"])
 def test_not_redefined_SKCDecisionMakerMixin(not_redefine):
     content = {}
     for method_name in ["_evaluate_data", "_make_result", "_validate_data"]:
@@ -268,38 +263,11 @@ def test_not_redefined_SKCDecisionMakerMixin(not_redefine):
         Foo()
 
 
-def test_validate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
-
-    dm = decision_matrix(seed=42)
-
-    class Foo(methods.SKCDecisionMakerABC):
-        def _validate_data(self, **kwargs):
-            super()._validate_data(**kwargs)
-
-        def _evaluate_data(self, alternatives, **kwargs):
-            return np.arange(len(alternatives)) + 1, {}
-
-        def _make_result(self, alternatives, values, extra):
-            return {
-                "alternatives": alternatives,
-                "rank": values,
-                "extra": extra,
-            }
-
-    ranker = Foo()
-
-    with pytest.raises(NotImplementedError):
-        ranker.evaluate(dm)
-
-
 def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
     class Foo(methods.SKCDecisionMakerABC):
-        def _validate_data(self, **kwargs):
-            ...
-
         def _evaluate_data(self, **kwargs):
             super()._evaluate_data(**kwargs)
 
@@ -321,9 +289,6 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
     dm = decision_matrix(seed=42)
 
     class Foo(methods.SKCDecisionMakerABC):
-        def _validate_data(self, **kwargs):
-            ...
-
         def _evaluate_data(self, alternatives, **kwargs):
             return np.arange(len(alternatives)) + 1, {}
 

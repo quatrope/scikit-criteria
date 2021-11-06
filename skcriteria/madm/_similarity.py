@@ -84,17 +84,14 @@ class TOPSIS(SKCDecisionMakerABC):
 
     """
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, objectives, **kwargs):
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         if Objective.MIN.value in objectives:
             warnings.warn(
                 "Although TOPSIS can operate with minimization objectives, "
                 "this is not recommended. Consider reversing the weights "
                 "for these cases."
             )
-
-    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, ideal, anti_ideal, similarity = topsis(
             matrix, objectives, weights
         )

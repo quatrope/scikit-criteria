@@ -169,10 +169,6 @@ class ELECTRE1(SKCDecisionMakerABC):
     def q(self, q):
         self._q = float(q)
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, objectives, **kwargs):
-        ...
-
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         kernel, outrank, matrix_concordance, matrix_discordance = electre1(
