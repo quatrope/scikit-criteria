@@ -4,12 +4,12 @@ jobs:
 
   toxify:
       docker:
-        - image: themattrix/tox
+        image: fkrull/multi-python
 
       steps:
         - checkout
         - run: pip install tox
-        - run: tox
+        - run: tox << parameters.toxenv >>
 
 
 
@@ -20,3 +20,4 @@ workflows:
   myproj:
     jobs:
       - toxify
+          toxenv: 'style'
