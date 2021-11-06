@@ -9,7 +9,7 @@ jobs:
       steps:
         - checkout
         - run: pip install tox
-        - run: tox << parameters.toxenv >>
+        - run: tox << parameters.etox >>
 
 
 
@@ -20,4 +20,5 @@ workflows:
   myproj:
     jobs:
       - toxify:
-          toxenv: 'style'
+          etox: 'style'
+
