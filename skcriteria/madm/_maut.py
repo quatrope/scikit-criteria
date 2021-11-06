@@ -88,20 +88,19 @@ class WeightedSumModel(SKCDecisionMakerABC):
 
     """
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, objectives, **kwargs):
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if Objective.MIN.value in objectives:
             raise ValueError(
                 "WeightedSumModel can't operate with minimize objective"
             )
 
-    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, weights, **kwargs):
         rank, score = wsm(matrix, weights)
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
+
         return RankResult(
             "WeightedSumModel",
             alternatives=alternatives,
@@ -183,8 +182,8 @@ class WeightedProductModel(SKCDecisionMakerABC):
 
     """
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, matrix, objectives, **kwargs):
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if Objective.MIN.value in objectives:
             raise ValueError(
                 "WeightedProductModel can't operate with minimize objective"
@@ -194,8 +193,6 @@ class WeightedProductModel(SKCDecisionMakerABC):
                 "WeightedProductModel can't operate with values <= 0"
             )
 
-    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, weights, **kwargs):
         rank, score = wpm(matrix, weights)
         return rank, {"score": score}
 

@@ -275,15 +275,12 @@ class SIMUS(SKCDecisionMakerABC):
             raise ValueError("'rank_by' must be 1 or 2")
         self._rank_by = rank_by
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, objectives, weights, b, **kwargs):
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, b, weights, **kwargs):
         if len(np.unique(weights)) > 1:
             warnings.warn("SIMUS not take into account the weights")
         if b is not None and len(objectives) != len(b):
             raise ValueError("'b' must be the same leght as criteria or None")
-
-    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, b, **kwargs):
         (
             ranking,
             stages,
@@ -353,8 +350,6 @@ class SIMUS(SKCDecisionMakerABC):
         """
         data = dm.to_dict()
         b = b if b is None else np.asarray(b)
-
-        self._validate_data(b=b, **data)
 
         rank, extra = self._evaluate_data(b=b, **data)
 

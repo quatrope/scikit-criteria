@@ -70,10 +70,6 @@ class RatioMOORA(SKCDecisionMakerABC):
 
     """
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, **kwargs):
-        ...
-
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, score = ratio(matrix, objectives, weights)
@@ -141,10 +137,6 @@ class ReferencePointMOORA(SKCDecisionMakerABC):
        New York: Interscience.
 
     """
-
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, **kwargs):
-        ...
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -234,15 +226,12 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
 
     """
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, matrix, **kwargs):
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         if np.any(matrix <= 0):
             raise ValueError(
                 "FullMultiplicativeForm can't operate with values <= 0"
             )
-
-    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, score = fmf(matrix, objectives, weights)
         return rank, {"score": score}
 
@@ -325,13 +314,10 @@ class MultiMOORA(SKCDecisionMakerABC):
 
     """
 
-    @doc_inherit(SKCDecisionMakerABC._validate_data)
-    def _validate_data(self, matrix, **kwargs):
-        if np.any(matrix <= 0):
-            raise ValueError("MultiMOORA can't operate with values <= 0")
-
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+        if np.any(matrix <= 0):
+            raise ValueError("MultiMOORA can't operate with values <= 0")
         (
             rank,
             score,

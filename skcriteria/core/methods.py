@@ -279,11 +279,6 @@ class SKCDecisionMakerABC(SKCMethodABC):
     _skcriteria_dm_type = "decision_maker"
 
     @abc.abstractmethod
-    def _validate_data(self, **kwargs):
-        """Validate all the data previously to send to the real algorithm."""
-        raise NotImplementedError()
-
-    @abc.abstractmethod
     def _evaluate_data(self, **kwargs):
         raise NotImplementedError()
 
@@ -306,8 +301,6 @@ class SKCDecisionMakerABC(SKCMethodABC):
 
         """
         data = dm.to_dict()
-
-        self._validate_data(**data)
 
         result_data, extra = self._evaluate_data(**data)
 
