@@ -12,11 +12,10 @@ jobs:
 
       steps:
         - checkout
+        - run: python3 -m venv venv
+        - run: . venv/bin/activate
         - run: pip install tox
         - run: tox -e << parameters.tox_env >>
-
-
-
 
 workflows:
   version: 2
