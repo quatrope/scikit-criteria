@@ -19,7 +19,7 @@ jobs:
               . venv/bin/activate
               pip install tox
         - run:
-            name: run tests
+            name: run tests (<< parameters.tox_env >>)
             command: |
               . venv/bin/activate
               tox -e << parameters.tox_env >>
@@ -27,7 +27,7 @@ jobs:
 workflows:
   version: 2
 
-  myproj:
+  CI:
     jobs:
       - toxify:
           tox_env: 'style'
