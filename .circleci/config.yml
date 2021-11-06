@@ -19,10 +19,10 @@ jobs:
               . venv/bin/activate
               pip install tox
         - run:
-          name: run tests
-          command: |
-            . venv/bin/activate
-            tox -e << parameters.tox_env >>
+            name: run tests
+            command: |
+              . venv/bin/activate
+              tox -e << parameters.tox_env >>
 
 workflows:
   version: 2
