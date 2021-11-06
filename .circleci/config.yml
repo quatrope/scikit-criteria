@@ -3,7 +3,6 @@ version: 2.1
 jobs:
 
   tox:
-      name: "foo"
       docker:
         - image: fkrull/multi-python
 
