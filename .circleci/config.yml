@@ -4,7 +4,7 @@ jobs:
 
   toxify:
       docker:
-        image: fkrull/multi-python
+        - image: fkrull/multi-python
 
       steps:
         - checkout
@@ -19,5 +19,5 @@ workflows:
 
   myproj:
     jobs:
-      - toxify
+      - toxify:
           toxenv: 'style'
