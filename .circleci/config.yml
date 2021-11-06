@@ -1,0 +1,22 @@
+version: 2
+
+jobs:
+
+  toxify:
+      docker:
+        - image: themattrix/tox
+
+      steps:
+        - checkout
+        - run: pip install tox
+        - run: tox
+
+
+
+
+workflows:
+  version: 2
+
+  myproj:
+    jobs:
+      - toxify
