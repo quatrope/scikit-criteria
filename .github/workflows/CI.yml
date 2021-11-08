@@ -16,7 +16,7 @@ jobs:
       matrix:
 
         # all the tox with the default python version
-        py_version: [3.9]
+        py_version: [3.x]
         tox_env:
           - style
           - docstyle
@@ -33,6 +33,9 @@ jobs:
             tox_env: py38
           - py_version: 3.9
             tox_env: py39
+          - py_version: 3.10
+            tox_env: py3.10
+
 
     steps:
       - uses: actions/checkout@master
