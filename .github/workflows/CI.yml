@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        py_version: 3.9
+        py_version: [3.9]
         tox_env:
           - style
           - docstyle
