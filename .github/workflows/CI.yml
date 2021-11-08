@@ -37,10 +37,17 @@ jobs:
     # the steps of the CI
     steps:
       - uses: actions/checkout@master
+
+      # optionals
+      - name: Install pandoc
+        run: sudo apt-get install pandoc
+        if: ${{ matrix.tox_env == 'mkdocs'}}
+
+      # tox steps
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.py_version}}
+          python-version: ${{ matrix.py_version }}
       - name: Install tox
         run: pip install tox
       - name: tox -e ${{ matrix.tox_env }}
