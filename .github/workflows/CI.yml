@@ -14,17 +14,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        include:
-          - py_version: 3.7
-            tox_env: py37
-          - py_version: 3.8
-            tox_env: py38
-          - py_version: 3.9
-            tox_env: py39
-          - py_version: 3.9
-            tox_env: coverage
-          - py_version: 3.9
-            tox_env: [style, docstyle]
+        py_version: 3.9
+        tox_env:
+          - style
+          - docstyle
+          - check-manifest
+          - check-testdir
+          - check-headers
+          - py39
+          - coverage
 
     steps:
       - uses: actions/checkout@master
