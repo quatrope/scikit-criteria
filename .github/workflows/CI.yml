@@ -21,8 +21,14 @@ jobs:
           - check-manifest
           - check-testdir
           - check-headers
-          - py39
           - coverage
+        include:
+          - py_version: 3.7
+            tox_env: py37
+          - py_version: 3.8
+            tox_env: py38
+          - py_version: 3.9
+            tox_env: py39
 
     steps:
       - uses: actions/checkout@master
