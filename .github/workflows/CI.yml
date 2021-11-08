@@ -24,7 +24,7 @@ jobs:
           - py_version: 3.9
             tox_env: coverage
           - py_version: 3.9
-            tox_env: style
+            tox_env: [style, docstyle]
 
     steps:
       - uses: actions/checkout@master
