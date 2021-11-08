@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        py_version: [3.9]
+
+        # all the tox with the default python version
+        py_version: [3.x]
         tox_env:
           - style
           - docstyle
@@ -22,6 +24,7 @@ jobs:
           - check-testdir
           - check-headers
           - coverage
+
         include:
           - py_version: 3.7
             tox_env: py37
