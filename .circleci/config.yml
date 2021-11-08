@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
 
-  tox:
+  tests:
       docker:
         - image: fkrull/multi-python
 
@@ -15,7 +15,7 @@ jobs:
         - run:
             name: install dependencies
             command: |
-              python3 -m venv venv
+              python3.9 -m venv venv
               . venv/bin/activate
               pip install tox
         - run:
@@ -30,7 +30,22 @@ workflows:
 
   CI:
     jobs:
-      - tox:
+      - tests:
           tox_env: 'style'
-      - tox:
+      - tests:
           tox_env: 'docstyle'
+      - tests:
+          tox_env: 'check-manifest'
+      - tests:
+          tox_env: 'check-testdir'
+      - tests:
+          tox_env: 'check-headers'
+      - tests:
+          tox_env: 'py37'
+      - tests:
+          tox_env: 'py38'
+      - tests:
+          tox_env: 'py39'
+      - tests:
+          tox_env: 'coverage'
+
