@@ -31,21 +31,15 @@ workflows:
   CI:
     jobs:
       - tests:
-          tox_env: 'style'
-      - tests:
-          tox_env: 'docstyle'
-      - tests:
-          tox_env: 'check-manifest'
-      - tests:
-          tox_env: 'check-testdir'
-      - tests:
-          tox_env: 'check-headers'
-      - tests:
-          tox_env: 'py37'
-      - tests:
-          tox_env: 'py38'
-      - tests:
-          tox_env: 'py39'
-      - tests:
-          tox_env: 'coverage'
-
+          matrix:
+            parameters:
+              tox_env:
+                - style
+                - docstyle
+                - check-manifest
+                - check-testdir
+                - check-headers
+                - py37
+                - py38
+                - py39
+                - coverage
