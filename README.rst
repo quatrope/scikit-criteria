@@ -6,6 +6,7 @@
 
 .. image:: https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml/badge.svg
    :target: https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml
+   :alt: Gihub Actions CI
 
 .. image:: https://circleci.com/gh/quatrope/scikit-criteria/tree/master.svg?style=shield
     :target: https://circleci.com/gh/quatrope/scikit-criteria/tree/master
