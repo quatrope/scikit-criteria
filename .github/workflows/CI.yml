@@ -34,8 +34,7 @@ jobs:
           - py_version: 3.9
             tox_env: py39
 
-
-
+    # the steps of the CI
     steps:
       - uses: actions/checkout@master
       - name: Set up Python
