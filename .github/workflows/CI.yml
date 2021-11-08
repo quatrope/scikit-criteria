@@ -14,23 +14,24 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        tox_env:
-          - style
-          - docstyle
-          - check-manifest
-          - check-testdir
-          - check-headers
-          - py37
-          - py38
-          - py39
-          - coverage
+        include:
+          - py_version: 3.7
+            tox_env: py37
+          - py_version: 3.8
+            tox_env: py38
+          - py_version: 3.9
+            tox_env: py39
+          - py_version: 3.9
+            tox_env: coverage
+          - py_version: 3.9
+            tox_env: style
 
     steps:
       - uses: actions/checkout@master
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: ${{ matrix.py_version}}
       - name: Install tox
         run: pip install tox
       - name: tox -e ${{ matrix.tox_env }}

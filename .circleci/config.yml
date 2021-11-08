@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
 
-  tests:
+  build:
       docker:
         - image: fkrull/multi-python
 
@@ -30,7 +30,7 @@ workflows:
 
   CI:
     jobs:
-      - tests:
+      - build:
           name: tox -e << matrix.tox_env >>
           matrix:
             parameters:
