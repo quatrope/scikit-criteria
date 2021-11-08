@@ -4,6 +4,9 @@
 
 **Multiple-criteria decision analysis**
 
+.. image:: https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml/badge.svg
+   :target: https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml
+
 .. image:: https://circleci.com/gh/quatrope/scikit-criteria/tree/master.svg?style=svg
     :target: https://circleci.com/gh/quatrope/scikit-criteria/tree/master
     :alt: cicleci
