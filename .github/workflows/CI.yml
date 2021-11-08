@@ -16,7 +16,7 @@ jobs:
       matrix:
 
         # all the tox with the default python version
-        py_version: [3.x]
+        py_version: [3.9]
         tox_env:
           - style
           - docstyle
@@ -25,6 +25,7 @@ jobs:
           - check-headers
           - coverage
 
+        # check version by version
         include:
           - py_version: 3.7
             tox_env: py37
