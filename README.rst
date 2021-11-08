@@ -4,6 +4,9 @@
 
 **Multiple-criteria decision analysis**
 
+.. image:: https://circleci.com/gh/quatrope/scikit-criteria/tree/master.svg?style=svg
+    :target: https://circleci.com/gh/quatrope/scikit-criteria/tree/master
+    :alt: cicleci
 
 .. image:: https://readthedocs.org/projects/scikit-criteria/badge/?version=latest&style=flat
    :target: http://scikit-criteria.readthedocs.io
