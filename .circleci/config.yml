@@ -13,7 +13,7 @@ jobs:
       steps:
         - checkout
         - run:
-            name: install dependencies
+            name: installing dependencies
             command: |
               python3.9 -m venv venv
               . venv/bin/activate
@@ -22,7 +22,7 @@ jobs:
             name: running 'tox -e << parameters.tox_env >>'
             command: |
               . venv/bin/activate
-              tox -e << parameters.tox_env >>
+              tox -re << parameters.tox_env >>
 
 
 workflows:

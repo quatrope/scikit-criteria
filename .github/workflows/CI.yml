@@ -1,0 +1,37 @@
+# ==============================================================
+# CI with GitHub Actions
+# ==============================================================
+
+name: Scikit-Criteria
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tox_env:
+          - style
+          - docstyle
+          - check-manifest
+          - check-testdir
+          - check-headers
+          - py37
+          - py38
+          - py39
+          - coverage
+
+    steps:
+      - uses: actions/checkout@master
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: Install tox
+        run: pip install tox
+      - name: tox -e ${{ matrix.tox_env }}
+        run: tox -re ${{ matrix.tox_env }}
