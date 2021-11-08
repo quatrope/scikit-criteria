@@ -19,7 +19,7 @@ jobs:
               . venv/bin/activate
               pip install tox
         - run:
-            name: run tox environment '<< parameters.tox_env >>'
+            name: running 'tox -e << parameters.tox_env >>'
             command: |
               . venv/bin/activate
               tox -e << parameters.tox_env >>
@@ -31,6 +31,7 @@ workflows:
   CI:
     jobs:
       - tests:
+          name: tox -e << matrix.tox_env >>
           matrix:
             parameters:
               tox_env:
