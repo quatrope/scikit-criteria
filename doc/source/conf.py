@@ -47,13 +47,17 @@ MOCK_MODULES = []
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.intersphinx',
+    'sphinx.ext.coverage',
     'sphinx.ext.mathjax',
-    'sphinx.ext.ifconfig',
+    'sphinx.ext.napoleon',
+
+    'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.autosummary',
-    'numpydoc',
-    'nbsphinx']
+
+    'nbsphinx'
+]
+
 
 numpydoc_class_members_toctree = False
 
@@ -73,7 +77,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = skcriteria.NAME
-copyright = u'2015-2016-2017-2018, Juan B. Cabral - Nadia A. Luczywo'
+copyright = u'2016-2021, Juan B. Cabral - Nadia A. Luczywo'
 author = u'Juan BC'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -116,14 +120,7 @@ todo_include_todos = False
 #
 # html_theme_options = {}
 
-if on_rtd:
-    from mock import Mock as MagicMock
-    class Mock(MagicMock):
-        @classmethod
-        def __getattr__(cls, name):
-            return Mock()
-    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
-else: # only import and set the theme if we're building docs locally
+if not on_rtd:
     import sphinx_rtd_theme
     html_theme = 'sphinx_rtd_theme'
     html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]

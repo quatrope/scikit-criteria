@@ -8,10 +8,6 @@
    :target: https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml
    :alt: Gihub Actions CI
 
-.. image:: https://circleci.com/gh/quatrope/scikit-criteria/tree/master.svg?style=shield
-    :target: https://circleci.com/gh/quatrope/scikit-criteria/tree/master
-    :alt: cicleci
-
 .. image:: https://readthedocs.org/projects/scikit-criteria/badge/?version=latest&style=flat
    :target: http://scikit-criteria.readthedocs.io
    :alt: Documentation Status

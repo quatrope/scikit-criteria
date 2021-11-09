@@ -1,9 +1,5 @@
-docutils
-numpydoc
-sphinx-rtd-theme
-tabulate
-json-tricks
-jupyter
 ipykernel
+ipython
+Sphinx
+sphinx-rtd-theme
 nbsphinx
-jupyter_client
