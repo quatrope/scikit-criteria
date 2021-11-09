@@ -2,7 +2,7 @@
 # CI with GitHub Actions
 # ==============================================================
 
-name: Scikit-Criteria
+name: Scikit-Criteria CI
 
 on:
   - push
