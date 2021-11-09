@@ -14,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
 
+      # continues even if an environment fails
       fail-fast: false
 
       matrix:
@@ -45,7 +46,6 @@ jobs:
       - name: Install pandoc
         if: ${{ matrix.tox_env == 'mkdocs'}}
         run: sudo apt-get install pandoc
-
 
       # tox steps
       - name: Set up Python
