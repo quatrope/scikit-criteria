@@ -26,7 +26,7 @@ from skcriteria import madm, pipeline, preprocessing
 # =============================================================================
 
 
-def test_pipeline_make_pipeline(decision_matrix):
+def test_pipeline_mkpipe(decision_matrix):
     dm = decision_matrix(seed=42)
 
     steps = [
@@ -42,7 +42,7 @@ def test_pipeline_make_pipeline(decision_matrix):
         expected = step.transform(expected)
     expected = steps[-1].evaluate(expected)
 
-    pipe = pipeline.make_pipeline(*steps)
+    pipe = pipeline.mkpipe(*steps)
     result = pipe.evaluate(dm)
 
     assert result.equals(expected)
@@ -62,7 +62,7 @@ def test_pipeline_slicing():
         madm.TOPSIS(),
     ]
 
-    pipe = pipeline.make_pipeline(*steps)
+    pipe = pipeline.mkpipe(*steps)
 
     for idx, step in enumerate(steps):
         assert pipe[idx] == step
@@ -82,13 +82,13 @@ def test_pipeline_slicing():
 def test_pipeline_not_transformer_fail():
     steps = [madm.TOPSIS(), madm.TOPSIS()]
     with pytest.raises(TypeError):
-        pipeline.make_pipeline(*steps)
+        pipeline.mkpipe(*steps)
 
 
 def test_pipeline_not_dmaker_fail():
     steps = [preprocessing.Critic()]
     with pytest.raises(TypeError):
-        pipeline.make_pipeline(*steps)
+        pipeline.mkpipe(*steps)
 
 
 def test_pipeline_name_not_str():

@@ -48,7 +48,7 @@ class SKCPipeline(SKCMethodABC):
 
     See Also
     --------
-    skcriteria.pipeline.make_pipeline : Convenience function for simplified
+    skcriteria.pipeline.mkpipe : Convenience function for simplified
         pipeline construction.
 
     """
@@ -178,7 +178,7 @@ def _name_steps(steps):
     return named_steps
 
 
-def make_pipeline(*steps):
+def mkpipe(*steps):
     """Construct a Pipeline from the given transformers and decision-maker.
 
     This is a shorthand for the SKCPipeline constructor; it does not require,

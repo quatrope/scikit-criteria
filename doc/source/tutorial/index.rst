@@ -6,11 +6,6 @@ scikit-criteria
 
 Contents:
 
-.. toctree::
-    :maxdepth: 1
-
-    quickstart.ipynb
-    simus.ipynb
 
 
 .. seealso::

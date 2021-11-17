@@ -114,16 +114,9 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 
-# Theme options are theme-specific and customize the look and feel of a theme
-# further.  For a list of options available for each theme, see the
-# documentation.
-#
-# html_theme_options = {}
-
-if not on_rtd:
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+import sphinx_pdj_theme
+html_theme = 'sphinx_pdj_theme'
+html_theme_path = [sphinx_pdj_theme.get_html_theme_path()]
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -137,15 +130,15 @@ html_favicon = "_static/favicon.ico"
 #
 # This is required for the alabaster theme
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
-html_sidebars = {
-    '**': [
-        'about.html',
-        'navigation.html',
-        'relations.html',  # needs 'show_related': True theme option to display
-        'searchbox.html',
-        'donate.html',
-    ]
-}
+# html_sidebars = {
+#     '**': [
+#         'about.html',
+#         'navigation.html',
+#         'relations.html',  # needs 'show_related': True theme option to display
+#         'searchbox.html',
+#         'donate.html',
+#     ]
+# }
 
 
 # -- Options for HTMLHelp output ------------------------------------------
@@ -211,5 +204,5 @@ texinfo_documents = [
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 def setup(app):
-    app.add_stylesheet('css/skcriteria.css')
-    app.add_javascript('js/skcriteria.js')
+    #app.add_css_file('css/skcriteria.css')
+    app.add_js_file('js/skcriteria.js')

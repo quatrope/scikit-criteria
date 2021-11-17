@@ -26,6 +26,7 @@ import functools
 import numpy as np
 
 import pandas as pd
+from pandas.io.formats import format as pd_fmt
 
 import pyquery as pq
 
@@ -572,8 +573,9 @@ class DecisionMatrix:
     def _get_cow_headers(self):
         """Columns names with COW (Criteria, Objective, Weight)."""
         headers = []
-        for c, o, w in zip(self.criteria, self.objectives, self.weights):
-            header = f"{c}[{o.to_string()} {w}]"
+        fmt_weights = pd_fmt.format_array(self.weights, None)
+        for c, o, w in zip(self.criteria, self.objectives, fmt_weights):
+            header = f"{c}[{o.to_string()}{w}]"
             headers.append(header)
         return headers
 
