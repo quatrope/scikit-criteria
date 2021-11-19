@@ -11,13 +11,15 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     strategy:
 
       # continues even if an environment fails
       fail-fast: false
 
       matrix:
+
+        os: [ubuntu-latest, windows-latest]
 
         # all the tox with the default python version
         py_version: [3.9]
