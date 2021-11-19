@@ -493,9 +493,9 @@ class DecisionMatrix:
 
         See Also
         --------
-        aequals, :py:function:`numpy.isclose`, :py:function:`numpy.all`,
-        :py:function:`numpy.any`, :py:function:`numpy.equal`,
-        :py:function:`numpy.allclose`.
+        aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
 
         """
         return self.aequals(other, 0, 0, False)
@@ -526,10 +526,10 @@ class DecisionMatrix:
             Other instance to compare.
         rtol : float
             The relative tolerance parameter
-            (see Notes in :py:function:`numpy.allclose`).
+            (see Notes in :py:func:`numpy.allclose`).
         atol : float
             The absolute tolerance parameter
-            (see Notes in :py:function:`numpy.allclose`).
+            (see Notes in :py:func:`numpy.allclose`).
         equal_nan : bool
             Whether to compare NaN's as equal.  If True, NaN's in dm will be
             considered equal to NaN's in `other` in the output array.
@@ -542,9 +542,9 @@ class DecisionMatrix:
 
         See Also
         --------
-        equals, :py:function:`numpy.isclose`, :py:function:`numpy.all`,
-        :py:function:`numpy.any`, :py:function:`numpy.equal`,
-        :py:function:`numpy.allclose`.
+        equals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
 
         """
         return (self is other) or (
