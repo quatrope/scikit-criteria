@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm.similarity
+"""test for skcriteria.madm.similarity.
 
 """
 
@@ -24,7 +24,7 @@ import pytest
 import skcriteria
 from skcriteria.core import RankResult
 from skcriteria.madm.similarity import TOPSIS
-from skcriteria.preprocessing import VectorScaler
+from skcriteria.preprocessing.scalers import VectorScaler
 
 # =============================================================================
 # TEST CLASSES

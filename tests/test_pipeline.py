@@ -19,7 +19,10 @@
 
 import pytest
 
-from skcriteria import pipeline, preprocessing
+from skcriteria import pipeline
+from skcriteria.preprocessing.invert_objectives import MinimizeToMaximize
+from skcriteria.preprocessing.scalers import StandarScaler
+from skcriteria.preprocessing.weighters import Critic
 from skcriteria.madm.similarity import TOPSIS
 
 # =============================================================================
@@ -31,10 +34,10 @@ def test_pipeline_mkpipe(decision_matrix):
     dm = decision_matrix(seed=42)
 
     steps = [
-        preprocessing.MinimizeToMaximize(),
-        preprocessing.StandarScaler(target="matrix"),
-        preprocessing.Critic(correlation="spearman"),
-        preprocessing.Critic(),
+        MinimizeToMaximize(),
+        StandarScaler(target="matrix"),
+        Critic(correlation="spearman"),
+        Critic(),
         TOPSIS(),
     ]
 
@@ -56,10 +59,10 @@ def test_pipeline_mkpipe(decision_matrix):
 def test_pipeline_slicing():
 
     steps = [
-        preprocessing.MinimizeToMaximize(),
-        preprocessing.StandarScaler(target="matrix"),
-        preprocessing.Critic(correlation="spearman"),
-        preprocessing.Critic(),
+        MinimizeToMaximize(),
+        StandarScaler(target="matrix"),
+        Critic(correlation="spearman"),
+        Critic(),
         TOPSIS(),
     ]
 
@@ -87,7 +90,7 @@ def test_pipeline_not_transformer_fail():
 
 
 def test_pipeline_not_dmaker_fail():
-    steps = [preprocessing.Critic()]
+    steps = [Critic()]
     with pytest.raises(TypeError):
         pipeline.mkpipe(*steps)
 
@@ -95,9 +98,9 @@ def test_pipeline_not_dmaker_fail():
 def test_pipeline_name_not_str():
     with pytest.raises(TypeError):
         pipeline.SKCPipeline(
-            steps=[(..., preprocessing.Critic()), ("final", TOPSIS())]
+            steps=[(..., Critic()), ("final", TOPSIS())]
         )
     with pytest.raises(TypeError):
         pipeline.SKCPipeline(
-            steps=[("first", preprocessing.Critic()), (..., TOPSIS())]
+            steps=[("first", Critic()), (..., TOPSIS())]
         )

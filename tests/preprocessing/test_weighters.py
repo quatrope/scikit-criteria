@@ -24,7 +24,7 @@ import pytest
 import scipy
 
 import skcriteria
-from skcriteria.preprocessing import (
+from skcriteria.preprocessing.weighters import (
     Critic,
     EntropyWeighter,
     EqualWeighter,

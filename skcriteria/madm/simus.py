@@ -20,7 +20,7 @@ import warnings
 import numpy as np
 
 from ..core import Objective, RankResult, SKCDecisionMakerABC
-from ..preprocessing import scale_by_sum
+from ..preprocessing.scalers import scale_by_sum
 from ..utils import doc_inherit, lp, rank
 
 # =============================================================================

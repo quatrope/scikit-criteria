@@ -18,7 +18,7 @@
 # =============================================================================
 
 import skcriteria
-from skcriteria.preprocessing import PushNegatives
+from skcriteria.preprocessing.push_negatives import PushNegatives
 
 
 # =============================================================================

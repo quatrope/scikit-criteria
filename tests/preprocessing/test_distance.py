@@ -18,7 +18,7 @@
 # =============================================================================
 
 import skcriteria
-from skcriteria.preprocessing import CenitDistance
+from skcriteria.preprocessing.distance import CenitDistance
 
 
 # =============================================================================

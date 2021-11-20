@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm._moora."""
+"""test for skcriteria.madm.moora."""
 
 # =============================================================================
 # IMPORTS
@@ -27,7 +27,7 @@ from skcriteria.madm.moora import (
     RatioMOORA,
     ReferencePointMOORA,
 )
-from skcriteria.preprocessing import VectorScaler
+from skcriteria.preprocessing.scalers import VectorScaler
 
 
 # =============================================================================

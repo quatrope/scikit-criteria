@@ -21,7 +21,7 @@ import numpy as np
 
 
 import skcriteria
-from skcriteria.preprocessing import MinimizeToMaximize
+from skcriteria.preprocessing.invert_objectives import MinimizeToMaximize
 
 
 # =============================================================================

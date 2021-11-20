@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.add_value_to_zero
+"""test for skcriteria.madm.maut
 
 """
 
@@ -24,7 +24,8 @@ import pytest
 import skcriteria
 from skcriteria.core import RankResult
 from skcriteria.madm.maut import WeightedProductModel, WeightedSumModel
-from skcriteria.preprocessing import MinimizeToMaximize, SumScaler
+from skcriteria.preprocessing.invert_objectives import MinimizeToMaximize
+from skcriteria.preprocessing.scalers import SumScaler
 
 # =============================================================================
 # TEST CLASSES

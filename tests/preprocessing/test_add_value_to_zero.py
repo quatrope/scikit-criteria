@@ -18,7 +18,7 @@
 # =============================================================================
 
 import skcriteria
-from skcriteria.preprocessing import AddValueToZero
+from skcriteria.preprocessing.add_value_to_zero import AddValueToZero
 
 
 # =============================================================================
