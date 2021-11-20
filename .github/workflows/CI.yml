@@ -25,19 +25,18 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
         # all the tox with the default python version
-        tox_env:
-          - py37
-          - py38
-          - py39
-          - style
-          - docstyle
-          - check-manifest
-          - check-testdir
-          - check-headers
-          - coverage
+        tox_env: [py37, py38, py39]
+
+        include:
+          - tox_env: style
+          - tox_env: docstyle
+          - tox_env: check-manifest
+          - tox_env: check-testdir
+          - tox_env: check-headers
+          - tox_env: coverage
 
     # The operative sistem
-    runs-on: ${{ matrix.os | env.default-os }}
+    runs-on: ${{ matrix.os || env.default-os }}
 
     # the steps of the CI
     steps:
