@@ -8,6 +8,9 @@ on:
   - push
   - pull_request
 
+env:
+  default-python: 3.9
+
 jobs:
   build:
 
@@ -22,7 +25,6 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
         # all the tox with the default python version
-        py_version: [3.9]
         tox_env:
           - style
           - docstyle
@@ -44,8 +46,7 @@ jobs:
             tox_env: py39
 
         exclude:
-          - py_version: 3.9
-            os: windows-latest
+          - os: windows-latest
             tox_env: mkdocs
 
 
@@ -62,7 +63,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.py_version }}
+          python-version: ${{ matrix.py_version || env.default-python }}
       - name: Install tox
         run: pip install tox
       - name: tox -e ${{ matrix.tox_env }}
