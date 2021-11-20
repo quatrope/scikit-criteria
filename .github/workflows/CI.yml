@@ -8,16 +8,14 @@ on:
   - push
   - pull_request
 
-
+env:
+  default-python: 3.9
 
 jobs:
   build:
-    env:
-      default-python: 3.9
-      default_os: ubuntu-latest
+
     strategy:
       fail-fast: false
-
       matrix:
         os: [ubuntu-latest, windows-latest]
         tox_env: [py37, py38, py39]
@@ -30,7 +28,7 @@ jobs:
           - tox_env: coverage
 
     # The operative sistem
-    runs-on: ${{ matrix.os || env.default_os }}
+    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
 
     # the steps of the CI
     steps:
