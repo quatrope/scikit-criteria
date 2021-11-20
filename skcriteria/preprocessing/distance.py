@@ -8,14 +8,12 @@
 # DOCS
 # =============================================================================
 
-"""Normalization through the distance to distance function.
+"""Normalization through the distance to distance function."""
 
-"""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
-
 
 import numpy as np
 

@@ -19,11 +19,10 @@ from collections import Counter
 from .core import SKCMethodABC
 from .utils import Bunch
 
+
 # =============================================================================
 # CLASS
 # =============================================================================
-
-
 class SKCPipeline(SKCMethodABC):
     """Pipeline of transforms with a final decision-maker.
 

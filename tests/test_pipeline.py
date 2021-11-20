@@ -20,10 +20,10 @@
 import pytest
 
 from skcriteria import pipeline
+from skcriteria.madm.similarity import TOPSIS
 from skcriteria.preprocessing.invert_objectives import MinimizeToMaximize
 from skcriteria.preprocessing.scalers import StandarScaler
 from skcriteria.preprocessing.weighters import Critic
-from skcriteria.madm.similarity import TOPSIS
 
 # =============================================================================
 # TESTS
@@ -97,10 +97,6 @@ def test_pipeline_not_dmaker_fail():
 
 def test_pipeline_name_not_str():
     with pytest.raises(TypeError):
-        pipeline.SKCPipeline(
-            steps=[(..., Critic()), ("final", TOPSIS())]
-        )
+        pipeline.SKCPipeline(steps=[(..., Critic()), ("final", TOPSIS())])
     with pytest.raises(TypeError):
-        pipeline.SKCPipeline(
-            steps=[("first", Critic()), (..., TOPSIS())]
-        )
+        pipeline.SKCPipeline(steps=[("first", Critic()), (..., TOPSIS())])
