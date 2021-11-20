@@ -14,8 +14,7 @@ jobs:
   build:
     env:
       default-python: 3.9
-      default-os: ubuntu-latest
-
+      default_os: ubuntu-latest
     strategy:
       fail-fast: false
 
@@ -31,7 +30,7 @@ jobs:
           - tox_env: coverage
 
     # The operative sistem
-    runs-on: ${{ matrix.os || env.default-os }}
+    runs-on: ${{ matrix.os || env.default_os }}
 
     # the steps of the CI
     steps:
