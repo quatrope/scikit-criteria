@@ -45,7 +45,7 @@ jobs:
         uses: bluwy/substitute-string-action@v1
         with:
           _input-text: ${{ matrix.tox_env }}
-          py3: ""
+          py3: "3."
 
       - run: echo ${{ steps.pyversion.outputs.result || env.default-python }}
 
