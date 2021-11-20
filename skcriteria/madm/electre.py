@@ -20,6 +20,19 @@ problem, which are unacceptable. After that we can use another MCDA to select
 the best one. The Advantage of using the Electre Methods before is that we
 can apply another MCDA with a restricted set of alternatives saving much time.
 
+References
+----------
+.. [roy1990outranking] Roy, B. (1990). The outranking approach and the
+    foundations of ELECTRE methods. In Readings in multiple criteria
+    decision aid (pp.155-183). Springer, Berlin, Heidelberg.
+
+.. [roy1968classement] Roy, B. (1968). Classement et choix en présence de
+    points de vue multiples. Revue française d'informatique et de recherche
+    opérationnelle, 2(8), 57-75.
+
+.. [tzeng2011multiple] Tzeng, G. H., & Huang, J. J. (2011).
+    Multiple attribute decision making: methods and applications. CRC press.
+
 """
 
 # =============================================================================
@@ -136,14 +149,8 @@ class ELECTRE1(SKCDecisionMakerABC):
 
     References
     ----------
-    .. [roy1990outranking] Roy, B. (1990). The outranking approach and the
-       foundations of ELECTRE methods. In Readings in multiple criteria
-       decision aid (pp.155-183). Springer, Berlin, Heidelberg.
-    .. [roy1968classement] Roy, B. (1968). Classement et choix en présence de
-       points de vue multiples. Revue française d'informatique et de recherche
-       opérationnelle, 2(8), 57-75.
-    .. [tzeng2011multiple] Tzeng, G. H., & Huang, J. J. (2011).
-       Multiple attribute decision making: methods and applications. CRC press.
+    [roy1990outranking]_, [roy1990outranking]_, [roy1968classement]_,
+    [tzeng2011multiple]_
 
     """
 

@@ -204,5 +204,5 @@ texinfo_documents = [
 intersphinx_mapping = {'https://docs.python.org/': None}
 
 def setup(app):
-    #app.add_css_file('css/skcriteria.css')
+    app.add_css_file('css/skcriteria.css')
     app.add_js_file('js/skcriteria.js')

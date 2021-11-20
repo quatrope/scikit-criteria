@@ -1,4 +1,4 @@
-skcriteria package
+API Reference
 ==================
 
 Subpackages
