@@ -55,16 +55,17 @@ jobs:
         with:
           _input-text: ${{ matrix.tox_env }}
           py3: ""
-        run: echo ${{ steps.pyversion.outputs.result }}
+
+      - run: echo ${{ steps.pyversion.outputs.result }}
 
       # tox steps
-      - name: Set up default Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python || env.default-python }}
+      # - name: Set up default Python
+      #   uses: actions/setup-python@v2
+      #   with:
+      #     python-version: ${{ matrix.python || env.default-python }}
 
-      - name: Install tox
-        run: pip install tox
+      # - name: Install tox
+      #   run: pip install tox
 
-      - name: tox -re ${{ matrix.tox_env }}
-        run: tox -re ${{ matrix.tox_env }}
+      # - name: tox -re ${{ matrix.tox_env }}
+      #   run: tox -re ${{ matrix.tox_env }}
