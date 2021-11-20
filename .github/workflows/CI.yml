@@ -47,7 +47,7 @@ jobs:
           _input-text: ${{ matrix.tox_env }}
           py3: ""
 
-      - run: echo ${{ steps.pyversion.outputs.result }}
+      - run: echo ${{ steps.pyversion.outputs.result || env.default-python }}
 
       # tox steps
       # - name: Set up default Python
