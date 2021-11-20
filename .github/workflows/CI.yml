@@ -8,25 +8,20 @@ on:
   - push
   - pull_request
 
-env:
-  default-python: 3.9
-  default-os: ubuntu-latest
+
 
 jobs:
   build:
+    env:
+      default-python: 3.9
+      default-os: ubuntu-latest
 
     strategy:
-
-      # continues even if an environment fails
       fail-fast: false
 
       matrix:
-
         os: [ubuntu-latest, windows-latest]
-
-        # all the tox with the default python version
         tox_env: [py37, py38, py39]
-
         include:
           - tox_env: style
           - tox_env: docstyle
