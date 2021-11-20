@@ -33,18 +33,11 @@ jobs:
           - check-headers
           - coverage
 
-        # check version by version
-        include:
-          - py_version: 3.7
-            os: ubuntu-latest
-            tox_env: py37
-          - py_version: 3.8
-            os: ubuntu-latest
-            tox_env: py38
-          - py_version: 3.9
-            os: ubuntu-latest
-            tox_env: py39
+          # - py37
+          # - py38
+          # - py39
 
+        # check version by version
         exclude:
           - os: windows-latest
             tox_env: mkdocs
@@ -60,11 +53,14 @@ jobs:
         run: sudo apt-get install pandoc
 
       # tox steps
-      - name: Set up Python
+      - name: Set up default Python (${{ env.default-python }})
+        #if: ${{ ! startsWith( atrix.tox_env, 'py3' ) }}
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.py_version || env.default-python }}
+          python-version: py39
+
       - name: Install tox
         run: pip install tox
-      - name: tox -e ${{ matrix.tox_env }}
+
+      - name: tox -re ${{ matrix.tox_env }}
         run: tox -re ${{ matrix.tox_env }}
