@@ -33,9 +33,9 @@ jobs:
           - check-headers
           - coverage
 
-          # - py37
-          # - py38
-          # - py39
+          - py37
+          - py38
+          - py39
 
         # check version by version
         exclude:
@@ -54,10 +54,9 @@ jobs:
 
       # tox steps
       - name: Set up default Python (${{ env.default-python }})
-        #if: ${{ ! startsWith( atrix.tox_env, 'py3' ) }}
         uses: actions/setup-python@v2
         with:
-          python-version: py39
+          python-version: ${{ env.default-python }}
 
       - name: Install tox
         run: pip install tox
