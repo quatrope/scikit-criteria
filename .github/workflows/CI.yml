@@ -10,11 +10,11 @@ on:
 
 env:
   default-python: 3.9
+  default-os: ubuntu-latest
 
 jobs:
   build:
 
-    runs-on: ${{ matrix.os }}
     strategy:
 
       # continues even if an environment fails
@@ -25,7 +25,9 @@ jobs:
         os: [ubuntu-latest, windows-latest]
 
         # all the tox with the default python version
-        tox_env:
+        tox_env: [py37, py38, py39]
+
+        include:
           - style
           - docstyle
           - check-manifest
@@ -33,15 +35,9 @@ jobs:
           - check-headers
           - coverage
 
-          - py37
-          - py38
-          - py39
 
-        # check version by version
-        exclude:
-          - os: windows-latest
-            tox_env: mkdocs
-
+    # The operative sistem
+    runs-on: ${{ matrix.os | env.default-os }}
 
     # the steps of the CI
     steps:
@@ -49,14 +45,23 @@ jobs:
 
       # optionals
       - name: Install pandoc
-        if: ${{ matrix.tox_env == 'mkdocs' }}
+        if: ${{ matrix.os == '' == matrix.tox_env == 'mkdocs' }}
         run: sudo apt-get install pandoc
 
+      - name: Determine Python version
+        id: pyversion
+        if: ${{ startsWith( matrix.tox_env, 'py3' ) }}
+        uses: bluwy/substitute-string-action@v1
+        with:
+          _input-text: ${{ matrix.tox_env }}
+          py3: ""
+        run: echo ${{ steps.pyversion.outputs.result }}
+
       # tox steps
-      - name: Set up default Python (${{ env.default-python }})
+      - name: Set up default Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ env.default-python }}
+          python-version: ${{ matrix.python || env.default-python }}
 
       - name: Install tox
         run: pip install tox
