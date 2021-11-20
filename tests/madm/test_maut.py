@@ -23,7 +23,7 @@ import pytest
 
 import skcriteria
 from skcriteria.core import RankResult
-from skcriteria.madm import WeightedProductModel, WeightedSumModel
+from skcriteria.madm.maut import WeightedProductModel, WeightedSumModel
 from skcriteria.preprocessing import MinimizeToMaximize, SumScaler
 
 # =============================================================================

@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.add_value_to_zero
+"""test for skcriteria.madm.similarity
 
 """
 
@@ -23,7 +23,7 @@ import pytest
 
 import skcriteria
 from skcriteria.core import RankResult
-from skcriteria.madm import TOPSIS
+from skcriteria.madm.similarity import TOPSIS
 from skcriteria.preprocessing import VectorScaler
 
 # =============================================================================

@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm._electre
+"""test for skcriteria.madm.electre
 
 """
 
@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm._electre import ELECTRE1, concordance, discordance
+from skcriteria.madm.electre import ELECTRE1, concordance, discordance
 from skcriteria.preprocessing import SumScaler, scale_by_sum
 
 # =============================================================================

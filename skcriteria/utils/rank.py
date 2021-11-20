@@ -92,18 +92,18 @@ def dominance(array_a, array_b, reverse=False):
     -------
     dominance: _Dominance
         Named tuple with 4 parameters:
+
         - eq: How many values are equals in both arrays.
         - aDb: How many values of array_a dominate those of the same
-          position in array_b.
+            position in array_b.
         - bDa: How many values of array_b dominate those of the same
-          position in array_a.
+            position in array_a.
         - eq_where: Where the values of array_a are equals those of the same
-          position in array_b.
+            position in array_b.
         - aDb_where: Where the values of array_a dominates those of the same
-          position in array_b.
+            position in array_b.
         - bDa_where: Where the values of array_b dominates those of the same
-          position in array_a.
-
+            position in array_a.
 
     """
     if np.shape(array_a) != np.shape(array_b):

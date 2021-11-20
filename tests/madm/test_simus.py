@@ -8,7 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm._simus."""
+"""test for skcriteria.madm.simus."""
 
 
 # =============================================================================
@@ -21,7 +21,7 @@ import pytest
 
 import skcriteria
 from skcriteria.core import RankResult
-from skcriteria.madm import SIMUS
+from skcriteria.madm.simus import SIMUS
 
 # =============================================================================
 # TEST CLASSES

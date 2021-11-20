@@ -19,7 +19,8 @@
 
 import pytest
 
-from skcriteria import madm, pipeline, preprocessing
+from skcriteria import pipeline, preprocessing
+from skcriteria.madm.similarity import TOPSIS
 
 # =============================================================================
 # TESTS
@@ -34,7 +35,7 @@ def test_pipeline_mkpipe(decision_matrix):
         preprocessing.StandarScaler(target="matrix"),
         preprocessing.Critic(correlation="spearman"),
         preprocessing.Critic(),
-        madm.TOPSIS(),
+        TOPSIS(),
     ]
 
     expected = dm
@@ -59,7 +60,7 @@ def test_pipeline_slicing():
         preprocessing.StandarScaler(target="matrix"),
         preprocessing.Critic(correlation="spearman"),
         preprocessing.Critic(),
-        madm.TOPSIS(),
+        TOPSIS(),
     ]
 
     pipe = pipeline.mkpipe(*steps)
@@ -80,7 +81,7 @@ def test_pipeline_slicing():
 
 
 def test_pipeline_not_transformer_fail():
-    steps = [madm.TOPSIS(), madm.TOPSIS()]
+    steps = [TOPSIS(), TOPSIS()]
     with pytest.raises(TypeError):
         pipeline.mkpipe(*steps)
 
@@ -94,9 +95,9 @@ def test_pipeline_not_dmaker_fail():
 def test_pipeline_name_not_str():
     with pytest.raises(TypeError):
         pipeline.SKCPipeline(
-            steps=[(..., preprocessing.Critic()), ("final", madm.TOPSIS())]
+            steps=[(..., preprocessing.Critic()), ("final", TOPSIS())]
         )
     with pytest.raises(TypeError):
         pipeline.SKCPipeline(
-            steps=[("first", preprocessing.Critic()), (..., madm.TOPSIS())]
+            steps=[("first", preprocessing.Critic()), (..., TOPSIS())]
         )
