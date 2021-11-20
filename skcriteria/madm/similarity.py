@@ -8,7 +8,21 @@
 # DOCS
 # =============================================================================
 
-"""Methods based on similarity function."""
+"""Methods based on a similarity between alternatives.
+
+References
+----------
+.. [hwang1981methods] Hwang, C. L., & Yoon, K. (1981). Methods for multiple
+    attribute decision making. In Multiple attribute decision making
+    (pp. 58-191). Springer, Berlin, Heidelberg.
+
+.. [enwiki:1034743168] TOPSIS. In Wikipedia, The Free Encyclopedia.
+    Retrieved from https://en.wikipedia.org/wiki/TOPSIS
+
+.. [tzeng2011multiple] Tzeng, G. H., & Huang, J. J. (2011).
+    Multiple attribute decision making: methods and applications. CRC press.
+
+"""
 
 # =============================================================================
 # IMPORTS
@@ -74,13 +88,7 @@ class TOPSIS(SKCDecisionMakerABC):
 
     References
     ----------
-    .. [hwang1981methods] Hwang, C. L., & Yoon, K. (1981). Methods for multiple
-       attribute decision making. In Multiple attribute decision making
-       (pp. 58-191). Springer, Berlin, Heidelberg.
-    .. [enwiki:1034743168] TOPSIS. In Wikipedia, The Free Encyclopedia.
-       Retrieved from https://en.wikipedia.org/wiki/TOPSIS
-    .. [tzeng2011multiple] Tzeng, G. H., & Huang, J. J. (2011).
-       Multiple attribute decision making: methods and applications. CRC press.
+    [hwang1981methods]_ , [enwiki:1034743168]_, [tzeng2011multiple]_
 
     """
 
