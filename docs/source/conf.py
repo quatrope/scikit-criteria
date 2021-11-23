@@ -52,7 +52,10 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx.ext.autosummary",
     "nbsphinx",
+    "sphinxcontrib.bibtex",
 ]
+
+bibtex_bibfiles = ["refs.bib"]
 
 
 numpydoc_class_members_toctree = False

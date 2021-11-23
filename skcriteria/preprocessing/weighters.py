@@ -13,12 +13,6 @@
 In addition to the main functionality, an MCDA agnostic function is offered
 to calculate weights to a matrix along an arbitrary axis.
 
-References
-----------
-.. [diakoulaki1995determining] Diakoulaki, D., Mavrotas, G., &
-    Papayannakis, L. (1995). Determining objective weights in multiple
-    criteria problems: The critic method. Computers & Operations Research,
-    22(7), 763-770.
 
 """
 
@@ -313,7 +307,7 @@ class Critic(SKCWeighterABC):
 
     References
     ----------
-    [diakoulaki1995determining]_
+    :cite:p:`diakoulaki1995determining`
 
     """
 

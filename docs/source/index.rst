@@ -90,7 +90,9 @@ Contents
 
     install
     tutorial/index
-    api/skcriteria.rst
+    api/skcriteria
+
+    bibliography
 
 
 

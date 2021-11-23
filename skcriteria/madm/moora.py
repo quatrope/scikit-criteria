@@ -9,23 +9,7 @@
 # =============================================================================
 
 """Implementation of a family of Multi-objective optimization on the basis of \
-ratio analysis (MOORA) methods. :cite:p:`chalela2021grispy`
-
-References
-----------
-.. [rice1967tchebycheff] Karlin, S., & Studden, W. J. (1966).
-    Tchebycheff systems: With applications in analysis and statistics.
-    New York: Interscience.
-
-.. [brauers2006moora] BRAUERS, W. K.; ZAVADSKAS, Edmundas Kazimieras.
-    The MOORA method and its application to privatization in a transition
-    economy. Control and Cybernetics, 2006, vol. 35, p. 445-469.`
-
-.. [brauers2012robustness] Brauers, W. K. M., & Zavadskas, E. K. (2012).
-    Robustness of MULTIMOORA: a method for multi-objective optimization.
-    Informatica, 23(1), 1-25.
-
-"""
+ratio analysis (MOORA) methods."""
 
 
 # =============================================================================
@@ -51,14 +35,14 @@ def ratio(matrix, objectives, weights):
     # the -+ ratio mora strategy
     objective_x_weights = weights * objectives
 
-    # calculate raning by inner prodcut
+    # calculate ranking by inner prodcut
     rank_mtx = np.inner(matrix, objective_x_weights)
     score = np.squeeze(np.asarray(rank_mtx))
     return rank.rank_values(score, reverse=True), score
 
 
 class RatioMOORA(SKCDecisionMakerABC):
-    r"""Ratio based MOORA method [brauers2006moora]_.
+    r"""Ratio based MOORA method.
 
     In MOORA the set of ratios are suggested to be normalized as the square
     roots of the sum of squared responses as denominators, but you can
@@ -77,6 +61,10 @@ class RatioMOORA(SKCDecisionMakerABC):
     :math:`i = g + 1, g + 2, ...,n` for the objectives to be minimized.
 
     Finally, all alternatives are ranked, according to the obtained ratios.
+
+    References
+    ----------
+    :cite:p:`brauers2006moora`
 
     """
 
@@ -116,8 +104,7 @@ def refpoint(matrix, objectives, weights):
 class ReferencePointMOORA(SKCDecisionMakerABC):
     r"""Rank the alternatives by distance to a reference point.
 
-    The reference point is selected with the Min-Max Metric of Tchebycheff
-    [rice1967tchebycheff]_.
+    The reference point is selected with the Min-Max Metric of Tchebycheff.
 
     .. math::
 
@@ -136,7 +123,11 @@ class ReferencePointMOORA(SKCDecisionMakerABC):
     which is designated as the *Maximal Objective Reference Point*. This
     approach is called realistic and non-subjective as the coordinates,
     which are selected for the reference point, are realized in one of the
-    candidate alternatives [brauers2012robustness]_.
+    candidate alternatives.
+
+    References
+    ----------
+    :cite:p:`brauers2012robustness`
 
     """
 
@@ -199,7 +190,7 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
     :math:`i` = the number of objectives to be maximized;
     :math:`n − i` = the number of objectives to be minimize; and
     :math:`U'_j`: the utility of alternative j with objectives to be maximized
-    and objectives to be minimized [brauers2012robustness]_.
+    and objectives to be minimized.
 
     To avoid underflow, instead the multiplication of the values we add the
     logarithms of the values; so :math:`U'_j`:, is finally defined
@@ -219,6 +210,10 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
     ValueError:
         If some objective is for minimization or some value in the matrix
         is <= 0.
+
+    References
+    ----------
+    :cite:p:`brauers2012robustness`
 
     """
 
@@ -294,13 +289,17 @@ class MultiMOORA(SKCDecisionMakerABC):
     measures in multi-objective optimization and one can not argue that one
     method is better than or is of more importance than the others; so for
     determining the final ranking the implementation maximizes how many times
-    an alternative *i* dominates and alternative *j* [brauers2012robustness]_.
+    an alternative *i* dominates and alternative *j*.
 
     Raises
     ------
     ValueError:
         If some objective is for minimization or some value in the matrix
         is <= 0.
+
+    References
+    ----------
+    :cite:p:`brauers2012robustness`
 
     """
 

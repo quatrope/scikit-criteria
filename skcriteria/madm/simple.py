@@ -8,32 +8,7 @@
 # DOCS
 # =============================================================================
 
-"""Some simple and compensatory methods.
-
-References
-----------
-.. [fishburn1967additive] Fishburn, P. C. (1967). Letter to the
-    editor-additive utilities with incomplete product sets: application
-    to priorities and assignments. Operations Research, 15(3), 537-542.
-
-.. [enwiki:1033561221] Weighted sum model. In Wikipedia, The Free Encyclopedia.
-    Retrieved from https://en.wikipedia.org/wiki/Weighted_sum_model
-
-.. [tzeng2011multiple] Tzeng, G. H., & Huang, J. J. (2011). Multiple
-    attribute decision making: methods and applications. CRC press.
-
-.. [bridgman1922] Bridgman, P.W. (1922). Dimensional Analysis.
-    New Haven, CT, U.S.A.: Yale University Press.
-
-.. [miller1963executive] Miller, D.W.; M.K. Starr (1969).
-    Executive Decisions and Operations Research.
-    Englewood Cliffs, NJ, U.S.A.: Prentice-Hall, Inc.
-
-.. [weny2007log] Wen, Y. (2007, September 16). Using log-transform to avoid
-    underflow problem in computing posterior probabilities.
-    from http://web.mit.edu/wenyang/www/log_transform_for_underflow.pdf
-
-"""
+"""Some simple and compensatory methods."""
 
 # =============================================================================
 # IMPORTS
@@ -94,7 +69,8 @@ class WeightedSumModel(SKCDecisionMakerABC):
 
     References
     ----------
-    [fishburn1967additive]_, [enwiki:1033561221]_, [tzeng2011multiple]_
+    :cite:p:`fishburn1967letter`, :cite:p:`enwiki:1033561221`,
+    :cite:p:`tzeng2011multiple`
 
     """
 
@@ -160,7 +136,7 @@ class WeightedProductModel(SKCDecisionMakerABC):
         A_{i}^{WPM-score} = \prod_{j=1}^{n} a_{ij}^{w_j},\ for\ i = 1,2,3,...,m
 
     To avoid underflow, instead the multiplication of the values we add the
-    logarithms of the values [weny2007log]_; so :math:`A_{i}^{WPM-score}`,
+    logarithms of the values; so :math:`A_{i}^{WPM-score}`,
     is finally defined as:
 
     .. math::
@@ -179,7 +155,9 @@ class WeightedProductModel(SKCDecisionMakerABC):
 
     References
     ----------
-    [bridgman1922]_, [miller1963executive]_
+    :cite:p:`bridgman1922dimensional`
+    :cite:p:`miller1963executive`
+
 
     """
 
