@@ -1,4 +1,4 @@
-``skcriteria.utils.bunch`` module
+skcriteria.utils.bunch
 =================================
 
 .. automodule:: skcriteria.utils.bunch

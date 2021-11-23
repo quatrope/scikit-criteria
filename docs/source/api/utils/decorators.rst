@@ -1,4 +1,4 @@
-``skcriteria.utils.decorators`` module
+skcriteria.utils.decorators
 ======================================
 
 .. automodule:: skcriteria.utils.decorators

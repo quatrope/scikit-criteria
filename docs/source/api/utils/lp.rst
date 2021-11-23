@@ -1,4 +1,4 @@
-``skcriteria.utils.lp`` module
+skcriteria.utils.lp
 ==============================
 
 .. automodule:: skcriteria.utils.lp

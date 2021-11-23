@@ -1,17 +1,30 @@
 ``skcriteria`` API
 ==================
 
-``skcriteria.core`` package
----------------------------
+.. automodule:: skcriteria
+   :members:
+   :undoc-members:
+   :show-inheritance:
+   :ignore-module-all:
+
 
 .. toctree::
    :maxdepth: 2
-   :glob:
 
-   core/*
+   core/index
 
-``skcriteria.pipeline`` module
-------------------------------
+
+.. toctree::
+   :maxdepth: 2
+
+   madm/index
+
+
+.. toctree::
+   :maxdepth: 2
+
+   preprocessing/index
+
 
 .. toctree::
    :maxdepth: 2
@@ -19,25 +32,9 @@
    pipeline
 
 
-``skcriteria.preprocessing`` package
--------------------------------------
-
 .. toctree::
    :maxdepth: 2
-   :glob:
 
-   preprocessing/*
-
-
-
-
-``skcriteria.utils`` package
-----------------------------
-
-.. toctree::
-   :maxdepth: 2
-   :glob:
-
-   utils/*
+   utils/index
 
 

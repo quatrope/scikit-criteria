@@ -1,5 +1,5 @@
-``skcriteria.pipeline`` module
-==============================
+``skcriteria.pipeline``
+=======================
 
 .. automodule:: skcriteria.pipeline
    :members:

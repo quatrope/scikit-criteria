@@ -27,7 +27,8 @@ del os
 # CONSTANTS
 # =============================================================================
 
-__all__ = ["DecisionMatrix", "Objective", "mkdm"]
+__all__ = ["mkdm", "DecisionMatrix", "Objective"]
+
 
 __version__ = ("0", "9")
 
@@ -46,6 +47,16 @@ URL = "http://scikit-criteria.org/"
 LICENSE = "3 Clause BSD"
 
 KEYWORDS = (
-    "muticriteria mcda mcdm".split()
-    + "weightedsum weightedproduct simus topsis moora electre".split()
+    "muticriteria",
+    "mcda",
+    "mcdm",
+    "weightedsum",
+    "weightedproduct",
+    "simus",
+    "topsis",
+    "moora",
+    "electre",
+    "critic",
+    "entropy",
+    "dominance",
 )

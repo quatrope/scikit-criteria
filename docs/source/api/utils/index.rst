@@ -1,14 +1,14 @@
-``skcriteria.preprocessing``
+``skcriteria.utils``
 ============================
 
-.. automodule:: skcriteria.preprocessing
+.. automodule:: skcriteria.utils
    :members:
    :undoc-members:
    :show-inheritance:
    :ignore-module-all:
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :glob:
 
    *

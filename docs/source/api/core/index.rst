@@ -1,7 +1,7 @@
-``skcriteria.preprocessing``
+``skcriteria.core``
 ============================
 
-.. automodule:: skcriteria.preprocessing
+.. automodule:: skcriteria.core
    :members:
    :undoc-members:
    :show-inheritance:
