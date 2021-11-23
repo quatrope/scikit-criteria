@@ -1,0 +1,6 @@
+ipykernel
+ipython
+Sphinx
+sphinx_pdj_theme
+nbsphinx
+sphinx-nested-apidoc
