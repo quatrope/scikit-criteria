@@ -19,6 +19,7 @@
 
 
 import os
+import pathlib
 
 from setuptools import find_packages, setup
 
@@ -40,6 +41,11 @@ REQUIREMENTS = [
     "pulp",
 ]
 
+PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
+
+with open(PATH / "README.md") as fp:
+    LONG_DESCRIPTION = fp.read()
+
 
 # =============================================================================
 # FUNCTIONS
@@ -51,6 +57,8 @@ def do_setup():
         name=skcriteria.NAME,
         version=skcriteria.VERSION,
         description=skcriteria.DOC,
+        long_description=LONG_DESCRIPTION,
+        long_description_content_type="text/markdown",
         author=skcriteria.AUTHORS,
         author_email=skcriteria.EMAIL,
         url=skcriteria.URL,
