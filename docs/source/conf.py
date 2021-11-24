@@ -17,10 +17,14 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
+import pathlib
 import sys
 
-sys.path.insert(0, os.path.abspath("."))
-sys.path.insert(0, os.path.abspath(os.path.join("..", "..")))
+
+CURRENT_PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
+SKCRITERIA_PATH = CURRENT_PATH.parent.parent
+
+sys.path.insert(0, str(SKCRITERIA_PATH))
 
 # on_rtd is whether we are on readthedocs.org
 on_rtd = os.environ.get("READTHEDOCS", None) == "True"
@@ -60,7 +64,7 @@ extensions = [
 # BIB TEX
 # =============================================================================
 
-bibtex_default_style = 'apa'  # pybtex-apa-style
+bibtex_default_style = "apa"  # pybtex-apa-style
 
 bibtex_bibfiles = ["refs.bib"]
 
@@ -223,6 +227,29 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {"https://docs.python.org/": None}
+
+
+# =============================================================================
+# INJECT REAMDE INTO THE RESTRUCTURED TEXT
+# =============================================================================
+
+import m2r
+
+with open(SKCRITERIA_PATH / "README.md") as fp:
+    readme_md = fp.read().split("<!-- BODY -->")[-1]
+
+
+README_RST_PATH = CURRENT_PATH / "_dynamic" / "README"
+
+
+with open(README_RST_PATH, "w") as fp:
+    fp.write(m2r.convert(readme_md))
+    print(f"{README_RST_PATH} regenerated!")
+
+
+# =============================================================================
+# SETUP
+# =============================================================================
 
 
 def setup(app):

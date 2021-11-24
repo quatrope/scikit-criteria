@@ -4,6 +4,9 @@
 
 **Multiple-criteria decision analysis**
 
+<!-- BODY -->
+
+
 [![Gihub Actions CI](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml/badge.svg)](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml)
 [![Documentation Status](https://readthedocs.org/projects/scikit-criteria/badge/?version=latest&style=flat)](http://scikit-criteria.readthedocs.io)
 [![License](https://img.shields.io/pypi/l/uttrs?color=blue)](https://www.tldrlegal.com/l/bsd3)
