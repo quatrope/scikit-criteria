@@ -24,7 +24,10 @@ jobs:
           - tox_env: check-manifest
           - tox_env: check-testdir
           - tox_env: check-headers
+          - tox_end: check-apidocsdir
           - tox_env: coverage
+          - tox_env: mkdocs
+            pandoc: true
 
     # The operative sistem
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}

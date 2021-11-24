@@ -90,7 +90,7 @@ Contents
 
     install
     tutorial/index
-    api/skcriteria
+    api/index
 
     bibliography
 
