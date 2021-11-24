@@ -10,6 +10,6 @@ exclude .header-template
 recursive-exclude .circleci *
 recursive-exclude ahp_ext *
 recursive-exclude tests *
-recursive-exclude doc *
+recursive-exclude docs *
 recursive-exclude res *
 recursive-exclude tools *

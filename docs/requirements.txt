@@ -1,6 +1,10 @@
-ipykernel
-ipython
 Sphinx
 sphinx_pdj_theme
+
 nbsphinx
+ipykernel
+ipython
+
+sphinxcontrib-bibtex
 sphinx-nested-apidoc
+pybtex-apa-style
