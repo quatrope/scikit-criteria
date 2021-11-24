@@ -12,6 +12,7 @@
 [![License](https://img.shields.io/pypi/l/uttrs?color=blue)](https://www.tldrlegal.com/l/bsd3)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://badge.fury.io/py/uttrs)
 
+
 **Scikit-Criteria** is a collection of Multiple-criteria decision
 analysis ([MCDA](https://en.wikipedia.org/wiki/Multiple-criteria_decision_analysis))
 methods integrated into scientific python stack. Is Open source and commercially usable.

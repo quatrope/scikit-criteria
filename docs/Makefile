@@ -14,7 +14,7 @@ help:
 
 
 autobuild:
-	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)" --watch ../skcriteria/
+	sphinx-autobuild "$(SOURCEDIR)" "$(BUILDDIR)" --watch ../skcriteria/ --ignore "**/_dynamic/*"
 
 
 .PHONY: help autobuild Makefile
