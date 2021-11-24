@@ -8,3 +8,5 @@ ipython
 sphinxcontrib-bibtex
 sphinx-nested-apidoc
 pybtex-apa-style
+
+m2r
