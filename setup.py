@@ -74,7 +74,7 @@ def do_setup():
     setup(
         name=skcriteria.NAME,
         version=skcriteria.VERSION,
-        description=skcriteria.DOC,
+        description=" ".join(skcriteria.DOC.splitlines()),
         author=skcriteria.AUTHORS,
         author_email=skcriteria.EMAIL,
         url=skcriteria.URL,
