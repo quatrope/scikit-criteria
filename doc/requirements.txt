@@ -1,10 +1,10 @@
 docutils
 numpydoc
-Sphinx==3.5.4
+Sphinx==1.8
 sphinx-rtd-theme
 tabulate
 json-tricks
 jupyter
 ipykernel
-nbsphinx
+nbsphinx==0.6
 jupyter_client
