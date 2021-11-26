@@ -29,34 +29,10 @@ del os
 
 __all__ = ["mkdm", "DecisionMatrix", "Objective"]
 
-
-__version__ = ("0", "9")
+__version__ = ("0", "5")
 
 NAME = "scikit-criteria"
 
 DOC = __doc__
 
 VERSION = ".".join(__version__)
-
-AUTHORS = "Cabral & Luczywo"
-
-EMAIL = "jbcabral@unc.edu.ar"
-
-URL = "http://scikit-criteria.org/"
-
-LICENSE = "3 Clause BSD"
-
-KEYWORDS = (
-    "muticriteria",
-    "mcda",
-    "mcdm",
-    "weightedsum",
-    "weightedproduct",
-    "simus",
-    "topsis",
-    "moora",
-    "electre",
-    "critic",
-    "entropy",
-    "dominance",
-)
