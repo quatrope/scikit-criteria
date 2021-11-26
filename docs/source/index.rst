@@ -22,11 +22,21 @@ Contents
 --------
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 2
+    :caption: Tutorials
 
     install
     tutorial/index
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Reference
+
     api/index
+
+.. toctree::
+    :maxdepth: 2
+    :caption: Misc
 
     bibliography
 

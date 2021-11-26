@@ -76,6 +76,8 @@ numpydoc_class_members_toctree = False
 
 nbsphinx_execute = "always"
 
+nbsphinx_allow_errors = True
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 
@@ -127,10 +129,10 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 
-import sphinx_pdj_theme
+import sphinx_rtd_theme
 
-html_theme = "sphinx_pdj_theme"
-html_theme_path = [sphinx_pdj_theme.get_html_theme_path()]
+html_theme = "sphinx_rtd_theme"
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
