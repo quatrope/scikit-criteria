@@ -245,6 +245,7 @@ README_RST_PATH = CURRENT_PATH / "_dynamic" / "README"
 
 
 with open(README_RST_PATH, "w") as fp:
+    fp.write(".. FILE AUTO GENERATED !! \n")
     fp.write(m2r.convert(readme_md))
     print(f"{README_RST_PATH} regenerated!")
 

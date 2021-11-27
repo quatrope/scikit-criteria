@@ -1,5 +1,5 @@
-skcriteria.preprocessing.push\_negatives module
-===============================================
+``skcriteria.preprocessing.push_negatives`` module
+==================================================
 
 .. automodule:: skcriteria.preprocessing.push_negatives
    :members:

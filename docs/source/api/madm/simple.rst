@@ -1,5 +1,5 @@
-skcriteria.madm.simple module
-=============================
+``skcriteria.madm.simple`` module
+=================================
 
 .. automodule:: skcriteria.madm.simple
    :members:

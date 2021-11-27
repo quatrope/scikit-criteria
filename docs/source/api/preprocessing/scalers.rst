@@ -1,5 +1,5 @@
-skcriteria.preprocessing.scalers module
-=======================================
+``skcriteria.preprocessing.scalers`` module
+===========================================
 
 .. automodule:: skcriteria.preprocessing.scalers
    :members:

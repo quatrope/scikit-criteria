@@ -1,4 +1,4 @@
-skcriteria.utils.rank
+``skcriteria.utils.rank`` module
 ================================
 
 .. automodule:: skcriteria.utils.rank

@@ -1,4 +1,4 @@
-``skcriteria.core``
+``skcriteria.core`` package
 ============================
 
 .. automodule:: skcriteria.core

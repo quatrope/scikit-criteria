@@ -1,30 +1,101 @@
-/* @import url("theme.css"); */
-
+@import url("theme.css");
 :root {
     --primary: #b2ce41;
     --secondary: rgb(94, 112, 95);
-    --links: #1c909e;
+    --bg: #7b8e2d;
+    --links: #7b8e2d;
 }
 
-h1, h2 {
+
+/* GENERAL */
+
+h1,
+h2,
+h3,
+div.wy-grid-for-nav nav.wy-nav-side p.caption {
     color: var(--primary);
 }
 
-a, code, .sig.py {
-    color: var(--links) !important;
-}
-
-dl.citation dt.label {
-    background-color: white !important;
-    border-top: none !important;
-}
-
-dl.citation dt.label a {
-    color: var(--secondary) !important;
-}
-
-h1 code, h2 code, h3 code, li.toctree-l1 a.reference.internal code {
+p.caption[role='heading'] {
     color: var(--secondary);
-    background-color: inherit;
-    border: none;
 }
+
+a,
+a:visited {
+    color: var(--links);
+}
+
+code {
+    color: #222222 !important;
+}
+
+a:hover,
+a:hover code {
+    color: var(--primary) !important;
+}
+
+
+/* NAVBAR */
+
+.wy-side-nav-search,
+.wy-nav-top {
+    background-color: var(--bg);
+}
+
+.wy-side-nav-search input[type=text] {
+    border-color: var(--secondary);
+}
+
+.wy-menu a,
+.wy-menu a code,
+.wy-side-nav-search a.icon,
+.wy-side-nav-search div.version {
+    color: white !important;
+}
+
+
+/*
+.rst-content dl:not(.docutils) dt {
+    color: #48531e;
+    background-color: #b2ce41;
+    border-top: 3px solid #7b8e2d;
+}
+
+.rst-content .viewcode-link,
+.rst-content .viewcode-back {
+    color: black;
+}
+
+
+
+
+
+div.nbinput {
+    background-color: #dddddd !important;
+    border-bottom: 1px solid #CCC;
+}
+
+div.input_area {
+    background-color: transparent !important;
+    border: none !important;
+}
+
+div.output_area table {
+    border-collapse: collapse;
+}
+
+div.output_area table thead tr th {
+    background-color: #7b8e2d;
+}
+
+div.output_area table thead tr th,
+div.output_area table tbody tr td {
+    border: 1px solid black;
+    font-size: 12px;
+}
+
+div.output_area tr:nth-child(even) {
+    background-color: #7b8e2d5c !important;
+}
+
+*/

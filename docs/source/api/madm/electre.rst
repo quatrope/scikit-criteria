@@ -1,5 +1,5 @@
-skcriteria.madm.electre module
-==============================
+``skcriteria.madm.electre`` module
+==================================
 
 .. automodule:: skcriteria.madm.electre
    :members:

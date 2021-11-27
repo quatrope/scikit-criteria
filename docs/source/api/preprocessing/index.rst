@@ -1,5 +1,5 @@
-``skcriteria.preprocessing``
-============================
+``skcriteria.preprocessing`` package
+====================================
 
 .. automodule:: skcriteria.preprocessing
    :members:

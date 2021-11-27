@@ -1,4 +1,4 @@
-skcriteria.core.methods
+``skcriteria.core.methods`` module
 ==================================
 
 .. automodule:: skcriteria.core.methods

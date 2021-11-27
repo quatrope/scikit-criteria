@@ -1,4 +1,4 @@
-skcriteria.core.plot
+``skcriteria.core.plot`` module
 ===============================
 
 .. automodule:: skcriteria.core.plot

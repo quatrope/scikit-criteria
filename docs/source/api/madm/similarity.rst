@@ -1,5 +1,5 @@
-skcriteria.madm.similarity module
-=================================
+``skcriteria.madm.similarity`` module
+=====================================
 
 .. automodule:: skcriteria.madm.similarity
    :members:

@@ -1,7 +1,7 @@
 .. _installation-instructions:
 
 ==========================
-Installing scikit-criteria
+Installation
 ==========================
 
 The easiest way to install scikit-criteria is using ``pip`` ::

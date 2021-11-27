@@ -1,5 +1,5 @@
-``skcriteria`` API
-==================
+``skcriteria`` package
+======================
 
 .. automodule:: skcriteria
    :members:

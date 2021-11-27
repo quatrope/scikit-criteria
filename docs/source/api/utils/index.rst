@@ -1,4 +1,4 @@
-``skcriteria.utils``
+``skcriteria.utils`` package
 ============================
 
 .. automodule:: skcriteria.utils
@@ -8,7 +8,7 @@
    :ignore-module-all:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :glob:
 
    *

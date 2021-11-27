@@ -1,5 +1,5 @@
-skcriteria.preprocessing.weighters module
-=========================================
+``skcriteria.preprocessing.weighters`` module
+=============================================
 
 .. automodule:: skcriteria.preprocessing.weighters
    :members:

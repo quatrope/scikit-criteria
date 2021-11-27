@@ -13,6 +13,7 @@
     If you are using Scikit-Criteria  version **<= 0.2.11** check the
     documentation here: https://scikit-criteria.readthedocs.io/en/0.2/
 
+|
 
 .. Here we render the README.md of the repository as a main page
 .. include:: _dynamic/README
@@ -22,8 +23,8 @@ Contents
 --------
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Tutorials
+    :maxdepth: 1
+    :caption: -Tutorials
 
     install
     tutorial/index

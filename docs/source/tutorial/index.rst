@@ -1,10 +1,16 @@
-Tutorial
-========
+Tutorials
+=========
 
 This section contains a step-by-step by example tutorial of how to use
 scikit-criteria
 
 Contents:
+
+.. toctree::
+   :maxdepth: 2
+   :glob:
+
+   *
 
 
 

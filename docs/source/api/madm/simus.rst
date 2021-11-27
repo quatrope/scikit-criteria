@@ -1,5 +1,5 @@
-skcriteria.madm.simus module
-============================
+``skcriteria.madm.simus`` module
+================================
 
 .. automodule:: skcriteria.madm.simus
    :members:

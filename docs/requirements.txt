@@ -1,5 +1,5 @@
 Sphinx
-sphinx_pdj_theme
+sphinx_rtd_theme
 
 nbsphinx
 ipykernel

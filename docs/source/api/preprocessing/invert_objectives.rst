@@ -1,5 +1,5 @@
-skcriteria.preprocessing.invert\_objectives module
-==================================================
+``skcriteria.preprocessing.invert_objectives`` module
+======================================================
 
 .. automodule:: skcriteria.preprocessing.invert_objectives
    :members:

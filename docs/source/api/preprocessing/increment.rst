@@ -1,5 +1,5 @@
-skcriteria.preprocessing.increment module
-=========================================
+``skcriteria.preprocessing.increment`` module
+=============================================
 
 .. automodule:: skcriteria.preprocessing.increment
    :members:
