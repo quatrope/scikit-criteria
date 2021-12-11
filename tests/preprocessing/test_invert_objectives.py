@@ -82,11 +82,11 @@ def test_MinimizeToMaximize_50percent_min(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    minimize_mask = dm.objectives_values == -1
+    minimize_mask = dm.iobjectives == -1
     expected_mtx = np.array(dm.matrix, dtype=float)
     expected_mtx[:, minimize_mask] = 1.0 / expected_mtx[:, minimize_mask]
 
-    inv_dtypes = np.where(dm.objectives_values == -1, float, dm.dtypes)
+    inv_dtypes = np.where(dm.iobjectives == -1, float, dm.dtypes)
 
     expected = skcriteria.mkdm(
         matrix=expected_mtx,

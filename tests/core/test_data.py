@@ -33,7 +33,7 @@ from skcriteria.core import data, plot
 # =============================================================================
 
 
-def construct_objectives_values(arr):
+def construct_iobjectives(arr):
     return [data.Objective.construct_from_alias(obj).value for obj in arr]
 
 
@@ -86,7 +86,7 @@ def test_DecisionMatrix_simple_creation(data_values):
 
     np.testing.assert_array_equal(dm.matrix, mtx)
     np.testing.assert_array_equal(
-        dm.objectives_values, construct_objectives_values(objectives)
+        dm.iobjectives, construct_iobjectives(objectives)
     )
     np.testing.assert_array_equal(
         dm.objectives, construct_objectives(objectives)
@@ -111,7 +111,7 @@ def test_DecisionMatrix_no_provide_weights(data_values):
 
     np.testing.assert_array_equal(dm.matrix, mtx)
     np.testing.assert_array_equal(
-        dm.objectives_values, construct_objectives_values(objectives)
+        dm.iobjectives, construct_iobjectives(objectives)
     )
     np.testing.assert_array_equal(
         dm.objectives, construct_objectives(objectives)
@@ -136,7 +136,7 @@ def test_DecisionMatrix_no_provide_anames(data_values):
 
     np.testing.assert_array_equal(dm.matrix, mtx)
     np.testing.assert_array_equal(
-        dm.objectives_values, construct_objectives_values(objectives)
+        dm.iobjectives, construct_iobjectives(objectives)
     )
     np.testing.assert_array_equal(
         dm.objectives, construct_objectives(objectives)
@@ -160,7 +160,7 @@ def test_DecisionMatrix_no_provide_cnames(data_values):
 
     np.testing.assert_array_equal(dm.matrix, mtx)
     np.testing.assert_array_equal(
-        dm.objectives_values, construct_objectives_values(objectives)
+        dm.iobjectives, construct_iobjectives(objectives)
     )
     np.testing.assert_array_equal(
         dm.objectives, construct_objectives(objectives)
@@ -184,7 +184,7 @@ def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
 
     np.testing.assert_array_equal(dm.matrix, mtx)
     np.testing.assert_array_equal(
-        dm.objectives_values, construct_objectives_values(objectives)
+        dm.iobjectives, construct_iobjectives(objectives)
     )
     np.testing.assert_array_equal(
         dm.objectives, construct_objectives(objectives)
@@ -271,7 +271,7 @@ def test_DecisionMatrix_to_dict(data_values):
 
     expected = {
         "matrix": mtx,
-        "objectives": construct_objectives_values(objectives),
+        "objectives": construct_iobjectives(objectives),
         "weights": weights,
         "alternatives": np.asarray(alternatives),
         "criteria": np.asarray(criteria),

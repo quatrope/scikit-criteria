@@ -338,17 +338,19 @@ class DecisionMatrix:
         return self._data_df.columns.to_numpy()
 
     @property
-    def matrix(self):
-        """Alternatives matrix as pandas DataFrame."""
-        return self._data_df.copy()
-
-    @property
     def weights(self):
         """Weights of the criteria."""
         return self._weights.copy()
 
     @property
-    def objectives_values(self):
+    def objectives(self):
+        """Objectives of the criteria as ``Objective`` instances."""
+        return self._objectives.copy()
+
+    # READ ONLY PROPERTIES ====================================================
+
+    @property
+    def iobjectives(self):
         """Objectives of the criteria as ``int``.
 
         - Minimize = Objective.MIN.value
@@ -362,16 +364,21 @@ class DecisionMatrix:
         )
 
     @property
-    def objectives(self):
-        """Objectives of the criteria as ``Objective`` instances."""
-        return self._objectives.copy()
+    def matrix(self):
+        """Alternatives matrix as pandas DataFrame.
+
+        The matrix excludes weights and objectives.
+
+        If you want to create a DataFrame with objetvies and weights, use
+        ``DecisionMatrix.to_dataframe()``
+
+        """
+        return self._data_df.copy()
 
     @property
     def dtypes(self):
         """Dtypes of the criteria."""
         return self._data_df.dtypes.copy()
-
-    # PROPERTIES ==============================================================
 
     @property
     def plot(self):
@@ -431,7 +438,7 @@ class DecisionMatrix:
         """
         return {
             "matrix": self.matrix.to_numpy(),
-            "objectives": self.objectives_values.to_numpy(),
+            "objectives": self.iobjectives.to_numpy(),
             "weights": self.weights.to_numpy(),
             "dtypes": self.dtypes.to_numpy(),
             "alternatives": self.alternatives,
