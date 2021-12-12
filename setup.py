@@ -63,7 +63,7 @@ def do_setup():
         author_email="jbcabral@unc.edu.ar",
         url="http://scikit-criteria.org/",
         license="3 Clause BSD",
-        keywords=(
+        keywords=[
             "muticriteria",
             "mcda",
             "mcdm",
@@ -76,7 +76,7 @@ def do_setup():
             "critic",
             "entropy",
             "dominance",
-        ),
+        ],
         classifiers=[
             "Development Status :: 4 - Beta",
             "Intended Audience :: Education",

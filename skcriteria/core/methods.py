@@ -165,8 +165,9 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
             self._TARGET_BOTH,
         ):
             raise ValueError(
-                f"'target' can only be '{self._TARGET_WEIGHTS}' or "
-                f"'{self._TARGET_MATRIX}'', found '{target}'"
+                f"'target' can only be '{self._TARGET_WEIGHTS}', "
+                f"'{self._TARGET_MATRIX}' or '{self._TARGET_BOTH}', "
+                f"found '{target}'"
             )
         self._target = target
 
