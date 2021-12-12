@@ -73,14 +73,17 @@ class DecisionMatrixPlotter:
 
     @property
     def _ddf(self):
-        return self._dm._data_df
+        # proxy to access the dataframe with the data
+        return self._dm.matrix
 
     @property
     def _wdf(self):
-        return self._dm._weights.to_frame()
+        # proxy to access the dataframe with the weights
+        return self._dm.weights.to_frame()
 
     @property
     def _criteria_labels(self):
+        # list with all the criteria + objectives
         dm = self._dm
         labels = [
             f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)

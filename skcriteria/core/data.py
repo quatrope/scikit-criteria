@@ -198,18 +198,18 @@ class DecisionMatrix:
             else pd.DataFrame(data_df)
         )
 
-        self._objectives = pd.Series(
-            [Objective.construct_from_alias(a) for a in objectives],
-            index=self._data_df.columns,
-            name="Objectives",
-        )
+        self._objectives = np.asarray(objectives, dtype=object)
+        self._weights = np.asanyarray(weights, dtype=float)
 
-        self._weights = pd.Series(
-            weights,
-            dtype=float,
-            index=self._data_df.columns,
-            name="Weights",
-        )
+        if not (
+            len(self._data_df.columns)
+            == len(self._weights)
+            == len(self._objectives)
+        ):
+            raise ValueError(
+                "The number of weights, and objectives must be equal to the "
+                "number of criteria (number of columns in data_df)"
+            )
 
     # CUSTOM CONSTRUCTORS =====================================================
 
@@ -340,12 +340,21 @@ class DecisionMatrix:
     @property
     def weights(self):
         """Weights of the criteria."""
-        return self._weights.copy()
+        return pd.Series(
+            self._weights,
+            dtype=float,
+            index=self._data_df.columns,
+            name="Weights",
+        )
 
     @property
     def objectives(self):
         """Objectives of the criteria as ``Objective`` instances."""
-        return self._objectives.copy()
+        return pd.Series(
+            [Objective.construct_from_alias(a) for a in self._objectives],
+            index=self._data_df.columns,
+            name="Objectives",
+        )
 
     # READ ONLY PROPERTIES ====================================================
 
@@ -358,7 +367,7 @@ class DecisionMatrix:
 
         """
         return pd.Series(
-            [o.value for o in self._objectives],
+            [o.value for o in self.objectives],
             dtype=np.int8,
             index=self._data_df.columns,
         )
@@ -387,13 +396,16 @@ class DecisionMatrix:
 
     # UTILITIES ===============================================================
 
-    def copy(self):
-        """Return a deep copy of the current DecisionMatrix."""
-        return DecisionMatrix(
-            data_df=self._data_df,
-            objectives=self._objectives,
-            weights=self._weights,
-        )
+    def copy(self, **kwargs):
+        """Return a deep copy of the current DecisionMatrix.
+
+        Este m
+
+        """
+        dmdict = self.to_dict()
+        dmdict.update(kwargs)
+
+        return self.from_mcda_data(**dmdict)
 
     def to_dataframe(self):
         """Convert the entire DecisionMatrix into a dataframe.
@@ -426,7 +438,7 @@ class DecisionMatrix:
            A1            4    5    6
 
         """
-        data = np.vstack((self._objectives, self._weights, self.matrix))
+        data = np.vstack((self.objectives, self.weights, self.matrix))
         index = np.hstack((["objectives", "weights"], self.alternatives))
         df = pd.DataFrame(data, index=index, columns=self.criteria, copy=True)
         return df
