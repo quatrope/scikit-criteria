@@ -399,7 +399,19 @@ class DecisionMatrix:
     def copy(self, **kwargs):
         """Return a deep copy of the current DecisionMatrix.
 
-        Este m
+        This method is also useful for manually modifying the values of the
+        DecisionMatrix object.
+
+        Parameters
+        ----------
+        kwargs :
+            The same parameters supported by ``from_mcda_data()``. The values
+            provided replace the existing ones in the obSject to be copied.
+
+        Returns
+        -------
+        :py:class:`DecisionMatrix`
+            A new decision matrix.
 
         """
         dmdict = self.to_dict()
