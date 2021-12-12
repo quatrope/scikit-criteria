@@ -375,8 +375,9 @@ def test_plot_whist(decision_matrix, fig_test, fig_ref):
 
 
 @pytest.mark.slow
+@pytest.mark.parametrize("orient", ["v", "h"])
 @check_figures_equal()
-def test_plot_box(decision_matrix, fig_test, fig_ref):
+def test_plot_box(decision_matrix, orient, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -388,7 +389,7 @@ def test_plot_box(decision_matrix, fig_test, fig_ref):
     plotter = plot.DecisionMatrixPlotter(dm=dm)
 
     test_ax = fig_test.subplots()
-    plotter.box(ax=test_ax)
+    plotter.box(ax=test_ax, orient=orient)
 
     # EXPECTED
     labels = [
@@ -396,10 +397,14 @@ def test_plot_box(decision_matrix, fig_test, fig_ref):
     ]
 
     exp_ax = fig_ref.subplots()
-    sns.boxplot(data=dm.matrix, ax=exp_ax)
+    sns.boxplot(data=dm.matrix, ax=exp_ax, orient=orient)
 
-    exp_ax.set_xticklabels(labels)
-    exp_ax.set_xlabel("Criteria")
+    if orient == "v":
+        exp_ax.set_xticklabels(labels)
+        exp_ax.set_xlabel("Criteria")
+    elif orient == "h":
+        exp_ax.set_yticklabels(labels)
+        exp_ax.set_ylabel("Criteria")
 
 
 @pytest.mark.slow
@@ -428,8 +433,6 @@ def test_plot_wbox(decision_matrix, fig_test, fig_ref):
 # =============================================================================
 # KDE
 # =============================================================================
-
-
 @pytest.mark.slow
 @check_figures_equal()
 def test_plot_kde(decision_matrix, fig_test, fig_ref):
@@ -478,6 +481,61 @@ def test_plot_wkde(decision_matrix, fig_test, fig_ref):
 
     exp_ax = fig_ref.subplots()
     sns.kdeplot(data=weights, ax=exp_ax)
+
+
+# =============================================================================
+# OGIVE
+# =============================================================================
+
+
+@pytest.mark.slow
+@check_figures_equal()
+def test_plot_ogive(decision_matrix, fig_test, fig_ref):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=3,
+        max_alternatives=3,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    plotter = plot.DecisionMatrixPlotter(dm=dm)
+
+    test_ax = fig_test.subplots()
+    plotter.ogive(ax=test_ax)
+
+    # EXPECTED
+    labels = [
+        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+    ]
+
+    exp_ax = fig_ref.subplots()
+    sns.ecdfplot(data=dm.matrix, ax=exp_ax)
+
+    exp_ax.legend(labels)
+
+
+@pytest.mark.slow
+@check_figures_equal()
+def test_plot_wogive(decision_matrix, fig_test, fig_ref):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=3,
+        max_alternatives=3,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    plotter = plot.DecisionMatrixPlotter(dm=dm)
+
+    test_ax = fig_test.subplots()
+    plotter.wogive(ax=test_ax)
+
+    # EXPECTED
+    weights = dm.weights.to_frame()
+
+    exp_ax = fig_ref.subplots()
+    sns.ecdfplot(data=weights, ax=exp_ax)
 
 
 # =============================================================================

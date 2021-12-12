@@ -322,9 +322,17 @@ class DecisionMatrixPlotter:
         matplotlib.axes.Axes or numpy.ndarray of them
 
         """
+        orient = kwargs.setdefault("orient", "v")
+
         ax = sns.boxplot(data=self._ddf, **kwargs)
-        ax.set_xticklabels(self._criteria_labels)
-        ax.set_xlabel("Criteria")
+
+        if orient == "v":
+            ax.set_xticklabels(self._criteria_labels)
+            ax.set_xlabel("Criteria")
+        elif orient == "h":
+            ax.set_yticklabels(self._criteria_labels)
+            ax.set_ylabel("Criteria")
+
         return ax
 
     def wbox(self, **kwargs):
@@ -402,6 +410,66 @@ class DecisionMatrixPlotter:
 
         """
         ax = sns.kdeplot(data=self._wdf, **kwargs)
+        return ax
+
+    # OGIVE ===================================================================
+
+    def ogive(self, **kwargs):
+        """Criteria empirical cumulative distribution plot.
+
+        In statistics, an empirical distribution function (eCDF) is the
+        distribution function associated with the empirical measure of a
+        sample. This cumulative distribution function is a step function that
+        jumps up by 1/n at each of the n data points. Its value at any
+        specified value of the measured variable is the fraction of
+        observations of the measured variable that are less than or equal to
+        the specified value.
+
+        .. _empirical distribution function:
+            https://en.wikipedia.org/wiki/Empirical_distribution_function
+
+        Parameters
+        ----------
+        **kwargs
+            Additional keyword arguments are passed and are documented in
+            ``seaborn.ecdfplot``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes or numpy.ndarray of them
+
+        """
+        ax = sns.ecdfplot(data=self._ddf, **kwargs)
+        if kwargs.get("legend", True):
+            ax.legend(self._criteria_labels)
+        return ax
+
+    def wogive(self, **kwargs):
+        """Weights empirical cumulative distribution plot.
+
+        In statistics, an empirical distribution function (eCDF) is the
+        distribution function associated with the empirical measure of a
+        sample. This cumulative distribution function is a step function that
+        jumps up by 1/n at each of the n data points. Its value at any
+        specified value of the measured variable is the fraction of
+        observations of the measured variable that are less than or equal to
+        the specified value.
+
+        .. _empirical distribution function:
+            https://en.wikipedia.org/wiki/Empirical_distribution_function
+
+        Parameters
+        ----------
+        **kwargs
+            Additional keyword arguments are passed and are documented in
+            ``seaborn.ecdfplot``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes or numpy.ndarray of them
+
+        """
+        ax = sns.ecdfplot(data=self._wdf, **kwargs)
         return ax
 
     # AREA ====================================================================
