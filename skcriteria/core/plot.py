@@ -48,7 +48,9 @@ class DecisionMatrixPlotter:
                 - 'box' : criteria boxplot.
                 - 'wbox' : weights boxplot.
                 - 'kde' : criteria Kernel Density Estimation plot.
-                - 'wkde' : weightsKernel Density Estimation plot.
+                - 'wkde' : weights Kernel Density Estimation plot.
+                - 'ogive' : criteria empirical cumulative distribution plot.
+                - 'wogive' : weights empirical cumulative distribution plot.
                 - 'area' : criteria area plot.
 
         **kwargs
