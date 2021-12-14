@@ -1,10 +1,14 @@
 @import url("theme.css");
 :root {
     --primary: #b2ce41;
+    /* Used for subtitles, captions and code */
     --secondary: #5e705f;
-    --bg: #7b8e2d;
+    /* The top part of the left navbar */
+    --navbar-header-bg: #7b8e2d;
+    /* Links  */
     --links: #7b8e2d;
-    --codebg: #e3ffd28c;
+    /* Background color of jupyter input cell */
+    --jupyter-in-cell-bg: #e3ffd28c;
 }
 
 
@@ -27,7 +31,8 @@ a:visited {
 }
 
 code {
-    color: #222222 !important;
+    color: var(--secondary) !important;
+    border: none !important;
 }
 
 a:hover,
@@ -40,7 +45,7 @@ a:hover code {
 
 .wy-side-nav-search,
 .wy-nav-top {
-    background-color: var(--bg);
+    background-color: var(--navbar-header-bg);
 }
 
 .wy-side-nav-search input[type=text] {
@@ -59,6 +64,9 @@ a:hover code {
     color: #222222 !important;
 }
 
+
+/* JUPYTER */
+
 div.input_area div.highlight {
-    background-color: var(--codebg) !important;
+    background-color: var(--jupyter-in-cell-bg) !important;
 }
