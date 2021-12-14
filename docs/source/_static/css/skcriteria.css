@@ -1,9 +1,10 @@
 @import url("theme.css");
 :root {
     --primary: #b2ce41;
-    --secondary: rgb(94, 112, 95);
+    --secondary: #5e705f;
     --bg: #7b8e2d;
     --links: #7b8e2d;
+    --codebg: #e3ffd28c;
 }
 
 
@@ -53,49 +54,11 @@ a:hover code {
     color: white !important;
 }
 
-
-/*
-.rst-content dl:not(.docutils) dt {
-    color: #48531e;
-    background-color: #b2ce41;
-    border-top: 3px solid #7b8e2d;
+.wy-menu li.current a,
+.wy-menu li.current a code {
+    color: #222222 !important;
 }
 
-.rst-content .viewcode-link,
-.rst-content .viewcode-back {
-    color: black;
+div.input_area div.highlight {
+    background-color: var(--codebg) !important;
 }
-
-
-
-
-
-div.nbinput {
-    background-color: #dddddd !important;
-    border-bottom: 1px solid #CCC;
-}
-
-div.input_area {
-    background-color: transparent !important;
-    border: none !important;
-}
-
-div.output_area table {
-    border-collapse: collapse;
-}
-
-div.output_area table thead tr th {
-    background-color: #7b8e2d;
-}
-
-div.output_area table thead tr th,
-div.output_area table tbody tr td {
-    border: 1px solid black;
-    font-size: 12px;
-}
-
-div.output_area tr:nth-child(even) {
-    background-color: #7b8e2d5c !important;
-}
-
-*/

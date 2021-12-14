@@ -10,7 +10,9 @@ on:
 jobs:
   testing:
     uses: quatrope/scikit-criteria/.github/workflows/tests.yml@991bafd28ebc638429e2fcd2c69d7cb9722209ea
+
   deploy:
+    needs: testing
 
     runs-on: ubuntu-latest
 
