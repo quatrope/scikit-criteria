@@ -1,6 +1,6 @@
 # Scikit-Criteria
 
-![image](https://github.com/quatrope/scikit-criteria/raw/master/res/logo_small.png)
+![image](https://github.com/quatrope/scikit-criteria/raw/master/res/logo_wb.png)
 
 **Multiple-criteria decision analysis**
 
