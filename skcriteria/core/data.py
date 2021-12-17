@@ -640,7 +640,8 @@ class DecisionMatrix:
         dimensions = self._get_axc_dimensions()
 
         # retrieve the original string
-        original_html = self._data_df._repr_html_()
+        with pd.option_context("display.show_dimensions", False):
+            original_html = self._data_df._repr_html_()
 
         # add dimension
         html = (
