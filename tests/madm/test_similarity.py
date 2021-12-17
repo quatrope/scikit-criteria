@@ -57,6 +57,11 @@ def test_TOPSIS():
     assert np.allclose(result.e_.similarity, expected.e_.similarity)
 
 
+def test_TOPSIS_invalid_metric():
+    with pytest.raises(ValueError):
+        TOPSIS(metric="foo")
+
+
 def test_TOPSIS_minimize_warning():
 
     dm = skcriteria.mkdm(

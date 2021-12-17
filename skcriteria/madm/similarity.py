@@ -114,7 +114,7 @@ class TOPSIS(SKCDecisionMakerABC):
         ``matching``, ``minkowski``, ``rogerstanimoto``, ``russellrao``,
         ``seuclidean``, ``sokalmichener``, ``sokalsneath``,
         ``sqeuclidean``, ``wminkowski``, ``yule``.
-    **kwargs : dict, optional
+    **cdist_kwargs : dict, optional
         Extra arguments to metric: refer to each metric documentation for a
         list of all possible arguments.
         Some possible arguments:
@@ -144,9 +144,9 @@ class TOPSIS(SKCDecisionMakerABC):
 
     """
 
-    def __init__(self, *, metric="euclidean", **kwargs):
+    def __init__(self, *, metric="euclidean", **cdist_kwargs):
         self.metric = metric
-        self.kwargs = kwargs
+        self.cdist_kwargs = cdist_kwargs
 
     @property
     def metric(self):
@@ -160,13 +160,13 @@ class TOPSIS(SKCDecisionMakerABC):
         self._metric = metric
 
     @property
-    def kwargs(self):
+    def cdist_kwargs(self):
         """Extra parameters for the ``scipy.spatial.distance.cdist()``."""
-        return self._kwargs
+        return self._cdist_kwargs
 
-    @kwargs.setter
-    def kwargs(self, kwargs):
-        self._kwargs = dict(kwargs)
+    @cdist_kwargs.setter
+    def cdist_kwargs(self, cdist_kwargs):
+        self._cdist_kwargs = dict(cdist_kwargs)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -177,7 +177,11 @@ class TOPSIS(SKCDecisionMakerABC):
                 "for these cases."
             )
         rank, ideal, anti_ideal, similarity = topsis(
-            matrix, objectives, weights, metric=self._metric, **self._kwargs
+            matrix,
+            objectives,
+            weights,
+            metric=self.metric,
+            **self.cdist_kwargs,
         )
         return rank, {
             "ideal": ideal,
