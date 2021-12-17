@@ -621,10 +621,26 @@ class DecisionMatrix:
         header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
 
-        kwargs = {"header": header, "show_dimensions": False}
+        max_rows = pd.get_option("display.max_rows")
+        min_rows = pd.get_option("display.min_rows")
+        max_cols = pd.get_option("display.max_columns")
+        max_colwidth = pd.get_option("display.max_colwidth")
 
-        # retrieve the original string
-        original_string = self._data_df.to_string(**kwargs)
+        width = (
+            pd.io.formats.console.get_console_size()[0]
+            if pd.get_option("display.expand_frame_repr")
+            else None
+        )
+
+        original_string = self._data_df.to_string(
+            max_rows=max_rows,
+            min_rows=min_rows,
+            max_cols=max_cols,
+            line_width=width,
+            max_colwidth=max_colwidth,
+            show_dimensions=False,
+            header=header,
+        )
 
         # add dimension
         string = f"{original_string}\n[{dimensions}]"
@@ -655,8 +671,7 @@ class DecisionMatrix:
         d = pq.PyQuery(html)
         for th in d("div.decisionmatrix table.dataframe > thead > tr > th"):
             crit = th.text
-            if crit:
-                th.text = header[crit]
+            th.text = header.get(crit, crit)
 
         return str(d)
 
