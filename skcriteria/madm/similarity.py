@@ -27,7 +27,7 @@ from ..utils import doc_inherit, rank
 # CONSTANTS
 # =============================================================================
 
-_VALID_DISTANCES = [
+_VALID_DISTANCES_METRICS = [
     "braycurtis",
     "canberra",
     "chebyshev",
@@ -155,13 +155,16 @@ class TOPSIS(SKCDecisionMakerABC):
 
     @metric.setter
     def metric(self, metric):
-        if not callable(metric) and metric not in _VALID_DISTANCES:
-            raise ValueError(f"Invalid metric '{metric}'")
+        if not callable(metric) and metric not in _VALID_DISTANCES_METRICS:
+            metrics = ", ".join(f"'{m}'" for m in _VALID_DISTANCES_METRICS)
+            raise ValueError(
+                f"Invalid metric '{metric}'. Plese choose from: {metrics}"
+            )
         self._metric = metric
 
     @property
     def cdist_kwargs(self):
-        """Extra parameters for the ``scipy.spatial.distance.cdist()``."""
+        """Extra parameters for ``scipy.spatial.distance.cdist()`` function."""
         return self._cdist_kwargs
 
     @cdist_kwargs.setter
