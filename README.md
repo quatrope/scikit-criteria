@@ -10,6 +10,7 @@
 [![Gihub Actions CI](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml/badge.svg)](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml)
 [![Documentation Status](https://readthedocs.org/projects/scikit-criteria/badge/?version=latest&style=flat)](http://scikit-criteria.readthedocs.io)
 [![PyPI](https://img.shields.io/pypi/v/scikit-criteria)](https://pypi.org/project/scikit-criteria/)
+[![Conda Forge](https://anaconda.org/conda-forge/scikit-criteria/badges/version.svg)](https://anaconda.org/conda-forge/scikit-criteria)
 [![License](https://img.shields.io/pypi/l/uttrs?color=blue)](https://www.tldrlegal.com/l/bsd3)
 [![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://badge.fury.io/py/uttrs)
 
