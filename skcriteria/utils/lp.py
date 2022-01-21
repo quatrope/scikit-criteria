@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -154,7 +155,7 @@ class _LPBase:
 
     .. code-block:: python
 
-        model = lp.Maximize(   or lp.Minimize
+        model = lp.Maximize(   # or lp.Minimize
             z=250 * x0 + 130 * x1 + 350 * x2, solver=solver
         ).subject_to(
             120 * x0 + 200 * x1 + 340 * x2 <= 500,
