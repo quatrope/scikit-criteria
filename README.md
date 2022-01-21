@@ -6,7 +6,7 @@
 
 <!-- BODY -->
 
-
+[![QuatroPe](https://img.shields.io/badge/QuatroPe-Applications-1c5896)](https://quatrope.github.io/)
 [![Gihub Actions CI](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml/badge.svg)](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml)
 [![Documentation Status](https://readthedocs.org/projects/scikit-criteria/badge/?version=latest&style=flat)](http://scikit-criteria.readthedocs.io)
 [![PyPI](https://img.shields.io/pypi/v/scikit-criteria)](https://pypi.org/project/scikit-criteria/)
