@@ -130,7 +130,6 @@ class HModelABC(metaclass=ABCMeta):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-
         clsname = type(self).__name__
 
         hparams = self.get_hparams()
