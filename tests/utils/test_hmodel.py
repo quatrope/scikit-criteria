@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.utils.hmodel_abc.
+"""test for skcriteria.utils.hmodel.
 
 """
 
@@ -20,7 +20,7 @@
 
 import pytest
 
-from skcriteria.utils import hmodel_abc
+from skcriteria.utils import hmodel
 
 # =============================================================================
 # tests
@@ -28,28 +28,30 @@ from skcriteria.utils import hmodel_abc
 
 
 def test_hparam():
-    hp = hmodel_abc.hparam(1)
+    hp = hmodel.hparam(1)
 
-    assert hp.metadata[hmodel_abc.HMODEL_METADATA_KEY]["hparam"]
+    assert hp.metadata[hmodel.HMODEL_METADATA_KEY]["hparam"]
 
 
 def test_mproperty():
-    mp = hmodel_abc.mproperty()
-    assert mp.metadata[hmodel_abc.HMODEL_METADATA_KEY]["mproperty"]
+    mp = hmodel.mproperty()
+    assert mp.metadata[hmodel.HMODEL_METADATA_KEY]["mproperty"]
 
 
 def test_create_HModel():
-    class MyBase(hmodel_abc.HModelABC):
-        v = hmodel_abc.hparam(42)
+    class MyBase(hmodel.HModelABC):
+        v = hmodel.hparam(42)
 
     class MyModel(MyBase):
 
-        p = hmodel_abc.hparam(25)
-        m = hmodel_abc.mproperty()
+        p = hmodel.hparam(25)
+        m = hmodel.mproperty()
 
         @m.default
         def _md(self):
             return self.p + 1
+
+    assert MyModel.get_hparams() == ("v", "p")
 
     model = MyModel()
     assert model.v == 42
