@@ -89,16 +89,12 @@ class AddValueToZero(SKCMatrixAndWeightTransformerABC):
 
     def __init__(self, value, target):
         super().__init__(target=target)
-        self.value = value
+        self._eps = float(value)
 
     @property
     def value(self):
         """Value to add to the matrix/weight when a zero is found."""
         return self._eps
-
-    @value.setter
-    def value(self, value):
-        self._eps = float(value)
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):

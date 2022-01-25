@@ -151,15 +151,6 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
     _TARGET_BOTH = "both"
 
     def __init__(self, target):
-        self.target = target
-
-    @property
-    def target(self):
-        """Determine which part of the DecisionMatrix will be transformed."""
-        return self._target
-
-    @target.setter
-    def target(self, target):
         if target not in (
             self._TARGET_MATRIX,
             self._TARGET_WEIGHTS,
@@ -171,6 +162,11 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
                 f"found '{target}'"
             )
         self._target = target
+
+    @property
+    def target(self):
+        """Determine which part of the DecisionMatrix will be transformed."""
+        return self._target
 
     @abc.abstractmethod
     def _transform_weights(self, weights):

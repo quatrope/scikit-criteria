@@ -146,31 +146,23 @@ class TOPSIS(SKCDecisionMakerABC):
     """
 
     def __init__(self, *, metric="euclidean", **cdist_kwargs):
-        self.metric = metric
-        self.cdist_kwargs = cdist_kwargs
-
-    @property
-    def metric(self):
-        """Which distance metric will be used."""
-        return self._metric
-
-    @metric.setter
-    def metric(self, metric):
         if not callable(metric) and metric not in _VALID_DISTANCES_METRICS:
             metrics = ", ".join(f"'{m}'" for m in _VALID_DISTANCES_METRICS)
             raise ValueError(
                 f"Invalid metric '{metric}'. Plese choose from: {metrics}"
             )
         self._metric = metric
+        self._cdist_kwargs = cdist_kwargs
+
+    @property
+    def metric(self):
+        """Which distance metric will be used."""
+        return self._metric
 
     @property
     def cdist_kwargs(self):
         """Extra parameters for ``scipy.spatial.distance.cdist()`` function."""
         return self._cdist_kwargs
-
-    @cdist_kwargs.setter
-    def cdist_kwargs(self, cdist_kwargs):
-        self._cdist_kwargs = dict(cdist_kwargs)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):

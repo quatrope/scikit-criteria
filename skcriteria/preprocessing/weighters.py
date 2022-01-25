@@ -87,16 +87,12 @@ class EqualWeighter(SKCWeighterABC):
     """
 
     def __init__(self, base_value=1):
-        self.base_value = base_value
+        self._base_value = float(base_value)
 
     @property
     def base_value(self):
         """Value to be normalized by the number of criteria."""
         return self._base_value
-
-    @base_value.setter
-    def base_value(self, v):
-        self._base_value = float(v)
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
@@ -318,30 +314,23 @@ class Critic(SKCWeighterABC):
     }
 
     def __init__(self, correlation="pearson", scale=True):
-        self.correlation = correlation
-        self.scale = scale
+        correlation_func = self.CORRELATION.get(correlation, correlation)
+        if not callable(correlation_func):
+            corr_keys = ", ".join(f"'{c}'" for c in self.CORRELATION)
+            raise ValueError(f"Correlation must be {corr_keys} or callable")
+        self._correlation = correlation_func
+
+        self._scale = bool(scale)
 
     @property
     def scale(self):
         """Return if it is necessary to scale the data."""
         return self._scale
 
-    @scale.setter
-    def scale(self, v):
-        self._scale = bool(v)
-
     @property
     def correlation(self):
         """Correlation function."""
         return self._correlation
-
-    @correlation.setter
-    def correlation(self, v):
-        correlation_func = self.CORRELATION.get(v, v)
-        if not callable(correlation_func):
-            corr_keys = ", ".join(f"'{c}'" for c in self.CORRELATION)
-            raise ValueError(f"Correlation must be {corr_keys} or callable")
-        self._correlation = correlation_func
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, objectives, **kwargs):

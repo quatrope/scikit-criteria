@@ -248,33 +248,25 @@ class SIMUS(SKCDecisionMakerABC):
     """
 
     def __init__(self, *, rank_by=1, solver="pulp"):
-        self.solver = solver
-        self.rank_by = rank_by
-
-    @property
-    def solver(self):
-        """Solver used by PuLP."""
-        return self._solver
-
-    @solver.setter
-    def solver(self, solver):
         if not (
             isinstance(solver, lp.pulp.LpSolver)
             or lp.is_solver_available(solver)
         ):
             raise ValueError(f"solver {solver} not available")
         self._solver = solver
+        if rank_by not in (1, 2):
+            raise ValueError("'rank_by' must be 1 or 2")
+        self._rank_by = rank_by
+
+    @property
+    def solver(self):
+        """Solver used by PuLP."""
+        return self._solver
 
     @property
     def rank_by(self):
         """Which of the two ranking provided by SIMUS is used."""
         return self._rank_by
-
-    @rank_by.setter
-    def rank_by(self, rank_by):
-        if rank_by not in (1, 2):
-            raise ValueError("'rank_by' must be 1 or 2")
-        self._rank_by = rank_by
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, b, weights, **kwargs):

@@ -407,7 +407,7 @@ class DecisionMatrix:
         ----------
         kwargs :
             The same parameters supported by ``from_mcda_data()``. The values
-            provided replace the existing ones in the obSject to be copied.
+            provided replace the existing ones in the object to be copied.
 
         Returns
         -------

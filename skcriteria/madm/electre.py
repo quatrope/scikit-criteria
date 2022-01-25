@@ -145,26 +145,18 @@ class ELECTRE1(SKCDecisionMakerABC):
     """
 
     def __init__(self, p=0.65, q=0.35):
-        self.p = p
-        self.q = q
+        self._p = float(p)
+        self._q = float(q)
 
     @property
     def p(self):
         """Concordance threshold."""
         return self._p
 
-    @p.setter
-    def p(self, p):
-        self._p = float(p)
-
     @property
     def q(self):
         """Discordance threshold."""
         return self._q
-
-    @q.setter
-    def q(self, q):
-        self._q = float(q)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
