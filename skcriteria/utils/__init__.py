@@ -17,10 +17,10 @@
 
 from . import lp, rank
 from .bunch import Bunch
-from .decorators import doc_inherit
+from .decorators import deprecated, doc_inherit
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["doc_inherit", "rank", "Bunch", "lp", "dominance"]
+__all__ = ["doc_inherit", "deprecated", "rank", "Bunch", "lp", "dominance"]
