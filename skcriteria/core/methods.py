@@ -27,7 +27,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-_IGNORE_PARAMS = (
+_INVALID_FOR_AUTO_PARAMS_INSPECTION = (
     inspect.Parameter.VAR_POSITIONAL,
     inspect.Parameter.VAR_KEYWORD,
 )
@@ -56,14 +56,23 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
             raise TypeError(f"{cls} must redefine '_skcriteria_dm_type'")
 
         if "_skcriteria_parameters" not in vars(cls):
-
-            signature = inspect.signature(cls.__init__)
             parameters = set()
-            for idx, param_tuple in enumerate(signature.parameters.items()):
-                if idx == 0:  # first arugment of a method is the instance
-                    continue
-                name, param = param_tuple
-                if param.kind not in _IGNORE_PARAMS:
+
+            if cls.__init__ is not SKCMethodABC.__init__:
+                signature = inspect.signature(cls.__init__)
+
+                for idx, param_tuple in enumerate(
+                    signature.parameters.items()
+                ):
+                    if idx == 0:  # first arugment of a method is the instance
+                        continue
+                    name, param = param_tuple
+                    if param.kind in _INVALID_FOR_AUTO_PARAMS_INSPECTION:
+                        raise TypeError(
+                            "The automatic parameter inspection "
+                            "does not work with variable parameters."
+                        )
+
                     parameters.add(name)
             cls._skcriteria_parameters = frozenset(parameters)
 

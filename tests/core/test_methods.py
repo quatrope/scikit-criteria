@@ -38,6 +38,17 @@ def test_SKCMethodABC_no__skcriteria_dm_type():
             pass
 
 
+def test_SKCMethodABC_varargs_for__skcriteria_parameters_inspection():
+
+    with pytest.raises(TypeError):
+
+        class Foo(methods.SKCMethodABC):
+            _skcriteria_dm_type = "foo"
+
+            def __init__(self, **kwargs):
+                pass
+
+
 def test_SKCMethodABC_repr():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
