@@ -30,7 +30,7 @@ del os
 
 __all__ = ["mkdm", "DecisionMatrix", "Objective"]
 
-__version__ = ("0", "5")
+__version__ = ("0", "6dev0")
 
 NAME = "scikit-criteria"
 
