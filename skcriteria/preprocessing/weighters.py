@@ -86,7 +86,7 @@ class EqualWeighter(SKCWeighterABC):
 
     """
 
-    def __init__(self, base_value=1):
+    def __init__(self, base_value=1.0):
         self._base_value = float(base_value)
 
     @property

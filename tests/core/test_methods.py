@@ -24,12 +24,13 @@ import pytest
 
 from skcriteria.core import data, methods
 
+
 # =============================================================================
 # TESTS
 # =============================================================================
 
 
-def test_no__skcriteria_dm_type():
+def test_SKCMethodABC_no__skcriteria_dm_type():
 
     with pytest.raises(TypeError):
 
@@ -37,7 +38,7 @@ def test_no__skcriteria_dm_type():
             pass
 
 
-def test_repr():
+def test_SKCMethodABC_repr():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
 
@@ -50,13 +51,31 @@ def test_repr():
     assert repr(foo) == "Foo(faa=1, foo=2)"
 
 
-def test_repr_no_params():
+def test_SKCMethodABC_repr_no_params():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
 
     foo = Foo()
 
     assert repr(foo) == "Foo()"
+
+
+def test_SKCMethodABC_no_params():
+    class Foo(methods.SKCMethodABC):
+        _skcriteria_dm_type = "foo"
+
+    assert Foo._skcriteria_parameters == set()
+
+
+def test_SKCMethodABC_alreadydefines__skcriteria_parameters():
+    class Base(methods.SKCMethodABC):
+        _skcriteria_dm_type = "foo"
+
+    class Foo(Base):
+        def __init__(self, x):
+            pass
+
+    assert Foo._skcriteria_parameters == {"x"}
 
 
 # =============================================================================
@@ -300,3 +319,40 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
     with pytest.raises(NotImplementedError):
         ranker.evaluate(dm)
+
+
+# subclass testing
+
+
+def _get_subclasses(cls):
+
+    if (
+        cls._skcriteria_dm_type not in (None, "pipeline")
+        and not cls.__abstractmethods__
+    ):
+        yield cls
+
+    for subc in cls.__subclasses__():
+        for subsub in _get_subclasses(subc):
+            yield subsub
+
+
+@pytest.mark.run(order=-1)
+def test_SLCMethodABC_concrete_subclass_copy():
+
+    extra_parameters_by_type = {
+        methods.SKCMatrixAndWeightTransformerABC: {"target": "both"}
+    }
+
+    for scls in _get_subclasses(methods.SKCMethodABC):
+        kwargs = {}
+        for cls, extra_params in extra_parameters_by_type.items():
+            if issubclass(scls, cls):
+                kwargs.update(extra_params)
+
+        original = scls(**kwargs)
+        copy = original.copy()
+
+        assert (
+            original.get_parameters() == copy.get_parameters()
+        ), f"'{scls.__qualname__}' instance not correctly copied."

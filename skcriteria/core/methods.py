@@ -16,11 +16,11 @@
 # =============================================================================ç
 
 import abc
+import copy
 import inspect
 
 from .data import DecisionMatrix
 from ..utils import doc_inherit
-
 
 # =============================================================================
 # BASE DECISION MAKER CLASS
@@ -55,10 +55,8 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
         if decisor_type is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_dm_type'")
 
-        if (
-            cls._skcriteria_parameters is None
-            and cls.__init__ is not SKCMethodABC.__init__
-        ):
+        if "_skcriteria_parameters" not in vars(cls):
+
             signature = inspect.signature(cls.__init__)
             parameters = set()
             for idx, param_tuple in enumerate(signature.parameters.items()):
@@ -81,6 +79,37 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
         str_parameters = ", ".join(parameters)
         return f"{cls_name}({str_parameters})"
+
+    def get_parameters(self):
+        """Return the parameters of the method as dictionary."""
+        the_parameters = {}
+        for parameter_name in self._skcriteria_parameters:
+            parameter_value = getattr(self, parameter_name)
+            the_parameters[parameter_name] = copy.deepcopy(parameter_value)
+        return the_parameters
+
+    def copy(self, **kwargs):
+        """Return a deep copy of the current Object..
+
+        This method is also useful for manually modifying the values of the
+        object.
+
+        Parameters
+        ----------
+        kwargs :
+            The same parameters supported by object constructor. The values
+            provided replace the existing ones in the object to be copied.
+
+        Returns
+        -------
+        A new object.
+
+        """
+        asdict = self.get_parameters()
+        asdict.update(kwargs)
+
+        cls = type(self)
+        return cls(**asdict)
 
 
 # =============================================================================

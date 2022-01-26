@@ -87,7 +87,7 @@ class AddValueToZero(SKCMatrixAndWeightTransformerABC):
 
     """
 
-    def __init__(self, value, target):
+    def __init__(self, target, value=1.0):
         super().__init__(target=target)
         self._eps = float(value)
 
