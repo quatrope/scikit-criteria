@@ -40,6 +40,7 @@ REQUIREMENTS = [
     "custom_inherit",
     "seaborn",
     "pulp",
+    "Deprecated",
 ]
 
 PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))

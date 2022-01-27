@@ -22,6 +22,8 @@ import string
 
 import numpy as np
 
+import pytest
+
 from skcriteria.utils import decorators
 
 
@@ -51,3 +53,39 @@ def test_doc_inherit():
         ...
 
     assert doc == func_a.__doc__ == func_b.__doc__ == func_c.__doc__
+
+
+def test_deprecated():
+    def func():
+        """Zaraza.
+
+        Foo
+
+        Parameters
+        ----------
+        a: int
+            coso.
+
+        Returns
+        -------
+        None:
+            Nothing to return.
+
+        """
+        pass
+
+    expected_doc = func.__doc__
+
+    decorator = decorators.deprecated(reason="because foo", version=0.66)
+    func = decorator(func)
+
+    with pytest.deprecated_call():
+        func()
+
+    assert func.__doc__ == expected_doc
+
+    # this can be useful to catch bugs
+    # print("-" * 100)
+    # print(repr(func.__doc__))
+    # print(repr(expected_doc))
+    # print("-" * 100)
