@@ -242,16 +242,18 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, weights, **kwargs):
-        norm_mtx = matrix
-        norm_weights = weights
+        transformed_mtx = matrix
+        transformed_weights = weights
 
         if self._target in (self._TARGET_MATRIX, self._TARGET_BOTH):
-            norm_mtx = self._transform_matrix(matrix)
+            transformed_mtx = self._transform_matrix(matrix)
 
         if self._target in (self._TARGET_WEIGHTS, self._TARGET_BOTH):
-            norm_weights = self._transform_weights(weights)
+            transformed_weights = self._transform_weights(weights)
 
-        kwargs.update(matrix=norm_mtx, weights=norm_weights, dtypes=None)
+        kwargs.update(
+            matrix=transformed_mtx, weights=transformed_weights, dtypes=None
+        )
 
         return kwargs
 
