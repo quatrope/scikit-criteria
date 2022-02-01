@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.core import RankResult
+from skcriteria.madm import RankResult
 from skcriteria.madm.moora import (
     FullMultiplicativeForm,
     MultiMOORA,

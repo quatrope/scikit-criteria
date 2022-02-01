@@ -20,8 +20,10 @@ import itertools as it
 
 import numpy as np
 
-from ..core import Objective, RankResult, SKCDecisionMakerABC
+from ._base import RankResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..utils import doc_inherit, rank
+
 
 # =============================================================================
 # Ratio MOORA
@@ -68,6 +70,7 @@ class RatioMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2006moora`
 
     """
+
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
@@ -132,6 +135,7 @@ class ReferencePointMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
@@ -219,6 +223,7 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
@@ -306,6 +311,7 @@ class MultiMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)

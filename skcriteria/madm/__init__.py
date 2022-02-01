@@ -10,3 +10,11 @@
 # =============================================================================
 
 """MCDA methods."""
+
+from ._base import KernelResult, RankResult, ResultABC, SKCDecisionMakerABC
+
+# =============================================================================
+# ALL
+# =============================================================================
+
+__all__ = ["KernelResult", "RankResult", "ResultABC", "SKCDecisionMakerABC"]

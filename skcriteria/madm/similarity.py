@@ -21,8 +21,10 @@ import numpy as np
 
 from scipy.spatial import distance
 
-from ..core import Objective, RankResult, SKCDecisionMakerABC
+from ._base import RankResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..utils import doc_inherit, rank
+
 
 # =============================================================================
 # CONSTANTS

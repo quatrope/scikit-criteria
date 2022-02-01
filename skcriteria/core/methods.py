@@ -62,8 +62,14 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
         params = frozenset(params)
 
         signature = inspect.signature(cls.__init__)
+        has_kwargs = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD
+            for p in signature.parameters.values()
+        )
+
         params_not_in_signature = params.difference(signature.parameters)
-        if params_not_in_signature:
+        if params_not_in_signature and not has_kwargs:
+
             raise TypeError(
                 f"{cls} defines the parameters {params_not_in_signature} "
                 "which is not found as a parameter in the __init__ method."
@@ -255,99 +261,3 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
         )
 
         return kwargs
-
-
-# =============================================================================
-# SK WEIGHTER
-# =============================================================================
-
-
-class SKCWeighterABC(SKCTransformerABC):
-    """Mixin capable of determine the weights of the matrix.
-
-    This mixin require to redefine ``_weight_matrix``, instead of
-    ``_transform_data``.
-
-    """
-
-    _skcriteria_abstract_class = True
-
-    @abc.abstractmethod
-    def _weight_matrix(self, matrix, objectives, weights):
-        """Calculate a new array of weights.
-
-        Parameters
-        ----------
-        matrix: :py:class:`numpy.ndarray`
-            The decision matrix to weights.
-        objectives: :py:class:`numpy.ndarray`
-            The objectives in numeric format.
-        weights: :py:class:`numpy.ndarray`
-            The original weights
-
-        Returns
-        -------
-        :py:class:`numpy.ndarray`
-            An array of weights.
-
-        """
-        raise NotImplementedError()
-
-    @doc_inherit(SKCTransformerABC._transform_data)
-    def _transform_data(self, matrix, objectives, weights, **kwargs):
-
-        new_weights = self._weight_matrix(
-            matrix=matrix, objectives=objectives, weights=weights
-        )
-
-        kwargs.update(
-            matrix=matrix, objectives=objectives, weights=new_weights
-        )
-
-        return kwargs
-
-
-# =============================================================================
-#
-# =============================================================================
-
-
-class SKCDecisionMakerABC(SKCMethodABC):
-    """Mixin class for all decisor based methods in scikit-criteria."""
-
-    _skcriteria_abstract_class = True
-
-    _skcriteria_dm_type = "decision_maker"
-
-    @abc.abstractmethod
-    def _evaluate_data(self, **kwargs):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def _make_result(self, alternatives, values, extra):
-        raise NotImplementedError()
-
-    def evaluate(self, dm):
-        """Validate the dm and calculate and evaluate the alternatives.
-
-        Parameters
-        ----------
-        dm: :py:class:`skcriteria.data.DecisionMatrix`
-            Decision matrix on which the ranking will be calculated.
-
-        Returns
-        -------
-        :py:class:`skcriteria.data.RankResult`
-            Ranking.
-
-        """
-        data = dm.to_dict()
-
-        result_data, extra = self._evaluate_data(**data)
-
-        alternatives = data["alternatives"]
-        result = self._make_result(
-            alternatives=alternatives, values=result_data, extra=extra
-        )
-
-        return result

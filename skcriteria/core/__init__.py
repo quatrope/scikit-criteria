@@ -17,18 +17,13 @@
 
 from .data import (
     DecisionMatrix,
-    KernelResult,
     Objective,
-    RankResult,
-    ResultABC,
     mkdm,
 )
 from .methods import (
-    SKCDecisionMakerABC,
     SKCMatrixAndWeightTransformerABC,
     SKCMethodABC,
     SKCTransformerABC,
-    SKCWeighterABC,
 )
 from .plot import DecisionMatrixPlotter
 
@@ -40,13 +35,8 @@ __all__ = [
     "mkdm",
     "DecisionMatrix",
     "DecisionMatrixPlotter",
-    "KernelResult",
     "Objective",
-    "RankResult",
-    "ResultABC",
-    "SKCDecisionMakerABC",
     "SKCMatrixAndWeightTransformerABC",
     "SKCMethodABC",
     "SKCTransformerABC",
-    "SKCWeighterABC",
 ]

@@ -86,6 +86,7 @@ class AddValueToZero(SKCMatrixAndWeightTransformerABC):
         \overline{X}_{ij} = X_{ij} + value
 
     """
+
     _skcriteria_parameters = ["target", "value"]
 
     def __init__(self, target, value=1.0):

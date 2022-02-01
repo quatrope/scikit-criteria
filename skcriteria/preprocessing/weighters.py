@@ -21,6 +21,7 @@ to calculate weights to a matrix along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
+import abc
 import warnings
 
 import numpy as np
@@ -29,8 +30,53 @@ import scipy.stats
 
 
 from .distance import cenit_distance
-from ..core import Objective, SKCWeighterABC
+from ..core import Objective, SKCTransformerABC
 from ..utils import doc_inherit
+
+
+class SKCWeighterABC(SKCTransformerABC):
+    """Mixin capable of determine the weights of the matrix.
+
+    This mixin require to redefine ``_weight_matrix``, instead of
+    ``_transform_data``.
+
+    """
+
+    _skcriteria_abstract_class = True
+
+    @abc.abstractmethod
+    def _weight_matrix(self, matrix, objectives, weights):
+        """Calculate a new array of weights.
+
+        Parameters
+        ----------
+        matrix: :py:class:`numpy.ndarray`
+            The decision matrix to weights.
+        objectives: :py:class:`numpy.ndarray`
+            The objectives in numeric format.
+        weights: :py:class:`numpy.ndarray`
+            The original weights
+
+        Returns
+        -------
+        :py:class:`numpy.ndarray`
+            An array of weights.
+
+        """
+        raise NotImplementedError()
+
+    @doc_inherit(SKCTransformerABC._transform_data)
+    def _transform_data(self, matrix, objectives, weights, **kwargs):
+
+        new_weights = self._weight_matrix(
+            matrix=matrix, objectives=objectives, weights=weights
+        )
+
+        kwargs.update(
+            matrix=matrix, objectives=objectives, weights=new_weights
+        )
+
+        return kwargs
 
 
 # =============================================================================
