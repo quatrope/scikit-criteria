@@ -21,6 +21,7 @@
 import pytest
 
 from skcriteria.core import methods
+from skcriteria.pipeline import SKCPipeline
 
 
 # =============================================================================
@@ -234,27 +235,52 @@ def _get_subclasses(cls):
     if not is_abstract:
         yield cls
 
-        for subc in cls.__subclasses__():
-            for subsub in _get_subclasses(subc):
-                yield subsub
+    for subc in cls.__subclasses__():
+        for subsub in _get_subclasses(subc):
+            yield subsub
+
+
+class _FakeTrans:
+    def transform(self):
+        pass
+
+    def __eq__(self, o):
+        return isinstance(o, _FakeTrans)
+
+
+class _FakeDM:
+    def evaluate(self):
+        pass
+
+    def __eq__(self, o):
+        return isinstance(o, _FakeDM)
+
+
+_extra_parameters_by_type = {
+    methods.SKCMatrixAndWeightTransformerABC: {"target": "both"},
+    SKCPipeline: {"steps": [("trans", _FakeTrans()), ("dm", _FakeDM())]},
+}
 
 
 @pytest.mark.run(order=-1)
 def test_SLCMethodABC_concrete_subclass_copy():
 
-    extra_parameters_by_type = {
-        methods.SKCMatrixAndWeightTransformerABC: {"target": "both"}
-    }
-
     for scls in _get_subclasses(methods.SKCMethodABC):
+        print(scls)
+
         kwargs = {}
-        for cls, extra_params in extra_parameters_by_type.items():
+        for cls, extra_params in _extra_parameters_by_type.items():
             if issubclass(scls, cls):
                 kwargs.update(extra_params)
 
         original = scls(**kwargs)
         copy = original.copy()
 
-        assert (
-            original.get_parameters() == copy.get_parameters()
-        ), f"'{scls.__qualname__}' instance not correctly copied."
+        try:
+            assert (
+                original.get_parameters() == copy.get_parameters()
+            ), f"'{scls.__qualname__}' instance not correctly copied."
+        except:
+            import ipdb
+
+            ipdb.set_trace()
