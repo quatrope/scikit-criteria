@@ -93,6 +93,7 @@ class MinimizeToMaximize(SKCTransformerABC):
     ones thar are converted to ``numpy.float64``.
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, dtypes, **kwargs):

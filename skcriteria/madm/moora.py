@@ -68,6 +68,7 @@ class RatioMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2006moora`
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -131,6 +132,7 @@ class ReferencePointMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -217,6 +219,7 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -303,6 +306,7 @@ class MultiMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):

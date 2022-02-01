@@ -38,7 +38,7 @@ def test_SKCMethodABC_no__skcriteria_dm_type():
             pass
 
 
-def test_SKCMethodABC_varargs_for__skcriteria_parameters_inspection():
+def test_SKCMethodABC_no__skcriteria_parameters():
 
     with pytest.raises(TypeError):
 
@@ -52,6 +52,7 @@ def test_SKCMethodABC_varargs_for__skcriteria_parameters_inspection():
 def test_SKCMethodABC_repr():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
+        _skcriteria_parameters = ["foo", "faa"]
 
         def __init__(self, foo, faa):
             self.foo = foo
@@ -65,6 +66,7 @@ def test_SKCMethodABC_repr():
 def test_SKCMethodABC_repr_no_params():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
+        skcriteria_parameters = []
 
     foo = Foo()
 
@@ -74,13 +76,15 @@ def test_SKCMethodABC_repr_no_params():
 def test_SKCMethodABC_no_params():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
+        skcriteria_parameters = []
 
-    assert Foo._skcriteria_parameters == set()
+    assert Foo._skcriteria_parameters == frozenset()
 
 
 def test_SKCMethodABC_alreadydefines__skcriteria_parameters():
     class Base(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
+        skcriteria_parameters = ["x"]
 
     class Foo(Base):
         def __init__(self, x):

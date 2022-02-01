@@ -85,6 +85,7 @@ class EqualWeighter(SKCWeighterABC):
     total criteria.
 
     """
+    _skcriteria_parameters = ["base_value"]
 
     def __init__(self, base_value=1.0):
         self._base_value = float(base_value)
@@ -142,6 +143,7 @@ def std_weights(matrix):
 
 class StdWeighter(SKCWeighterABC):
     """Set as weight the normalized standard deviation of each criterion."""
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
@@ -193,6 +195,7 @@ class EntropyWeighter(SKCWeighterABC):
         Calculate the entropy of a distribution for given probability values.
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
@@ -312,6 +315,8 @@ class Critic(SKCWeighterABC):
         "pearson": pearson_correlation,
         "spearman": spearman_correlation,
     }
+
+    _skcriteria_parameters = ["correlation", "scale"]
 
     def __init__(self, correlation="pearson", scale=True):
         correlation_func = self.CORRELATION.get(correlation, correlation)

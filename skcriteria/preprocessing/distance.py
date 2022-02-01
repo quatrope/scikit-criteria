@@ -82,6 +82,7 @@ class CenitDistance(SKCTransformerABC):
     :cite:p:`diakoulaki1995determining`
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, **kwargs):

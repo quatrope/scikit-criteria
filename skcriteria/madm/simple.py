@@ -74,6 +74,7 @@ class WeightedSumModel(SKCDecisionMakerABC):
     :cite:p:`tzeng2011multiple`
 
     """
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
@@ -161,6 +162,8 @@ class WeightedProductModel(SKCDecisionMakerABC):
 
 
     """
+
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):

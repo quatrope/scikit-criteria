@@ -27,12 +27,6 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-_INVALID_FOR_AUTO_PARAMS_INSPECTION = (
-    inspect.Parameter.VAR_POSITIONAL,
-    inspect.Parameter.VAR_KEYWORD,
-)
-
-
 class SKCMethodABC(metaclass=abc.ABCMeta):
     """Base class for all class in scikit-criteria.
 
@@ -41,40 +35,29 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
     All estimators should specify:
 
     - ``_skcriteria_dm_type``: The type of the decision maker.
+    - ``_skcriteria_parameters``: Availebe parameters.
+    - ``_skcriteria_abstract_method``: If the class is abstract (this attribute
+      is not inheritable)
 
+    If the class is *abstract* the user can ignore the other two attributes.
 
     """
 
-    _skcriteria_dm_type = None
-    _skcriteria_parameters = None
-
     def __init_subclass__(cls):
         """Validate if the subclass are well formed."""
-        decisor_type = cls._skcriteria_dm_type
+        is_abstract = vars(cls).get("_skcriteria_abstract_method", False)
+        if is_abstract:
+            return
 
+        decisor_type = getattr(cls, "_skcriteria_dm_type", None)
         if decisor_type is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_dm_type'")
+        cls._skcriteria_dm_type = str(decisor_type)
 
-        if "_skcriteria_parameters" not in vars(cls):
-            parameters = set()
-
-            if cls.__init__ is not SKCMethodABC.__init__:
-                signature = inspect.signature(cls.__init__)
-
-                for idx, param_tuple in enumerate(
-                    signature.parameters.items()
-                ):
-                    if idx == 0:  # first arugment of a method is the instance
-                        continue
-                    name, param = param_tuple
-                    if param.kind in _INVALID_FOR_AUTO_PARAMS_INSPECTION:
-                        raise TypeError(
-                            "The automatic parameter inspection "
-                            "does not work with variable parameters."
-                        )
-
-                    parameters.add(name)
-            cls._skcriteria_parameters = frozenset(parameters)
+        params = getattr(cls, "_skcriteria_parameters", None)
+        if params is None:
+            raise TypeError(f"{cls} must redefine '_skcriteria_parameters'")
+        cls._skcriteria_parameters = frozenset(params)
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -130,6 +113,7 @@ class SKCTransformerABC(SKCMethodABC):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
+    _skcriteria_abstract_method = True
 
     @abc.abstractmethod
     def _transform_data(self, **kwargs):
@@ -183,6 +167,9 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
     ``_transform_matrix``, instead of ``_transform_data``.
 
     """
+
+    _skcriteria_abstract_method = True
+    _skcriteria_parameters = ["target"]
 
     _TARGET_WEIGHTS = "weights"
     _TARGET_MATRIX = "matrix"
@@ -271,6 +258,8 @@ class SKCWeighterABC(SKCTransformerABC):
 
     """
 
+    _skcriteria_abstract_method = True
+
     @abc.abstractmethod
     def _weight_matrix(self, matrix, objectives, weights):
         """Calculate a new array of weights.
@@ -313,6 +302,8 @@ class SKCWeighterABC(SKCTransformerABC):
 
 class SKCDecisionMakerABC(SKCMethodABC):
     """Mixin class for all decisor based methods in scikit-criteria."""
+
+    _skcriteria_abstract_method = True
 
     _skcriteria_dm_type = "decision_maker"
 

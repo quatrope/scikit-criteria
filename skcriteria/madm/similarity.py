@@ -129,6 +129,7 @@ class TOPSIS(SKCDecisionMakerABC):
     :cite:p:`tzeng2011multiple`
 
     """
+    _skcriteria_parameters = ["metric"]
 
     def __init__(self, *, metric="euclidean"):
 

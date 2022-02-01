@@ -246,6 +246,7 @@ class SIMUS(SKCDecisionMakerABC):
     `PuLP Documentation <https://coin-or.github.io/pulp/>`_
 
     """
+    _skcriteria_parameters = ["rank_by", "solver"]
 
     def __init__(self, *, rank_by=1, solver="pulp"):
         if not (
