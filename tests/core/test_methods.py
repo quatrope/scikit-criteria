@@ -66,7 +66,7 @@ def test_SKCMethodABC_repr():
 def test_SKCMethodABC_repr_no_params():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
-        skcriteria_parameters = []
+        _skcriteria_parameters = []
 
     foo = Foo()
 
@@ -76,15 +76,15 @@ def test_SKCMethodABC_repr_no_params():
 def test_SKCMethodABC_no_params():
     class Foo(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
-        skcriteria_parameters = []
+        _skcriteria_parameters = []
 
     assert Foo._skcriteria_parameters == frozenset()
 
 
-def test_SKCMethodABC_alreadydefines__skcriteria_parameters():
+def test_SKCMethodABC_already_defined__skcriteria_parameters():
     class Base(methods.SKCMethodABC):
         _skcriteria_dm_type = "foo"
-        skcriteria_parameters = ["x"]
+        _skcriteria_parameters = ["x"]
 
     class Foo(Base):
         def __init__(self, x):
@@ -100,7 +100,7 @@ def test_SKCMethodABC_alreadydefines__skcriteria_parameters():
 
 def test_not_redefined_SKCTransformerMixin():
     class Foo(methods.SKCTransformerABC):
-        pass
+        _skcriteria_parameters = []
 
     with pytest.raises(TypeError):
         Foo()
@@ -115,6 +115,8 @@ def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
     decision_matrix,
 ):
     class Foo(methods.SKCTransformerABC):
+        _skcriteria_parameters = []
+
         def _transform_data(self, **kwargs):
             return super()._transform_data(**kwargs)
 
@@ -213,6 +215,8 @@ def test_SKCMatrixAndWeightTransformerMixin_target():
 
 def test_weight_matrix_not_implemented_SKCWeighterMixin(decision_matrix):
     class Foo(methods.SKCWeighterABC):
+        _skcriteria_parameters = []
+
         def _weight_matrix(self, **kwargs):
             return super()._weight_matrix(**kwargs)
 
@@ -225,7 +229,7 @@ def test_weight_matrix_not_implemented_SKCWeighterMixin(decision_matrix):
 
 def test_not_redefined_SKCWeighterMixin():
     class Foo(methods.SKCWeighterABC):
-        pass
+        _skcriteria_parameters = []
 
     with pytest.raises(TypeError):
         Foo()
@@ -237,6 +241,8 @@ def test_flow_SKCWeighterMixin(decision_matrix):
     expected_weights = np.ones(dm.matrix.shape[1]) * 42
 
     class Foo(methods.SKCWeighterABC):
+        _skcriteria_parameters = []
+
         def _weight_matrix(self, matrix, **kwargs):
             return expected_weights
 
@@ -266,6 +272,8 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
     dm = decision_matrix(seed=42)
 
     class Foo(methods.SKCDecisionMakerABC):
+        _skcriteria_parameters = ["x"]
+
         def _evaluate_data(self, alternatives, **kwargs):
             return np.arange(len(alternatives)) + 1, {}
 
@@ -287,7 +295,7 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
 
 @pytest.mark.parametrize("not_redefine", ["_evaluate_data", "_make_result"])
 def test_not_redefined_SKCDecisionMakerMixin(not_redefine):
-    content = {}
+    content = {"_skcriteria_parameters": ["x"]}
     for method_name in ["_evaluate_data", "_make_result", "_validate_data"]:
         if method_name != not_redefine:
             content[method_name] = lambda **kws: None
@@ -303,6 +311,8 @@ def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
     dm = decision_matrix(seed=42)
 
     class Foo(methods.SKCDecisionMakerABC):
+        _skcriteria_parameters = []
+
         def _evaluate_data(self, **kwargs):
             super()._evaluate_data(**kwargs)
 
@@ -324,6 +334,8 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
     dm = decision_matrix(seed=42)
 
     class Foo(methods.SKCDecisionMakerABC):
+        _skcriteria_parameters = []
+
         def _evaluate_data(self, alternatives, **kwargs):
             return np.arange(len(alternatives)) + 1, {}
 
@@ -341,10 +353,9 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
 def _get_subclasses(cls):
 
-    if (
-        cls._skcriteria_dm_type not in (None, "pipeline")
-        and not cls.__abstractmethods__
-    ):
+    dmtype = getattr(cls, "_skcriteria_dm_type", None)
+
+    if dmtype not in (None, "pipeline") and not cls.__abstractmethods__:
         yield cls
 
     for subc in cls.__subclasses__():
