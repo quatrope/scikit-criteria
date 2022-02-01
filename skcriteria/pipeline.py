@@ -56,7 +56,6 @@ class SKCPipeline(SKCMethodABC):
     _skcriteria_dm_type = "pipeline"
     _skcriteria_parameters = ["steps"]
 
-
     def __init__(self, steps):
         self._validate_steps(steps)
         self.steps = list(steps)

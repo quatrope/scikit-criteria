@@ -86,6 +86,9 @@ def test_SKCMethodABC_already_defined__skcriteria_parameters():
         _skcriteria_dm_type = "foo"
         _skcriteria_parameters = ["x"]
 
+        def __init__(self, x):
+            pass
+
     class Foo(Base):
         def __init__(self, x):
             pass
@@ -93,12 +96,27 @@ def test_SKCMethodABC_already_defined__skcriteria_parameters():
     assert Foo._skcriteria_parameters == {"x"}
 
 
+def test_SKCMethodABC_params_not_in_init():
+    class Base(methods.SKCMethodABC):
+        _skcriteria_dm_type = "foo"
+        _skcriteria_parameters = ["x"]
+
+        def __init__(self, x):
+            pass
+
+    with pytest.raises(TypeError):
+
+        class Foo(Base):
+            def __init__(self):
+                pass
+
+
 # =============================================================================
 # TRANSFORMER
 # =============================================================================
 
 
-def test_not_redefined_SKCTransformerMixin():
+def test_SKCTransformerMixin_not_redefined_abc_methods():
     class Foo(methods.SKCTransformerABC):
         _skcriteria_parameters = []
 
@@ -111,7 +129,7 @@ def test_not_redefined_SKCTransformerMixin():
 # =============================================================================
 
 
-def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
+def test_SKCMatrixAndWeightTransformerMixin_transform_data_not_implemented(
     decision_matrix,
 ):
     class Foo(methods.SKCTransformerABC):
@@ -127,7 +145,7 @@ def test_transform_data_not_implemented_SKCMatrixAndWeightTransformerMixin(
         transformer.transform(dm)
 
 
-def test_not_redefined_SKCMatrixAndWeightTransformerMixin():
+def test_SKCMatrixAndWeightTransformerMixin_not_redefined_abc_methods():
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
         pass
 
@@ -141,7 +159,7 @@ def test_not_redefined_SKCMatrixAndWeightTransformerMixin():
         Foo("both")
 
 
-def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
+def test_SKCMatrixAndWeightTransformerMixin_bad_normalize_for():
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
         def _transform_matrix(self, matrix):
             ...
@@ -153,7 +171,7 @@ def test_bad_normalize_for_SKCMatrixAndWeightTransformerMixin():
         Foo("mtx")
 
 
-def test_transform_weights_not_implemented_SKCMatrixAndWeightTransformerMixin(
+def test_SKCMatrixAndWeightTransformerMixin_transform_weights_not_implemented(
     decision_matrix,
 ):
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
@@ -170,7 +188,7 @@ def test_transform_weights_not_implemented_SKCMatrixAndWeightTransformerMixin(
         transformer.transform(dm)
 
 
-def test_transform_weight_not_implemented_SKCMatrixAndWeightTransformerMixin(
+def test_SKCMatrixAndWeightTransformerMixin_transform_weight_not_implemented(
     decision_matrix,
 ):
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
@@ -213,7 +231,7 @@ def test_SKCMatrixAndWeightTransformerMixin_target():
 # =============================================================================
 
 
-def test_weight_matrix_not_implemented_SKCWeighterMixin(decision_matrix):
+def test_SKCWeighterMixin_weight_matrix_not_implemented(decision_matrix):
     class Foo(methods.SKCWeighterABC):
         _skcriteria_parameters = []
 
@@ -227,7 +245,7 @@ def test_weight_matrix_not_implemented_SKCWeighterMixin(decision_matrix):
         transformer.transform(dm)
 
 
-def test_not_redefined_SKCWeighterMixin():
+def test_SKCWeighterMixin_not_redefined_abc_methods():
     class Foo(methods.SKCWeighterABC):
         _skcriteria_parameters = []
 
@@ -235,7 +253,7 @@ def test_not_redefined_SKCWeighterMixin():
         Foo()
 
 
-def test_flow_SKCWeighterMixin(decision_matrix):
+def test_SKCWeighterMixin_flow(decision_matrix):
 
     dm = decision_matrix(seed=42)
     expected_weights = np.ones(dm.matrix.shape[1]) * 42
@@ -267,12 +285,12 @@ def test_flow_SKCWeighterMixin(decision_matrix):
 # =============================================================================
 
 
-def test_flow_SKCDecisionMakerMixin(decision_matrix):
+def test_SKCDecisionMakerMixin_flow(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
     class Foo(methods.SKCDecisionMakerABC):
-        _skcriteria_parameters = ["x"]
+        _skcriteria_parameters = []
 
         def _evaluate_data(self, alternatives, **kwargs):
             return np.arange(len(alternatives)) + 1, {}
@@ -294,8 +312,8 @@ def test_flow_SKCDecisionMakerMixin(decision_matrix):
 
 
 @pytest.mark.parametrize("not_redefine", ["_evaluate_data", "_make_result"])
-def test_not_redefined_SKCDecisionMakerMixin(not_redefine):
-    content = {"_skcriteria_parameters": ["x"]}
+def test_SKCDecisionMakerMixin_not_redefined(not_redefine):
+    content = {"_skcriteria_parameters": []}
     for method_name in ["_evaluate_data", "_make_result", "_validate_data"]:
         if method_name != not_redefine:
             content[method_name] = lambda **kws: None
@@ -306,7 +324,7 @@ def test_not_redefined_SKCDecisionMakerMixin(not_redefine):
         Foo()
 
 
-def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
+def test_SKCDecisionMakerMixin_evaluate_data_not_implemented(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
@@ -329,7 +347,7 @@ def test_evaluate_data_not_implemented_SKCDecisionMakerMixin(decision_matrix):
         ranker.evaluate(dm)
 
 
-def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
+def test_SKCDecisionMakerMixin_make_result_not_implemented(decision_matrix):
 
     dm = decision_matrix(seed=42)
 
@@ -353,14 +371,14 @@ def test_make_result_not_implemented_SKCDecisionMakerMixin(decision_matrix):
 
 def _get_subclasses(cls):
 
-    dmtype = getattr(cls, "_skcriteria_dm_type", None)
+    is_abstract = vars(cls).get("_skcriteria_abstract_class", False)
 
-    if dmtype not in (None, "pipeline") and not cls.__abstractmethods__:
+    if not is_abstract:
         yield cls
 
-    for subc in cls.__subclasses__():
-        for subsub in _get_subclasses(subc):
-            yield subsub
+        for subc in cls.__subclasses__():
+            for subsub in _get_subclasses(subc):
+                yield subsub
 
 
 @pytest.mark.run(order=-1)

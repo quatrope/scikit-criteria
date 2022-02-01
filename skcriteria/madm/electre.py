@@ -143,6 +143,7 @@ class ELECTRE1(SKCDecisionMakerABC):
     :cite:p:`tzeng2011multiple`
 
     """
+
     _skcriteria_parameters = ["p", "q"]
 
     def __init__(self, p=0.65, q=0.35):

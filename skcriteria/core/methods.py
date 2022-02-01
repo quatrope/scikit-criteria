@@ -36,16 +36,17 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
     - ``_skcriteria_dm_type``: The type of the decision maker.
     - ``_skcriteria_parameters``: Availebe parameters.
-    - ``_skcriteria_abstract_method``: If the class is abstract (this attribute
-      is not inheritable)
+    - ``_skcriteria_abstract_class``: If the class is abstract.
 
     If the class is *abstract* the user can ignore the other two attributes.
 
     """
 
+    _skcriteria_abstract_class = True
+
     def __init_subclass__(cls):
         """Validate if the subclass are well formed."""
-        is_abstract = vars(cls).get("_skcriteria_abstract_method", False)
+        is_abstract = vars(cls).get("_skcriteria_abstract_class", False)
         if is_abstract:
             return
 
@@ -57,7 +58,18 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
         params = getattr(cls, "_skcriteria_parameters", None)
         if params is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_parameters'")
-        cls._skcriteria_parameters = frozenset(params)
+
+        params = frozenset(params)
+
+        signature = inspect.signature(cls.__init__)
+        params_not_in_signature = params.difference(signature.parameters)
+        if params_not_in_signature:
+            raise TypeError(
+                f"{cls} defines the parameters {params_not_in_signature} "
+                "which is not found as a parameter in the __init__ method."
+            )
+
+        cls._skcriteria_parameters = params
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -113,7 +125,7 @@ class SKCTransformerABC(SKCMethodABC):
     """Mixin class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
-    _skcriteria_abstract_method = True
+    _skcriteria_abstract_class = True
 
     @abc.abstractmethod
     def _transform_data(self, **kwargs):
@@ -168,7 +180,7 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
 
     """
 
-    _skcriteria_abstract_method = True
+    _skcriteria_abstract_class = True
     _skcriteria_parameters = ["target"]
 
     _TARGET_WEIGHTS = "weights"
@@ -258,7 +270,7 @@ class SKCWeighterABC(SKCTransformerABC):
 
     """
 
-    _skcriteria_abstract_method = True
+    _skcriteria_abstract_class = True
 
     @abc.abstractmethod
     def _weight_matrix(self, matrix, objectives, weights):
@@ -303,7 +315,7 @@ class SKCWeighterABC(SKCTransformerABC):
 class SKCDecisionMakerABC(SKCMethodABC):
     """Mixin class for all decisor based methods in scikit-criteria."""
 
-    _skcriteria_abstract_method = True
+    _skcriteria_abstract_class = True
 
     _skcriteria_dm_type = "decision_maker"
 
