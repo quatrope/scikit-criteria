@@ -19,6 +19,7 @@
 # =============================================================================
 
 import numpy as np
+
 import pytest
 
 import skcriteria as skc
@@ -280,40 +281,6 @@ def test_FilterGE():
     assert result.equals(expected)
 
 
-def test_FilterGE():
-
-    dm = skc.mkdm(
-        matrix=[
-            [7, 5, 35],
-            [5, 4, 26],
-            [5, 6, 28],
-            [1, 7, 30],
-            [5, 8, 30],
-        ],
-        objectives=[max, max, min],
-        weights=[2, 4, 1],
-        alternatives=["PE", "JN", "AA", "MM", "FN"],
-        criteria=["ROE", "CAP", "RI"],
-    )
-
-    expected = skc.mkdm(
-        matrix=[
-            [7, 5, 35],
-            [5, 6, 28],
-            [5, 8, 30],
-        ],
-        objectives=[max, max, min],
-        weights=[2, 4, 1],
-        alternatives=["PE", "AA", "FN"],
-        criteria=["ROE", "CAP", "RI"],
-    )
-
-    tfm = filters.FilterGE({"ROE": 2, "RI": 28})
-
-    result = tfm.transform(dm)
-    assert result.equals(expected)
-
-
 def test_FilterLT():
 
     dm = skc.mkdm(
@@ -448,6 +415,7 @@ def test_FilterNE():
 # SET FILTER
 # =============================================================================
 
+
 def test_SKCSetFilterABC_not_implemented__set_filter():
     dm = skc.mkdm(
         matrix=[
@@ -471,6 +439,7 @@ def test_SKCSetFilterABC_not_implemented__set_filter():
 
     with pytest.raises(NotImplementedError):
         tfm.transform(dm)
+
 
 def test_SKCSetFilterABC_criteria_is_not_str():
     class FooFilter(filters.SKCSetFilterABC):

@@ -222,4 +222,3 @@ def test_SKCMatrixAndWeightTransformerMixin_target():
 
     foo = Foo("both")
     assert foo.target == Foo._TARGET_BOTH
-

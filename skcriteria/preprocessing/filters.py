@@ -18,7 +18,6 @@
 
 import abc
 from collections.abc import Collection
-import functools
 
 import numpy as np
 
@@ -55,6 +54,7 @@ class SKCFilterABC(SKCTransformerABC):
     def _make_mask(self, matrix, criteria):
         raise NotImplementedError()
 
+    @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, criteria, alternatives, **kwargs):
         criteria_not_found = set(self._criteria_filters).difference(criteria)
         if criteria_not_found:

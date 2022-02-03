@@ -18,7 +18,6 @@
 # IMPORTS
 # =============================================================================
 
-from numpy import block
 import pytest
 
 from skcriteria.core import methods
