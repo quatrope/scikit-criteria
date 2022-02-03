@@ -34,7 +34,6 @@ class SKCDecisionMakerABC(SKCMethodABC):
     """Mixin class for all decisor based methods in scikit-criteria."""
 
     _skcriteria_abstract_class = True
-
     _skcriteria_dm_type = "decision_maker"
 
     @abc.abstractmethod
