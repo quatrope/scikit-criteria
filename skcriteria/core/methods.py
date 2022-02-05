@@ -27,12 +27,6 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-_INVALID_FOR_AUTO_PARAMS_INSPECTION = (
-    inspect.Parameter.VAR_POSITIONAL,
-    inspect.Parameter.VAR_KEYWORD,
-)
-
-
 class SKCMethodABC(metaclass=abc.ABCMeta):
     """Base class for all class in scikit-criteria.
 
@@ -41,40 +35,47 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
     All estimators should specify:
 
     - ``_skcriteria_dm_type``: The type of the decision maker.
+    - ``_skcriteria_parameters``: Availebe parameters.
+    - ``_skcriteria_abstract_class``: If the class is abstract.
 
+    If the class is *abstract* the user can ignore the other two attributes.
 
     """
 
-    _skcriteria_dm_type = None
-    _skcriteria_parameters = None
+    _skcriteria_abstract_class = True
 
     def __init_subclass__(cls):
         """Validate if the subclass are well formed."""
-        decisor_type = cls._skcriteria_dm_type
+        is_abstract = vars(cls).get("_skcriteria_abstract_class", False)
+        if is_abstract:
+            return
 
+        decisor_type = getattr(cls, "_skcriteria_dm_type", None)
         if decisor_type is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_dm_type'")
+        cls._skcriteria_dm_type = str(decisor_type)
 
-        if "_skcriteria_parameters" not in vars(cls):
-            parameters = set()
+        params = getattr(cls, "_skcriteria_parameters", None)
+        if params is None:
+            raise TypeError(f"{cls} must redefine '_skcriteria_parameters'")
 
-            if cls.__init__ is not SKCMethodABC.__init__:
-                signature = inspect.signature(cls.__init__)
+        params = frozenset(params)
 
-                for idx, param_tuple in enumerate(
-                    signature.parameters.items()
-                ):
-                    if idx == 0:  # first arugment of a method is the instance
-                        continue
-                    name, param = param_tuple
-                    if param.kind in _INVALID_FOR_AUTO_PARAMS_INSPECTION:
-                        raise TypeError(
-                            "The automatic parameter inspection "
-                            "does not work with variable parameters."
-                        )
+        signature = inspect.signature(cls.__init__)
+        has_kwargs = any(
+            p.kind == inspect.Parameter.VAR_KEYWORD
+            for p in signature.parameters.values()
+        )
 
-                    parameters.add(name)
-            cls._skcriteria_parameters = frozenset(parameters)
+        params_not_in_signature = params.difference(signature.parameters)
+        if params_not_in_signature and not has_kwargs:
+
+            raise TypeError(
+                f"{cls} defines the parameters {params_not_in_signature} "
+                "which is not found as a parameter in the __init__ method."
+            )
+
+        cls._skcriteria_parameters = params
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -122,14 +123,15 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
 
 # =============================================================================
-# SKCTransformer MIXIN
+# SKCTransformer ABC
 # =============================================================================
 
 
 class SKCTransformerABC(SKCMethodABC):
-    """Mixin class for all transformer in scikit-criteria."""
+    """Abstract class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
+    _skcriteria_abstract_class = True
 
     @abc.abstractmethod
     def _transform_data(self, **kwargs):
@@ -175,14 +177,18 @@ class SKCTransformerABC(SKCMethodABC):
 class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
     """Transform weights and matrix together or independently.
 
-    The Transformer that implements this mixin can be configured to transform
+    The Transformer that implements this abstract class can be configured to
+    transform
     `weights`, `matrix` or `both` so only that part of the DecisionMatrix
     is altered.
 
-    This mixin require to redefine ``_transform_weights`` and
+    This abstract class require to redefine ``_transform_weights`` and
     ``_transform_matrix``, instead of ``_transform_data``.
 
     """
+
+    _skcriteria_abstract_class = True
+    _skcriteria_parameters = ["target"]
 
     _TARGET_WEIGHTS = "weights"
     _TARGET_MATRIX = "matrix"
@@ -242,107 +248,17 @@ class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, weights, **kwargs):
-        norm_mtx = matrix
-        norm_weights = weights
+        transformed_mtx = matrix
+        transformed_weights = weights
 
         if self._target in (self._TARGET_MATRIX, self._TARGET_BOTH):
-            norm_mtx = self._transform_matrix(matrix)
+            transformed_mtx = self._transform_matrix(matrix)
 
         if self._target in (self._TARGET_WEIGHTS, self._TARGET_BOTH):
-            norm_weights = self._transform_weights(weights)
-
-        kwargs.update(matrix=norm_mtx, weights=norm_weights, dtypes=None)
-
-        return kwargs
-
-
-# =============================================================================
-# SK WEIGHTER
-# =============================================================================
-
-
-class SKCWeighterABC(SKCTransformerABC):
-    """Mixin capable of determine the weights of the matrix.
-
-    This mixin require to redefine ``_weight_matrix``, instead of
-    ``_transform_data``.
-
-    """
-
-    @abc.abstractmethod
-    def _weight_matrix(self, matrix, objectives, weights):
-        """Calculate a new array of weights.
-
-        Parameters
-        ----------
-        matrix: :py:class:`numpy.ndarray`
-            The decision matrix to weights.
-        objectives: :py:class:`numpy.ndarray`
-            The objectives in numeric format.
-        weights: :py:class:`numpy.ndarray`
-            The original weights
-
-        Returns
-        -------
-        :py:class:`numpy.ndarray`
-            An array of weights.
-
-        """
-        raise NotImplementedError()
-
-    @doc_inherit(SKCTransformerABC._transform_data)
-    def _transform_data(self, matrix, objectives, weights, **kwargs):
-
-        new_weights = self._weight_matrix(
-            matrix=matrix, objectives=objectives, weights=weights
-        )
+            transformed_weights = self._transform_weights(weights)
 
         kwargs.update(
-            matrix=matrix, objectives=objectives, weights=new_weights
+            matrix=transformed_mtx, weights=transformed_weights, dtypes=None
         )
 
         return kwargs
-
-
-# =============================================================================
-#
-# =============================================================================
-
-
-class SKCDecisionMakerABC(SKCMethodABC):
-    """Mixin class for all decisor based methods in scikit-criteria."""
-
-    _skcriteria_dm_type = "decision_maker"
-
-    @abc.abstractmethod
-    def _evaluate_data(self, **kwargs):
-        raise NotImplementedError()
-
-    @abc.abstractmethod
-    def _make_result(self, alternatives, values, extra):
-        raise NotImplementedError()
-
-    def evaluate(self, dm):
-        """Validate the dm and calculate and evaluate the alternatives.
-
-        Parameters
-        ----------
-        dm: :py:class:`skcriteria.data.DecisionMatrix`
-            Decision matrix on which the ranking will be calculated.
-
-        Returns
-        -------
-        :py:class:`skcriteria.data.RankResult`
-            Ranking.
-
-        """
-        data = dm.to_dict()
-
-        result_data, extra = self._evaluate_data(**data)
-
-        alternatives = data["alternatives"]
-        result = self._make_result(
-            alternatives=alternatives, values=result_data, extra=extra
-        )
-
-        return result

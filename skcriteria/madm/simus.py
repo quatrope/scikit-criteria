@@ -20,9 +20,11 @@ import warnings
 
 import numpy as np
 
-from ..core import Objective, RankResult, SKCDecisionMakerABC
+from ._base import RankResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..preprocessing.scalers import scale_by_sum
 from ..utils import doc_inherit, lp, rank
+
 
 # =============================================================================
 # INTERNAL FUNCTIONS
@@ -246,6 +248,8 @@ class SIMUS(SKCDecisionMakerABC):
     `PuLP Documentation <https://coin-or.github.io/pulp/>`_
 
     """
+
+    _skcriteria_parameters = ["rank_by", "solver"]
 
     def __init__(self, *, rank_by=1, solver="pulp"):
         if not (

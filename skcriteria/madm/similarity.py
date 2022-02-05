@@ -21,8 +21,10 @@ import numpy as np
 
 from scipy.spatial import distance
 
-from ..core import Objective, RankResult, SKCDecisionMakerABC
+from ._base import RankResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..utils import doc_inherit, rank
+
 
 # =============================================================================
 # CONSTANTS
@@ -129,6 +131,8 @@ class TOPSIS(SKCDecisionMakerABC):
     :cite:p:`tzeng2011multiple`
 
     """
+
+    _skcriteria_parameters = ["metric"]
 
     def __init__(self, *, metric="euclidean"):
 

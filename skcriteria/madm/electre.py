@@ -29,8 +29,11 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 
 import numpy as np
 
-from ..core import KernelResult, Objective, SKCDecisionMakerABC
+
+from ._base import KernelResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..utils import doc_inherit
+
 
 # =============================================================================
 # CONCORDANCE
@@ -143,6 +146,8 @@ class ELECTRE1(SKCDecisionMakerABC):
     :cite:p:`tzeng2011multiple`
 
     """
+
+    _skcriteria_parameters = ["p", "q"]
 
     def __init__(self, p=0.65, q=0.35):
         self._p = float(p)

@@ -14,6 +14,10 @@
 # =============================================================================
 # IMPORTS
 # =============================================================================
+
+import warnings
+from inspect import isclass
+
 from custom_inherit import doc_inherit as _doc_inherit
 
 from deprecated import deprecated as _deprecated
@@ -23,7 +27,7 @@ from deprecated import deprecated as _deprecated
 # =============================================================================
 
 
-def doc_inherit(parent):
+def doc_inherit(parent, warn_class=True):
     """Inherit the 'parent' docstring.
 
     Returns a function/method decorator that, given parent, updates
@@ -35,6 +39,10 @@ def doc_inherit(parent):
     parent : Union[str, Any]
         The docstring, or object of which the docstring is utilized as the
         parent docstring during the docstring merge.
+    warn_class: bool
+        If it is true, and the decorated is a class, it throws a warning
+        since there are some issues with inheritance of documentation in
+        classes.
 
     Notes
     -----
@@ -45,7 +53,17 @@ def doc_inherit(parent):
 
 
     """
-    return _doc_inherit(parent, style="numpy")
+
+    def _wrapper(obj):
+        if isclass(obj) and warn_class:
+            warnings.warn(
+                f"{obj} is a class, check if the "
+                "documentation was inherited properly "
+            )
+        dec = _doc_inherit(parent, style="numpy")
+        return dec(obj)
+
+    return _wrapper
 
 
 # =============================================================================
