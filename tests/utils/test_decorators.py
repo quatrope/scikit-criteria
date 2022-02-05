@@ -54,6 +54,21 @@ def test_doc_inherit():
 
     assert doc == func_a.__doc__ == func_b.__doc__ == func_c.__doc__
 
+    # test warnings
+    with pytest.warns(UserWarning):
+
+        @decorators.doc_inherit(doc, warn_class=True)
+        class A:  # noqa
+            pass
+
+    with pytest.warns(None) as warnings:
+
+        @decorators.doc_inherit(doc, warn_class=False)
+        class A:  # noqa
+            pass
+
+    assert not warnings
+
 
 def test_deprecated():
     def func():

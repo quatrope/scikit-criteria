@@ -100,21 +100,35 @@ class SKCFilterABC(SKCTransformerABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _make_mask(self, matrix, criteria):
+    def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
         raise NotImplementedError()
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, criteria, alternatives, **kwargs):
-        criteria_not_found = set(self._criteria).difference(criteria)
-        if not self._ignore_missing_criteria and criteria_not_found:
-            raise ValueError(f"Missing criteria: {criteria_not_found}")
-        elif criteria_not_found:
-            raise ValueError()
+        # determine which criteria defined in the filter are in the DM
+        criteria_to_use, criteria_filters = [], []
+        for crit, flt in zip(self._criteria, self._filters):
+            if crit not in criteria and not self._ignore_missing_criteria:
+                raise ValueError(f"Missing criteria: {crit}")
+            elif crit in criteria:
+                criteria_to_use.append(crit)
+                criteria_filters.append(flt)
 
-        mask = self._make_mask(matrix, criteria)
+        if criteria_to_use:
 
-        filtered_matrix = matrix[mask]
-        filtered_alternatives = alternatives[mask]
+            mask = self._make_mask(
+                matrix=matrix,
+                criteria=criteria,
+                criteria_to_use=criteria_to_use,
+                criteria_filters=criteria_filters,
+            )
+
+            filtered_matrix = matrix[mask]
+            filtered_alternatives = alternatives[mask]
+
+        else:
+            filtered_matrix = matrix
+            filtered_alternatives = alternatives
 
         kwargs.update(
             matrix=filtered_matrix,
@@ -181,12 +195,14 @@ class Filter(SKCFilterABC):
             criteria_filters.append(filter_value)
         return tuple(criteria), tuple(criteria_filters)
 
-    def _make_mask(self, matrix, criteria):
+    def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
         mask_list = []
-        for fname, fvalue in self.criteria_filters.items():
-            crit_idx = np.in1d(criteria, fname, assume_unique=False)
+        for crit_name, crit_filter in zip(criteria_to_use, criteria_filters):
+            crit_idx = np.in1d(criteria, crit_name, assume_unique=False)
             crit_array = matrix[:, crit_idx].flatten()
-            crit_mask = np.apply_along_axis(fvalue, axis=0, arr=crit_array)
+            crit_mask = np.apply_along_axis(
+                crit_filter, axis=0, arr=crit_array
+            )
             mask_list.append(crit_mask)
 
         mask = np.all(np.column_stack(mask_list), axis=1)
@@ -236,12 +252,11 @@ class SKCArithmeticFilterABC(SKCFilterABC):
             criteria_filters.append(filter_value)
         return tuple(criteria), tuple(criteria_filters)
 
-    def _make_mask(self, matrix, criteria):
-        filter_names, filter_values = self._criteria, self._filters
+    def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
 
-        idxs = np.in1d(criteria, filter_names)
+        idxs = np.in1d(criteria, criteria_to_use)
         matrix = matrix[:, idxs]
-        mask = np.all(self._filter(matrix, filter_values), axis=1)
+        mask = np.all(self._filter(matrix, criteria_filters), axis=1)
 
         return mask
 
@@ -503,9 +518,9 @@ class SKCSetFilterABC(SKCFilterABC):
             criteria_filters.append(np.asarray(filter_value))
         return criteria, criteria_filters
 
-    def _make_mask(self, matrix, criteria):
+    def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
         mask_list = []
-        for fname, fset in self.criteria_filters.items():
+        for fname, fset in zip(criteria_to_use, criteria_filters):
             crit_idx = np.in1d(criteria, fname, assume_unique=False)
             crit_array = matrix[:, crit_idx].flatten()
             crit_mask = self._set_filter(crit_array, fset)

@@ -33,7 +33,9 @@ from skcriteria.preprocessing import filters
 
 def test_SKCFilterABC_not_provide_filters():
     class FooFilter(filters.SKCFilterABC):
-        def _make_mask(self, matrix, criteria):
+        def _make_mask(
+            self, matrix, criteria, criteria_to_use, criteria_filters
+        ):
             pass
 
         def _coerce_filters(self, filters):
@@ -59,8 +61,12 @@ def test_SKCFilterABC_not_implemented_make_mask():
     )
 
     class FooFilter(filters.SKCFilterABC):
-        def _make_mask(self, matrix, criteria):
-            return super()._make_mask(matrix, criteria)
+        def _make_mask(
+            self, matrix, criteria, criteria_to_use, criteria_filters
+        ):
+            return super()._make_mask(
+                matrix, criteria, criteria_to_use, criteria_filters
+            )
 
         def _coerce_filters(self, filters):
             return list(filters.keys()), list(filters.values())
@@ -73,7 +79,9 @@ def test_SKCFilterABC_not_implemented_make_mask():
 
 def test_SKCFilterABC_not_implemented_coerce_filters():
     class FooFilter(filters.SKCFilterABC):
-        def _make_mask(self, matrix, criteria):
+        def _make_mask(
+            self, matrix, criteria, criteria_to_use, criteria_filters
+        ):
             pass
 
         def _coerce_filters(self, filters):
@@ -99,7 +107,9 @@ def test_SKCFilterABC_missing_criteria():
     )
 
     class FooFilter(filters.SKCFilterABC):
-        def _make_mask(self, matrix, criteria):
+        def _make_mask(
+            self, matrix, criteria, criteria_to_use, criteria_filters
+        ):
             pass
 
         def _coerce_filters(self, filters):
@@ -109,6 +119,11 @@ def test_SKCFilterABC_missing_criteria():
 
     with pytest.raises(ValueError):
         tfm.transform(dm)
+
+    tfm = FooFilter({"ZARAZA": 1}, ignore_missing_criteria=True)
+
+    result = tfm.transform(dm)
+    assert result.equals(dm) and result is not dm
 
 
 # =============================================================================
