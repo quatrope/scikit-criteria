@@ -58,7 +58,11 @@ extensions = [
     "nbsphinx",
     "sphinxcontrib.bibtex",
 ]
+# =============================================================================
+# EXTRA CONF
+# =============================================================================
 
+autodoc_member_order = "bysource"
 
 # =============================================================================
 # BIB TEX
@@ -241,7 +245,7 @@ with open(SKCRITERIA_PATH / "README.md") as fp:
     readme_md = fp.read().split("<!-- BODY -->")[-1]
 
 
-README_RST_PATH = CURRENT_PATH / "_dynamic" / "README"
+README_RST_PATH = CURRENT_PATH / "_dynamic" / "README.rst"
 
 
 with open(README_RST_PATH, "w") as fp:

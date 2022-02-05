@@ -63,6 +63,7 @@ class SKCPipeline(SKCMethodABC):
 
     @property
     def steps(self):
+        """List of steps of the pipeline."""
         return list(self._steps)
 
     def __len__(self):

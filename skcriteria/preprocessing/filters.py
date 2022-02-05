@@ -30,24 +30,73 @@ from ..utils import doc_inherit
 
 
 class SKCFilterABC(SKCTransformerABC):
+    """Abstract class capable of filtering alternatives.
 
-    _skcriteria_parameters = frozenset(["criteria_filters"])
+    This abstract class require to redefine ``_coerce_filters`` and
+    ``_make_mask``, instead of ``_transform_data``.
+
+    Parameters
+    ----------
+    criteria_filters: dict
+        It is a dictionary in which the key is the name of a criterion, and
+        the value is the filter condition.
+    ignore_missing_criteria: bool, default: False
+        If True, it is ignored if a decision matrix does not have any
+        particular criteria that should be filtered.
+
+    """
+
+    _skcriteria_parameters = frozenset(
+        ["criteria_filters", "ignore_missing_criteria"]
+    )
     _skcriteria_abstract_class = True
 
-    def __init__(self, criteria_filters):
+    def __init__(self, criteria_filters, *, ignore_missing_criteria=False):
         if not len(criteria_filters):
             raise ValueError("Must provide at least one filter")
-
-        criteria_filters = dict(criteria_filters)
-        self._validate_filters(criteria_filters)
-        self._criteria_filters = criteria_filters
+        self._criteria, self._filters = self._coerce_filters(criteria_filters)
+        self._ignore_missing_criteria = bool(ignore_missing_criteria)
 
     @property
     def criteria_filters(self):
-        return dict(self._criteria_filters)
+        """Conditions on which the alternatives will be evaluated.
+
+        It is a dictionary in which the key is the name of a
+        criterion, and the value is the filter condition.
+
+        """
+        return dict(zip(self._criteria, self._filters))
+
+    @property
+    def ignore_missing_criteria(self):
+        """If the value is True the filter ignores the lack of a required \
+        criterion.
+
+        If the value is False, the lack of a criterion causes the filter to
+        fail.
+
+        """
+        return self._ignore_missing_criteria
 
     @abc.abstractmethod
-    def _validate_filters(self, filters):
+    def _coerce_filters(self, filters):
+        """Validate the filters.
+
+        Parameters
+        ----------
+        filters: dict-like
+            It is a dictionary in which the key is the name of a
+            criterion, and the value is the filter condition.
+
+        Returns
+        -------
+        (criteria, filters): tuple of two elements.
+            The tuple contains two iterables:
+
+            1. The first is the list of criteria.
+            2. The second is the filters.
+
+        """
         raise NotImplementedError()
 
     @abc.abstractmethod
@@ -56,9 +105,11 @@ class SKCFilterABC(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, criteria, alternatives, **kwargs):
-        criteria_not_found = set(self._criteria_filters).difference(criteria)
-        if criteria_not_found:
+        criteria_not_found = set(self._criteria).difference(criteria)
+        if not self._ignore_missing_criteria and criteria_not_found:
             raise ValueError(f"Missing criteria: {criteria_not_found}")
+        elif criteria_not_found:
+            raise ValueError()
 
         mask = self._make_mask(matrix, criteria)
 
@@ -79,17 +130,60 @@ class SKCFilterABC(SKCTransformerABC):
 # =============================================================================
 
 
+@doc_inherit(SKCFilterABC, warn_class=False)
 class Filter(SKCFilterABC):
-    def _validate_filters(self, filters):
+    """Function based filter.
+
+    This class accepts as a filter any arbitrary function that receives as a
+    parameter a as a parameter a criterion and returns a mask of the same size
+    as the number of the number of alternatives in the decision matrix.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+         >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.Filter({
+        ...     "ROE": lambda e: e > 1,
+        ...     "RI": lambda e: e >= 28,
+        ... })
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        PE          7          5        35
+        AA          5          6        28
+        FN          5          8        30
+        [3 Alternatives x 3 Criteria]
+
+    """
+
+    def _coerce_filters(self, filters):
+        criteria, criteria_filters = [], []
         for filter_name, filter_value in filters.items():
             if not isinstance(filter_name, str):
                 raise ValueError("All filter keys must be instance of 'str'")
             if not callable(filter_value):
                 raise ValueError("All filter values must be callable")
+            criteria.append(filter_name)
+            criteria_filters.append(filter_value)
+        return tuple(criteria), tuple(criteria_filters)
 
     def _make_mask(self, matrix, criteria):
         mask_list = []
-        for fname, fvalue in self._criteria_filters.items():
+        for fname, fvalue in self.criteria_filters.items():
             crit_idx = np.in1d(criteria, fname, assume_unique=False)
             crit_array = matrix[:, crit_idx].flatten()
             crit_mask = np.apply_along_axis(fvalue, axis=0, arr=crit_array)
@@ -105,14 +199,32 @@ class Filter(SKCFilterABC):
 # =============================================================================
 
 
+@doc_inherit(SKCFilterABC, warn_class=False)
 class SKCArithmeticFilterABC(SKCFilterABC):
+    """Provide a common behavior to make filters based on the same comparator.
+
+    This abstract class require to redefine ``_filter`` method, and this will
+    apply to each criteria separately.
+
+    This class is designed to implement in general arithmetic comparisons of
+    "==", "!=", ">", ">=", "<", "<=" taking advantage of the functions
+    provided by numpy (e.g. ``np.greater_equal()``).
+
+    Notes
+    -----
+    The filter implemented with this class are slightly faster than
+    function-based filters.
+
+    """
+
     _skcriteria_abstract_class = True
 
     @abc.abstractmethod
     def _filter(self, arr, cond):
         raise NotImplementedError()
 
-    def _validate_filters(self, filters):
+    def _coerce_filters(self, filters):
+        criteria, criteria_filters = [], []
         for filter_name, filter_value in filters.items():
             if not isinstance(filter_name, str):
                 raise ValueError("All filter keys must be instance of 'str'")
@@ -120,13 +232,12 @@ class SKCArithmeticFilterABC(SKCFilterABC):
                 raise ValueError(
                     "All filter values must be some kind of number"
                 )
+            criteria.append(filter_name)
+            criteria_filters.append(filter_value)
+        return tuple(criteria), tuple(criteria_filters)
 
     def _make_mask(self, matrix, criteria):
-        filter_names, filter_values = [], []
-
-        for fname, fvalue in self._criteria_filters.items():
-            filter_names.append(fname)
-            filter_values.append(fvalue)
+        filter_names, filter_values = self._criteria, self._filters
 
         idxs = np.in1d(criteria, filter_names)
         matrix = matrix[:, idxs]
@@ -135,49 +246,249 @@ class SKCArithmeticFilterABC(SKCFilterABC):
         return mask
 
 
+@doc_inherit(SKCArithmeticFilterABC, warn_class=False)
 class FilterGT(SKCArithmeticFilterABC):
+    """Keeps the alternatives for which the criteria value are greater than a \
+    value.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterGT({"ROE": 1, "RI": 27})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        PE          7          5        35
+        AA          5          6        28
+        FN          5          8        30
+        [3 Alternatives x 3 Criteria]
+
+    """
 
     _filter = np.greater
 
 
+@doc_inherit(SKCArithmeticFilterABC, warn_class=False)
 class FilterGE(SKCArithmeticFilterABC):
+    """Keeps the alternatives for which the criteria value are greater or \
+    equal than a value.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterGE({"ROE": 1, "RI": 27})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        PE          7          5        35
+        AA          5          6        28
+        MM          1          7        30
+        FN          5          8        30
+        [4 Alternatives x 3 Criteria]
+
+    """
 
     _filter = np.greater_equal
 
 
+@doc_inherit(SKCArithmeticFilterABC, warn_class=False)
 class FilterLT(SKCArithmeticFilterABC):
+    """Keeps the alternatives for which the criteria value are less than a \
+    value.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterLT({"RI": 28})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        JN          5          4        26
+        [1 Alternatives x 3 Criteria]
+
+    """
 
     _filter = np.less
 
 
+@doc_inherit(SKCArithmeticFilterABC, warn_class=False)
 class FilterLE(SKCArithmeticFilterABC):
+    """Keeps the alternatives for which the criteria value are less or equal \
+    than a value.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterLE({"RI": 28})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        JN          5          4        26
+        AA          5          6        28
+        [2 Alternatives x 3 Criteria]
+
+    """
 
     _filter = np.less_equal
 
 
+@doc_inherit(SKCArithmeticFilterABC, warn_class=False)
 class FilterEQ(SKCArithmeticFilterABC):
+    """Keeps the alternatives for which the criteria value are equal than a \
+    value.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterEQ({"CAP": 7, "RI": 30})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        MM          1          7        30
+        [1 Alternatives x 3 Criteria]
+
+    """
 
     _filter = np.equal
 
 
+@doc_inherit(SKCArithmeticFilterABC, warn_class=False)
 class FilterNE(SKCArithmeticFilterABC):
+    """Keeps the alternatives for which the criteria value are not equal than \
+    a value.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterNE({"CAP": 7, "RI": 30})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        PE          7          5        35
+        JN          5          4        26
+        AA          5          6        28
+        [3 Alternatives x 3 Criteria]
+
+    """
 
     _filter = np.not_equal
 
 
 # =============================================================================
-# SET FILT
+# SET FILTERS
 # =============================================================================
 
 
+@doc_inherit(SKCFilterABC, warn_class=False)
 class SKCSetFilterABC(SKCFilterABC):
+    """Provide a common behavior to make filters based on set operatopms.
+
+    This abstract class require to redefine ``_set_filter`` method, and this
+    will apply to each criteria separately.
+
+    This class is designed to implement in general set comparision like
+    "inclusion" and "exclusion".
+
+    """
+
     _skcriteria_abstract_class = True
 
     @abc.abstractmethod
     def _set_filter(self, arr, cond):
         raise NotImplementedError()
 
-    def _validate_filters(self, filters):
+    def _coerce_filters(self, filters):
+        criteria, criteria_filters = [], []
         for filter_name, filter_value in filters.items():
             if not isinstance(filter_name, str):
                 raise ValueError("All filter keys must be instance of 'str'")
@@ -188,10 +499,13 @@ class SKCSetFilterABC(SKCFilterABC):
                 raise ValueError(
                     "All filter values must be iterable with length > 1"
                 )
+            criteria.append(filter_name)
+            criteria_filters.append(np.asarray(filter_value))
+        return criteria, criteria_filters
 
     def _make_mask(self, matrix, criteria):
         mask_list = []
-        for fname, fset in self._criteria_filters.items():
+        for fname, fset in self.criteria_filters.items():
             crit_idx = np.in1d(criteria, fname, assume_unique=False)
             crit_array = matrix[:, crit_idx].flatten()
             crit_mask = self._set_filter(crit_array, fset)
@@ -202,11 +516,75 @@ class SKCSetFilterABC(SKCFilterABC):
         return mask
 
 
+@doc_inherit(SKCSetFilterABC, warn_class=False)
 class FilterIn(SKCSetFilterABC):
+    """Keeps the alternatives for which the criteria value are included in a \
+    set of values.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterIn({"ROE": [7, 1], "RI": [30, 35]})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        PE          7          5        35
+        MM          1          7        30
+        [2 Alternatives x 3 Criteria]
+
+    """
+
     def _set_filter(self, arr, cond):
         return np.isin(arr, cond)
 
 
+@doc_inherit(SKCSetFilterABC, warn_class=False)
 class FilterNotIn(SKCSetFilterABC):
+    """Keeps the alternatives for which the criteria value are not included \
+    in a set of values.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterNotIn({"ROE": [7, 1], "RI": [30, 35]})
+        >>> tfm.transform(dm)
+           ROE[▲ 2.0] CAP[▲ 4.0] RI[▼ 1.0]
+        JN          5          4        26
+        AA          5          6        28
+        [2 Alternatives x 3 Criteria]
+
+    """
+
     def _set_filter(self, arr, cond):
         return np.isin(arr, cond, invert=True)

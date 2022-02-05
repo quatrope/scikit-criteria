@@ -36,8 +36,8 @@ def test_SKCFilterABC_not_provide_filters():
         def _make_mask(self, matrix, criteria):
             pass
 
-        def _validate_filters(self, filters):
-            pass
+        def _coerce_filters(self, filters):
+            return list(filters.keys()), list(filters.values())
 
     with pytest.raises(ValueError):
         FooFilter({})
@@ -62,8 +62,8 @@ def test_SKCFilterABC_not_implemented_make_mask():
         def _make_mask(self, matrix, criteria):
             return super()._make_mask(matrix, criteria)
 
-        def _validate_filters(self, filters):
-            pass
+        def _coerce_filters(self, filters):
+            return list(filters.keys()), list(filters.values())
 
     tfm = FooFilter({"ROE": 1})
 
@@ -71,13 +71,13 @@ def test_SKCFilterABC_not_implemented_make_mask():
         tfm.transform(dm)
 
 
-def test_SKCFilterABC_not_implemented_validate_filters():
+def test_SKCFilterABC_not_implemented_coerce_filters():
     class FooFilter(filters.SKCFilterABC):
         def _make_mask(self, matrix, criteria):
             pass
 
-        def _validate_filters(self, filters):
-            return super()._validate_filters(filters)
+        def _coerce_filters(self, filters):
+            return super()._coerce_filters(filters)
 
     with pytest.raises(NotImplementedError):
         FooFilter({"ROE": 1})
@@ -102,8 +102,8 @@ def test_SKCFilterABC_missing_criteria():
         def _make_mask(self, matrix, criteria):
             pass
 
-        def _validate_filters(self, filters):
-            pass
+        def _coerce_filters(self, filters):
+            return list(filters.keys()), list(filters.values())
 
     tfm = FooFilter({"ZARAZA": 1})
 

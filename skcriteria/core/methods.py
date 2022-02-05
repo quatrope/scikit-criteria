@@ -123,12 +123,12 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
 
 # =============================================================================
-# SKCTransformer MIXIN
+# SKCTransformer ABC
 # =============================================================================
 
 
 class SKCTransformerABC(SKCMethodABC):
-    """Mixin class for all transformer in scikit-criteria."""
+    """Abstract class for all transformer in scikit-criteria."""
 
     _skcriteria_dm_type = "transformer"
     _skcriteria_abstract_class = True
@@ -177,11 +177,12 @@ class SKCTransformerABC(SKCMethodABC):
 class SKCMatrixAndWeightTransformerABC(SKCTransformerABC):
     """Transform weights and matrix together or independently.
 
-    The Transformer that implements this mixin can be configured to transform
+    The Transformer that implements this abstract class can be configured to
+    transform
     `weights`, `matrix` or `both` so only that part of the DecisionMatrix
     is altered.
 
-    This mixin require to redefine ``_transform_weights`` and
+    This abstract class require to redefine ``_transform_weights`` and
     ``_transform_matrix``, instead of ``_transform_data``.
 
     """

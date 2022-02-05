@@ -114,7 +114,7 @@ def test_SKCMethodABC_params_in_init():
 # =============================================================================
 
 
-def test_SKCTransformerMixin_not_redefined_abc_methods():
+def test_SKCTransformerABC_not_redefined_abc_methods():
     class Foo(methods.SKCTransformerABC):
         _skcriteria_parameters = []
 
@@ -127,7 +127,7 @@ def test_SKCTransformerMixin_not_redefined_abc_methods():
 # =============================================================================
 
 
-def test_SKCMatrixAndWeightTransformerMixin_transform_data_not_implemented(
+def test_SKCMatrixAndWeightTransformerABC_transform_data_not_implemented(
     decision_matrix,
 ):
     class Foo(methods.SKCTransformerABC):
@@ -143,7 +143,7 @@ def test_SKCMatrixAndWeightTransformerMixin_transform_data_not_implemented(
         transformer.transform(dm)
 
 
-def test_SKCMatrixAndWeightTransformerMixin_not_redefined_abc_methods():
+def test_SKCMatrixAndWeightTransformerABC_not_redefined_abc_methods():
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
         pass
 
@@ -157,7 +157,7 @@ def test_SKCMatrixAndWeightTransformerMixin_not_redefined_abc_methods():
         Foo("both")
 
 
-def test_SKCMatrixAndWeightTransformerMixin_bad_normalize_for():
+def test_SKCMatrixAndWeightTransformerABC_bad_normalize_for():
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
         def _transform_matrix(self, matrix):
             ...
@@ -169,7 +169,7 @@ def test_SKCMatrixAndWeightTransformerMixin_bad_normalize_for():
         Foo("mtx")
 
 
-def test_SKCMatrixAndWeightTransformerMixin_transform_weights_not_implemented(
+def test_SKCMatrixAndWeightTransformerABC_transform_weights_not_implemented(
     decision_matrix,
 ):
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
@@ -186,7 +186,7 @@ def test_SKCMatrixAndWeightTransformerMixin_transform_weights_not_implemented(
         transformer.transform(dm)
 
 
-def test_SKCMatrixAndWeightTransformerMixin_transform_weight_not_implemented(
+def test_SKCMatrixAndWeightTransformerABC_transform_weight_not_implemented(
     decision_matrix,
 ):
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
@@ -203,7 +203,7 @@ def test_SKCMatrixAndWeightTransformerMixin_transform_weight_not_implemented(
         transformer.transform(dm)
 
 
-def test_SKCMatrixAndWeightTransformerMixin_target():
+def test_SKCMatrixAndWeightTransformerABC_target():
     class Foo(methods.SKCMatrixAndWeightTransformerABC):
         def _transform_matrix(self, matrix):
             ...

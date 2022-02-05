@@ -31,7 +31,7 @@ from ..utils import Bunch, doc_inherit
 
 
 class SKCDecisionMakerABC(SKCMethodABC):
-    """Mixin class for all decisor based methods in scikit-criteria."""
+    """Abstract class for all decisor based methods in scikit-criteria."""
 
     _skcriteria_abstract_class = True
     _skcriteria_dm_type = "decision_maker"
@@ -197,7 +197,7 @@ class ResultABC(metaclass=abc.ABCMeta):
         return string
 
 
-@doc_inherit(ResultABC)
+@doc_inherit(ResultABC, warn_class=False)
 class RankResult(ResultABC):
     """Ranking of alternatives.
 
@@ -240,7 +240,7 @@ class RankResult(ResultABC):
         return html
 
 
-@doc_inherit(ResultABC)
+@doc_inherit(ResultABC, warn_class=False)
 class KernelResult(ResultABC):
     """Separates the alternatives between good (kernel) and bad.
 

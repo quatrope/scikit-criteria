@@ -35,9 +35,9 @@ from ..utils import doc_inherit
 
 
 class SKCWeighterABC(SKCTransformerABC):
-    """Mixin capable of determine the weights of the matrix.
+    """Abstract class capable of determine the weights of the matrix.
 
-    This mixin require to redefine ``_weight_matrix``, instead of
+    This abstract class require to redefine ``_weight_matrix``, instead of
     ``_transform_data``.
 
     """

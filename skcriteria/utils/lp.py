@@ -250,14 +250,14 @@ class _LPBase:
 # =============================================================================
 
 
-@doc_inherit(_LPBase)
+@doc_inherit(_LPBase, warn_class=False)
 class Minimize(_LPBase):
     """Creates a Minimize LP problem with a way better sintax than PuLP."""
 
     sense = pulp.LpMinimize
 
 
-@doc_inherit(_LPBase)
+@doc_inherit(_LPBase, warn_class=False)
 class Maximize(_LPBase):
     """Creates a Maximize LP problem with a way better sintax than PuLP."""
 
