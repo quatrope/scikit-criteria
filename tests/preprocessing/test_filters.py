@@ -31,8 +31,8 @@ from skcriteria.preprocessing import filters
 # =============================================================================
 
 
-def test_SKCFilterABC_not_provide_filters():
-    class FooFilter(filters.SKCFilterABC):
+def test_SKCByCriteriaFilterABC_not_provide_filters():
+    class FooFilter(filters.SKCByCriteriaFilterABC):
         def _make_mask(
             self, matrix, criteria, criteria_to_use, criteria_filters
         ):
@@ -45,7 +45,7 @@ def test_SKCFilterABC_not_provide_filters():
         FooFilter({})
 
 
-def test_SKCFilterABC_not_implemented_make_mask():
+def test_SKCByCriteriaFilterABC_not_implemented_make_mask():
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -60,7 +60,7 @@ def test_SKCFilterABC_not_implemented_make_mask():
         criteria=["ROE", "CAP", "RI"],
     )
 
-    class FooFilter(filters.SKCFilterABC):
+    class FooFilter(filters.SKCByCriteriaFilterABC):
         def _make_mask(
             self, matrix, criteria, criteria_to_use, criteria_filters
         ):
@@ -77,8 +77,8 @@ def test_SKCFilterABC_not_implemented_make_mask():
         tfm.transform(dm)
 
 
-def test_SKCFilterABC_not_implemented_coerce_filters():
-    class FooFilter(filters.SKCFilterABC):
+def test_SKCByCriteriaFilterABC_not_implemented_coerce_filters():
+    class FooFilter(filters.SKCByCriteriaFilterABC):
         def _make_mask(
             self, matrix, criteria, criteria_to_use, criteria_filters
         ):
@@ -91,7 +91,7 @@ def test_SKCFilterABC_not_implemented_coerce_filters():
         FooFilter({"ROE": 1})
 
 
-def test_SKCFilterABC_missing_criteria():
+def test_SKCByCriteriaFilterABC_missing_criteria():
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -106,7 +106,7 @@ def test_SKCFilterABC_missing_criteria():
         criteria=["ROE", "CAP", "RI"],
     )
 
-    class FooFilter(filters.SKCFilterABC):
+    class FooFilter(filters.SKCByCriteriaFilterABC):
         def _make_mask(
             self, matrix, criteria, criteria_to_use, criteria_filters
         ):

@@ -29,7 +29,7 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-class SKCFilterABC(SKCTransformerABC):
+class SKCByCriteriaFilterABC(SKCTransformerABC):
     """Abstract class capable of filtering alternatives.
 
     This abstract class require to redefine ``_coerce_filters`` and
@@ -144,8 +144,8 @@ class SKCFilterABC(SKCTransformerABC):
 # =============================================================================
 
 
-@doc_inherit(SKCFilterABC, warn_class=False)
-class Filter(SKCFilterABC):
+@doc_inherit(SKCByCriteriaFilterABC, warn_class=False)
+class Filter(SKCByCriteriaFilterABC):
     """Function based filter.
 
     This class accepts as a filter any arbitrary function that receives as a
@@ -215,8 +215,8 @@ class Filter(SKCFilterABC):
 # =============================================================================
 
 
-@doc_inherit(SKCFilterABC, warn_class=False)
-class SKCArithmeticFilterABC(SKCFilterABC):
+@doc_inherit(SKCByCriteriaFilterABC, warn_class=False)
+class SKCArithmeticFilterABC(SKCByCriteriaFilterABC):
     """Provide a common behavior to make filters based on the same comparator.
 
     This abstract class require to redefine ``_filter`` method, and this will
@@ -484,8 +484,8 @@ class FilterNE(SKCArithmeticFilterABC):
 # =============================================================================
 
 
-@doc_inherit(SKCFilterABC, warn_class=False)
-class SKCSetFilterABC(SKCFilterABC):
+@doc_inherit(SKCByCriteriaFilterABC, warn_class=False)
+class SKCSetFilterABC(SKCByCriteriaFilterABC):
     """Provide a common behavior to make filters based on set operatopms.
 
     This abstract class require to redefine ``_set_filter`` method, and this
