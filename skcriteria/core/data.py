@@ -23,6 +23,7 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 
 import enum
 import functools
+from collections import abc
 
 import numpy as np
 
@@ -33,7 +34,7 @@ import pyquery as pq
 
 
 from .plot import DecisionMatrixPlotter
-from ..utils import deprecated
+from ..utils import deprecated, doc_inherit
 
 
 # =============================================================================
@@ -115,7 +116,7 @@ class Objective(enum.Enum):
 
 
 # =============================================================================
-# DATA CLASS
+# STATS ACCESSOR
 # =============================================================================
 
 
@@ -213,6 +214,55 @@ class DecisionMatrixStatsAccessor:
         ]
 
 
+# =============================================================================
+# _SLICER ARRAY
+# =============================================================================
+class _ACArray(np.ndarray, abc.Mapping):
+    """Immutable Array to provide access to the alternative and criteria \
+    values.
+
+    The behavior is the same as a numpy.ndarray but if the slice it receives
+    is a value contained in the array it uses an external function
+    to access the series with that criteria/alternative.
+
+    Besides this it has the typical methods of a dictionary.
+
+    """
+
+    def __new__(cls, input_array, skc_slicer):
+        obj = np.asarray(input_array).view(cls)
+        obj._skc_slicer = skc_slicer
+        return obj
+
+    @doc_inherit(np.ndarray.__getitem__)
+    def __getitem__(self, k):
+        try:
+            if k in self:
+                return self._skc_slicer(k)
+            return super().__getitem__(k)
+        except IndexError:
+            raise IndexError(k)
+
+    def __setitem__(self, k, v):
+        """Raise an AttributeError, this object are read-only."""
+        raise AttributeError("_SlicerArray are read-only")
+
+    @doc_inherit(abc.Mapping.items)
+    def items(self):
+        return ((e, self[e]) for e in self)
+
+    @doc_inherit(abc.Mapping.keys)
+    def keys(self):
+        return iter(self)
+
+    @doc_inherit(abc.Mapping.values)
+    def values(self):
+        return (self[e] for e in self)
+
+
+# =============================================================================
+# DECISION MATRIX
+# =============================================================================
 class DecisionMatrix:
     """Representation of all data needed in the MCDA analysis.
 
@@ -426,12 +476,16 @@ class DecisionMatrix:
     @property
     def alternatives(self):
         """Names of the alternatives."""
-        return self._data_df.index.to_numpy()
+        arr = self._data_df.index.to_numpy()
+        slicer = self._data_df.loc.__getitem__
+        return _ACArray(arr, slicer)
 
     @property
     def criteria(self):
         """Names of the criteria."""
-        return self._data_df.columns.to_numpy()
+        arr = self._data_df.columns.to_numpy()
+        slicer = self._data_df.__getitem__
+        return _ACArray(arr, slicer)
 
     @property
     def weights(self):
@@ -566,8 +620,8 @@ class DecisionMatrix:
             "objectives": self.iobjectives.to_numpy(),
             "weights": self.weights.to_numpy(),
             "dtypes": self.dtypes.to_numpy(),
-            "alternatives": self.alternatives,
-            "criteria": self.criteria,
+            "alternatives": np.asarray(self.alternatives),
+            "criteria": np.asarray(self.criteria),
         }
 
     @deprecated(

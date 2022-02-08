@@ -30,7 +30,8 @@ from ..utils import doc_inherit
 
 
 class SKCByCriteriaFilterABC(SKCTransformerABC):
-    """Abstract class capable of filtering alternatives.
+    """Abstract class capable of filtering alternatives based on criteria \
+    values.
 
     This abstract class require to redefine ``_coerce_filters`` and
     ``_make_mask``, instead of ``_transform_data``.

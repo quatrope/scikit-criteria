@@ -173,6 +173,37 @@ def test_DecisionMatrixStatsAccessor_dir(decision_matrix):
 
 
 # =============================================================================
+# AC ACCESSORS
+# =============================================================================
+
+
+def test__ACArray(decision_matrix):
+
+    content = ["a", "b", "c"]
+    mapping = {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]}
+
+    arr = data._ACArray(content, mapping.__getitem__)
+
+    assert arr["a"] == [1, 2, 3]
+    assert arr["b"] == [4, 5, 6]
+    assert arr["c"] == [7, 8, 9]
+
+    assert arr[0] == "a"
+    assert arr[1] == "b"
+    assert arr[2] == "c"
+
+    assert dict(arr.items()) == mapping
+    assert list(arr.keys()) == list(arr) == content
+    assert sorted(list(arr.values())) == sorted(list(mapping.values()))
+
+    with pytest.raises(AttributeError):
+        arr[0] = 1
+
+    with pytest.raises(IndexError):
+        arr["foo"]
+
+
+# =============================================================================
 # MUST WORK
 # =============================================================================
 
