@@ -26,7 +26,7 @@ from pyquery import PyQuery
 
 import pytest
 
-from skcriteria.core import data, plot
+from skcriteria.core import data, dominance, plot, stats
 
 
 # =============================================================================
@@ -231,34 +231,43 @@ def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
 # =============================================================================
 
 
-def test_DecisionMatrix_plot(data_values):
-    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
-
-    dm = data.mkdm(
-        matrix=mtx,
-        objectives=objectives,
-        weights=weights,
-        alternatives=alternatives,
-        criteria=criteria,
+def test_DecisionMatrix_plot(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
     )
 
     assert isinstance(dm.plot, plot.DecisionMatrixPlotter)
     assert dm.plot._dm is dm
 
 
-def test_DecisionMatrix_stats(data_values):
-    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
-
-    dm = data.mkdm(
-        matrix=mtx,
-        objectives=objectives,
-        weights=weights,
-        alternatives=alternatives,
-        criteria=criteria,
+def test_DecisionMatrix_stats(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
     )
 
-    assert isinstance(dm.stats, data.DecisionMatrixStatsAccessor)
+    assert isinstance(dm.stats, stats.DecisionMatrixStatsAccessor)
     assert dm.stats._dm is dm
+
+
+def test_DecisionMatrix_dominance(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    assert isinstance(dm.dominance, dominance.DecisionMatrixDominanceAccessor)
+    assert dm.dominance._dm is dm
 
 
 # =============================================================================
