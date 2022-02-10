@@ -29,7 +29,7 @@ import seaborn as sns
 from skcriteria.core import plot
 
 # =============================================================================
-# TEST IF __calll__ calls the correct method
+# TEST IF __call__ calls the correct method
 # =============================================================================
 
 

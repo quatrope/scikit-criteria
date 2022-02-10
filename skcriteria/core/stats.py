@@ -79,8 +79,8 @@ class DecisionMatrixStatsAccessor:
 
         Returns
         -------
-        :class:`matplotlib.axes.Axes` or numpy.ndarray of them
-           The ax used by the plot
+        object: array, float, int, frame or series
+           Statistic result.
 
         """
         kind = self._DEFAULT_KIND if kind is None else kind

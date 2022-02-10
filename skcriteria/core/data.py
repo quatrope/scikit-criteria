@@ -23,6 +23,7 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 
 import enum
 import functools
+import itertools as it
 from collections import abc
 
 import numpy as np
@@ -33,9 +34,10 @@ from pandas.io.formats import format as pd_fmt
 import pyquery as pq
 
 
+from .dominance import DecisionMatrixDominanceAccessor
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, doc_inherit
+from ..utils import deprecated, doc_inherit, rank
 
 
 # =============================================================================
@@ -441,15 +443,40 @@ class DecisionMatrix:
         """Dtypes of the criteria."""
         return self._data_df.dtypes.copy()
 
+    # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
+
     @property
+    @functools.lru_cache(maxsize=None)
     def plot(self):
         """Plot accessor."""
         return DecisionMatrixPlotter(self)
 
     @property
+    @functools.lru_cache(maxsize=None)
     def stats(self):
         """Descriptive statistics accessor."""
         return DecisionMatrixStatsAccessor(self)
+
+    @property
+    @functools.lru_cache(maxsize=None)
+    def dominance(self):
+        """Dominance information accessor."""
+
+        # Compute the dominance is an 0^2 algorithm, so lets use a cache
+        reverse = (self.objectives == Objective.MIN).to_numpy()
+
+        dominance_cache, alts_numpy = {}, {}
+
+        for a0, a1 in it.combinations(self.alternatives, 2):
+            for aname in (a0, a1):
+                if aname not in alts_numpy:
+                    alts_numpy[aname] = self.alternatives[aname]
+
+            dominance_cache[(a0, a1)] = rank.dominance(
+                alts_numpy[a0], alts_numpy[a1], reverse=reverse
+            )
+
+        return DecisionMatrixDominanceAccessor(self, dominance_cache)
 
     # UTILITIES ===============================================================
 
