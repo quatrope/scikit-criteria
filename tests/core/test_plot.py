@@ -17,6 +17,8 @@
 # =============================================================================
 # IMPORTS
 # =============================================================================
+
+import inspect
 from unittest import mock
 
 from matplotlib import pyplot as plt
@@ -33,7 +35,7 @@ from skcriteria.core import plot
 # =============================================================================
 
 
-def test_plot_call_invalid_plot_kind(decision_matrix):
+def test_DecisionMatrixPlotter_call_invalid_plot_kind(decision_matrix):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -54,23 +56,13 @@ def test_plot_call_invalid_plot_kind(decision_matrix):
 
 @pytest.mark.parametrize(
     "plot_kind",
-    [
-        "heatmap",
-        "wheatmap",
-        "bar",
-        "wbar",
-        "barh",
-        "wbarh",
-        "hist",
-        "whist",
-        "box",
-        "wbox",
-        "kde",
-        "wkde",
-        "area",
-    ],
+    {
+        pkind
+        for pkind, pkind_method in vars(plot.DecisionMatrixPlotter).items()
+        if not inspect.ismethod(pkind_method) and not pkind.startswith("_")
+    },
 )
-def test_plot_call_heatmap(decision_matrix, plot_kind):
+def test_DecisionMatrixPlotter_call(decision_matrix, plot_kind):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -96,7 +88,7 @@ def test_plot_call_heatmap(decision_matrix, plot_kind):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_heatmap(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_heatmap(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -125,7 +117,7 @@ def test_plot_heatmap(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_wheatmap(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_wheatmap(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -155,7 +147,9 @@ def test_plot_wheatmap(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_wheatmap_default_axis(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_wheatmap_default_axis(
+    decision_matrix, fig_test, fig_ref
+):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -194,7 +188,7 @@ def test_plot_wheatmap_default_axis(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_bar(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_bar(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -222,7 +216,7 @@ def test_plot_bar(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_wbar(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_wbar(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -256,7 +250,7 @@ def test_plot_wbar(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_barh(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_barh(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -284,7 +278,7 @@ def test_plot_barh(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_wbarh(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_wbarh(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -317,7 +311,7 @@ def test_plot_wbarh(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_hist(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_hist(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -344,7 +338,7 @@ def test_plot_hist(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_whist(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_whist(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -378,7 +372,7 @@ def test_plot_whist(decision_matrix, fig_test, fig_ref):
 @pytest.mark.slow
 @pytest.mark.parametrize("orient", ["v", "h"])
 @check_figures_equal()
-def test_plot_box(decision_matrix, orient, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_box(decision_matrix, orient, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -410,7 +404,7 @@ def test_plot_box(decision_matrix, orient, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_wbox(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_wbox(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -436,7 +430,7 @@ def test_plot_wbox(decision_matrix, fig_test, fig_ref):
 # =============================================================================
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_kde(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_kde(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -463,7 +457,7 @@ def test_plot_kde(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_wkde(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_wkde(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -491,7 +485,7 @@ def test_plot_wkde(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_ogive(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_ogive(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -518,7 +512,7 @@ def test_plot_ogive(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_wogive(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_wogive(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,
@@ -546,7 +540,7 @@ def test_plot_wogive(decision_matrix, fig_test, fig_ref):
 
 @pytest.mark.slow
 @check_figures_equal()
-def test_plot_area(decision_matrix, fig_test, fig_ref):
+def test_DecisionMatrixPlotter_area(decision_matrix, fig_test, fig_ref):
     dm = decision_matrix(
         seed=42,
         min_alternatives=3,

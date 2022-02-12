@@ -58,7 +58,7 @@ class DecisionMatrixDominanceAccessor:
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        return f"{type(self).__name__}({self._dm})"
+        return f"{type(self).__name__}({self._dm!r})"
 
     def _create_frame(self, extract):
         alternatives, domdict = self._dm.alternatives, self._dominance_cache
@@ -94,24 +94,6 @@ class DecisionMatrixDominanceAccessor:
 
         return self._create_frame(extract)
 
-    def dominance(self, strict=False):
-        def extract(a0, a1, domdict):
-            if a0 == a1:
-                return False
-            try:
-                info = domdict[(a0, a1)]
-                performance_a0, performance_a1 = info.aDb, info.bDa
-            except KeyError:
-                info = domdict[(a1, a0)]
-                performance_a1, performance_a0 = info.aDb, info.bDa
-
-            if strict and info.eq:
-                return False
-
-            return performance_a0 > 0 and performance_a1 == 0
-
-        return self._create_frame(extract)
-
     def resume(self, a0, a1):
         domdict = self._dominance_cache
         criteria = self._dm.criteria
@@ -141,18 +123,35 @@ class DecisionMatrixDominanceAccessor:
                 pd.Series(info.eq_where, name=alt_index[2], index=crit_index),
             ]
         )
-        df.insert(
-            3,
-            ("Performance"),
-            [performance_a0, performance_a1, info.eq],
+
+        df = df.assign(
+            Performance=[performance_a0, performance_a1, info.eq],
         )
 
         return df
 
+    def dominance(self, strict=False):
+        def extract(a0, a1, domdict):
+            if a0 == a1:
+                return False
+            try:
+                info = domdict[(a0, a1)]
+                performance_a0, performance_a1 = info.aDb, info.bDa
+            except KeyError:
+                info = domdict[(a1, a0)]
+                performance_a1, performance_a0 = info.aDb, info.bDa
+
+            if strict and info.eq:
+                return False
+
+            return performance_a0 > 0 and performance_a1 == 0
+
+        return self._create_frame(extract)
+
     def dominated(self, strict=False):
         return self.dominance(strict=strict).any()
 
-    @functools.lru_cache()
+    @functools.lru_cache(maxsize=None)
     def dominators_of(self, a, strict=False):
 
         dominance_a = self.dominance(strict=strict)[a]
@@ -170,6 +169,7 @@ class DecisionMatrixDominanceAccessor:
     def has_loops(self, strict=False):
         # lets put the dominated alternatives last so our while loop will
         # be shorter by extracting from the tail
+
         alternatives = list(self.dominated(strict=strict).sort_values().index)
 
         try:
@@ -186,5 +186,4 @@ class DecisionMatrixDominanceAccessor:
 
         except RecursionError:
             return True
-        else:
-            return False
+        return False
