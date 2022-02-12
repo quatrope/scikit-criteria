@@ -28,7 +28,6 @@ import pandas as pd
 import pytest
 
 from skcriteria.core import data, dominance
-from skcriteria.utils import rank
 
 # =============================================================================
 # TEST IF __call__ calls the correct method
@@ -44,7 +43,7 @@ def test_DecisionMatrixDominanceAccessor_call_invalid_kind(decision_matrix):
         max_criteria=3,
     )
 
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, {})
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     with pytest.raises(ValueError):
         dom("__call__")
@@ -73,7 +72,7 @@ def test_DecisionMatrixDominanceAccessor_call(decision_matrix, kind):
         max_criteria=3,
     )
 
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, {})
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     method_name = (
         f"skcriteria.core.dominance.DecisionMatrixDominanceAccessor.{kind}"
@@ -90,10 +89,7 @@ def test_DecisionMatrixDominanceAccessor_call(decision_matrix, kind):
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_bt(revert_key_cache):
+def test_DecisionMatrixDominanceAccessor_bt():
     dm = data.mkdm(
         matrix=[
             [10, 40],
@@ -104,17 +100,7 @@ def test_DecisionMatrixDominanceAccessor_bt(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     expected = pd.DataFrame(
         [
@@ -138,15 +124,8 @@ def test_DecisionMatrixDominanceAccessor_repr():
         alternatives=["A0", "A1"],
         criteria=["C0", "C1"],
     )
-    cache = {
-        ("A0", "A1"): rank.dominance(
-            array_a=dm.alternatives["A0"].to_numpy(),
-            array_b=dm.alternatives["A1"].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
 
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
     expected = (
         "DecisionMatrixDominanceAccessor(   C0[▲ 1.0] C1[▼ 1.0]\n"
         "A0        10        70\n"
@@ -160,10 +139,9 @@ def test_DecisionMatrixDominanceAccessor_repr():
 # =============================================================================
 # EQ
 # =============================================================================
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_eq(revert_key_cache):
+
+
+def test_DecisionMatrixDominanceAccessor_eq():
     dm = data.mkdm(
         matrix=[
             [10, 70],
@@ -174,17 +152,7 @@ def test_DecisionMatrixDominanceAccessor_eq(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     expected = pd.DataFrame(
         [
@@ -204,10 +172,7 @@ def test_DecisionMatrixDominanceAccessor_eq(revert_key_cache):
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_resume(revert_key_cache):
+def test_DecisionMatrixDominanceAccessor_resume():
     dm = data.mkdm(
         matrix=[
             [10, 70],
@@ -218,17 +183,7 @@ def test_DecisionMatrixDominanceAccessor_resume(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     expected = pd.DataFrame.from_dict(
         {
@@ -260,10 +215,7 @@ def test_DecisionMatrixDominanceAccessor_resume(revert_key_cache):
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominance(revert_key_cache):
+def test_DecisionMatrixDominanceAccessor_dominance():
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -274,17 +226,7 @@ def test_DecisionMatrixDominanceAccessor_dominance(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     expected = pd.DataFrame(
         [
@@ -299,10 +241,7 @@ def test_DecisionMatrixDominanceAccessor_dominance(revert_key_cache):
     pd.testing.assert_frame_equal(dm.dominance.dominance(), expected)
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominance_strict(revert_key_cache):
+def test_DecisionMatrixDominanceAccessor_dominance_strict():
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -313,17 +252,7 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     expected = pd.DataFrame(
         [
@@ -340,12 +269,7 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict(revert_key_cache):
     )
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominance_strict_false(
-    revert_key_cache,
-):
+def test_DecisionMatrixDominanceAccessor_dominance_strict_false():
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -356,17 +280,7 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict_false(
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     strict_expected = pd.DataFrame(
         [
@@ -404,10 +318,7 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict_false(
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominated(revert_key_cache):
+def test_DecisionMatrixDominanceAccessor_dominated():
 
     dm = data.mkdm(
         matrix=[
@@ -419,17 +330,7 @@ def test_DecisionMatrixDominanceAccessor_dominated(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     expected = pd.Series([True, False], index=["A0", "A1"])
 
@@ -437,10 +338,7 @@ def test_DecisionMatrixDominanceAccessor_dominated(revert_key_cache):
     pd.testing.assert_series_equal(dm.dominance.dominated(), expected)
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominated_strict(revert_key_cache):
+def test_DecisionMatrixDominanceAccessor_dominated_strict():
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -451,17 +349,7 @@ def test_DecisionMatrixDominanceAccessor_dominated_strict(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     expected = pd.Series([True, False], index=["A0", "A1"])
 
@@ -471,12 +359,7 @@ def test_DecisionMatrixDominanceAccessor_dominated_strict(revert_key_cache):
     )
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominated_strict_false(
-    revert_key_cache,
-):
+def test_DecisionMatrixDominanceAccessor_dominated_strict_false():
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -487,17 +370,7 @@ def test_DecisionMatrixDominanceAccessor_dominated_strict_false(
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     strict_expected = pd.Series([False, False], index=["A0", "A1"])
 
@@ -521,10 +394,7 @@ def test_DecisionMatrixDominanceAccessor_dominated_strict_false(
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominators_of(revert_key_cache):
+def test_DecisionMatrixDominanceAccessor_dominators_of():
 
     dm = data.mkdm(
         matrix=[
@@ -536,17 +406,7 @@ def test_DecisionMatrixDominanceAccessor_dominators_of(revert_key_cache):
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     assert np.all(dom.dominators_of("A0") == ["A1"])
     assert np.all(dm.dominance.dominators_of("A0") == ["A1"])
@@ -555,12 +415,7 @@ def test_DecisionMatrixDominanceAccessor_dominators_of(revert_key_cache):
     assert not len(dm.dominance.dominators_of("A1"))
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominators_of_strict(
-    revert_key_cache,
-):
+def test_DecisionMatrixDominanceAccessor_dominators_of_strict():
     dm = data.mkdm(
         matrix=[
             [20, 80],
@@ -571,17 +426,7 @@ def test_DecisionMatrixDominanceAccessor_dominators_of_strict(
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     assert not len(dom.dominators_of("A1", strict=True))
     assert not len(dm.dominance.dominators_of("A1", strict=True))
@@ -590,12 +435,7 @@ def test_DecisionMatrixDominanceAccessor_dominators_of_strict(
     assert not len(dm.dominance.dominators_of("A0", strict=True))
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_dominators_of_strict_false(
-    revert_key_cache,
-):
+def test_DecisionMatrixDominanceAccessor_dominators_of_strict_false():
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -606,17 +446,7 @@ def test_DecisionMatrixDominanceAccessor_dominators_of_strict_false(
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     assert np.all(dom.dominators_of("A0", strict=False) == ["A1"])
     assert not len(dom.dominators_of("A0", strict=True))
@@ -627,12 +457,7 @@ def test_DecisionMatrixDominanceAccessor_dominators_of_strict_false(
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "revert_key_cache", [True, False], ids="Key cache Reverted: {}".format
-)
-def test_DecisionMatrixDominanceAccessor_has_loops_false(
-    revert_key_cache,
-):
+def test_DecisionMatrixDominanceAccessor_has_loops_false():
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -643,17 +468,7 @@ def test_DecisionMatrixDominanceAccessor_has_loops_false(
         criteria=["C0", "C1"],
     )
 
-    key0, key1 = ("A1", "A0") if revert_key_cache else ("A0", "A1")
-
-    cache = {
-        (key0, key1): rank.dominance(
-            array_a=dm.alternatives[key0].to_numpy(),
-            array_b=dm.alternatives[key1].to_numpy(),
-            reverse=(dm.objectives == data.Objective.MIN).to_numpy(),
-        )
-    }
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm, cache)
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
     assert not dom.has_loops(strict=True)
     assert not dom.has_loops(strict=False)

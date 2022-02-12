@@ -16,12 +16,14 @@
 # =============================================================================
 
 import functools
+import itertools as it
 from collections import OrderedDict
 
 import numpy as np
 
 import pandas as pd
 
+from ..utils import rank
 
 # =============================================================================
 # DOMINANCE ACCESSOR
@@ -33,8 +35,23 @@ class DecisionMatrixDominanceAccessor:
 
     _DEFAULT_KIND = "dominance"
 
-    def __init__(self, dm, dominance_cache):
+    def __init__(self, dm):
         self._dm = dm
+
+        # Compute the dominance is an 0^2 algorithm, so lets use a cache
+        reverse = dm.minwhere
+
+        dominance_cache, alts_numpy = {}, {}
+
+        for a0, a1 in it.combinations(dm.alternatives, 2):
+            for aname in (a0, a1):
+                if aname not in alts_numpy:
+                    alts_numpy[aname] = dm.alternatives[aname]
+
+            dominance_cache[(a0, a1)] = rank.dominance(
+                alts_numpy[a0], alts_numpy[a1], reverse=reverse
+            )
+
         self._dominance_cache = dominance_cache
 
     def __call__(self, kind=None, **kwargs):
