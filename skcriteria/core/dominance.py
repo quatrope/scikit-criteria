@@ -77,52 +77,61 @@ class DecisionMatrixDominanceAccessor:
         """x.__repr__() <==> repr(x)."""
         return f"{type(self).__name__}({self._dm!r})"
 
+    def _cache_read(self, a0, a1):
+        key = a0, a1
+        cache = self._dominance_cache
+        entry, key_reverted = (
+            (cache[key], False) if key in cache else (cache[key[::-1]], True)
+        )
+        return entry, key_reverted
+
     def _create_frame(self, extract):
-        alternatives, domdict = self._dm.alternatives, self._dominance_cache
+        alternatives = self._dm.alternatives
         rows = []
         for a0 in alternatives:
             row = OrderedDict()
             for a1 in alternatives:
-                row[a1] = extract(a0, a1, domdict)
+                row[a1] = extract(a0, a1)
             rows.append(row)
         return pd.DataFrame(rows, index=alternatives)
 
     def bt(self):
-        def extract(a0, a1, domdict):
+        def extract(a0, a1):
             if a0 == a1:
                 return 0
-            try:
-                return domdict[(a0, a1)].aDb
-            except KeyError:
-                return domdict[(a1, a0)].bDa
+            centry, ckreverted = self._cache_read(a0, a1)
+            return centry.aDb if not ckreverted else centry.bDa
 
         return self._create_frame(extract)
 
     def eq(self):
         alternatives_len = len(self._dm.alternatives)
 
-        def extract(a0, a1, domdict):
+        def extract(a0, a1):
             if a0 == a1:
                 return alternatives_len
-            try:
-                return domdict[(a0, a1)].eq
-            except KeyError:
-                return domdict[(a1, a0)].eq
+            centry, _ = self._cache_read(a0, a1)
+            return centry.eq
 
         return self._create_frame(extract)
 
     def resume(self, a0, a1):
-        domdict = self._dominance_cache
-        criteria = self._dm.criteria
 
-        try:
-            info = domdict[(a0, a1)]
-            performance_a0, performance_a1 = info.aDb, info.bDa
-            where_aDb, where_bDa = info.aDb_where, info.bDa_where
-        except KeyError:
-            info = domdict[(a1, a0)]
-            performance_a1, performance_a0 = info.aDb, info.bDa
-            where_bDa, where_aDb = info.aDb_where, info.bDa_where
+        # read the cache and extract the values
+        centry, ckreverted = self._cache_read(a0, a1)
+        performance_a0, performance_a1 = (
+            (centry.aDb, centry.bDa)
+            if not ckreverted
+            else (centry.bDa, centry.aDb)
+        )
+        where_aDb, where_bDa = (
+            (centry.aDb_where, centry.bDa_where)
+            if not ckreverted
+            else (centry.bDa_where, centry.aDb_where)
+        )
+        eq, eq_where = centry.eq, centry.eq_where
+
+        criteria = self._dm.criteria
 
         alt_index = pd.MultiIndex.from_tuples(
             [
@@ -137,28 +146,28 @@ class DecisionMatrixDominanceAccessor:
             [
                 pd.Series(where_aDb, name=alt_index[0], index=crit_index),
                 pd.Series(where_bDa, name=alt_index[1], index=crit_index),
-                pd.Series(info.eq_where, name=alt_index[2], index=crit_index),
+                pd.Series(eq_where, name=alt_index[2], index=crit_index),
             ]
         )
 
         df = df.assign(
-            Performance=[performance_a0, performance_a1, info.eq],
+            Performance=[performance_a0, performance_a1, eq],
         )
 
         return df
 
     def dominance(self, strict=False):
-        def extract(a0, a1, domdict):
+        def extract(a0, a1):
             if a0 == a1:
                 return False
-            try:
-                info = domdict[(a0, a1)]
-                performance_a0, performance_a1 = info.aDb, info.bDa
-            except KeyError:
-                info = domdict[(a1, a0)]
-                performance_a1, performance_a0 = info.aDb, info.bDa
+            centry, ckreverted = self._cache_read(a0, a1)
+            performance_a0, performance_a1 = (
+                (centry.aDb, centry.bDa)
+                if not ckreverted
+                else (centry.bDa, centry.aDb)
+            )
 
-            if strict and info.eq:
+            if strict and centry.eq:
                 return False
 
             return performance_a0 > 0 and performance_a1 == 0

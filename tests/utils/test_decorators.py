@@ -19,6 +19,7 @@
 # =============================================================================
 
 import string
+import warnings
 
 import numpy as np
 
@@ -61,13 +62,12 @@ def test_doc_inherit():
         class A:  # noqa
             pass
 
-    with pytest.warns(None) as warnings:
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
 
         @decorators.doc_inherit(doc, warn_class=False)
         class A:  # noqa
             pass
-
-    assert not warnings
 
 
 def test_deprecated():

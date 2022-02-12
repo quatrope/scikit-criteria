@@ -18,6 +18,8 @@
 # IMPORTS
 # =============================================================================
 
+import warnings
+
 import numpy as np
 
 import pandas as pd
@@ -74,29 +76,31 @@ def test_objective_to_string():
 
 
 def test__ACArray(decision_matrix):
+    with warnings.catch_warnings():
 
-    content = ["a", "b", "c"]
-    mapping = {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]}
+        # see: https://stackoverflow.com/a/46721064
+        warnings.simplefilter(action="ignore", category=FutureWarning)
 
-    arr = data._ACArray(content, mapping.__getitem__)
+        content = ["a", "b", "c"]
+        mapping = {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]}
 
-    assert arr["a"] == [1, 2, 3]
-    assert arr["b"] == [4, 5, 6]
-    assert arr["c"] == [7, 8, 9]
+        arr = data._ACArray(content, mapping.__getitem__)
 
-    assert arr[0] == "a"
-    assert arr[1] == "b"
-    assert arr[2] == "c"
+        assert arr["a"] == [1, 2, 3]
+        assert arr["b"] == [4, 5, 6]
+        assert arr["c"] == [7, 8, 9]
 
-    assert dict(arr.items()) == mapping
-    assert list(arr.keys()) == list(arr) == content
-    assert sorted(list(arr.values())) == sorted(list(mapping.values()))
+        assert list(arr) == content
 
-    with pytest.raises(AttributeError):
-        arr[0] = 1
+        assert dict(arr.items()) == mapping
+        assert list(arr.keys()) == list(arr) == content
+        assert sorted(list(arr.values())) == sorted(list(mapping.values()))
 
-    with pytest.raises(IndexError):
-        arr["foo"]
+        with pytest.raises(AttributeError):
+            arr[0] = 1
+
+        with pytest.raises(IndexError):
+            arr["foo"]
 
 
 # =============================================================================
@@ -128,6 +132,13 @@ def test_DecisionMatrix_simple_creation(data_values):
     np.testing.assert_array_equal(dm.criteria, criteria)
     np.testing.assert_array_equal(dm.dtypes, [np.float64] * len(criteria))
 
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
+
 
 def test_DecisionMatrix_no_provide_weights(data_values):
     mtx, objectives, _, alternatives, criteria = data_values(seed=42)
@@ -151,6 +162,13 @@ def test_DecisionMatrix_no_provide_weights(data_values):
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
+
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
 
 
 def test_DecisionMatrix_no_provide_anames(data_values):
@@ -177,6 +195,13 @@ def test_DecisionMatrix_no_provide_anames(data_values):
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
 
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
+
 
 def test_DecisionMatrix_no_provide_cnames(data_values):
     mtx, objectives, weights, alternatives, _ = data_values(seed=42)
@@ -201,6 +226,13 @@ def test_DecisionMatrix_no_provide_cnames(data_values):
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
 
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
+
 
 def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
     mtx, objectives, weights, _, _ = data_values(seed=42)
@@ -224,6 +256,13 @@ def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
+
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
 
 
 # =============================================================================
