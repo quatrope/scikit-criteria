@@ -21,7 +21,7 @@ from collections.abc import Collection
 
 import numpy as np
 
-from ..core import SKCTransformerABC
+from ..core import DecisionMatrix, SKCTransformerABC
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -604,3 +604,46 @@ class FilterNotIn(SKCSetFilterABC):
 
     def _set_filter(self, arr, cond):
         return np.isin(arr, cond, invert=True)
+
+
+# =============================================================================
+# DOMINANCE
+# =============================================================================
+
+
+class FilterNonDominated(SKCTransformerABC):
+
+    _skcriteria_parameters = frozenset(["strict"])
+
+    def __init__(self, *, strict=False):
+        self._strict = bool(strict)
+
+    @property
+    def strict(self):
+        """"""
+        return self._strict
+
+    @doc_inherit(SKCTransformerABC._transform_data)
+    def _transform_data(self, matrix, alternatives, dominated_mask, **kwargs):
+
+        filtered_matrix = matrix[~dominated_mask]
+        filtered_alternatives = alternatives[~dominated_mask]
+
+        kwargs.update(
+            matrix=filtered_matrix,
+            alternatives=filtered_alternatives,
+        )
+        return kwargs
+
+    def transform(self, dm):
+
+        data = dm.to_dict()
+        dominated_mask = dm.dominance.dominated(strict=self._strict).to_numpy()
+
+        transformed_data = self._transform_data(
+            dominated_mask=dominated_mask, **data
+        )
+
+        transformed_dm = DecisionMatrix.from_mcda_data(**transformed_data)
+
+        return transformed_dm
