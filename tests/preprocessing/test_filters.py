@@ -539,3 +539,81 @@ def test_FilterNotIn():
     result = tfm.transform(dm)
 
     assert result.equals(expected)
+
+
+# =============================================================================
+# DOMINANCE
+# =============================================================================
+
+
+def test_FilterNonDominated():
+
+    dm = skc.mkdm(
+        matrix=[
+            [7, 5, 35],
+            [5, 4, 26],
+            [5, 6, 28],
+            [1, 7, 30],
+            [5, 8, 30],
+        ],
+        objectives=[max, max, min],
+        weights=[2, 4, 1],
+        alternatives=["PE", "JN", "AA", "MM", "FN"],
+        criteria=["ROE", "CAP", "RI"],
+    )
+
+    expected = skc.mkdm(
+        matrix=[
+            [7, 5, 35],
+            [5, 4, 26],
+            [5, 6, 28],
+            [5, 8, 30],
+        ],
+        objectives=[max, max, min],
+        weights=[2, 4, 1],
+        alternatives=["PE", "JN", "AA", "FN"],
+        criteria=["ROE", "CAP", "RI"],
+    )
+
+    tfm = filters.FilterNonDominated(strict=False)
+
+    result = tfm.transform(dm)
+
+    assert result.equals(expected)
+
+
+def test_FilterNonDominated_strict():
+
+    dm = skc.mkdm(
+        matrix=[
+            [7, 5, 35],
+            [5, 4, 26],
+            [5, 6, 28],
+            [1, 7, 30],
+            [5, 8, 30],
+        ],
+        objectives=[max, max, min],
+        weights=[2, 4, 1],
+        alternatives=["PE", "JN", "AA", "MM", "FN"],
+        criteria=["ROE", "CAP", "RI"],
+    )
+
+    expected = skc.mkdm(
+        matrix=[
+            [7, 5, 35],
+            [5, 4, 26],
+            [5, 6, 28],
+            [1, 7, 30],
+            [5, 8, 30],
+        ],
+        objectives=[max, max, min],
+        weights=[2, 4, 1],
+        alternatives=["PE", "JN", "AA", "MM", "FN"],
+        criteria=["ROE", "CAP", "RI"],
+    )
+
+    tfm = filters.FilterNonDominated(strict=True)
+
+    result = tfm.transform(dm)
+
+    assert result.equals(expected)
