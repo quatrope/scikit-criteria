@@ -13,38 +13,20 @@
 
 
 # =============================================================================
+# IMPORTS
+# =============================================================================k
+
+from skcriteria.utils import AccessorABC
+
+# =============================================================================
 # STATS ACCESSOR
 # =============================================================================
 
 
-class DecisionMatrixStatsAccessor:
-    """Calculate basic statistics of the decision matrix."""
+class DecisionMatrixStatsAccessor(AccessorABC):
+    """Calculate basic statistics of the decision matrix.
 
-    _DF_WHITELIST = (
-        "corr",
-        "cov",
-        "describe",
-        "kurtosis",
-        "mad",
-        "max",
-        "mean",
-        "median",
-        "min",
-        "pct_change",
-        "quantile",
-        "sem",
-        "skew",
-        "std",
-        "var",
-    )
-
-    _DEFAULT_KIND = "describe"
-
-    def __init__(self, dm):
-        self._dm = dm
-
-    def __call__(self, kind=None, **kwargs):
-        """Calculate basic statistics of the decision matrix.
+    Calculate basic statistics of the decision matrix.
 
         Parameters
         ----------
@@ -82,21 +64,31 @@ class DecisionMatrixStatsAccessor:
         object: array, float, int, frame or series
            Statistic result.
 
-        """
-        kind = self._DEFAULT_KIND if kind is None else kind
 
-        if kind.startswith("_"):
-            raise ValueError(f"invalid kind name '{kind}'")
+    """
 
-        method = getattr(self, kind, None)
-        if not callable(method):
-            raise ValueError(f"Invalid kind name '{kind}'")
+    _DF_WHITELIST = (
+        "corr",
+        "cov",
+        "describe",
+        "kurtosis",
+        "mad",
+        "max",
+        "mean",
+        "median",
+        "min",
+        "pct_change",
+        "quantile",
+        "sem",
+        "skew",
+        "std",
+        "var",
+    )
 
-        return method(**kwargs)
+    _DEFAULT_KIND = "describe"
 
-    def __repr__(self):
-        """x.__repr__() <==> repr(x)."""
-        return f"{type(self).__name__}({self._dm})"
+    def __init__(self, dm):
+        self._dm = dm
 
     def __getattr__(self, a):
         """x.__getattr__(a) <==> x.a <==> getattr(x, "a")."""

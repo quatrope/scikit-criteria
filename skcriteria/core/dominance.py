@@ -23,14 +23,14 @@ import numpy as np
 
 import pandas as pd
 
-from ..utils import rank
+from ..utils import AccessorABC, rank
 
 # =============================================================================
 # DOMINANCE ACCESSOR
 # =============================================================================
 
 
-class DecisionMatrixDominanceAccessor:
+class DecisionMatrixDominanceAccessor(AccessorABC):
     """Calculate basic statistics of the decision matrix."""
 
     _DEFAULT_KIND = "dominance"
@@ -38,7 +38,12 @@ class DecisionMatrixDominanceAccessor:
     def __init__(self, dm):
         self._dm = dm
 
+    @property
+    @functools.lru_cache(maxsize=None)
+    def _dominance_cache(self):
         # Compute the dominance is an 0^2 algorithm, so lets use a cache
+        dm = self._dm
+
         reverse = dm.minwhere
 
         dominance_cache, alts_numpy = {}, {}
@@ -52,30 +57,7 @@ class DecisionMatrixDominanceAccessor:
                 alts_numpy[a0], alts_numpy[a1], reverse=reverse
             )
 
-        self._dominance_cache = dominance_cache
-
-    def __call__(self, kind=None, **kwargs):
-        """Calculate basic statistics of the decision matrix.
-
-        Parameters
-        ----------
-
-
-        """
-        kind = self._DEFAULT_KIND if kind is None else kind
-
-        if kind.startswith("_"):
-            raise ValueError(f"invalid kind name '{kind}'")
-
-        method = getattr(self, kind, None)
-        if not callable(method):
-            raise ValueError(f"Invalid kind name '{kind}'")
-
-        return method(**kwargs)
-
-    def __repr__(self):
-        """x.__repr__() <==> repr(x)."""
-        return f"{type(self).__name__}({self._dm!r})"
+        return dominance_cache
 
     def _cache_read(self, a0, a1):
         key = a0, a1

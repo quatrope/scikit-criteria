@@ -18,7 +18,6 @@
 # IMPORTS
 # =============================================================================
 
-import inspect
 from unittest import mock
 
 from matplotlib import pyplot as plt
@@ -29,56 +28,6 @@ import pytest
 import seaborn as sns
 
 from skcriteria.core import plot
-
-# =============================================================================
-# TEST IF __call__ calls the correct method
-# =============================================================================
-
-
-def test_DecisionMatrixPlotter_call_invalid_plot_kind(decision_matrix):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=3,
-        max_alternatives=3,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    plotter = plot.DecisionMatrixPlotter(dm=dm)
-
-    with pytest.raises(ValueError):
-        plotter("__call__")
-
-    plotter.zaraza = None  # not callable
-    with pytest.raises(ValueError):
-        plotter("zaraza")
-
-
-@pytest.mark.parametrize(
-    "plot_kind",
-    {
-        pkind
-        for pkind, pkind_method in vars(plot.DecisionMatrixPlotter).items()
-        if not inspect.ismethod(pkind_method) and not pkind.startswith("_")
-    },
-)
-def test_DecisionMatrixPlotter_call(decision_matrix, plot_kind):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=3,
-        max_alternatives=3,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    plotter = plot.DecisionMatrixPlotter(dm=dm)
-
-    method_name = f"skcriteria.core.plot.DecisionMatrixPlotter.{plot_kind}"
-
-    with mock.patch(method_name) as plot_method:
-        plotter(plot_kind=plot_kind)
-
-    plot_method.assert_called_once()
 
 
 # =============================================================================

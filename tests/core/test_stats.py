@@ -101,20 +101,6 @@ def test_DecisionMatrixStatsAccessor_invalid_kind(decision_matrix):
         stats.to_csv()
 
 
-def test_DecisionMatrixStatsAccessor_repr(decision_matrix):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    stats = data.DecisionMatrixStatsAccessor(dm)
-
-    assert repr(stats) == f"DecisionMatrixStatsAccessor({repr(dm)})"
-
-
 def test_DecisionMatrixStatsAccessor_dir(decision_matrix):
     dm = decision_matrix(
         seed=42,

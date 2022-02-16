@@ -114,28 +114,6 @@ def test_DecisionMatrixDominanceAccessor_bt():
     pd.testing.assert_frame_equal(dm.dominance.bt(), expected)
 
 
-def test_DecisionMatrixDominanceAccessor_repr():
-    dm = data.mkdm(
-        matrix=[
-            [10, 70],
-            [20, 70],
-        ],
-        objectives=[max, min],
-        alternatives=["A0", "A1"],
-        criteria=["C0", "C1"],
-    )
-
-    dom = dominance.DecisionMatrixDominanceAccessor(dm)
-    expected = (
-        "DecisionMatrixDominanceAccessor(   C0[▲ 1.0] C1[▼ 1.0]\n"
-        "A0        10        70\n"
-        "A1        20        70\n"
-        "[2 Alternatives x 2 Criteria])"
-    )
-
-    assert repr(dom) == expected
-
-
 # =============================================================================
 # EQ
 # =============================================================================
