@@ -146,11 +146,11 @@ def test_DecisionMatrixDominanceAccessor_eq():
 
 
 # =============================================================================
-# RESUME
+# COMPARE
 # =============================================================================
 
 
-def test_DecisionMatrixDominanceAccessor_resume():
+def test_DecisionMatrixDominanceAccessor_compare():
     dm = data.mkdm(
         matrix=[
             [10, 70],
@@ -175,7 +175,7 @@ def test_DecisionMatrixDominanceAccessor_resume():
                 ("Alternatives", "A1"): False,
                 ("Equals", ""): True,
             },
-            ("Performance", ""): {
+            ("Better-than", ""): {
                 ("Alternatives", "A0"): 0,
                 ("Alternatives", "A1"): 1,
                 ("Equals", ""): 1,
@@ -183,7 +183,8 @@ def test_DecisionMatrixDominanceAccessor_resume():
         }
     )
 
-    result = dom.resume("A0", "A1")
+    result = dom.compare("A0", "A1")
+    import ipdb; ipdb.set_trace()
 
     pd.testing.assert_frame_equal(result, expected)
 

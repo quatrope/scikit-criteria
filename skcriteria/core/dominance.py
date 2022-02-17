@@ -176,8 +176,27 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
         return self._create_frame(compute_cell)
 
-    def resume(self, a0, a1):
+    # COMPARISONS =============================================================
 
+    def compare(self, a0, a1):
+        """Compare two alternatives.
+
+        It creates a summary data frame containing the comparison of the two
+        alternatives on a per-criteria basis, indicating which of the two is
+        the best value, or if they are equal. In addition, it presents a
+        "Performance" column with the count for each case.
+
+        Parameters
+        ----------
+        a0, a1: str
+            Names of the alternatives to compare.
+
+        Returns
+        -------
+        pandas.DataFrame:
+            Comparison of the two alternatives by criteria.
+
+        """
         # read the cache and extract the values
         centry, ckreverted = self._cache_read(a0, a1)
         performance_a0, performance_a1 = (
