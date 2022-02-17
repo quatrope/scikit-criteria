@@ -33,7 +33,7 @@ from ..utils import AccessorABC, rank
 class DecisionMatrixDominanceAccessor(AccessorABC):
     """Calculate basic statistics of the decision matrix."""
 
-    _DEFAULT_KIND = "dominance"
+    _default_kind = "dominance"
 
     def __init__(self, dm):
         self._dm = dm
@@ -41,7 +41,11 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
     @property
     @functools.lru_cache(maxsize=None)
     def _dominance_cache(self):
-        # Compute the dominance is an 0^2 algorithm, so lets use a cache
+        """Cache of dominance.
+
+        Compute the dominance is an O(n_C_2) algorithm, so lets use a cache.
+
+        """
         dm = self._dm
 
         reverse = dm.minwhere
@@ -60,6 +64,14 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
         return dominance_cache
 
     def _cache_read(self, a0, a1):
+        """Return the entry of the cache.
+
+        The input returned is the one that relates the alternatives a0 and a1.
+        Since the cache can store the entry with the key (a0, a1) or (a1, a0),
+        a second value is returned that is True if it was necessary to invert
+        the alternatives.
+
+        """
         key = a0, a1
         cache = self._dominance_cache
         entry, key_reverted = (
@@ -67,35 +79,102 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
         )
         return entry, key_reverted
 
-    def _create_frame(self, extract):
+    # FRAME ALT VS ALT ========================================================
+
+    def _create_frame(self, compute_cell):
+        """Create a data frame comparing two alternatives.
+
+        The value of each cell is calculated with the "compute_cell"
+        function.
+
+        """
         alternatives = self._dm.alternatives
         rows = []
         for a0 in alternatives:
             row = OrderedDict()
             for a1 in alternatives:
-                row[a1] = extract(a0, a1)
+                row[a1] = compute_cell(a0, a1)
             rows.append(row)
         return pd.DataFrame(rows, index=alternatives)
 
     def bt(self):
-        def extract(a0, a1):
+        """Compare on how many criteria one alternative is better than another.
+
+        *bt* = better-than.
+
+        Returns
+        -------
+        pandas.DataFrame:
+            Where the value of each cell identifies on how many criteria the
+            row alternative is better than the column alternative.
+
+        """
+        def compute_cell(a0, a1):
             if a0 == a1:
                 return 0
             centry, ckreverted = self._cache_read(a0, a1)
             return centry.aDb if not ckreverted else centry.bDa
 
-        return self._create_frame(extract)
+        return self._create_frame(compute_cell)
 
     def eq(self):
+        """Compare on how many criteria two alternatives are equal.
+
+        Returns
+        -------
+        pandas.DataFrame:
+            Where the value of each cell identifies how many criteria the row
+            and column alternatives are equal.
+
+        """
         alternatives_len = len(self._dm.alternatives)
 
-        def extract(a0, a1):
+        def compute_cell(a0, a1):
             if a0 == a1:
                 return alternatives_len
             centry, _ = self._cache_read(a0, a1)
             return centry.eq
 
-        return self._create_frame(extract)
+        return self._create_frame(compute_cell)
+
+    def dominance(self, strict=False):
+        """Compare if one alternative dominates or strictly dominates another \
+        alternative.
+
+        In order to evaluate the dominance of an alternative *a0* over an
+        alternative *a1*, the algorithm evaluates that *a0* is better in at
+        least one criterion and that *a1* is not better in any criterion than
+        *a0*. In the case that ``strict = True`` it also evaluates that there
+        are no equal criteria.
+
+        Parameters
+        ----------
+        strict: bool, default ``False``
+            If True, strict dominance is evaluated.
+
+        Returns
+        -------
+        pandas.DataFrame:
+            Where the value of each cell is True if the row alternative
+            dominates the column alternative.
+
+        """
+        def compute_cell(a0, a1):
+            if a0 == a1:
+                return False
+            centry, ckreverted = self._cache_read(a0, a1)
+            performance_a0, performance_a1 = (
+                (centry.aDb, centry.bDa)
+                if not ckreverted
+                else (centry.bDa, centry.aDb)
+            )
+
+            if strict and centry.eq:
+                return False
+
+            return performance_a0 > 0 and performance_a1 == 0
+
+        return self._create_frame(compute_cell)
 
     def resume(self, a0, a1):
 
@@ -137,24 +216,6 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
         )
 
         return df
-
-    def dominance(self, strict=False):
-        def extract(a0, a1):
-            if a0 == a1:
-                return False
-            centry, ckreverted = self._cache_read(a0, a1)
-            performance_a0, performance_a1 = (
-                (centry.aDb, centry.bDa)
-                if not ckreverted
-                else (centry.bDa, centry.aDb)
-            )
-
-            if strict and centry.eq:
-                return False
-
-            return performance_a0 > 0 and performance_a1 == 0
-
-        return self._create_frame(extract)
 
     def dominated(self, strict=False):
         return self.dominance(strict=strict).any()

@@ -34,7 +34,7 @@ from skcriteria.utils import AccessorABC
 def test_AccessorABC():
     class FooAccessor(AccessorABC):
 
-        _DEFAULT_KIND = "zaraza"
+        _default_kind = "zaraza"
 
         def __init__(self, v):
             self._v = v
@@ -46,17 +46,20 @@ def test_AccessorABC():
     assert acc("zaraza") == acc.zaraza() == acc()
 
 
-def test_AccessorABC_no__DEFAULT_KIND():
+def test_AccessorABC_no__default_kind():
     with pytest.raises(TypeError):
 
         class FooAccessor(AccessorABC):
             pass
 
+    with pytest.raises(TypeError):
+        AccessorABC()
+
 
 def test_AccessorABC_invalid_kind():
     class FooAccessor(AccessorABC):
 
-        _DEFAULT_KIND = "zaraza"
+        _default_kind = "zaraza"
 
         def __init__(self):
             self.dont_work = None

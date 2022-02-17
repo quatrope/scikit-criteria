@@ -28,41 +28,27 @@ from skcriteria.utils import AccessorABC
 class DecisionMatrixPlotter(AccessorABC):
     """Make plots of DecisionMatrix.
 
-    Make plots of a decision matrix.
+    Kind of plot to produce:
 
-       Parameters
-       ----------
-       plot_kind : str
-           The kind of plot to produce:
-               - 'heatmap' : criteria heat-map (default).
-               - 'wheatmap' : weights heat-map.
-               - 'bar' : criteria vertical bar plot.
-               - 'wbar' : weights vertical bar plot.
-               - 'barh' : criteria horizontal bar plot.
-               - 'wbarh' : weights horizontal bar plot.
-               - 'hist' : criteria histogram.
-               - 'whist' : weights histogram.
-               - 'box' : criteria boxplot.
-               - 'wbox' : weights boxplot.
-               - 'kde' : criteria Kernel Density Estimation plot.
-               - 'wkde' : weights Kernel Density Estimation plot.
-               - 'ogive' : criteria empirical cumulative distribution plot.
-               - 'wogive' : weights empirical cumulative distribution plot.
-               - 'area' : criteria area plot.
-
-       **kwargs
-           Options to pass to subjacent plotting method.
-
-       Returns
-       -------
-       :class:`matplotlib.axes.Axes` or numpy.ndarray of them
-          The ax used by the plot
-
-
+    - 'heatmap' : criteria heat-map (default).
+    - 'wheatmap' : weights heat-map.
+    - 'bar' : criteria vertical bar plot.
+    - 'wbar' : weights vertical bar plot.
+    - 'barh' : criteria horizontal bar plot.
+    - 'wbarh' : weights horizontal bar plot.
+    - 'hist' : criteria histogram.
+    - 'whist' : weights histogram.
+    - 'box' : criteria boxplot.
+    - 'wbox' : weights boxplot.
+    - 'kde' : criteria Kernel Density Estimation plot.
+    - 'wkde' : weights Kernel Density Estimation plot.
+    - 'ogive' : criteria empirical cumulative distribution plot.
+    - 'wogive' : weights empirical cumulative distribution plot.
+    - 'area' : criteria area plot.
 
     """
 
-    _DEFAULT_KIND = "heatmap"
+    _default_kind = "heatmap"
 
     def __init__(self, dm):
         self._dm = dm
