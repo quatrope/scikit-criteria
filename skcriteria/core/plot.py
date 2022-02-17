@@ -19,56 +19,39 @@ import matplotlib.pyplot as plt
 
 import seaborn as sns
 
+from skcriteria.utils import AccessorABC
+
 
 # =============================================================================
 # PLOTTER OBJECT
 # =============================================================================
-class DecisionMatrixPlotter:
-    """Make plots of DecisionMatrix."""
+class DecisionMatrixPlotter(AccessorABC):
+    """Make plots of DecisionMatrix.
+
+    Kind of plot to produce:
+
+    - 'heatmap' : criteria heat-map (default).
+    - 'wheatmap' : weights heat-map.
+    - 'bar' : criteria vertical bar plot.
+    - 'wbar' : weights vertical bar plot.
+    - 'barh' : criteria horizontal bar plot.
+    - 'wbarh' : weights horizontal bar plot.
+    - 'hist' : criteria histogram.
+    - 'whist' : weights histogram.
+    - 'box' : criteria boxplot.
+    - 'wbox' : weights boxplot.
+    - 'kde' : criteria Kernel Density Estimation plot.
+    - 'wkde' : weights Kernel Density Estimation plot.
+    - 'ogive' : criteria empirical cumulative distribution plot.
+    - 'wogive' : weights empirical cumulative distribution plot.
+    - 'area' : criteria area plot.
+
+    """
+
+    _default_kind = "heatmap"
 
     def __init__(self, dm):
         self._dm = dm
-
-    # INTERNAL ================================================================
-
-    def __call__(self, plot_kind="heatmap", **kwargs):
-        """Make plots of a decision matrix.
-
-        Parameters
-        ----------
-        plot_kind : str
-            The kind of plot to produce:
-                - 'heatmap' : criteria heat-map (default).
-                - 'wheatmap' : weights heat-map.
-                - 'bar' : criteria vertical bar plot.
-                - 'wbar' : weights vertical bar plot.
-                - 'barh' : criteria horizontal bar plot.
-                - 'wbarh' : weights horizontal bar plot.
-                - 'hist' : criteria histogram.
-                - 'whist' : weights histogram.
-                - 'box' : criteria boxplot.
-                - 'wbox' : weights boxplot.
-                - 'kde' : criteria Kernel Density Estimation plot.
-                - 'wkde' : weights Kernel Density Estimation plot.
-                - 'ogive' : criteria empirical cumulative distribution plot.
-                - 'wogive' : weights empirical cumulative distribution plot.
-                - 'area' : criteria area plot.
-
-        **kwargs
-            Options to pass to subjacent plotting method.
-
-        Returns
-        -------
-        :class:`matplotlib.axes.Axes` or numpy.ndarray of them
-           The ax used by the plot
-
-        """
-        if plot_kind.startswith("_"):
-            raise ValueError(f"invalid plot_kind name '{plot_kind}'")
-        method = getattr(self, plot_kind, None)
-        if not callable(method):
-            raise ValueError(f"invalid plot_kind name '{plot_kind}'")
-        return method(**kwargs)
 
     # PRIVATE =================================================================
     # This method are used "a lot" inside all the different plots, so we can

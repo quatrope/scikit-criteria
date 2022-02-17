@@ -23,6 +23,7 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 
 import enum
 import functools
+from collections import abc
 
 import numpy as np
 
@@ -32,8 +33,10 @@ from pandas.io.formats import format as pd_fmt
 import pyquery as pq
 
 
+from .dominance import DecisionMatrixDominanceAccessor
 from .plot import DecisionMatrixPlotter
-from ..utils import deprecated
+from .stats import DecisionMatrixStatsAccessor
+from ..utils import deprecated, doc_inherit
 
 
 # =============================================================================
@@ -115,104 +118,54 @@ class Objective(enum.Enum):
 
 
 # =============================================================================
-# DATA CLASS
+# _SLICER ARRAY
 # =============================================================================
+class _ACArray(np.ndarray, abc.Mapping):
+    """Immutable Array to provide access to the alternative and criteria \
+    values.
+
+    The behavior is the same as a numpy.ndarray but if the slice it receives
+    is a value contained in the array it uses an external function
+    to access the series with that criteria/alternative.
+
+    Besides this it has the typical methods of a dictionary.
+
+    """
+
+    def __new__(cls, input_array, skc_slicer):
+        obj = np.asarray(input_array).view(cls)
+        obj._skc_slicer = skc_slicer
+        return obj
+
+    @doc_inherit(np.ndarray.__getitem__)
+    def __getitem__(self, k):
+        try:
+            if k in self:
+                return self._skc_slicer(k)
+            return super().__getitem__(k)
+        except IndexError:
+            raise IndexError(k)
+
+    def __setitem__(self, k, v):
+        """Raise an AttributeError, this object are read-only."""
+        raise AttributeError("_SlicerArray are read-only")
+
+    @doc_inherit(abc.Mapping.items)
+    def items(self):
+        return ((e, self[e]) for e in self)
+
+    @doc_inherit(abc.Mapping.keys)
+    def keys(self):
+        return iter(self)
+
+    @doc_inherit(abc.Mapping.values)
+    def values(self):
+        return (self[e] for e in self)
 
 
-class DecisionMatrixStatsAccessor:
-    """Calculate basic statistics of the decision matrix."""
-
-    _DF_WHITELIST = (
-        "corr",
-        "cov",
-        "describe",
-        "kurtosis",
-        "mad",
-        "max",
-        "mean",
-        "median",
-        "min",
-        "pct_change",
-        "quantile",
-        "sem",
-        "skew",
-        "std",
-        "var",
-    )
-
-    _DEFAULT_KIND = "describe"
-
-    def __init__(self, dm):
-        self._dm = dm
-
-    def __call__(self, kind=None, **kwargs):
-        """Calculate basic statistics of the decision matrix.
-
-        Parameters
-        ----------
-        kind : str
-            The kind of statistic to produce:
-
-            - 'corr' : Compute pairwise correlation of columns, excluding
-              NA/null values.
-            - 'cov' : Compute pairwise covariance of columns, excluding NA/null
-              values.
-            - 'describe' : Generate descriptive statistics.
-            - 'kurtosis' : Return unbiased kurtosis over requested axis.
-            - 'mad' : Return the mean absolute deviation of the values over the
-              requested axis.
-            - 'max' : Return the maximum of the values over the requested axis.
-            - 'mean' : Return the mean of the values over the requested axis.
-            - 'median' : Return the median of the values over the requested
-              axis.
-            - 'min' : Return the minimum of the values over the requested axis.
-            - 'pct_change' : Percentage change between the current and a prior
-              element.
-            - 'quantile' : Return values at the given quantile over requested
-              axis.
-            - 'sem' : Return unbiased standard error of the mean over requested
-              axis.
-            - 'skew' : Return unbiased skew over requested axis.
-            - 'std' : Return sample standard deviation over requested axis.
-            - 'var' : Return unbiased variance over requested axis.
-
-        **kwargs
-            Options to pass to subjacent DataFrame method.
-
-        Returns
-        -------
-        :class:`matplotlib.axes.Axes` or numpy.ndarray of them
-           The ax used by the plot
-
-        """
-        kind = self._DEFAULT_KIND if kind is None else kind
-
-        if kind.startswith("_"):
-            raise ValueError(f"invalid kind name '{kind}'")
-
-        method = getattr(self, kind, None)
-        if not callable(method):
-            raise ValueError(f"Invalid kind name '{kind}'")
-
-        return method(**kwargs)
-
-    def __repr__(self):
-        """x.__repr__() <==> repr(x)."""
-        return f"{type(self).__name__}({self._dm})"
-
-    def __getattr__(self, a):
-        """x.__getattr__(a) <==> x.a <==> getattr(x, "a")."""
-        if a not in self._DF_WHITELIST:
-            raise AttributeError(a)
-        return getattr(self._dm._data_df, a)
-
-    def __dir__(self):
-        """x.__dir__() <==> dir(x)."""
-        return super().__dir__() + [
-            e for e in dir(self._dm._data_df) if e in self._DF_WHITELIST
-        ]
-
-
+# =============================================================================
+# DECISION MATRIX
+# =============================================================================
 class DecisionMatrix:
     """Representation of all data needed in the MCDA analysis.
 
@@ -426,12 +379,16 @@ class DecisionMatrix:
     @property
     def alternatives(self):
         """Names of the alternatives."""
-        return self._data_df.index.to_numpy()
+        arr = self._data_df.index.to_numpy()
+        slicer = self._data_df.loc.__getitem__
+        return _ACArray(arr, slicer)
 
     @property
     def criteria(self):
         """Names of the criteria."""
-        return self._data_df.columns.to_numpy()
+        arr = self._data_df.columns.to_numpy()
+        slicer = self._data_df.__getitem__
+        return _ACArray(arr, slicer)
 
     @property
     def weights(self):
@@ -451,6 +408,20 @@ class DecisionMatrix:
             index=self._data_df.columns,
             name="Objectives",
         )
+
+    @property
+    def minwhere(self):
+        """Mask with value True if the criterion is to be minimized."""
+        mask = self.objectives == Objective.MIN
+        mask.name = "minwhere"
+        return mask
+
+    @property
+    def maxwhere(self):
+        """Mask with value True if the criterion is to be maximized."""
+        mask = self.objectives == Objective.MAX
+        mask.name = "maxwhere"
+        return mask
 
     # READ ONLY PROPERTIES ====================================================
 
@@ -485,15 +456,25 @@ class DecisionMatrix:
         """Dtypes of the criteria."""
         return self._data_df.dtypes.copy()
 
+    # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
+
     @property
+    @functools.lru_cache(maxsize=None)
     def plot(self):
         """Plot accessor."""
         return DecisionMatrixPlotter(self)
 
     @property
+    @functools.lru_cache(maxsize=None)
     def stats(self):
         """Descriptive statistics accessor."""
         return DecisionMatrixStatsAccessor(self)
+
+    @property
+    @functools.lru_cache(maxsize=None)
+    def dominance(self):
+        """Dominance information accessor."""
+        return DecisionMatrixDominanceAccessor(self)
 
     # UTILITIES ===============================================================
 
@@ -566,8 +547,8 @@ class DecisionMatrix:
             "objectives": self.iobjectives.to_numpy(),
             "weights": self.weights.to_numpy(),
             "dtypes": self.dtypes.to_numpy(),
-            "alternatives": self.alternatives,
-            "criteria": self.criteria,
+            "alternatives": np.asarray(self.alternatives),
+            "criteria": np.asarray(self.criteria),
         }
 
     @deprecated(

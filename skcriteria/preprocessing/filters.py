@@ -21,7 +21,7 @@ from collections.abc import Collection
 
 import numpy as np
 
-from ..core import SKCTransformerABC
+from ..core import DecisionMatrix, SKCTransformerABC
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -29,8 +29,9 @@ from ..utils import doc_inherit
 # =============================================================================
 
 
-class SKCFilterABC(SKCTransformerABC):
-    """Abstract class capable of filtering alternatives.
+class SKCByCriteriaFilterABC(SKCTransformerABC):
+    """Abstract class capable of filtering alternatives based on criteria \
+    values.
 
     This abstract class require to redefine ``_coerce_filters`` and
     ``_make_mask``, instead of ``_transform_data``.
@@ -144,8 +145,8 @@ class SKCFilterABC(SKCTransformerABC):
 # =============================================================================
 
 
-@doc_inherit(SKCFilterABC, warn_class=False)
-class Filter(SKCFilterABC):
+@doc_inherit(SKCByCriteriaFilterABC, warn_class=False)
+class Filter(SKCByCriteriaFilterABC):
     """Function based filter.
 
     This class accepts as a filter any arbitrary function that receives as a
@@ -215,8 +216,8 @@ class Filter(SKCFilterABC):
 # =============================================================================
 
 
-@doc_inherit(SKCFilterABC, warn_class=False)
-class SKCArithmeticFilterABC(SKCFilterABC):
+@doc_inherit(SKCByCriteriaFilterABC, warn_class=False)
+class SKCArithmeticFilterABC(SKCByCriteriaFilterABC):
     """Provide a common behavior to make filters based on the same comparator.
 
     This abstract class require to redefine ``_filter`` method, and this will
@@ -484,8 +485,8 @@ class FilterNE(SKCArithmeticFilterABC):
 # =============================================================================
 
 
-@doc_inherit(SKCFilterABC, warn_class=False)
-class SKCSetFilterABC(SKCFilterABC):
+@doc_inherit(SKCByCriteriaFilterABC, warn_class=False)
+class SKCSetFilterABC(SKCByCriteriaFilterABC):
     """Provide a common behavior to make filters based on set operatopms.
 
     This abstract class require to redefine ``_set_filter`` method, and this
@@ -603,3 +604,91 @@ class FilterNotIn(SKCSetFilterABC):
 
     def _set_filter(self, arr, cond):
         return np.isin(arr, cond, invert=True)
+
+
+# =============================================================================
+# DOMINANCE
+# =============================================================================
+
+
+class FilterNonDominated(SKCTransformerABC):
+    """Keeps the non dominated or non strictly-dominated alternatives.
+
+    In order to evaluate the dominance of an alternative *a0* over an
+    alternative *a1*, the algorithm evaluates that *a0* is better in at
+    least one criterion and that *a1* is not better in any criterion than
+    *a0*. In the case that ``strict = True`` it also evaluates that there
+    are no equal criteria.
+
+    Parameters
+    ----------
+    strict: bool, default ``False``
+        If ``True``, strictly dominated alternatives are removed, otherwise all
+        dominated alternatives are removed.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterNonDominated(strict=False)
+        >>> tfm.transform(dm)
+           ROE[▲ 1.0] CAP[▲ 1.0] RI[▼ 1.0]
+        PE          7          5        35
+        JN          5          4        26
+        AA          5          6        28
+        FN          5          8        30
+        [4 Alternatives x 3 Criteria]
+
+    """
+
+    _skcriteria_parameters = frozenset(["strict"])
+
+    def __init__(self, *, strict=False):
+        self._strict = bool(strict)
+
+    @property
+    def strict(self):
+        """If the filter must remove the dominated or strictly-dominated \
+        alternatives."""
+        return self._strict
+
+    @doc_inherit(SKCTransformerABC._transform_data)
+    def _transform_data(self, matrix, alternatives, dominated_mask, **kwargs):
+
+        filtered_matrix = matrix[~dominated_mask]
+        filtered_alternatives = alternatives[~dominated_mask]
+
+        kwargs.update(
+            matrix=filtered_matrix,
+            alternatives=filtered_alternatives,
+        )
+        return kwargs
+
+    @doc_inherit(SKCTransformerABC.transform)
+    def transform(self, dm):
+
+        data = dm.to_dict()
+        dominated_mask = dm.dominance.dominated(strict=self._strict).to_numpy()
+
+        transformed_data = self._transform_data(
+            dominated_mask=dominated_mask, **data
+        )
+
+        transformed_dm = DecisionMatrix.from_mcda_data(**transformed_data)
+
+        return transformed_dm

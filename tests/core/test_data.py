@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.data
+"""test for skcriteria.core.data
 
 """
 
@@ -17,6 +17,8 @@
 # =============================================================================
 # IMPORTS
 # =============================================================================
+
+import warnings
 
 import numpy as np
 
@@ -26,7 +28,7 @@ from pyquery import PyQuery
 
 import pytest
 
-from skcriteria.core import data, plot
+from skcriteria.core import data, dominance, plot, stats
 
 
 # =============================================================================
@@ -69,107 +71,36 @@ def test_objective_to_string():
 
 
 # =============================================================================
-# STATS
+# AC ACCESSORS
 # =============================================================================
 
 
-def test_DecisionMatrixStatsAccessor_default_kind(decision_matrix):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
+def test__ACArray(decision_matrix):
+    with warnings.catch_warnings():
 
-    stats = data.DecisionMatrixStatsAccessor(dm)
+        # see: https://stackoverflow.com/a/46721064
+        warnings.simplefilter(action="ignore", category=FutureWarning)
 
-    assert stats().equals(dm._data_df.describe())
+        content = ["a", "b", "c"]
+        mapping = {"a": [1, 2, 3], "b": [4, 5, 6], "c": [7, 8, 9]}
 
+        arr = data._ACArray(content, mapping.__getitem__)
 
-@pytest.mark.parametrize(
-    "kind", data.DecisionMatrixStatsAccessor._DF_WHITELIST
-)
-def test_DecisionMatrixStatsAccessor_df_whitelist_by_kind(
-    kind, decision_matrix
-):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
+        assert arr["a"] == [1, 2, 3]
+        assert arr["b"] == [4, 5, 6]
+        assert arr["c"] == [7, 8, 9]
 
-    expected = getattr(dm._data_df, kind)()
+        assert list(arr) == content
 
-    stats = data.DecisionMatrixStatsAccessor(dm)
+        assert dict(arr.items()) == mapping
+        assert list(arr.keys()) == list(arr) == content
+        assert sorted(list(arr.values())) == sorted(list(mapping.values()))
 
-    result_call = stats(kind=kind)
+        with pytest.raises(AttributeError):
+            arr[0] = 1
 
-    cmp = (
-        lambda r, e: r.equals(e)
-        if isinstance(result_call, (pd.DataFrame, pd.Series))
-        else np.equal
-    )
-
-    result_method = getattr(stats, kind)()
-
-    assert cmp(result_call, expected)
-    assert cmp(result_method, expected)
-
-
-def test_DecisionMatrixStatsAccessor_invalid_kind(decision_matrix):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    stats = data.DecisionMatrixStatsAccessor(dm)
-
-    with pytest.raises(ValueError):
-        stats("_dm")
-
-    stats.foo = None
-    with pytest.raises(ValueError):
-        stats("foo")
-
-    with pytest.raises(AttributeError):
-        stats.to_csv()
-
-
-def test_DecisionMatrixStatsAccessor_repr(decision_matrix):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    stats = data.DecisionMatrixStatsAccessor(dm)
-
-    assert repr(stats) == f"DecisionMatrixStatsAccessor({repr(dm)})"
-
-
-def test_DecisionMatrixStatsAccessor_dir(decision_matrix):
-    dm = decision_matrix(
-        seed=42,
-        min_alternatives=10,
-        max_alternatives=10,
-        min_criteria=3,
-        max_criteria=3,
-    )
-
-    stats = data.DecisionMatrixStatsAccessor(dm)
-
-    expected = set(data.DecisionMatrixStatsAccessor._DF_WHITELIST)
-    result = dir(stats)
-
-    assert not expected.difference(result)
+        with pytest.raises(IndexError):
+            arr["foo"]
 
 
 # =============================================================================
@@ -201,6 +132,13 @@ def test_DecisionMatrix_simple_creation(data_values):
     np.testing.assert_array_equal(dm.criteria, criteria)
     np.testing.assert_array_equal(dm.dtypes, [np.float64] * len(criteria))
 
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
+
 
 def test_DecisionMatrix_no_provide_weights(data_values):
     mtx, objectives, _, alternatives, criteria = data_values(seed=42)
@@ -224,6 +162,13 @@ def test_DecisionMatrix_no_provide_weights(data_values):
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
+
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
 
 
 def test_DecisionMatrix_no_provide_anames(data_values):
@@ -250,6 +195,13 @@ def test_DecisionMatrix_no_provide_anames(data_values):
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
 
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
+
 
 def test_DecisionMatrix_no_provide_cnames(data_values):
     mtx, objectives, weights, alternatives, _ = data_values(seed=42)
@@ -273,6 +225,13 @@ def test_DecisionMatrix_no_provide_cnames(data_values):
     np.testing.assert_array_equal(dm.weights, weights)
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
+
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
 
 
 def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
@@ -298,40 +257,56 @@ def test_DecisionMatrix_no_provide_cnames_and_anames(data_values):
     np.testing.assert_array_equal(dm.alternatives, alternatives)
     np.testing.assert_array_equal(dm.criteria, criteria)
 
+    np.testing.assert_array_equal(
+        dm.minwhere, dm.objectives == data.Objective.MIN
+    )
+    np.testing.assert_array_equal(
+        dm.maxwhere, dm.objectives == data.Objective.MAX
+    )
+
 
 # =============================================================================
 # PROPERTIES
 # =============================================================================
 
 
-def test_DecisionMatrix_plot(data_values):
-    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
-
-    dm = data.mkdm(
-        matrix=mtx,
-        objectives=objectives,
-        weights=weights,
-        alternatives=alternatives,
-        criteria=criteria,
+def test_DecisionMatrix_plot(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
     )
 
     assert isinstance(dm.plot, plot.DecisionMatrixPlotter)
     assert dm.plot._dm is dm
 
 
-def test_DecisionMatrix_stats(data_values):
-    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
-
-    dm = data.mkdm(
-        matrix=mtx,
-        objectives=objectives,
-        weights=weights,
-        alternatives=alternatives,
-        criteria=criteria,
+def test_DecisionMatrix_stats(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
     )
 
-    assert isinstance(dm.stats, data.DecisionMatrixStatsAccessor)
+    assert isinstance(dm.stats, stats.DecisionMatrixStatsAccessor)
     assert dm.stats._dm is dm
+
+
+def test_DecisionMatrix_dominance(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    assert isinstance(dm.dominance, dominance.DecisionMatrixDominanceAccessor)
+    assert dm.dominance._dm is dm
 
 
 # =============================================================================
