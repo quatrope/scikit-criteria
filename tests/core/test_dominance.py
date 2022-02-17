@@ -175,7 +175,7 @@ def test_DecisionMatrixDominanceAccessor_compare():
                 ("Alternatives", "A1"): False,
                 ("Equals", ""): True,
             },
-            ("Better-than", ""): {
+            ("Performance", ""): {
                 ("Alternatives", "A0"): 0,
                 ("Alternatives", "A1"): 1,
                 ("Equals", ""): 1,
@@ -184,7 +184,6 @@ def test_DecisionMatrixDominanceAccessor_compare():
     )
 
     result = dom.compare("A0", "A1")
-    import ipdb; ipdb.set_trace()
 
     pd.testing.assert_frame_equal(result, expected)
 

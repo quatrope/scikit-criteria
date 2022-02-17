@@ -109,6 +109,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             row alternative is better than the column alternative.
 
         """
+
         def compute_cell(a0, a1):
             if a0 == a1:
                 return 0
@@ -159,6 +160,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             dominates the column alternative.
 
         """
+
         def compute_cell(a0, a1):
             if a0 == a1:
                 return False
@@ -236,12 +238,45 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
         return df
 
+    # The dominated============================================================
+
     def dominated(self, strict=False):
+        """Which alternative is dominated or strictly dominated by at least \
+        one other alternative.
+
+        Parameters
+        ----------
+        strict: bool, default ``False``
+            If True, strict dominance is evaluated.
+
+        Returns
+        -------
+        pandas.Series:
+            Where the index indicates the name of the alternative, and if the
+            value is is True, it indicates that this alternative is dominated
+            by at least one other alternative.
+
+        """
         return self.dominance(strict=strict).any()
 
     @functools.lru_cache(maxsize=None)
     def dominators_of(self, a, strict=False):
+        """Array of alternatives that dominate or strictly-dominate the \
+        alternative provided by parameters.
 
+        Parameters
+        ----------
+        a : str
+            On what alternative to look for the dominators.
+        strict: bool, default ``False``
+            If True, strict dominance is evaluated.
+
+        Returns
+        -------
+        numpy.ndarray:
+            List of alternatives that dominate ``a``.
+
+        """
         dominance_a = self.dominance(strict=strict)[a]
         if ~dominance_a.any():
             return np.array([], dtype=str)
@@ -255,6 +290,28 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
         return dominators
 
     def has_loops(self, strict=False):
+        """Retorna True si la matriz contiene loops de dominacia.
+
+        A loop is defined as if there are alternatives `a0`, `a1` such that
+        "a0 ≻ a1 ≻ a0" if ``strict=True``, or "a0 ≽ a1 ≽ a0"  if
+        ``strict=False``
+
+        Parameters
+        ----------
+        strict: bool, default ``False``
+            If True, strict dominance is evaluated.
+
+        Returns
+        -------
+        bool:
+            If True a loop exists.
+
+        Notes
+        -----
+        If the result of this method is True, the ``dominators_of()`` method
+        raises a ``RecursionError`` for at least one alternative.
+
+        """
         # lets put the dominated alternatives last so our while loop will
         # be shorter by extracting from the tail
 

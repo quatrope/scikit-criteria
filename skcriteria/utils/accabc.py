@@ -21,7 +21,8 @@ import abc
 # ACESSOR ABC
 # =============================================================================
 
-# This constans are used to mark a class attribute as abstract, and prevet an instantiaiton of a class
+# This constans are used to mark a class attribute as abstract, and prevet an
+# instantiaiton of a class
 _ABSTRACT = property(abc.abstractmethod(lambda: ...))
 
 
