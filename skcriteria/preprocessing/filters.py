@@ -47,9 +47,8 @@ class SKCByCriteriaFilterABC(SKCTransformerABC):
 
     """
 
-    _skcriteria_parameters = frozenset(
-        ["criteria_filters", "ignore_missing_criteria"]
-    )
+    _skcriteria_parameters = ["criteria_filters", "ignore_missing_criteria"]
+
     _skcriteria_abstract_class = True
 
     def __init__(self, criteria_filters, *, ignore_missing_criteria=False):
@@ -656,7 +655,7 @@ class FilterNonDominated(SKCTransformerABC):
 
     """
 
-    _skcriteria_parameters = frozenset(["strict"])
+    _skcriteria_parameters = ["strict"]
 
     def __init__(self, *, strict=False):
         self._strict = bool(strict)
