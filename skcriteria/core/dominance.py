@@ -292,9 +292,9 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
     def has_loops(self, strict=False):
         """Retorna True si la matriz contiene loops de dominacia.
 
-        A loop is defined as if there are alternatives `a0`, `a1` such that
-        "a0 ≻ a1 ≻ a0" if ``strict=True``, or "a0 ≽ a1 ≽ a0"  if
-        ``strict=False``
+        A loop is defined as if there are alternatives `a0`, `a1` and 'a2' such
+        that "a0 ≻ a1 ≻ a2 ≻ a0" if ``strict=True``, or "a0 ≽ a1 ≽ a2 ≽ a0"
+        if ``strict=False``
 
         Parameters
         ----------

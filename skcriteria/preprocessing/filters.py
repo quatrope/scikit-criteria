@@ -612,6 +612,49 @@ class FilterNotIn(SKCSetFilterABC):
 
 
 class FilterNonDominated(SKCTransformerABC):
+    """Keeps the non dominated or non strictly-dominated alternatives.
+
+    In order to evaluate the dominance of an alternative *a0* over an
+    alternative *a1*, the algorithm evaluates that *a0* is better in at
+    least one criterion and that *a1* is not better in any criterion than
+    *a0*. In the case that ``strict = True`` it also evaluates that there
+    are no equal criteria.
+
+    Parameters
+    ----------
+    strict: bool, default ``False``
+        If ``True``, strictly dominated alternatives are removed, otherwise all
+        dominated alternatives are removed.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocess import filters
+
+        >>> dm = skc.mkdm(
+        ...     matrix=[
+        ...         [7, 5, 35],
+        ...         [5, 4, 26],
+        ...         [5, 6, 28],
+        ...         [1, 7, 30],
+        ...         [5, 8, 30]
+        ...     ],
+        ...     objectives=[max, max, min],
+        ...     alternatives=["PE", "JN", "AA", "MM", "FN"],
+        ...     criteria=["ROE", "CAP", "RI"],
+        ... )
+
+        >>> tfm = filters.FilterNonDominated(strict=False)
+        >>> tfm.transform(dm)
+           ROE[▲ 1.0] CAP[▲ 1.0] RI[▼ 1.0]
+        PE          7          5        35
+        JN          5          4        26
+        AA          5          6        28
+        FN          5          8        30
+        [4 Alternatives x 3 Criteria]
+
+    """
 
     _skcriteria_parameters = frozenset(["strict"])
 
@@ -620,7 +663,8 @@ class FilterNonDominated(SKCTransformerABC):
 
     @property
     def strict(self):
-        """"""
+        """If the filter must remove the dominated or strictly-dominated \
+        alternatives."""
         return self._strict
 
     @doc_inherit(SKCTransformerABC._transform_data)
@@ -635,6 +679,7 @@ class FilterNonDominated(SKCTransformerABC):
         )
         return kwargs
 
+    @doc_inherit(SKCTransformerABC.transform)
     def transform(self, dm):
 
         data = dm.to_dict()
