@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -20,6 +21,7 @@ to calculate weights to a matrix along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
+import abc
 import warnings
 
 import numpy as np
@@ -28,8 +30,53 @@ import scipy.stats
 
 
 from .distance import cenit_distance
-from ..core import Objective, SKCWeighterABC
+from ..core import Objective, SKCTransformerABC
 from ..utils import doc_inherit
+
+
+class SKCWeighterABC(SKCTransformerABC):
+    """Abstract class capable of determine the weights of the matrix.
+
+    This abstract class require to redefine ``_weight_matrix``, instead of
+    ``_transform_data``.
+
+    """
+
+    _skcriteria_abstract_class = True
+
+    @abc.abstractmethod
+    def _weight_matrix(self, matrix, objectives, weights):
+        """Calculate a new array of weights.
+
+        Parameters
+        ----------
+        matrix: :py:class:`numpy.ndarray`
+            The decision matrix to weights.
+        objectives: :py:class:`numpy.ndarray`
+            The objectives in numeric format.
+        weights: :py:class:`numpy.ndarray`
+            The original weights
+
+        Returns
+        -------
+        :py:class:`numpy.ndarray`
+            An array of weights.
+
+        """
+        raise NotImplementedError()
+
+    @doc_inherit(SKCTransformerABC._transform_data)
+    def _transform_data(self, matrix, objectives, weights, **kwargs):
+
+        new_weights = self._weight_matrix(
+            matrix=matrix, objectives=objectives, weights=weights
+        )
+
+        kwargs.update(
+            matrix=matrix, objectives=objectives, weights=new_weights
+        )
+
+        return kwargs
 
 
 # =============================================================================
@@ -85,17 +132,15 @@ class EqualWeighter(SKCWeighterABC):
 
     """
 
-    def __init__(self, base_value=1):
-        self.base_value = base_value
+    _skcriteria_parameters = ["base_value"]
+
+    def __init__(self, base_value=1.0):
+        self._base_value = float(base_value)
 
     @property
     def base_value(self):
         """Value to be normalized by the number of criteria."""
         return self._base_value
-
-    @base_value.setter
-    def base_value(self, v):
-        self._base_value = float(v)
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
@@ -145,6 +190,8 @@ def std_weights(matrix):
 
 class StdWeighter(SKCWeighterABC):
     """Set as weight the normalized standard deviation of each criterion."""
+
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
@@ -196,6 +243,8 @@ class EntropyWeighter(SKCWeighterABC):
         Calculate the entropy of a distribution for given probability values.
 
     """
+
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
@@ -316,31 +365,26 @@ class Critic(SKCWeighterABC):
         "spearman": spearman_correlation,
     }
 
+    _skcriteria_parameters = ["correlation", "scale"]
+
     def __init__(self, correlation="pearson", scale=True):
-        self.correlation = correlation
-        self.scale = scale
+        correlation_func = self.CORRELATION.get(correlation, correlation)
+        if not callable(correlation_func):
+            corr_keys = ", ".join(f"'{c}'" for c in self.CORRELATION)
+            raise ValueError(f"Correlation must be {corr_keys} or callable")
+        self._correlation = correlation_func
+
+        self._scale = bool(scale)
 
     @property
     def scale(self):
         """Return if it is necessary to scale the data."""
         return self._scale
 
-    @scale.setter
-    def scale(self, v):
-        self._scale = bool(v)
-
     @property
     def correlation(self):
         """Correlation function."""
         return self._correlation
-
-    @correlation.setter
-    def correlation(self, v):
-        correlation_func = self.CORRELATION.get(v, v)
-        if not callable(correlation_func):
-            corr_keys = ", ".join(f"'{c}'" for c in self.CORRELATION)
-            raise ValueError(f"Correlation must be {corr_keys} or callable")
-        self._correlation = correlation_func
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, objectives, **kwargs):

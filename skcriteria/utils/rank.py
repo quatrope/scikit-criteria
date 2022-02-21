@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -87,6 +88,9 @@ def dominance(array_a, array_b, reverse=False):
     reverse: bool (default=False)
         array_a[i] ≻ array_b[i] if array_a[i] > array_b[i] if reverse
         is False, otherwise array_a[i] ≻ array_b[i] if array_a[i] < array_b[i].
+        Also revese can be an array of boolean of the same shape as
+        array_a and array_b to revert every item independently.
+        In other words, reverse assume the data is a minimization problem.
 
     Returns
     -------
@@ -109,14 +113,24 @@ def dominance(array_a, array_b, reverse=False):
     if np.shape(array_a) != np.shape(array_b):
         raise ValueError("array_a and array_b must be of the same shape")
 
-    domfunc = np.less if reverse else np.greater
+    if isinstance(reverse, bool):
+        reverse = np.full(np.shape(array_a), reverse)
+    elif np.shape(array_a) != np.shape(reverse):
+        raise ValueError(
+            "reverse must be a bool or an iterable of the same "
+            "shape than the arrays"
+        )
 
-    array_a = np.asarray(array_a, dtype=int)
-    array_b = np.asarray(array_b, dtype=int)
+    array_a = np.asarray(array_a)
+    array_b = np.asarray(array_b)
 
     eq_where = array_a == array_b
-    aDb_where = domfunc(array_a, array_b)
-    bDa_where = domfunc(array_b, array_a)
+    aDb_where = np.where(
+        reverse,
+        array_a < array_b,
+        array_a > array_b,
+    )
+    bDa_where = ~(aDb_where | eq_where)  # a not dominates b and a != b
 
     return _Dominance(
         # resume

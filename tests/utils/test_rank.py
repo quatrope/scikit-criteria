@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -85,6 +86,7 @@ def test_dominance_reverse(ra, rb):
 
 
 def test_dominance_fail():
-    ra, rb = [1], [1, 2]
     with pytest.raises(ValueError):
-        rank.dominance(ra, rb)
+        rank.dominance([1], [1, 2])
+    with pytest.raises(ValueError):
+        rank.dominance([3, 4], [1, 2], [True])

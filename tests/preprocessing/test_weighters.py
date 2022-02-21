@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -28,11 +29,67 @@ from skcriteria.preprocessing.weighters import (
     Critic,
     EntropyWeighter,
     EqualWeighter,
+    SKCWeighterABC,
     StdWeighter,
     critic_weights,
     pearson_correlation,
     spearman_correlation,
 )
+
+
+# =============================================================================
+# WEIGHTER
+# =============================================================================
+
+
+def test_SKCWeighterABC_weight_matrix_not_implemented(decision_matrix):
+    class Foo(SKCWeighterABC):
+        _skcriteria_parameters = []
+
+        def _weight_matrix(self, **kwargs):
+            return super()._weight_matrix(**kwargs)
+
+    transformer = Foo()
+    dm = decision_matrix(seed=42)
+
+    with pytest.raises(NotImplementedError):
+        transformer.transform(dm)
+
+
+def test_SKCWeighterABC_not_redefined_abc_methods():
+    class Foo(SKCWeighterABC):
+        _skcriteria_parameters = []
+
+    with pytest.raises(TypeError):
+        Foo()
+
+
+def test_SKCWeighterABC_flow(decision_matrix):
+
+    dm = decision_matrix(seed=42)
+    expected_weights = np.ones(dm.matrix.shape[1]) * 42
+
+    class Foo(SKCWeighterABC):
+        _skcriteria_parameters = []
+
+        def _weight_matrix(self, matrix, **kwargs):
+            return expected_weights
+
+    transformer = Foo()
+
+    expected = skcriteria.mkdm(
+        matrix=dm.matrix,
+        objectives=dm.objectives,
+        weights=expected_weights,
+        dtypes=dm.dtypes,
+        alternatives=dm.alternatives,
+        criteria=dm.criteria,
+    )
+
+    result = transformer.transform(dm)
+
+    assert result.equals(expected)
+
 
 # =============================================================================
 # TEST EQUAL WEIGHTERS

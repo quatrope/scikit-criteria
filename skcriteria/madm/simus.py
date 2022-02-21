@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -19,9 +20,11 @@ import warnings
 
 import numpy as np
 
-from ..core import Objective, RankResult, SKCDecisionMakerABC
+from ._base import RankResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..preprocessing.scalers import scale_by_sum
 from ..utils import doc_inherit, lp, rank
+
 
 # =============================================================================
 # INTERNAL FUNCTIONS
@@ -246,34 +249,28 @@ class SIMUS(SKCDecisionMakerABC):
 
     """
 
+    _skcriteria_parameters = ["rank_by", "solver"]
+
     def __init__(self, *, rank_by=1, solver="pulp"):
-        self.solver = solver
-        self.rank_by = rank_by
-
-    @property
-    def solver(self):
-        """Solver used by PuLP."""
-        return self._solver
-
-    @solver.setter
-    def solver(self, solver):
         if not (
             isinstance(solver, lp.pulp.LpSolver)
             or lp.is_solver_available(solver)
         ):
             raise ValueError(f"solver {solver} not available")
         self._solver = solver
+        if rank_by not in (1, 2):
+            raise ValueError("'rank_by' must be 1 or 2")
+        self._rank_by = rank_by
+
+    @property
+    def solver(self):
+        """Solver used by PuLP."""
+        return self._solver
 
     @property
     def rank_by(self):
         """Which of the two ranking provided by SIMUS is used."""
         return self._rank_by
-
-    @rank_by.setter
-    def rank_by(self, rank_by):
-        if rank_by not in (1, 2):
-            raise ValueError("'rank_by' must be 1 or 2")
-        self._rank_by = rank_by
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, b, weights, **kwargs):

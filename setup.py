@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -39,6 +40,7 @@ REQUIREMENTS = [
     "custom_inherit",
     "seaborn",
     "pulp",
+    "Deprecated",
 ]
 
 PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
@@ -59,7 +61,7 @@ def do_setup():
         description=skcriteria.DOC,
         long_description=LONG_DESCRIPTION,
         long_description_content_type="text/markdown",
-        author="Juan B Cabral, Nadial Luczywo and QuatroPe",
+        author="QuatroPe",
         author_email="jbcabral@unc.edu.ar",
         url="http://scikit-criteria.org/",
         license="3 Clause BSD",
@@ -88,6 +90,7 @@ def do_setup():
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: Implementation :: CPython",
             "Topic :: Scientific/Engineering",
         ],

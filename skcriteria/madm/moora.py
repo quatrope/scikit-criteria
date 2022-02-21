@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -19,8 +20,10 @@ import itertools as it
 
 import numpy as np
 
-from ..core import Objective, RankResult, SKCDecisionMakerABC
+from ._base import RankResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..utils import doc_inherit, rank
+
 
 # =============================================================================
 # Ratio MOORA
@@ -67,6 +70,8 @@ class RatioMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2006moora`
 
     """
+
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -130,6 +135,8 @@ class ReferencePointMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -217,6 +224,8 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
 
     """
 
+    _skcriteria_parameters = []
+
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         if np.any(matrix <= 0):
@@ -302,6 +311,8 @@ class MultiMOORA(SKCDecisionMakerABC):
     :cite:p:`brauers2012robustness`
 
     """
+
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):

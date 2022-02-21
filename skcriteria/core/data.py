@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -19,9 +20,10 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 # IMPORTS
 # =============================================================================
 
-import abc
+
 import enum
 import functools
+from collections import abc
 
 import numpy as np
 
@@ -30,8 +32,11 @@ from pandas.io.formats import format as pd_fmt
 
 import pyquery as pq
 
+
+from .dominance import DecisionMatrixDominanceAccessor
 from .plot import DecisionMatrixPlotter
-from ..utils import Bunch, doc_inherit
+from .stats import DecisionMatrixStatsAccessor
+from ..utils import deprecated, doc_inherit
 
 
 # =============================================================================
@@ -113,10 +118,54 @@ class Objective(enum.Enum):
 
 
 # =============================================================================
-# DATA CLASS
+# _SLICER ARRAY
 # =============================================================================
+class _ACArray(np.ndarray, abc.Mapping):
+    """Immutable Array to provide access to the alternative and criteria \
+    values.
+
+    The behavior is the same as a numpy.ndarray but if the slice it receives
+    is a value contained in the array it uses an external function
+    to access the series with that criteria/alternative.
+
+    Besides this it has the typical methods of a dictionary.
+
+    """
+
+    def __new__(cls, input_array, skc_slicer):
+        obj = np.asarray(input_array).view(cls)
+        obj._skc_slicer = skc_slicer
+        return obj
+
+    @doc_inherit(np.ndarray.__getitem__)
+    def __getitem__(self, k):
+        try:
+            if k in self:
+                return self._skc_slicer(k)
+            return super().__getitem__(k)
+        except IndexError:
+            raise IndexError(k)
+
+    def __setitem__(self, k, v):
+        """Raise an AttributeError, this object are read-only."""
+        raise AttributeError("_SlicerArray are read-only")
+
+    @doc_inherit(abc.Mapping.items)
+    def items(self):
+        return ((e, self[e]) for e in self)
+
+    @doc_inherit(abc.Mapping.keys)
+    def keys(self):
+        return iter(self)
+
+    @doc_inherit(abc.Mapping.values)
+    def values(self):
+        return (self[e] for e in self)
 
 
+# =============================================================================
+# DECISION MATRIX
+# =============================================================================
 class DecisionMatrix:
     """Representation of all data needed in the MCDA analysis.
 
@@ -330,12 +379,16 @@ class DecisionMatrix:
     @property
     def alternatives(self):
         """Names of the alternatives."""
-        return self._data_df.index.to_numpy()
+        arr = self._data_df.index.to_numpy()
+        slicer = self._data_df.loc.__getitem__
+        return _ACArray(arr, slicer)
 
     @property
     def criteria(self):
         """Names of the criteria."""
-        return self._data_df.columns.to_numpy()
+        arr = self._data_df.columns.to_numpy()
+        slicer = self._data_df.__getitem__
+        return _ACArray(arr, slicer)
 
     @property
     def weights(self):
@@ -355,6 +408,20 @@ class DecisionMatrix:
             index=self._data_df.columns,
             name="Objectives",
         )
+
+    @property
+    def minwhere(self):
+        """Mask with value True if the criterion is to be minimized."""
+        mask = self.objectives == Objective.MIN
+        mask.name = "minwhere"
+        return mask
+
+    @property
+    def maxwhere(self):
+        """Mask with value True if the criterion is to be maximized."""
+        mask = self.objectives == Objective.MAX
+        mask.name = "maxwhere"
+        return mask
 
     # READ ONLY PROPERTIES ====================================================
 
@@ -389,10 +456,25 @@ class DecisionMatrix:
         """Dtypes of the criteria."""
         return self._data_df.dtypes.copy()
 
+    # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
+
     @property
+    @functools.lru_cache(maxsize=None)
     def plot(self):
         """Plot accessor."""
         return DecisionMatrixPlotter(self)
+
+    @property
+    @functools.lru_cache(maxsize=None)
+    def stats(self):
+        """Descriptive statistics accessor."""
+        return DecisionMatrixStatsAccessor(self)
+
+    @property
+    @functools.lru_cache(maxsize=None)
+    def dominance(self):
+        """Dominance information accessor."""
+        return DecisionMatrixDominanceAccessor(self)
 
     # UTILITIES ===============================================================
 
@@ -406,7 +488,7 @@ class DecisionMatrix:
         ----------
         kwargs :
             The same parameters supported by ``from_mcda_data()``. The values
-            provided replace the existing ones in the obSject to be copied.
+            provided replace the existing ones in the object to be copied.
 
         Returns
         -------
@@ -465,10 +547,18 @@ class DecisionMatrix:
             "objectives": self.iobjectives.to_numpy(),
             "weights": self.weights.to_numpy(),
             "dtypes": self.dtypes.to_numpy(),
-            "alternatives": self.alternatives,
-            "criteria": self.criteria,
+            "alternatives": np.asarray(self.alternatives),
+            "criteria": np.asarray(self.criteria),
         }
 
+    @deprecated(
+        reason=(
+            "Use 'DecisionMatrix.stats()', "
+            "'DecisionMatrix.stats(\"describe\")' or "
+            "'DecisionMatrix.stats.describe()' instead."
+        ),
+        version=0.6,
+    )
     def describe(self, **kwargs):
         """Generate descriptive statistics.
 
@@ -621,10 +711,26 @@ class DecisionMatrix:
         header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
 
-        kwargs = {"header": header, "show_dimensions": False}
+        max_rows = pd.get_option("display.max_rows")
+        min_rows = pd.get_option("display.min_rows")
+        max_cols = pd.get_option("display.max_columns")
+        max_colwidth = pd.get_option("display.max_colwidth")
 
-        # retrieve the original string
-        original_string = self._data_df.to_string(**kwargs)
+        width = (
+            pd.io.formats.console.get_console_size()[0]
+            if pd.get_option("display.expand_frame_repr")
+            else None
+        )
+
+        original_string = self._data_df.to_string(
+            max_rows=max_rows,
+            min_rows=min_rows,
+            max_cols=max_cols,
+            line_width=width,
+            max_colwidth=max_colwidth,
+            show_dimensions=False,
+            header=header,
+        )
 
         # add dimension
         string = f"{original_string}\n[{dimensions}]"
@@ -655,8 +761,7 @@ class DecisionMatrix:
         d = pq.PyQuery(html)
         for th in d("div.decisionmatrix table.dataframe > thead > tr > th"):
             crit = th.text
-            if crit:
-                th.text = header[crit]
+            th.text = header.get(crit, crit)
 
         return str(d)
 
@@ -670,219 +775,3 @@ class DecisionMatrix:
 def mkdm(*args, **kwargs):
     """Alias for DecisionMatrix.from_mcda_data."""
     return DecisionMatrix.from_mcda_data(*args, **kwargs)
-
-
-# =============================================================================
-# RESULTS
-# =============================================================================
-
-
-class ResultABC(metaclass=abc.ABCMeta):
-    """Base class to implement different types of results.
-
-    Any evaluation of the DecisionMatrix is expected to result in an object
-    that extends the functionalities of this class.
-
-    Parameters
-    ----------
-    method: str
-        Name of the method that generated the result.
-    alternatives: array-like
-        Names of the alternatives evaluated.
-    values: array-like
-        Values assigned to each alternative by the method, where the i-th
-        value refers to the valuation of the i-th. alternative.
-    extra: dict-like
-        Extra information provided by the method regarding the evaluation of
-        the alternatives.
-
-    """
-
-    _skcriteria_result_column = None
-
-    def __init_subclass__(cls):
-        """Validate if the subclass are well formed."""
-        result_column = cls._skcriteria_result_column
-        if result_column is None:
-            raise TypeError(f"{cls} must redefine '_skcriteria_result_column'")
-
-    def __init__(self, method, alternatives, values, extra):
-        self._validate_result(values)
-        self._method = str(method)
-        self._extra = Bunch("extra", extra)
-        self._result_df = pd.DataFrame(
-            values,
-            index=alternatives,
-            columns=[self._skcriteria_result_column],
-        )
-
-    @abc.abstractmethod
-    def _validate_result(self, values):
-        """Validate that the values are the expected by the result type."""
-        raise NotImplementedError()
-
-    @property
-    def values(self):
-        """Values assigned to each alternative by the method.
-
-        The i-th value refers to the valuation of the i-th. alternative.
-
-        """
-        return self._result_df[self._skcriteria_result_column].to_numpy()
-
-    @property
-    def method(self):
-        """Name of the method that generated the result."""
-        return self._method
-
-    @property
-    def alternatives(self):
-        """Names of the alternatives evaluated."""
-        return self._result_df.index.to_numpy()
-
-    @property
-    def extra_(self):
-        """Additional information about the result.
-
-        Note
-        ----
-        ``e_`` is an alias for this property
-
-        """
-        return self._extra
-
-    e_ = extra_
-
-    # CMP =====================================================================
-
-    @property
-    def shape(self):
-        """Tuple with (number_of_alternatives, number_of_alternatives).
-
-        rank.shape <==> np.shape(rank)
-
-        """
-        return np.shape(self._result_df)
-
-    def __len__(self):
-        """Return the number ot alternatives.
-
-        rank.__len__() <==> len(rank).
-
-        """
-        return len(self._result_df)
-
-    def equals(self, other):
-        """Check if the alternatives and ranking are the same.
-
-        The method doesn't check the method or the extra parameters.
-
-        """
-        return (self is other) or (
-            isinstance(other, RankResult)
-            and self._result_df.equals(other._result_df)
-        )
-
-    # REPR ====================================================================
-
-    def __repr__(self):
-        """result.__repr__() <==> repr(result)."""
-        kwargs = {"show_dimensions": False}
-
-        # retrieve the original string
-        df = self._result_df.T
-        original_string = df.to_string(**kwargs)
-
-        # add dimension
-        string = f"{original_string}\n[Method: {self.method}]"
-
-        return string
-
-
-@doc_inherit(ResultABC)
-class RankResult(ResultABC):
-    """Ranking of alternatives.
-
-    This type of results is used by methods that generate a ranking of
-    alternatives.
-
-    """
-
-    _skcriteria_result_column = "Rank"
-
-    @doc_inherit(ResultABC._validate_result)
-    def _validate_result(self, values):
-        length = len(values)
-        expected = np.arange(length) + 1
-        if not np.array_equal(np.sort(values), expected):
-            raise ValueError(f"The data {values} doesn't look like a ranking")
-
-    @property
-    def rank_(self):
-        """Alias for ``values``."""
-        return self.values
-
-    def _repr_html_(self):
-        """Return a html representation for a particular result.
-
-        Mainly for IPython notebook.
-
-        """
-        df = self._result_df.T
-        original_html = df.style._repr_html_()
-
-        # add metadata
-        html = (
-            "<div class='skcresult-rank skcresult'>\n"
-            f"{original_html}"
-            f"<em class='skcresult-method'>Method: {self.method}</em>\n"
-            "</div>"
-        )
-
-        return html
-
-
-@doc_inherit(ResultABC)
-class KernelResult(ResultABC):
-    """Separates the alternatives between good (kernel) and bad.
-
-    This type of results is used by methods that select which alternatives
-    are good and bad. The good alternatives are called "kernel"
-
-    """
-
-    _skcriteria_result_column = "Kernel"
-
-    @doc_inherit(ResultABC._validate_result)
-    def _validate_result(self, values):
-        if np.asarray(values).dtype != bool:
-            raise ValueError(f"The data {values} doesn't look like a kernel")
-
-    @property
-    def kernel_(self):
-        """Alias for ``values``."""
-        return self.values
-
-    @property
-    def kernelwhere_(self):
-        """Indexes of the alternatives that are part of the kernel."""
-        return np.where(self.kernel_)[0]
-
-    def _repr_html_(self):
-        """Return a html representation for a particular result.
-
-        Mainly for IPython notebook.
-
-        """
-        df = self._result_df.T
-        original_html = df._repr_html_()
-
-        # add metadata
-        html = (
-            "<div class='skcresult-kernel skcresult'>\n"
-            f"{original_html}"
-            f"<em class='skcresult-method'>Method: {self.method}</em>\n"
-            "</div>"
-        )
-
-        return html

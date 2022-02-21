@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -53,10 +54,17 @@ class SKCPipeline(SKCMethodABC):
     """
 
     _skcriteria_dm_type = "pipeline"
+    _skcriteria_parameters = ["steps"]
 
     def __init__(self, steps):
+        steps = list(steps)
         self._validate_steps(steps)
-        self.steps = list(steps)
+        self._steps = steps
+
+    @property
+    def steps(self):
+        """List of steps of the pipeline."""
+        return list(self._steps)
 
     def __len__(self):
         """Return the length of the Pipeline."""

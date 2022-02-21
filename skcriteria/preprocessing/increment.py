@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -86,18 +87,16 @@ class AddValueToZero(SKCMatrixAndWeightTransformerABC):
 
     """
 
-    def __init__(self, value, target):
+    _skcriteria_parameters = ["target", "value"]
+
+    def __init__(self, target, value=1.0):
         super().__init__(target=target)
-        self.value = value
+        self._eps = float(value)
 
     @property
     def value(self):
         """Value to add to the matrix/weight when a zero is found."""
         return self._eps
-
-    @value.setter
-    def value(self, value):
-        self._eps = float(value)
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):

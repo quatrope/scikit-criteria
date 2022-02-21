@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -28,8 +29,11 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 
 import numpy as np
 
-from ..core import KernelResult, Objective, SKCDecisionMakerABC
+
+from ._base import KernelResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..utils import doc_inherit
+
 
 # =============================================================================
 # CONCORDANCE
@@ -143,27 +147,21 @@ class ELECTRE1(SKCDecisionMakerABC):
 
     """
 
+    _skcriteria_parameters = ["p", "q"]
+
     def __init__(self, p=0.65, q=0.35):
-        self.p = p
-        self.q = q
+        self._p = float(p)
+        self._q = float(q)
 
     @property
     def p(self):
         """Concordance threshold."""
         return self._p
 
-    @p.setter
-    def p(self, p):
-        self._p = float(p)
-
     @property
     def q(self):
         """Discordance threshold."""
         return self._q
-
-    @q.setter
-    def q(self, q):
-        self._q = float(q)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):

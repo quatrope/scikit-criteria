@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -20,14 +21,16 @@ import numpy as np
 
 from scipy.spatial import distance
 
-from ..core import Objective, RankResult, SKCDecisionMakerABC
+from ._base import RankResult, SKCDecisionMakerABC
+from ..core import Objective
 from ..utils import doc_inherit, rank
+
 
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
-_VALID_DISTANCES = [
+_VALID_DISTANCES_METRICS = [
     "braycurtis",
     "canberra",
     "chebyshev",
@@ -114,27 +117,12 @@ class TOPSIS(SKCDecisionMakerABC):
         ``matching``, ``minkowski``, ``rogerstanimoto``, ``russellrao``,
         ``seuclidean``, ``sokalmichener``, ``sokalsneath``,
         ``sqeuclidean``, ``wminkowski``, ``yule``.
-    **cdist_kwargs : dict, optional
-        Extra arguments to metric: refer to each metric documentation for a
-        list of all possible arguments.
-        Some possible arguments:
-
-        - p : scalar The p-norm to apply for Minkowski, weighted and
-          unweighted. Default: 2.
-        - w : array_like The weight vector for metrics that support weights
-          (e.g., Minkowski).
-        - V : array_like The variance vector for standardized Euclidean.
-          Default: var(vstack([XA, XB]), axis=0, ddof=1)
-        - VI : array_like The inverse of the covariance matrix for
-          Mahalanobis. Default: inv(cov(vstack([XA, XB].T))).T
-
-        This extra parameters are passed to ``scipy.spatial.distance.cdist``
-        function,
 
     Warnings
     --------
     UserWarning:
         If some objective is to minimize.
+
 
     References
     ----------
@@ -144,29 +132,21 @@ class TOPSIS(SKCDecisionMakerABC):
 
     """
 
-    def __init__(self, *, metric="euclidean", **cdist_kwargs):
-        self.metric = metric
-        self.cdist_kwargs = cdist_kwargs
+    _skcriteria_parameters = ["metric"]
+
+    def __init__(self, *, metric="euclidean"):
+
+        if not callable(metric) and metric not in _VALID_DISTANCES_METRICS:
+            metrics = ", ".join(f"'{m}'" for m in _VALID_DISTANCES_METRICS)
+            raise ValueError(
+                f"Invalid metric '{metric}'. Plese choose from: {metrics}"
+            )
+        self._metric = metric
 
     @property
     def metric(self):
         """Which distance metric will be used."""
         return self._metric
-
-    @metric.setter
-    def metric(self, metric):
-        if not callable(metric) and metric not in _VALID_DISTANCES:
-            raise ValueError(f"Invalid metric '{metric}'")
-        self._metric = metric
-
-    @property
-    def cdist_kwargs(self):
-        """Extra parameters for the ``scipy.spatial.distance.cdist()``."""
-        return self._cdist_kwargs
-
-    @cdist_kwargs.setter
-    def cdist_kwargs(self, cdist_kwargs):
-        self._cdist_kwargs = dict(cdist_kwargs)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -181,7 +161,6 @@ class TOPSIS(SKCDecisionMakerABC):
             objectives,
             weights,
             metric=self.metric,
-            **self.cdist_kwargs,
         )
         return rank, {
             "ideal": ideal,

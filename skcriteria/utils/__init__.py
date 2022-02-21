@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -15,11 +16,20 @@
 # =============================================================================
 
 from . import lp, rank
+from .accabc import AccessorABC
 from .bunch import Bunch
-from .decorators import doc_inherit
+from .decorators import deprecated, doc_inherit
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["doc_inherit", "rank", "Bunch", "lp", "dominance"]
+__all__ = [
+    "AccessorABC",
+    "doc_inherit",
+    "deprecated",
+    "rank",
+    "Bunch",
+    "lp",
+    "dominance",
+]
