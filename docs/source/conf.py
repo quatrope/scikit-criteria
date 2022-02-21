@@ -57,6 +57,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "nbsphinx",
     "sphinxcontrib.bibtex",
+    "sphinx_copybutton"
 ]
 # =============================================================================
 # EXTRA CONF

@@ -8,9 +8,9 @@ Contents:
 
 .. toctree::
    :maxdepth: 2
-   :glob:
 
-   *
+   quickstart.ipynb
+   sufdom.ipynb
 
 
 
