@@ -242,17 +242,22 @@ intersphinx_mapping = {"https://docs.python.org/": None}
 
 import m2r
 
-with open(SKCRITERIA_PATH / "README.md") as fp:
-    readme_md = fp.read().split("<!-- BODY -->")[-1]
+DYNAMIC_RST = {
+    "README.md": "README.rst",
+    "CHANGELOG.md": "CHANGELOG.rst",
+}
 
+for md_name, rst_name in DYNAMIC_RST.items():
+    md_path = SKCRITERIA_PATH / md_name
+    with open(md_path) as fp:
+        readme_md = fp.read().split("<!-- BODY -->")[-1]
 
-README_RST_PATH = CURRENT_PATH / "_dynamic" / "README.rst"
+    rst_path = CURRENT_PATH / "_dynamic" / rst_name
 
-
-with open(README_RST_PATH, "w") as fp:
-    fp.write(".. FILE AUTO GENERATED !! \n")
-    fp.write(m2r.convert(readme_md))
-    print(f"{README_RST_PATH} regenerated!")
+    with open(rst_path, "w") as fp:
+        fp.write(".. FILE AUTO GENERATED !! \n")
+        fp.write(m2r.convert(readme_md))
+        print(f"{md_path} -> {rst_path} regenerated!")
 
 
 # =============================================================================

@@ -1,11 +1,11 @@
 include LICENSE
 include README.md
+include CHANGELOG.md
 
 recursive-include skcriteria *.py
 
 exclude tox.ini
 exclude pyproject.toml
-exclude CHANGELOG.md
 exclude .header-template
 exclude .readthedocs.yml
 

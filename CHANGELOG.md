@@ -1,10 +1,27 @@
-## Changelog of Scikit-Criteria
+# Changelog of Scikit-Criteria
 
-## 0.6
+<!-- BODY -->
+
+## Version 0.6
+
+- Support for Python 3.10.
+- All the objects of the project are now immutable by design, and can only
+  be mutated troughs the `object.copy()` method.
+- Dominance analysis tools (`DecisionMatrix.dominance`).
+- The method `DecisionMatrix.describe()` was deprecated and will be removed
+  in version *1.0*.
+- New statistics functionalities `DecisionMatrix.stats` accessor.
+- The accessors are now cached in the `DecisionMatrix`.
+
+- Tutorial for dominance and satisfaction analysis.
 
 - TOPSIS now support hyper-parameters to select different metrics.
+- Generalize the idea of accessors in scikit-criteria througth a common
+  framework (`skcriteria.utils.accabc` module).
+- New deprecation mechanism through the
+- `skcriteria.utils.decorators.deprecated` decorator.
 
-## 0.5
+## Version 0.5
 
 In this version scikit-criteria was rewritten from scratch. Among other things:
 
@@ -17,10 +34,10 @@ In this version scikit-criteria was rewritten from scratch. Among other things:
 
 **Full Changelog**: https://github.com/quatrope/scikit-criteria/commits/0.5
 
-## 0.2
+## Version 0.2
 
 First OO stable version.
 
-## 0.1
+## Version 0.1
 
 Only functions.
