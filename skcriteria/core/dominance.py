@@ -138,7 +138,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
         return self._create_frame(compute_cell)
 
-    def dominance(self, strict=False):
+    def dominance(self, *, strict=False):
         """Compare if one alternative dominates or strictly dominates another \
         alternative.
 
@@ -240,7 +240,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
     # The dominated============================================================
 
-    def dominated(self, strict=False):
+    def dominated(self, *, strict=False):
         """Which alternative is dominated or strictly dominated by at least \
         one other alternative.
 
@@ -260,7 +260,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
         return self.dominance(strict=strict).any()
 
     @functools.lru_cache(maxsize=None)
-    def dominators_of(self, a, strict=False):
+    def dominators_of(self, a, *, strict=False):
         """Array of alternatives that dominate or strictly-dominate the \
         alternative provided by parameters.
 
@@ -289,7 +289,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             dominators = np.concatenate((dominators, dominators_dominators))
         return dominators
 
-    def has_loops(self, strict=False):
+    def has_loops(self, *, strict=False):
         """Retorna True si la matriz contiene loops de dominacia.
 
         A loop is defined as if there are alternatives `a0`, `a1` and 'a2' such
