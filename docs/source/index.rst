@@ -39,6 +39,7 @@ Contents
     :maxdepth: 2
     :caption: Misc
 
+    changelog
     bibliography
 
 
