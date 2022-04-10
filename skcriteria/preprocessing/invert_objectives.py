@@ -9,10 +9,8 @@
 # DOCS
 # =============================================================================
 
-"""Implementation of functionalities for inverting minimization criteria and \
-converting them into maximization ones.
-
-"""
+"""Implementation of functionalities for convert minimization criteria into \
+maximization ones."""
 
 # =============================================================================
 # IMPORTS
@@ -24,16 +22,37 @@ import numpy as np
 from ..core import Objective, SKCTransformerABC
 from ..utils import deprecated, doc_inherit
 
-# =============================================================================
-# FUNCTIONS
-# =============================================================================
 
-
+# =============================================================================
+# Base Class
+# =============================================================================
 class SKCObjectivesInverterABC(SKCTransformerABC):
+    """Abstract class capable of invert objectives.
+
+    This abstract class require to redefine ``_invert``, instead of
+    ``_transform_data``.
+
+    """
 
     _skcriteria_abstract_class = True
 
     def _invert(self, matrix, minimize_mask):
+        """Invert the minimization objectives.
+
+        Parameters
+        ----------
+        matrix: :py:class:`numpy.ndarray`
+            The decision matrix to weights.
+        minimize_mask: :py:class:`numpy.ndarray`
+            Mask with the same size as the columns in the matrix. True values
+            indicate that this column is a criterion to be minimized.
+
+        Returns
+        -------
+        :py:class:`numpy.ndarray`
+            A new matrix with the minimization objectives inverted.
+
+        """
         raise NotImplementedError()
 
     @doc_inherit(SKCTransformerABC._transform_data)
@@ -59,6 +78,9 @@ class SKCObjectivesInverterABC(SKCTransformerABC):
         return kwargs
 
 
+# =============================================================================
+# -x
+# =============================================================================
 class NegateMinimize(SKCObjectivesInverterABC):
     r"""Transform all minimization criteria  into maximization ones.
 
@@ -66,6 +88,7 @@ class NegateMinimize(SKCObjectivesInverterABC):
     the minimization criteria. :math:`\min{C} \equiv \max{-{C}}`.
 
     """
+
     _skcriteria_parameters = []
 
     @doc_inherit(SKCObjectivesInverterABC._invert)
@@ -78,6 +101,9 @@ class NegateMinimize(SKCObjectivesInverterABC):
         return inv_mtx
 
 
+# =============================================================================
+# 1/x
+# =============================================================================
 class InvertMinimize(SKCObjectivesInverterABC):
     r"""Transform all minimization criteria  into maximization ones.
 
@@ -103,11 +129,13 @@ class InvertMinimize(SKCObjectivesInverterABC):
         return inv_mtx
 
 
+# =============================================================================
+# DEPRECATED
+# =============================================================================
 @deprecated(
     reason="Use 'skcriteria.preprocessing.InvertMinimize' instead",
     version=0.7,
 )
-@doc_inherit(InvertMinimize)
 class MinimizeToMaximize(InvertMinimize):
     r"""Transform all minimization criteria  into maximization ones.
 

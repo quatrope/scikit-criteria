@@ -20,34 +20,124 @@
 
 import numpy as np
 
+import pytest
 
 import skcriteria
-from skcriteria.preprocessing.invert_objectives import MinimizeToMaximize
+from skcriteria.preprocessing.invert_objectives import (
+    InvertMinimize,
+    NegateMinimize,
+    SKCObjectivesInverterABC,
+)
+
+# =============================================================================
+# TEST CLASSES ABC
+# =============================================================================
+
+
+def test_SKCObjectivesInverterABC__invert_not_implemented(decision_matrix):
+    class Foo(SKCObjectivesInverterABC):
+        _skcriteria_parameters = []
+
+        def _invert(self, matrix, minimize_mask):
+            return super()._invert(matrix, minimize_mask)
+
+    transformer = Foo()
+    dm = decision_matrix(seed=42)
+
+    with pytest.raises(NotImplementedError):
+        transformer.transform(dm)
 
 
 # =============================================================================
-# TEST CLASSES
+# INVERT
 # =============================================================================
 
 
-def test_MinimizeToMaximize_simple():
+def test_NegateMinimize_all_min(decision_matrix):
 
-    dm = skcriteria.mkdm(
-        matrix=[[1, 2, 3], [4, 5, 6]], objectives=[min, max, min]
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=1.0,
     )
-
     expected = skcriteria.mkdm(
-        matrix=[[1, 2, 1 / 3], [1 / 4, 5, 1 / 6]], objectives=[max, max, max]
+        matrix=-dm.matrix,
+        objectives=np.full(20, 1, dtype=int),
+        weights=dm.weights,
+        alternatives=dm.alternatives,
+        criteria=dm.criteria,
     )
 
-    inv = MinimizeToMaximize()
+    inv = NegateMinimize()
 
     result = inv.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MinimizeToMaximize_all_min(decision_matrix):
+def test_NegateMinimize_50percent_min(decision_matrix):
+
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    minimize_mask = dm.iobjectives == -1
+    expected_mtx = np.array(dm.matrix, dtype=float)
+    expected_mtx[:, minimize_mask] = -expected_mtx[:, minimize_mask]
+
+    inv_dtypes = np.where(dm.iobjectives == -1, float, dm.dtypes)
+
+    expected = skcriteria.mkdm(
+        matrix=expected_mtx,
+        objectives=np.full(20, 1, dtype=int),
+        weights=dm.weights,
+        alternatives=dm.alternatives,
+        criteria=dm.criteria,
+        dtypes=inv_dtypes,
+    )
+
+    inv = NegateMinimize()
+
+    result = inv.transform(dm)
+
+    assert result.equals(expected)
+
+
+def test_NegateMinimize_no_change_original_dm(decision_matrix):
+
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    expected = dm.copy()
+
+    inv = NegateMinimize()
+    dmt = inv.transform(dm)
+
+    assert (
+        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
+    )
+
+
+# =============================================================================
+# INVERT
+# =============================================================================
+
+
+def test_InvertMinimize_all_min(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -65,14 +155,14 @@ def test_MinimizeToMaximize_all_min(decision_matrix):
         criteria=dm.criteria,
     )
 
-    inv = MinimizeToMaximize()
+    inv = InvertMinimize()
 
     result = inv.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MinimizeToMaximize_50percent_min(decision_matrix):
+def test_InvertMinimize_50percent_min(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -98,14 +188,14 @@ def test_MinimizeToMaximize_50percent_min(decision_matrix):
         dtypes=inv_dtypes,
     )
 
-    inv = MinimizeToMaximize()
+    inv = InvertMinimize()
 
     result = inv.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MinimizeToMaximize_no_change_original_dm(decision_matrix):
+def test_InvertMinimize_no_change_original_dm(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -118,7 +208,7 @@ def test_MinimizeToMaximize_no_change_original_dm(decision_matrix):
 
     expected = dm.copy()
 
-    inv = MinimizeToMaximize()
+    inv = InvertMinimize()
     dmt = inv.transform(dm)
 
     assert (

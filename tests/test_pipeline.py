@@ -22,7 +22,7 @@ import pytest
 
 from skcriteria import pipeline
 from skcriteria.madm.similarity import TOPSIS
-from skcriteria.preprocessing.invert_objectives import MinimizeToMaximize
+from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import StandarScaler
 from skcriteria.preprocessing.weighters import Critic
 
@@ -35,7 +35,7 @@ def test_pipeline_mkpipe(decision_matrix):
     dm = decision_matrix(seed=42)
 
     steps = [
-        MinimizeToMaximize(),
+        InvertMinimize(),
         StandarScaler(target="matrix"),
         Critic(correlation="spearman"),
         Critic(),
@@ -60,7 +60,7 @@ def test_pipeline_mkpipe(decision_matrix):
 def test_pipeline_slicing():
 
     steps = [
-        MinimizeToMaximize(),
+        InvertMinimize(),
         StandarScaler(target="matrix"),
         Critic(correlation="spearman"),
         Critic(),
