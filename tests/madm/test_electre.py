@@ -23,7 +23,13 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm.electre import ELECTRE1, concordance, discordance
+from skcriteria.madm.electre import (
+    ELECTRE1,
+    ELECTRE2,
+    concordance,
+    discordance,
+    weight_summatory,
+)
 from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
 
 # =============================================================================
@@ -180,3 +186,73 @@ def test_kernel_sensibility_barba1997decisiones():
                 f"alternatives in kernel. {kernels_len}"
             )
         kernels_len.append(klen)
+
+
+# =============================================================================
+# ELECTRE II
+# =============================================================================
+
+
+def test_weight_summatory():
+
+    matrix = scale_by_sum(
+        [
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8],
+        ],
+        axis=0,
+    )
+    objectives = [1, 1, -1, 1, 1]
+    weights = [0.25, 0.25, 0.1, 0.2, 0.2]
+    expected = [
+        [False, True, True, True, True, True],
+        [False, False, False, False, True, False],
+        [False, True, False, True, True, True],
+        [False, True, False, False, True, True],
+        [False, True, False, False, False, False],
+        [False, True, True, False, True, False],
+    ]
+
+    results = weight_summatory(matrix, objectives, weights)
+    np.testing.assert_array_equal(results, expected)
+
+
+def test_electre2_cebrian2009localizacion():
+    """
+    Data From:
+        Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
+        en Aragón: Una aplicación empírica de la ayuda a la decisión
+        multicriterio tipo ELECTRE I y III. Robustez de los resultados
+        obtenidos.
+        Revista de Métodos Cuantitativos para la Economía y la Empresa,
+        (7), 31-56.
+
+    """
+    dm = skcriteria.mkdm(
+        matrix=[
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8],
+        ],
+        objectives=[1, 1, -1, 1, 1],
+        weights=[0.25, 0.25, 0.1, 0.2, 0.2],
+    )
+
+    scaler = SumScaler("both")
+    dm = scaler.transform(dm)
+
+    kselector = ELECTRE2()
+    result = kselector.evaluate(dm)
+
+    import ipdb
+
+    ipdb.set_trace()
+
+    assert np.all(result.kernelwhere_ == [4])

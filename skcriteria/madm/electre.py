@@ -27,8 +27,9 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 # IMPORTS
 # =============================================================================
 
-import numpy as np
+import itertools as it
 
+import numpy as np
 
 from ._base import KernelResult, SKCDecisionMakerABC
 from ..core import Objective
@@ -149,7 +150,7 @@ class ELECTRE1(SKCDecisionMakerABC):
 
     _skcriteria_parameters = ["p", "q"]
 
-    def __init__(self, p=0.65, q=0.35):
+    def __init__(self, *, p=0.65, q=0.35):
         self._p = float(p)
         self._q = float(q)
 
@@ -169,6 +170,149 @@ class ELECTRE1(SKCDecisionMakerABC):
             matrix, objectives, weights, self.p, self.q
         )
         return kernel, {
+            "outrank": outrank,
+            "matrix_concordance": matrix_concordance,
+            "matrix_discordance": matrix_discordance,
+        }
+
+    @doc_inherit(SKCDecisionMakerABC._make_result)
+    def _make_result(self, alternatives, values, extra):
+        return KernelResult(
+            "ELECTRE1", alternatives=alternatives, values=values, extra=extra
+        )
+
+
+# =============================================================================
+# ELECTRE 2
+# =============================================================================
+
+
+# p0 (electre1), p1, p2
+# q0 (electre1), q1
+
+
+def weight_summatory(matrix, weights, objectives):
+
+    alt_n = len(matrix)
+
+    alt_combs = it.combinations(range(alt_n), 2)
+
+    result = np.full((alt_n, alt_n), False, dtype=bool)
+
+    for a0_idx, a1_idx in alt_combs:
+
+        # sacamos las alternativas
+        a0, a1 = matrix[[a0_idx, a1_idx]]
+
+        # vemos donde hay maximos y donde hay minimos estrictos
+        maxs, mins = (a0 > a1), (a0 < a1)
+
+        # armamos los vectores de a \succ b teniendo en cuenta los objetivs
+        a0_s_a1 = np.where(objectives == Objective.MAX.value, maxs, mins)
+        a1_s_a0 = np.where(objectives == Objective.MAX.value, mins, maxs)
+
+        # sacamos ahora los criterios
+        result[a0_idx, a1_idx] = np.sum(weights * a0_s_a1) >= np.sum(
+            weights * a1_s_a0
+        )
+        result[a1_idx, a0_idx] = np.sum(weights * a1_s_a0) >= np.sum(
+            weights * a0_s_a1
+        )
+
+    return result
+
+
+def electre2(
+    matrix, objectives, weights, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35
+):
+    """Execute ELECTRE2 without any validation."""
+
+    matrix_concordance = concordance(matrix, objectives, weights)
+    matrix_discordance = discordance(matrix, objectives)
+    matrix_wsum = wsum(matrix, objectives, weights)
+
+    # creamos los grafos debiles (w) y fuertes(s)
+    outrank_s = (
+        (matrix_concordance >= p0) & (matrix_discordance <= q0) & matrix_wsum
+    ) | ((matrix_concordance >= p1) & (matrix_discordance <= q1) & matrix_wsum)
+
+    outrank_w = (
+        (matrix_concordance >= p2) & (matrix_discordance <= q0) & matrix_wsum
+    )
+
+    len(matrix)
+
+    import ipdb
+
+    ipdb.set_trace()
+
+
+class ELECTRE2(SKCDecisionMakerABC):
+    """Find a the rankin solution through ELECTRE-2."""
+
+    _skcriteria_parameters = ["p0", "p1", "p2", "q0", "q1"]
+
+    def __init__(self, *, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35):
+        p0, p1, p2, q0, q1 = map(float, (p0, p1, p2, q0, q1))
+
+        if not (1 >= p0 >= p1 >= p2 >= 0):
+            raise ValueError(
+                "Condition '1 >= p0 >= p1 >= p2 >= 0' must be fulfilled. "
+                "Found: p0={p0}, p1={p1} p2={p2}.'"
+            )
+        if not (1 >= q0 >= q1 >= 0):
+            raise ValueError(
+                "Condition '1 >= q0 >= q1 >= 0' must be fulfilled. "
+                "Found: q0={q0}, q1={q1}.'"
+            )
+
+        self._p0, self._p1, self._p2, self._q0, self._q1 = (p0, p1, p2, q0, q1)
+
+    @property
+    def p0(self):
+        """Concordance threshold 0."""
+        return self._p0
+
+    @property
+    def p1(self):
+        """Concordance threshold 1."""
+        return self._p1
+
+    @property
+    def p2(self):
+        """Concordance threshold 2."""
+        return self._p2
+
+    @property
+    def q0(self):
+        """Discordance threshold 0."""
+        return self._q0
+
+    @property
+    def q1(self):
+        """Discordance threshold 1."""
+        return self._q1
+
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+        (
+            ranking,
+            kernel,
+            outrank,
+            matrix_concordance,
+            matrix_discordance,
+        ) = electre2(
+            matrix,
+            objectives,
+            weights,
+            self.p0,
+            self.p1,
+            self.p2,
+            self.q0,
+            self.q1,
+        )
+        return ranking, {
+            "kernel": kernel,
             "outrank": outrank,
             "matrix_concordance": matrix_concordance,
             "matrix_discordance": matrix_discordance,
