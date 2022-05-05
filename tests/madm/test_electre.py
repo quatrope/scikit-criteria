@@ -18,6 +18,7 @@
 # IMPORTS
 # =============================================================================
 
+from pickletools import pybytes_or_str
 import numpy as np
 
 import pytest
@@ -28,7 +29,7 @@ from skcriteria.madm.electre import (
     ELECTRE2,
     concordance,
     discordance,
-    weight_summatory,
+    weights_outrank,
 )
 from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
 
@@ -114,7 +115,7 @@ def test_discordance_cebrian2009localizacion():
     assert np.allclose(results, expected, atol=1.0e-3, equal_nan=True)
 
 
-def test_electre1_cebrian2009localizacion():
+def test_ELECTRE1_cebrian2009localizacion():
     """
     Data From:
         Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
@@ -147,7 +148,7 @@ def test_electre1_cebrian2009localizacion():
     assert np.all(result.kernelwhere_ == [4])
 
 
-def test_kernel_sensibility_barba1997decisiones():
+def test_ELECTRE1_kernel_sensibility_barba1997decisiones():
     """
     Data From:
         Barba-Romero, S., & Pomerol, J. C. (1997).
@@ -188,12 +189,26 @@ def test_kernel_sensibility_barba1997decisiones():
         kernels_len.append(klen)
 
 
+def test_ELECTRE1_invalid_p_and_q():
+    with pytest.raises(ValueError):
+        ELECTRE1(p=10)
+
+    with pytest.raises(ValueError):
+        ELECTRE1(q=10)
+
+    with pytest.raises(ValueError):
+        ELECTRE1(p=-1)
+
+    with pytest.raises(ValueError):
+        ELECTRE1(q=-1)
+
+
 # =============================================================================
 # ELECTRE II
 # =============================================================================
 
 
-def test_weight_summatory():
+def test_weight_outrank():
 
     matrix = scale_by_sum(
         [
@@ -217,11 +232,11 @@ def test_weight_summatory():
         [False, True, True, False, True, False],
     ]
 
-    results = weight_summatory(matrix, objectives, weights)
+    results = weights_outrank(matrix, objectives, weights)
     np.testing.assert_array_equal(results, expected)
 
 
-def test_electre2_cebrian2009localizacion():
+def test_ELECTRE2_cebrian2009localizacion():
     """
     Data From:
         Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
@@ -251,8 +266,25 @@ def test_electre2_cebrian2009localizacion():
     kselector = ELECTRE2()
     result = kselector.evaluate(dm)
 
-    import ipdb
+    assert np.all(result.rank_ == [3, 2, 1, 3, 1, 2])
 
-    ipdb.set_trace()
 
-    assert np.all(result.kernelwhere_ == [4])
+@pytest.mark.parametrize(
+    "p0, p1, p2",
+    [(1, 2, 3), (0, 0.5, 1), (1, 0.5, 0.75)],
+)
+def test_ELECTRE2_invalid_ps(p0, p1, p2):
+    with pytest.raises(ValueError):
+        ELECTRE2(p0=p0, p1=p1, p2=p2)
+
+
+@pytest.mark.parametrize(
+    "q0, q1",
+    [
+        (1, 2),
+        (0, 0.5),
+    ],
+)
+def test_ELECTRE2_invalid_qs(q0, q1):
+    with pytest.raises(ValueError):
+        ELECTRE2(q0=q0, q1=q1)

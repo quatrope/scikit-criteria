@@ -104,8 +104,8 @@ class ResultABC(metaclass=abc.ABCMeta):
         if result_column is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_result_column'")
 
-    def __init__(self, method, alternatives, values, extra):
-        self._validate_result(values)
+    def __init__(self, method, alternatives, values, extra, allow_ties=False):
+        self._validate_result(values, allow_ties)
         self._method = str(method)
         self._extra = Bunch("extra", extra)
         self._result_df = pd.DataFrame(
@@ -113,11 +113,17 @@ class ResultABC(metaclass=abc.ABCMeta):
             index=alternatives,
             columns=[self._skcriteria_result_column],
         )
+        self._allow_ties = allow_ties
 
     @abc.abstractmethod
-    def _validate_result(self, values):
+    def _validate_result(self, values, allow_ties):
         """Validate that the values are the expected by the result type."""
         raise NotImplementedError()
+
+    @property
+    def allow_ties(self):
+        """If true two alternatives can share the same ranking."""
+        return self._allow_ties
 
     @property
     def values(self):
@@ -209,16 +215,36 @@ class RankResult(ResultABC):
     _skcriteria_result_column = "Rank"
 
     @doc_inherit(ResultABC._validate_result)
-    def _validate_result(self, values):
+    def _validate_result(self, values, allow_ties):
+        original_values = values
+
+        if allow_ties:
+            values = np.unique(values)
+
         length = len(values)
         expected = np.arange(length) + 1
         if not np.array_equal(np.sort(values), expected):
-            raise ValueError(f"The data {values} doesn't look like a ranking")
+            raise ValueError(
+                f"The data {original_values} doesn't look like a ranking"
+            )
 
     @property
     def rank_(self):
         """Alias for ``values``."""
         return self.values
+
+    @property
+    def untied_rank_(self):
+        """Ranking whitout ties.
+
+        if the ranking has ties this property assigns unique and consecutive
+        values in the ranking. This method only assigns the values using the
+        command ``numpy.argsort(rank_) + 1``.
+
+        """
+        if self.allow_ties:
+            return np.argsort(self.rank_) + 1
+        return self.rank_
 
     def _repr_html_(self):
         """Return a html representation for a particular result.
@@ -252,7 +278,7 @@ class KernelResult(ResultABC):
     _skcriteria_result_column = "Kernel"
 
     @doc_inherit(ResultABC._validate_result)
-    def _validate_result(self, values):
+    def _validate_result(self, values, allow_ties):
         if np.asarray(values).dtype != bool:
             raise ValueError(f"The data {values} doesn't look like a kernel")
 

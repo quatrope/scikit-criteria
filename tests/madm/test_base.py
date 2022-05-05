@@ -133,8 +133,8 @@ class test_ResultBase_original_validare_result_fail:
     class Foo(ResultABC):
         _skcriteria_result_column = "foo"
 
-        def _validate_result(self, values):
-            return super()._validate_result(values)
+        def _validate_result(self, values, allow_ties):
+            return super()._validate_result(values, allow_ties)
 
     with pytest.raises(NotImplementedError):
         Foo("foo", ["abc"], [1, 2, 3], {})
@@ -159,6 +159,28 @@ def test_RankResult():
     assert np.all(result.alternatives == alternatives)
     assert np.all(result.rank_ == rank)
     assert np.all(result.extra_ == result.e_ == extra)
+    assert np.all(result.untied_rank_ == rank)
+
+
+def test_RankResult_ties():
+    method = "foo"
+    alternatives = ["a", "b", "c"]
+    rank = [1, 2, 1]
+    extra = {"alfa": 1}
+
+    result = RankResult(
+        method=method,
+        alternatives=alternatives,
+        values=rank,
+        extra=extra,
+        allow_ties=True,
+    )
+
+    assert np.all(result.method == method)
+    assert np.all(result.alternatives == alternatives)
+    assert np.all(result.rank_ == rank)
+    assert np.all(result.extra_ == result.e_ == extra)
+    assert np.all(result.untied_rank_ == [1, 3, 2])
 
 
 @pytest.mark.parametrize("rank", [[1, 2, 5], [1, 1, 1], [1, 2, 2], [1, 2]])

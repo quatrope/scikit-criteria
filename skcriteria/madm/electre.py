@@ -31,7 +31,7 @@ import itertools as it
 
 import numpy as np
 
-from ._base import KernelResult, SKCDecisionMakerABC
+from ._base import KernelResult, RankResult, SKCDecisionMakerABC
 from ..core import Objective
 from ..utils import doc_inherit
 
@@ -114,6 +114,8 @@ def electre1(matrix, objectives, weights, p=0.65, q=0.35):
     with np.errstate(invalid="ignore"):
         outrank = (matrix_concordance >= p) & (matrix_discordance <= q)
 
+    # TODO: remove loops
+
     kernel = ~outrank.any(axis=0)
 
     return kernel, outrank, matrix_concordance, matrix_discordance
@@ -151,8 +153,14 @@ class ELECTRE1(SKCDecisionMakerABC):
     _skcriteria_parameters = ["p", "q"]
 
     def __init__(self, *, p=0.65, q=0.35):
-        self._p = float(p)
-        self._q = float(q)
+        p, q = float(p), float(q)
+
+        if not (1 >= p >= 0):
+            raise ValueError(f"p must be a value between 0 and 1. Found {p}")
+        if not (1 >= q >= 0):
+            raise ValueError(f"q must be a value between 0 and 1. Found {q}")
+
+        self._p, self._q = p, q
 
     @property
     def p(self):
@@ -187,17 +195,11 @@ class ELECTRE1(SKCDecisionMakerABC):
 # =============================================================================
 
 
-# p0 (electre1), p1, p2
-# q0 (electre1), q1
-
-
-def weight_summatory(matrix, weights, objectives):
+def weights_outrank(matrix, weights, objectives):
 
     alt_n = len(matrix)
-
     alt_combs = it.combinations(range(alt_n), 2)
-
-    result = np.full((alt_n, alt_n), False, dtype=bool)
+    outrank = np.full((alt_n, alt_n), False, dtype=bool)
 
     for a0_idx, a1_idx in alt_combs:
 
@@ -212,14 +214,14 @@ def weight_summatory(matrix, weights, objectives):
         a1_s_a0 = np.where(objectives == Objective.MAX.value, mins, maxs)
 
         # sacamos ahora los criterios
-        result[a0_idx, a1_idx] = np.sum(weights * a0_s_a1) >= np.sum(
+        outrank[a0_idx, a1_idx] = np.sum(weights * a0_s_a1) >= np.sum(
             weights * a1_s_a0
         )
-        result[a1_idx, a0_idx] = np.sum(weights * a1_s_a0) >= np.sum(
+        outrank[a1_idx, a0_idx] = np.sum(weights * a1_s_a0) >= np.sum(
             weights * a0_s_a1
         )
 
-    return result
+    return outrank
 
 
 def electre2(
@@ -229,22 +231,80 @@ def electre2(
 
     matrix_concordance = concordance(matrix, objectives, weights)
     matrix_discordance = discordance(matrix, objectives)
-    matrix_wsum = wsum(matrix, objectives, weights)
+    matrix_wor = weights_outrank(matrix, objectives, weights)
 
     # creamos los grafos debiles (w) y fuertes(s)
     outrank_s = (
-        (matrix_concordance >= p0) & (matrix_discordance <= q0) & matrix_wsum
-    ) | ((matrix_concordance >= p1) & (matrix_discordance <= q1) & matrix_wsum)
+        (matrix_concordance >= p0) & (matrix_discordance <= q0) & matrix_wor
+    ) | ((matrix_concordance >= p1) & (matrix_discordance <= q1) & matrix_wor)
 
     outrank_w = (
-        (matrix_concordance >= p2) & (matrix_discordance <= q0) & matrix_wsum
+        (matrix_concordance >= p2) & (matrix_discordance <= q0) & matrix_wor
     )
 
-    len(matrix)
+    # TODO: remove loops
 
-    import ipdb
+    # Here we create the ranking loop
 
-    ipdb.set_trace()
+    # here we store the final rank
+    ranking = np.zeros(len(matrix), dtype=int)
+
+    # copy to not destroy outrank_s and outrank_w
+    current_outrank_s = np.copy(outrank_s)
+    current_outrank_w = np.copy(outrank_w)
+
+    # The alternatives still not ranked
+    alt_snr_idx = np.arange(len(matrix))
+
+    # the current rank
+    current_rank_position = 1
+
+    while len(current_outrank_w) or len(current_outrank_s):
+
+        kernel_s = ~current_outrank_s.any(axis=0)
+        kernel_w = ~current_outrank_w.any(axis=0)
+
+        # kernel strong - kernel weak
+        kernel_smw = kernel_s & ~kernel_w
+
+        # if there is no kernel, all are on equal footing and we need to assign
+        # the current rank to the not evaluated alternatives.
+        # After that, we can stop the loop
+        if not np.any(kernel_smw):
+            ranking[ranking == 0] = current_rank_position
+            break
+
+        # we create the container that will have the value of the ranking only
+        # in the places to be assigned, in the other cases we leave 0
+        rank_to_asign = np.zeros(len(matrix), dtype=int)
+
+        # we have to take into account that the graphs are getting smaller
+        # and smaller so we need alt_snr_idx to see which alternatives still
+        # need to be rank
+        rank_to_asign[alt_snr_idx[kernel_smw]] = current_rank_position
+
+        # we add the ranking to the global ranking
+        # (where you do not have to add + 0)
+        ranking = ranking + rank_to_asign
+
+        # remove kernel from graphs
+        to_keep = np.argwhere(~kernel_smw).flatten()
+
+        current_outrank_s = current_outrank_s[to_keep][:, to_keep]
+        current_outrank_w = current_outrank_w[to_keep][:, to_keep]
+        alt_snr_idx = alt_snr_idx[to_keep]
+
+        # next time we will assign the current ranking + 1
+        current_rank_position += 1
+
+    return (
+        ranking,
+        matrix_concordance,
+        matrix_discordance,
+        matrix_wor,
+        outrank_s,
+        outrank_w,
+    )
 
 
 class ELECTRE2(SKCDecisionMakerABC):
@@ -297,10 +357,11 @@ class ELECTRE2(SKCDecisionMakerABC):
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         (
             ranking,
-            kernel,
-            outrank,
             matrix_concordance,
             matrix_discordance,
+            matrix_wor,
+            outrank_s,
+            outrank_w,
         ) = electre2(
             matrix,
             objectives,
@@ -312,14 +373,19 @@ class ELECTRE2(SKCDecisionMakerABC):
             self.q1,
         )
         return ranking, {
-            "kernel": kernel,
-            "outrank": outrank,
             "matrix_concordance": matrix_concordance,
             "matrix_discordance": matrix_discordance,
+            "matrix_wor": matrix_wor,
+            "outrank_s": outrank_s,
+            "outrank_w": outrank_w,
         }
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
-        return KernelResult(
-            "ELECTRE1", alternatives=alternatives, values=values, extra=extra
+        return RankResult(
+            "ELECTRE2",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
+            allow_ties=True,
         )
