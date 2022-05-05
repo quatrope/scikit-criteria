@@ -436,5 +436,4 @@ class ELECTRE2(SKCDecisionMakerABC):
             alternatives=alternatives,
             values=values,
             extra=extra,
-            allow_ties=True,
         )

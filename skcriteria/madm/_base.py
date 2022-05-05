@@ -104,8 +104,8 @@ class ResultABC(metaclass=abc.ABCMeta):
         if result_column is None:
             raise TypeError(f"{cls} must redefine '_skcriteria_result_column'")
 
-    def __init__(self, method, alternatives, values, extra, allow_ties=False):
-        self._validate_result(values, allow_ties)
+    def __init__(self, method, alternatives, values, extra):
+        self._validate_result(values)
         self._method = str(method)
         self._extra = Bunch("extra", extra)
         self._result_df = pd.DataFrame(
@@ -113,17 +113,11 @@ class ResultABC(metaclass=abc.ABCMeta):
             index=alternatives,
             columns=[self._skcriteria_result_column],
         )
-        self._allow_ties = allow_ties
 
     @abc.abstractmethod
-    def _validate_result(self, values, allow_ties):
+    def _validate_result(self, values):
         """Validate that the values are the expected by the result type."""
         raise NotImplementedError()
-
-    @property
-    def allow_ties(self):
-        """If true two alternatives can share the same ranking."""
-        return self._allow_ties
 
     @property
     def values(self):
@@ -156,6 +150,13 @@ class ResultABC(metaclass=abc.ABCMeta):
         return self._extra
 
     e_ = extra_
+
+    @property
+    def has_ties_(self):
+        """True if two alternatives shares the same ranking."""
+        values = self.values
+        return len(np.unique(values)) != len(values)
+
 
     # CMP =====================================================================
 
@@ -215,18 +216,14 @@ class RankResult(ResultABC):
     _skcriteria_result_column = "Rank"
 
     @doc_inherit(ResultABC._validate_result)
-    def _validate_result(self, values, allow_ties):
-        original_values = values
+    def _validate_result(self, values):
 
-        if allow_ties:
-            values = np.unique(values)
+        cleaned_values = np.unique(values)
 
-        length = len(values)
+        length = len(cleaned_values)
         expected = np.arange(length) + 1
-        if not np.array_equal(np.sort(values), expected):
-            raise ValueError(
-                f"The data {original_values} doesn't look like a ranking"
-            )
+        if not np.array_equal(np.sort(cleaned_values), expected):
+            raise ValueError(f"The data {values} doesn't look like a ranking")
 
     @property
     def rank_(self):
@@ -242,7 +239,7 @@ class RankResult(ResultABC):
         command ``numpy.argsort(rank_) + 1``.
 
         """
-        if self.allow_ties:
+        if self.has_ties_:
             return np.argsort(self.rank_) + 1
         return self.rank_
 
@@ -278,7 +275,7 @@ class KernelResult(ResultABC):
     _skcriteria_result_column = "Kernel"
 
     @doc_inherit(ResultABC._validate_result)
-    def _validate_result(self, values, allow_ties):
+    def _validate_result(self, values):
         if np.asarray(values).dtype != bool:
             raise ValueError(f"The data {values} doesn't look like a kernel")
 
