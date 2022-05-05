@@ -18,7 +18,6 @@
 # IMPORTS
 # =============================================================================
 
-from pickletools import pybytes_or_str
 import numpy as np
 
 import pytest
@@ -191,7 +190,7 @@ def test_ELECTRE1_kernel_sensibility_barba1997decisiones():
 
 def test_ELECTRE1_invalid_p_and_q():
     with pytest.raises(ValueError):
-        ELECTRE1(p=10)
+        ELECTRE1(p=1.5)
 
     with pytest.raises(ValueError):
         ELECTRE1(q=10)
@@ -266,25 +265,19 @@ def test_ELECTRE2_cebrian2009localizacion():
     kselector = ELECTRE2()
     result = kselector.evaluate(dm)
 
-    assert np.all(result.rank_ == [3, 2, 1, 3, 1, 2])
+    assert np.all(result.rank_ == [3, 2, 1, 3, 1, 3])
+    np.testing.assert_allclose(result.e_.score, [2.0, 1.5, 1.0, 2.0, 1.0, 2.0])
 
 
 @pytest.mark.parametrize(
-    "p0, p1, p2",
-    [(1, 2, 3), (0, 0.5, 1), (1, 0.5, 0.75)],
+    "p0, p1, p2", [(1, 2, 3), (0, 0.5, 1), (1, 0.5, 0.75), (-1, 0.5, 0.25)]
 )
 def test_ELECTRE2_invalid_ps(p0, p1, p2):
     with pytest.raises(ValueError):
         ELECTRE2(p0=p0, p1=p1, p2=p2)
 
 
-@pytest.mark.parametrize(
-    "q0, q1",
-    [
-        (1, 2),
-        (0, 0.5),
-    ],
-)
+@pytest.mark.parametrize("q0, q1", [(1, 2), (0, 0.5), (-1, 0.9)])
 def test_ELECTRE2_invalid_qs(q0, q1):
     with pytest.raises(ValueError):
         ELECTRE2(q0=q0, q1=q1)

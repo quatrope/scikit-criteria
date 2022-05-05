@@ -31,6 +31,8 @@ import itertools as it
 
 import numpy as np
 
+from scipy import stats
+
 from ._base import KernelResult, RankResult, SKCDecisionMakerABC
 from ..core import Objective
 from ..utils import doc_inherit
@@ -224,45 +226,32 @@ def weights_outrank(matrix, weights, objectives):
     return outrank
 
 
-def electre2(
-    matrix, objectives, weights, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35
+def _electre2_ranker(
+    alt_n, original_outrank_s, original_outrank_w, invert_ranking
 ):
-    """Execute ELECTRE2 without any validation."""
-
-    matrix_concordance = concordance(matrix, objectives, weights)
-    matrix_discordance = discordance(matrix, objectives)
-    matrix_wor = weights_outrank(matrix, objectives, weights)
-
-    # creamos los grafos debiles (w) y fuertes(s)
-    outrank_s = (
-        (matrix_concordance >= p0) & (matrix_discordance <= q0) & matrix_wor
-    ) | ((matrix_concordance >= p1) & (matrix_discordance <= q1) & matrix_wor)
-
-    outrank_w = (
-        (matrix_concordance >= p2) & (matrix_discordance <= q0) & matrix_wor
-    )
-
-    # TODO: remove loops
 
     # Here we create the ranking loop
 
     # here we store the final rank
-    ranking = np.zeros(len(matrix), dtype=int)
+    ranking = np.zeros(alt_n, dtype=int)
 
     # copy to not destroy outrank_s and outrank_w
-    current_outrank_s = np.copy(outrank_s)
-    current_outrank_w = np.copy(outrank_w)
+    outrank_s = np.copy(original_outrank_s)
+    outrank_w = np.copy(original_outrank_w)
 
     # The alternatives still not ranked
-    alt_snr_idx = np.arange(len(matrix))
+    alt_snr_idx = np.arange(alt_n)
 
     # the current rank
     current_rank_position = 1
 
-    while len(current_outrank_w) or len(current_outrank_s):
+    # TODO: explicar que es esto
+    last_is_kernel = False
 
-        kernel_s = ~current_outrank_s.any(axis=0)
-        kernel_w = ~current_outrank_w.any(axis=0)
+    while len(outrank_w) or len(outrank_s):
+
+        kernel_s = ~outrank_s.any(axis=0)
+        kernel_w = ~outrank_w.any(axis=0)
 
         # kernel strong - kernel weak
         kernel_smw = kernel_s & ~kernel_w
@@ -276,7 +265,7 @@ def electre2(
 
         # we create the container that will have the value of the ranking only
         # in the places to be assigned, in the other cases we leave 0
-        rank_to_asign = np.zeros(len(matrix), dtype=int)
+        rank_to_asign = np.zeros(alt_n, dtype=int)
 
         # we have to take into account that the graphs are getting smaller
         # and smaller so we need alt_snr_idx to see which alternatives still
@@ -290,20 +279,70 @@ def electre2(
         # remove kernel from graphs
         to_keep = np.argwhere(~kernel_smw).flatten()
 
-        current_outrank_s = current_outrank_s[to_keep][:, to_keep]
-        current_outrank_w = current_outrank_w[to_keep][:, to_keep]
+        outrank_s = outrank_s[to_keep][:, to_keep]
+        outrank_w = outrank_w[to_keep][:, to_keep]
         alt_snr_idx = alt_snr_idx[to_keep]
 
         # next time we will assign the current ranking + 1
         current_rank_position += 1
+    else:
+        last_is_kernel = True
+
+    if invert_ranking:
+        max_value = np.max(ranking)
+        ranking = (max_value + 1) - ranking
+
+    return ranking, last_is_kernel
+
+
+def electre2(
+    matrix, objectives, weights, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35
+):
+    """Execute ELECTRE2 without any validation."""
+
+    matrix_concordance = concordance(matrix, objectives, weights)
+    matrix_discordance = discordance(matrix, objectives)
+    matrix_wor = weights_outrank(matrix, objectives, weights)
+
+    # weak and strong graphs
+    outrank_s = (
+        (matrix_concordance >= p0) & (matrix_discordance <= q0) & matrix_wor
+    ) | ((matrix_concordance >= p1) & (matrix_discordance <= q1) & matrix_wor)
+
+    outrank_w = (
+        (matrix_concordance >= p2) & (matrix_discordance <= q0) & matrix_wor
+    )
+
+    # number of alternatives
+    alt_n = len(matrix)
+
+    # TODO: remove loops
+
+    # calculo del ranking directo
+
+    ranking_direct, last_is_kernel_direct = _electre2_ranker(
+        alt_n, outrank_s, outrank_w, invert_ranking=False
+    )
+    ranking_inverted, last_is_kernel_inverted = _electre2_ranker(
+        alt_n, outrank_s.T, outrank_w.T, invert_ranking=True
+    )
+
+    # join the two ranks
+    score = (ranking_direct + ranking_inverted) / 2.0
+    ranking = stats.rankdata(score, method="dense")
 
     return (
         ranking,
+        ranking_direct,
+        ranking_inverted,
         matrix_concordance,
         matrix_discordance,
         matrix_wor,
         outrank_s,
         outrank_w,
+        score,
+        last_is_kernel_direct,
+        last_is_kernel_inverted,
     )
 
 
@@ -357,11 +396,16 @@ class ELECTRE2(SKCDecisionMakerABC):
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         (
             ranking,
+            ranking_direct,
+            ranking_inverted,
             matrix_concordance,
             matrix_discordance,
             matrix_wor,
             outrank_s,
             outrank_w,
+            score,
+            last_is_kernel_direct,
+            last_is_kernel_inverted,
         ) = electre2(
             matrix,
             objectives,
@@ -373,11 +417,16 @@ class ELECTRE2(SKCDecisionMakerABC):
             self.q1,
         )
         return ranking, {
+            "ranking_direct": ranking_direct,
+            "ranking_inverted": ranking_inverted,
             "matrix_concordance": matrix_concordance,
             "matrix_discordance": matrix_discordance,
             "matrix_wor": matrix_wor,
             "outrank_s": outrank_s,
             "outrank_w": outrank_w,
+            "score": score,
+            "last_is_kernel_direct": last_is_kernel_direct,
+            "last_is_kernel_inverted": last_is_kernel_inverted,
         }
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
