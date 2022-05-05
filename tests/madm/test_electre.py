@@ -144,7 +144,7 @@ def test_ELECTRE1_cebrian2009localizacion():
     kselector = ELECTRE1()
     result = kselector.evaluate(dm)
 
-    assert np.all(result.kernelwhere_ == [4])
+    assert np.all(result.kernel_where_ == [4])
 
 
 def test_ELECTRE1_kernel_sensibility_barba1997decisiones():

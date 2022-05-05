@@ -17,13 +17,14 @@
 # =============================================================================
 
 import abc
+from collections import Counter
 
 import numpy as np
 
 import pandas as pd
 
 from ..core import SKCMethodABC
-from ..utils import Bunch, doc_inherit
+from ..utils import Bunch, doc_inherit, deprecated
 
 # =============================================================================
 # DM BASE
@@ -151,13 +152,6 @@ class ResultABC(metaclass=abc.ABCMeta):
 
     e_ = extra_
 
-    @property
-    def has_ties_(self):
-        """True if two alternatives shares the same ranking."""
-        values = self.values
-        return len(np.unique(values)) != len(values)
-
-
     # CMP =====================================================================
 
     @property
@@ -226,6 +220,17 @@ class RankResult(ResultABC):
             raise ValueError(f"The data {values} doesn't look like a ranking")
 
     @property
+    def has_ties_(self):
+        """True if two alternatives shares the same ranking."""
+        values = self.values
+        return len(np.unique(values)) != len(values)
+
+    @property
+    def ties_(self):
+        """Counter object that counts how many times each value appears."""
+        return Counter(self.values)
+
+    @property
     def rank_(self):
         """Alias for ``values``."""
         return self.values
@@ -285,9 +290,28 @@ class KernelResult(ResultABC):
         return self.values
 
     @property
-    def kernelwhere_(self):
+    def kernel_size_(self):
+        """How many alternatives has the kernel"""
+        return np.sum(self.kernel_)
+
+    @property
+    def kernel_where_(self):
         """Indexes of the alternatives that are part of the kernel."""
         return np.where(self.kernel_)[0]
+
+    @property
+    @deprecated(
+        reason=("Use 'kernel_where_' instead"),
+        version=0.7,
+    )
+    def kernelwhere_(self):
+        """Indexes of the alternatives that are part of the kernel."""
+        return self.kernel_where_
+
+    @property
+    def kernel_alternatives_(self):
+        """Return the names of alternatives in the kernel."""
+        return self._result_df.index[self._result_df.Kernel].to_numpy()
 
     def _repr_html_(self):
         """Return a html representation for a particular result.
