@@ -307,7 +307,6 @@ def test_KernelResult(kernel, kernel_size, kernel_where, kernel_alternatives):
         assert np.all(result.kernelwhere_ == kernel_where)
 
 
-
 @pytest.mark.parametrize("values", [[1, 2, 5], [True, False, 1], [1, 2, 3]])
 def test_KernelResult_invalid_rank(values):
     method = "foo"
