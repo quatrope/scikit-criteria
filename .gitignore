@@ -62,4 +62,4 @@ setuptools-*.zip
 .pytest_cache
 .vscode/
 result_images/
-docs/source/_dynamic/README.rst
+docs/source/_dynamic/*.rst
