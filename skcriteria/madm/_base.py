@@ -24,7 +24,7 @@ import numpy as np
 import pandas as pd
 
 from ..core import SKCMethodABC
-from ..utils import Bunch, doc_inherit, deprecated
+from ..utils import Bunch, deprecated, doc_inherit
 
 # =============================================================================
 # DM BASE

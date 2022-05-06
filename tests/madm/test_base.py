@@ -303,6 +303,10 @@ def test_KernelResult(kernel, kernel_size, kernel_where, kernel_alternatives):
     assert np.all(result.kernel_where_ == kernel_where)
     assert np.all(result.kernel_alternatives_ == kernel_alternatives)
 
+    with pytest.deprecated_call():
+        assert np.all(result.kernelwhere_ == kernel_where)
+
+
 
 @pytest.mark.parametrize("values", [[1, 2, 5], [True, False, 1], [1, 2, 3]])
 def test_KernelResult_invalid_rank(values):

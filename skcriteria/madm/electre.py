@@ -245,9 +245,6 @@ def _electre2_ranker(
     # the current rank
     current_rank_position = 1
 
-    # TODO: explicar que es esto
-    last_is_kernel = False
-
     while len(outrank_w) or len(outrank_s):
 
         kernel_s = ~outrank_s.any(axis=0)
@@ -285,14 +282,12 @@ def _electre2_ranker(
 
         # next time we will assign the current ranking + 1
         current_rank_position += 1
-    else:
-        last_is_kernel = True
 
     if invert_ranking:
         max_value = np.max(ranking)
         ranking = (max_value + 1) - ranking
 
-    return ranking, last_is_kernel
+    return ranking
 
 
 def electre2(
@@ -320,10 +315,10 @@ def electre2(
 
     # calculo del ranking directo
 
-    ranking_direct, last_is_kernel_direct = _electre2_ranker(
+    ranking_direct = _electre2_ranker(
         alt_n, outrank_s, outrank_w, invert_ranking=False
     )
-    ranking_inverted, last_is_kernel_inverted = _electre2_ranker(
+    ranking_inverted = _electre2_ranker(
         alt_n, outrank_s.T, outrank_w.T, invert_ranking=True
     )
 
@@ -341,8 +336,6 @@ def electre2(
         outrank_s,
         outrank_w,
         score,
-        last_is_kernel_direct,
-        last_is_kernel_inverted,
     )
 
 
@@ -404,8 +397,6 @@ class ELECTRE2(SKCDecisionMakerABC):
             outrank_s,
             outrank_w,
             score,
-            last_is_kernel_direct,
-            last_is_kernel_inverted,
         ) = electre2(
             matrix,
             objectives,
@@ -425,8 +416,6 @@ class ELECTRE2(SKCDecisionMakerABC):
             "outrank_s": outrank_s,
             "outrank_w": outrank_w,
             "score": score,
-            "last_is_kernel_direct": last_is_kernel_direct,
-            "last_is_kernel_inverted": last_is_kernel_inverted,
         }
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
