@@ -2,6 +2,25 @@
 
 <!-- BODY -->
 
+## Version 0.7
+
+- **New method**: `ELECTRE2`.
+
+- Now the `RankingResult`, support repeated/tied rankings and some were
+  implemented to deal with these cases.
+
+  - `RankingResult.has_ties_` to see if there are tied values.
+  - `RankingResult.ties_` to see how often values are repeated.
+  - `RankingResult.untided_rank_` to get a ranking with no repeated values.
+      repeated values.
+
+- `KernelResult` now implements several new properties:
+
+  - `kernel_alternatives_` to know which alternatives are in the kernel.
+  - `kernel_size_` to know the number of alternatives in the kernel.
+  - `kernel_where_` was replaced by `kernel_where_` to standardize the api.
+
+
 ## Version 0.6
 
 - Support for Python 3.10.
