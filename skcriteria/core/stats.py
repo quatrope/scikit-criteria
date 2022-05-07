@@ -16,7 +16,7 @@
 # IMPORTS
 # =============================================================================k
 
-from skcriteria.utils import AccessorABC
+from ..utils import AccessorABC
 
 # =============================================================================
 # STATS ACCESSOR

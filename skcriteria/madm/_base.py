@@ -17,13 +17,14 @@
 # =============================================================================
 
 import abc
+from collections import Counter
 
 import numpy as np
 
 import pandas as pd
 
 from ..core import SKCMethodABC
-from ..utils import Bunch, doc_inherit
+from ..utils import Bunch, deprecated, doc_inherit
 
 # =============================================================================
 # DM BASE
@@ -210,15 +211,42 @@ class RankResult(ResultABC):
 
     @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
-        length = len(values)
+
+        cleaned_values = np.unique(values)
+
+        length = len(cleaned_values)
         expected = np.arange(length) + 1
-        if not np.array_equal(np.sort(values), expected):
+        if not np.array_equal(np.sort(cleaned_values), expected):
             raise ValueError(f"The data {values} doesn't look like a ranking")
+
+    @property
+    def has_ties_(self):
+        """Return True if two alternatives shares the same ranking."""
+        values = self.values
+        return len(np.unique(values)) != len(values)
+
+    @property
+    def ties_(self):
+        """Counter object that counts how many times each value appears."""
+        return Counter(self.values)
 
     @property
     def rank_(self):
         """Alias for ``values``."""
         return self.values
+
+    @property
+    def untied_rank_(self):
+        """Ranking whitout ties.
+
+        if the ranking has ties this property assigns unique and consecutive
+        values in the ranking. This method only assigns the values using the
+        command ``numpy.argsort(rank_) + 1``.
+
+        """
+        if self.has_ties_:
+            return np.argsort(self.rank_) + 1
+        return self.rank_
 
     def _repr_html_(self):
         """Return a html representation for a particular result.
@@ -262,9 +290,28 @@ class KernelResult(ResultABC):
         return self.values
 
     @property
-    def kernelwhere_(self):
+    def kernel_size_(self):
+        """How many alternatives has the kernel."""
+        return np.sum(self.kernel_)
+
+    @property
+    def kernel_where_(self):
         """Indexes of the alternatives that are part of the kernel."""
         return np.where(self.kernel_)[0]
+
+    @property
+    @deprecated(
+        reason=("Use 'kernel_where_' instead"),
+        version=0.7,
+    )
+    def kernelwhere_(self):
+        """Indexes of the alternatives that are part of the kernel."""
+        return self.kernel_where_
+
+    @property
+    def kernel_alternatives_(self):
+        """Return the names of alternatives in the kernel."""
+        return self._result_df.index[self._result_df.Kernel].to_numpy()
 
     def _repr_html_(self):
         """Return a html representation for a particular result.

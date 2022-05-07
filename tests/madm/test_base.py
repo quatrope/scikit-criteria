@@ -16,6 +16,8 @@
 # IMPORTS
 # =============================================================================
 
+from collections import Counter
+
 import numpy as np
 
 from pyquery import PyQuery
@@ -145,23 +147,31 @@ class test_ResultBase_original_validare_result_fail:
 # =============================================================================
 
 
-def test_RankResult():
+@pytest.mark.parametrize(
+    "rank, has_ties, untied_rank",
+    [
+        ([1, 2, 3], False, [1, 2, 3]),
+        ([1, 2, 1], True, [1, 3, 2]),
+    ],
+)
+def test_RankResult(rank, has_ties, untied_rank):
     method = "foo"
     alternatives = ["a", "b", "c"]
-    rank = [1, 2, 3]
     extra = {"alfa": 1}
 
     result = RankResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
     )
-
+    assert result.has_ties_ == has_ties
+    assert result.ties_ == Counter(result.rank_)
     assert np.all(result.method == method)
     assert np.all(result.alternatives == alternatives)
     assert np.all(result.rank_ == rank)
     assert np.all(result.extra_ == result.e_ == extra)
+    assert np.all(result.untied_rank_ == untied_rank)
 
 
-@pytest.mark.parametrize("rank", [[1, 2, 5], [1, 1, 1], [1, 2, 2], [1, 2]])
+@pytest.mark.parametrize("rank", [[1, 2, 5], [1, 2]])
 def test_RankResult_invalid_rank(rank):
     method = "foo"
     alternatives = ["a", "b", "c"]
@@ -265,6 +275,36 @@ def test_RankResult_repr_html():
 # =============================================================================
 # KERNEL
 # =============================================================================
+
+
+@pytest.mark.parametrize(
+    "kernel, kernel_size, kernel_where, kernel_alternatives",
+    [
+        ([False, False, False], 0, [], []),
+        ([False, False, True], 1, [2], ["c"]),
+        ([True, True, False], 2, [0, 1], ["a", "b"]),
+        ([True, True, True], 3, [0, 1, 2], ["a", "b", "c"]),
+    ],
+)
+def test_KernelResult(kernel, kernel_size, kernel_where, kernel_alternatives):
+    method = "foo"
+    alternatives = ["a", "b", "c"]
+    extra = {"alfa": 1}
+
+    result = KernelResult(
+        method=method, alternatives=alternatives, values=kernel, extra=extra
+    )
+
+    assert np.all(result.method == method)
+    assert np.all(result.alternatives == alternatives)
+    assert np.all(result.extra_ == result.e_ == extra)
+    assert np.all(result.kernel_ == kernel)
+    assert np.all(result.kernel_size_ == kernel_size)
+    assert np.all(result.kernel_where_ == kernel_where)
+    assert np.all(result.kernel_alternatives_ == kernel_alternatives)
+
+    with pytest.deprecated_call():
+        assert np.all(result.kernelwhere_ == kernel_where)
 
 
 @pytest.mark.parametrize("values", [[1, 2, 5], [True, False, 1], [1, 2, 3]])

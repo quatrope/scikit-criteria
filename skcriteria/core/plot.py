@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 import seaborn as sns
 
-from skcriteria.utils import AccessorABC
+from ..utils import AccessorABC
 
 
 # =============================================================================

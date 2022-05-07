@@ -22,6 +22,7 @@ import numpy as np
 
 from scipy import stats
 
+
 # =============================================================================
 # RANKER
 # =============================================================================
@@ -63,7 +64,7 @@ def rank_values(arr, reverse=False):
     """
     if reverse:
         arr = np.multiply(arr, -1)
-    return stats.rankdata(arr, "ordinal").astype(int)
+    return stats.rankdata(arr, "dense").astype(int)
 
 
 # =============================================================================

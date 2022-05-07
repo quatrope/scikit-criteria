@@ -9,13 +9,8 @@
 # DOCS
 # =============================================================================
 
-"""Implementation of functionalities for inverting minimization criteria and \
-converting them into maximization ones.
-
-In addition to the main functionality, an agnostic MCDA function is offered
-that inverts columns of a matrix based on a mask.
-
-"""
+"""Implementation of functionalities for convert minimization criteria into \
+maximization ones."""
 
 # =============================================================================
 # IMPORTS
@@ -25,76 +20,40 @@ that inverts columns of a matrix based on a mask.
 import numpy as np
 
 from ..core import Objective, SKCTransformerABC
-from ..utils import doc_inherit
+from ..utils import deprecated, doc_inherit
+
 
 # =============================================================================
-# FUNCTIONS
+# Base Class
 # =============================================================================
+class SKCObjectivesInverterABC(SKCTransformerABC):
+    """Abstract class capable of invert objectives.
 
-
-def invert(matrix, mask):
-    """Inverts all the columns selected by the mask.
-
-    Parameters
-    ----------
-    matrix: :py:class:`numpy.ndarray` like.
-        2D array.
-    mask: :py:class:`numpy.ndarray` like.
-        Boolean array like with the same elements as columns has the
-        ``matrix``.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        New matrix with the selected columns inverted. The result matrix
-        dtype float.
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria import invert
-        >>> invert([
-        ...     [1, 2, 3],
-        ...     [4, 5, 6]
-        ... ],
-        ... [True, False, True])
-        array([[1.        , 2.        , 0.33333333],
-               [0.25      , 5.        , 0.16666667]])
-
-        >>> invert([
-        ...     [1, 2, 3],
-        ...     [4, 5, 6]
-        ... ],
-        ... [False, True, False])
-        array([[1.        , 2.        , 0.33333333],
-               [0.25      , 5.        , 0.16666667]])
-        array([[1. , 0.5, 3. ],
-               [4. , 0.2, 6. ]]
-
-    """
-    inv_mtx = np.array(matrix, dtype=float)
-
-    inverted_values = 1.0 / inv_mtx[:, mask]
-    inv_mtx[:, mask] = inverted_values
-
-    return inv_mtx
-
-
-class MinimizeToMaximize(SKCTransformerABC):
-    r"""Transform all minimization criteria  into maximization ones.
-
-    The transformations are made by calculating the inverse value of
-    the minimization criteria. :math:`\min{C} \equiv \max{\frac{1}{C}}`
-
-    Notes
-    -----
-    All the dtypes of the decision matrix are preserved except the inverted
-    ones thar are converted to ``numpy.float64``.
+    This abstract class require to redefine ``_invert``, instead of
+    ``_transform_data``.
 
     """
 
-    _skcriteria_parameters = []
+    _skcriteria_abstract_class = True
+
+    def _invert(self, matrix, minimize_mask):
+        """Invert the minimization objectives.
+
+        Parameters
+        ----------
+        matrix: :py:class:`numpy.ndarray`
+            The decision matrix to weights.
+        minimize_mask: :py:class:`numpy.ndarray`
+            Mask with the same size as the columns in the matrix. True values
+            indicate that this column is a criterion to be minimized.
+
+        Returns
+        -------
+        :py:class:`numpy.ndarray`
+            A new matrix with the minimization objectives inverted.
+
+        """
+        raise NotImplementedError()
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, dtypes, **kwargs):
@@ -102,7 +61,7 @@ class MinimizeToMaximize(SKCTransformerABC):
         minimize_mask = np.equal(objectives, Objective.MIN.value)
 
         # execute the transformation
-        inv_mtx = invert(matrix, minimize_mask)
+        inv_mtx = self._invert(matrix, minimize_mask)
 
         # new objective array
         inv_objectives = np.full(
@@ -117,3 +76,75 @@ class MinimizeToMaximize(SKCTransformerABC):
             matrix=inv_mtx, objectives=inv_objectives, dtypes=inv_dtypes
         )
         return kwargs
+
+
+# =============================================================================
+# -x
+# =============================================================================
+class NegateMinimize(SKCObjectivesInverterABC):
+    r"""Transform all minimization criteria  into maximization ones.
+
+    The transformations are made by calculating the inverse value of
+    the minimization criteria. :math:`\min{C} \equiv \max{-{C}}`.
+
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCObjectivesInverterABC._invert)
+    def _invert(self, matrix, minimize_mask):
+        inv_mtx = np.array(matrix, dtype=float)
+
+        inverted_values = -inv_mtx[:, minimize_mask]
+        inv_mtx[:, minimize_mask] = inverted_values
+
+        return inv_mtx
+
+
+# =============================================================================
+# 1/x
+# =============================================================================
+class InvertMinimize(SKCObjectivesInverterABC):
+    r"""Transform all minimization criteria  into maximization ones.
+
+    The transformations are made by calculating the inverse value of
+    the minimization criteria. :math:`\min{C} \equiv \max{\frac{1}{C}}`
+
+    Notes
+    -----
+    All the dtypes of the decision matrix are preserved except the inverted
+    ones thar are converted to ``numpy.float64``.
+
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCObjectivesInverterABC._invert)
+    def _invert(self, matrix, minimize_mask):
+        inv_mtx = np.array(matrix, dtype=float)
+
+        inverted_values = 1.0 / inv_mtx[:, minimize_mask]
+        inv_mtx[:, minimize_mask] = inverted_values
+
+        return inv_mtx
+
+
+# =============================================================================
+# DEPRECATED
+# =============================================================================
+@deprecated(
+    reason="Use 'skcriteria.preprocessing.InvertMinimize' instead",
+    version=0.7,
+)
+class MinimizeToMaximize(InvertMinimize):
+    r"""Transform all minimization criteria  into maximization ones.
+
+    The transformations are made by calculating the inverse value of
+    the minimization criteria. :math:`\min{C} \equiv \max{\frac{1}{C}}`
+
+    Notes
+    -----
+    All the dtypes of the decision matrix are preserved except the inverted
+    ones thar are converted to ``numpy.float64``.
+
+    """

@@ -75,7 +75,7 @@ def test_objective_to_string():
 # =============================================================================
 
 
-def test__ACArray(decision_matrix):
+def test__ACArray():
     with warnings.catch_warnings():
 
         # see: https://stackoverflow.com/a/46721064

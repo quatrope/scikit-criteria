@@ -57,7 +57,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "nbsphinx",
     "sphinxcontrib.bibtex",
-    "sphinx_copybutton"
+    "sphinx_copybutton",
 ]
 # =============================================================================
 # EXTRA CONF
@@ -97,7 +97,7 @@ master_doc = "index"
 
 # General information about the project.
 project = skcriteria.NAME
-copyright = "2016-2021, Juan B. Cabral - Nadia A. Luczywo"
+copyright = "2016-2022, Juan B. Cabral - Nadia A. Luczywo"
 author = "Juan BC"
 
 # The version info for the project you're documenting, acts as replacement for

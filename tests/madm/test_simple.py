@@ -25,7 +25,7 @@ import pytest
 import skcriteria
 from skcriteria.madm import RankResult
 from skcriteria.madm.simple import WeightedProductModel, WeightedSumModel
-from skcriteria.preprocessing.invert_objectives import MinimizeToMaximize
+from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler
 
 # =============================================================================
@@ -89,7 +89,7 @@ def test_WeightedSumModel_kracka2010ranking():
     )
 
     transformers = [
-        MinimizeToMaximize(),
+        InvertMinimize(),
         SumScaler(target="both"),
     ]
     for t in transformers:

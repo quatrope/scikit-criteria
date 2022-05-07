@@ -23,7 +23,13 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm.electre import ELECTRE1, concordance, discordance
+from skcriteria.madm.electre import (
+    ELECTRE1,
+    ELECTRE2,
+    concordance,
+    discordance,
+    weights_outrank,
+)
 from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
 
 # =============================================================================
@@ -108,7 +114,7 @@ def test_discordance_cebrian2009localizacion():
     assert np.allclose(results, expected, atol=1.0e-3, equal_nan=True)
 
 
-def test_electre1_cebrian2009localizacion():
+def test_ELECTRE1_cebrian2009localizacion():
     """
     Data From:
         Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
@@ -138,10 +144,10 @@ def test_electre1_cebrian2009localizacion():
     kselector = ELECTRE1()
     result = kselector.evaluate(dm)
 
-    assert np.all(result.kernelwhere_ == [4])
+    assert np.all(result.kernel_where_ == [4])
 
 
-def test_kernel_sensibility_barba1997decisiones():
+def test_ELECTRE1_kernel_sensibility_barba1997decisiones():
     """
     Data From:
         Barba-Romero, S., & Pomerol, J. C. (1997).
@@ -180,3 +186,98 @@ def test_kernel_sensibility_barba1997decisiones():
                 f"alternatives in kernel. {kernels_len}"
             )
         kernels_len.append(klen)
+
+
+def test_ELECTRE1_invalid_p_and_q():
+    with pytest.raises(ValueError):
+        ELECTRE1(p=1.5)
+
+    with pytest.raises(ValueError):
+        ELECTRE1(q=10)
+
+    with pytest.raises(ValueError):
+        ELECTRE1(p=-1)
+
+    with pytest.raises(ValueError):
+        ELECTRE1(q=-1)
+
+
+# =============================================================================
+# ELECTRE II
+# =============================================================================
+
+
+def test_weight_outrank():
+
+    matrix = scale_by_sum(
+        [
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8],
+        ],
+        axis=0,
+    )
+    objectives = [1, 1, -1, 1, 1]
+    weights = [0.25, 0.25, 0.1, 0.2, 0.2]
+    expected = [
+        [False, True, True, True, True, True],
+        [False, False, False, False, True, False],
+        [False, True, False, True, True, True],
+        [False, True, False, False, True, True],
+        [False, True, False, False, False, False],
+        [False, True, True, False, True, False],
+    ]
+
+    results = weights_outrank(matrix, objectives, weights)
+    np.testing.assert_array_equal(results, expected)
+
+
+def test_ELECTRE2_cebrian2009localizacion():
+    """
+    Data From:
+        Cebrián, L. I. G., & Porcar, A. M. (2009). Localización empresarial
+        en Aragón: Una aplicación empírica de la ayuda a la decisión
+        multicriterio tipo ELECTRE I y III. Robustez de los resultados
+        obtenidos.
+        Revista de Métodos Cuantitativos para la Economía y la Empresa,
+        (7), 31-56.
+
+    """
+    dm = skcriteria.mkdm(
+        matrix=[
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8],
+        ],
+        objectives=[1, 1, -1, 1, 1],
+        weights=[0.25, 0.25, 0.1, 0.2, 0.2],
+    )
+
+    scaler = SumScaler("both")
+    dm = scaler.transform(dm)
+
+    kselector = ELECTRE2()
+    result = kselector.evaluate(dm)
+
+    assert np.all(result.rank_ == [3, 2, 1, 3, 1, 3])
+    np.testing.assert_allclose(result.e_.score, [2.0, 1.5, 1.0, 2.0, 1.0, 2.0])
+
+
+@pytest.mark.parametrize(
+    "p0, p1, p2", [(1, 2, 3), (0, 0.5, 1), (1, 0.5, 0.75), (-1, 0.5, 0.25)]
+)
+def test_ELECTRE2_invalid_ps(p0, p1, p2):
+    with pytest.raises(ValueError):
+        ELECTRE2(p0=p0, p1=p1, p2=p2)
+
+
+@pytest.mark.parametrize("q0, q1", [(1, 2), (0, 0.5), (-1, 0.9)])
+def test_ELECTRE2_invalid_qs(q0, q1):
+    with pytest.raises(ValueError):
+        ELECTRE2(q0=q0, q1=q1)
