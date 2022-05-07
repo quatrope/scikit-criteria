@@ -221,7 +221,7 @@ class RankResult(ResultABC):
 
     @property
     def has_ties_(self):
-        """True if two alternatives shares the same ranking."""
+        """Return True if two alternatives shares the same ranking."""
         values = self.values
         return len(np.unique(values)) != len(values)
 
@@ -291,7 +291,7 @@ class KernelResult(ResultABC):
 
     @property
     def kernel_size_(self):
-        """How many alternatives has the kernel"""
+        """How many alternatives has the kernel."""
         return np.sum(self.kernel_)
 
     @property

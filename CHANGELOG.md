@@ -5,7 +5,11 @@
 ## Version 0.7
 
 - **New method**: `ELECTRE2`.
-
+- **New preprocessin strategy:** A new way to transform  from minimization to
+  maximization criteria: `NegateMinimize()` which  reverses the sign of the
+  values of the criteria to be minimized (useful for not breaking distance
+  relations in methods like *TOPSIS*). Additionally the previous we rename the
+  `MinimizeToMaximize()` transformer to `InvertMinimize()`.
 - Now the `RankingResult`, support repeated/tied rankings and some were
   implemented to deal with these cases.
 
@@ -13,7 +17,6 @@
   - `RankingResult.ties_` to see how often values are repeated.
   - `RankingResult.untided_rank_` to get a ranking with no repeated values.
       repeated values.
-
 - `KernelResult` now implements several new properties:
 
   - `kernel_alternatives_` to know which alternatives are in the kernel.

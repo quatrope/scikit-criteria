@@ -124,7 +124,7 @@ def electre1(matrix, objectives, weights, p=0.65, q=0.35):
 
 
 class ELECTRE1(SKCDecisionMakerABC):
-    """Find a the kernel solution through ELECTRE-1.
+    """Find a kernel of alternatives through ELECTRE-1.
 
     The ELECTRE I model find the kernel solution in a situation where true
     criteria and restricted outranking relations are given.
@@ -198,7 +198,16 @@ class ELECTRE1(SKCDecisionMakerABC):
 
 
 def weights_outrank(matrix, weights, objectives):
+    """Calculate a matrix of comparison of alternatives where the value of \
+    each cell determines how many times the value of the criteria weights of \
+    the row alternative exceeds those of the column alternative.
 
+    Notes
+    -----
+    For more information about this matrix please check  "Tomada de decisões em
+    cenários complexos" :cite:p:`gomez2004tomada`, p. 100
+
+    """
     alt_n = len(matrix)
     alt_combs = it.combinations(range(alt_n), 2)
     outrank = np.full((alt_n, alt_n), False, dtype=bool)
@@ -229,8 +238,6 @@ def weights_outrank(matrix, weights, objectives):
 def _electre2_ranker(
     alt_n, original_outrank_s, original_outrank_w, invert_ranking
 ):
-
-    # Here we create the ranking loop
 
     # here we store the final rank
     ranking = np.zeros(alt_n, dtype=int)
@@ -294,7 +301,6 @@ def electre2(
     matrix, objectives, weights, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35
 ):
     """Execute ELECTRE2 without any validation."""
-
     matrix_concordance = concordance(matrix, objectives, weights)
     matrix_discordance = discordance(matrix, objectives)
     matrix_wor = weights_outrank(matrix, objectives, weights)
@@ -340,7 +346,40 @@ def electre2(
 
 
 class ELECTRE2(SKCDecisionMakerABC):
-    """Find a the rankin solution through ELECTRE-2."""
+    """Find the rankin solution through ELECTRE-2.
+
+    ELECTRE II was proposed by Roy and Bertier (1971-1973) to overcome ELECTRE
+    I's inability to produce a ranking of alternatives. Instead of simply
+    finding  the kernel set, ELECTRE II can order alternatives by introducing
+    the strong and the weak outranking relations.
+
+    Notes
+    -----
+    This implementation is based on the one presented in the book
+    "Tomada de decisões em cenários complexos" :cite:p:`gomez2004tomada`.
+
+    Parameters
+    ----------
+    p0, p1, p2 : float, optional (default=0.65, 0.5, 0.35)
+        Matching thresholds. These are the thresholds that indicate the extent
+        to which an alternative can be considered equivalent, good or very good
+        with respect to another alternative.
+
+        These thresholds must meet the condition "1 >= p0 >= p1 >= p2 >= 0".
+
+    q0, q1 : float, optional (default=0.65, 0.35)
+        Discordance threshold. Threshold of the degree to which an alternative
+        is equivalent, preferred or strictly preferred to another alternative.
+
+        These thresholds must meet the condition "1 >= q0 >= q1 >= 0".
+
+    References
+    ----------
+    :cite:p:`gomez2004tomada`
+    :cite:p:`roy1971methode`
+    :cite:p:`roy1973methode`
+
+    """
 
     _skcriteria_parameters = ["p0", "p1", "p2", "q0", "q1"]
 
