@@ -45,6 +45,7 @@ class DecisionMatrixPlotter(AccessorABC):
     - 'ogive' : criteria empirical cumulative distribution plot.
     - 'wogive' : weights empirical cumulative distribution plot.
     - 'area' : criteria area plot.
+    - 'dominance': the dominance matrix as a heatmap.
 
     """
 
@@ -76,20 +77,19 @@ class DecisionMatrixPlotter(AccessorABC):
         ]
         return labels
 
-    # HEATMAP =================================================================
-
     def _heatmap(self, df, **kwargs):
-        kwargs.setdefault("annot", True)
         kwargs.setdefault("cmap", plt.cm.get_cmap())
         ax = sns.heatmap(df, **kwargs)
         return ax
+
+    # HEATMAP =================================================================
 
     def heatmap(self, **kwargs):
         """Plot the alternative matrix as a color-encoded matrix.
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.heatmap``.
 
@@ -98,6 +98,7 @@ class DecisionMatrixPlotter(AccessorABC):
         matplotlib.axes.Axes or numpy.ndarray of them
 
         """
+        kwargs.setdefault("annot", True)
         ax = self._heatmap(self._ddf, **kwargs)
         ax.set_xticklabels(self._criteria_labels)
         ax.set_ylabel("Alternatives")
@@ -109,7 +110,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.heatmap``.
 
@@ -118,6 +119,7 @@ class DecisionMatrixPlotter(AccessorABC):
         matplotlib.axes.Axes or numpy.ndarray of them
 
         """
+        kwargs.setdefault("annot", True)
         ax = self._heatmap(self._wdf.T, **kwargs)
         ax.set_xticklabels(self._criteria_labels)
         ax.set_xlabel("Criteria")
@@ -145,7 +147,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``DataFrame.plot.bar``.
 
@@ -171,7 +173,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``DataFrame.plot.bar``.
 
@@ -198,7 +200,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``DataFrame.plot.barh``.
 
@@ -224,7 +226,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``DataFrame.plot.barh``.
 
@@ -249,7 +251,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.histplot``.
 
@@ -272,7 +274,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.histplot``.
 
@@ -299,7 +301,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.boxplot``.
 
@@ -332,7 +334,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.boxplot``.
 
@@ -359,7 +361,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.kdeplot``.
 
@@ -386,7 +388,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.kdeplot``.
 
@@ -416,7 +418,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.ecdfplot``.
 
@@ -446,7 +448,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             ``seaborn.ecdfplot``.
 
@@ -468,7 +470,7 @@ class DecisionMatrixPlotter(AccessorABC):
 
         Parameters
         ----------
-        **kwargs
+        **kwargs:
             Additional keyword arguments are passed and are documented in
             :meth:`DataFrame.plot.area`.
 
@@ -482,4 +484,35 @@ class DecisionMatrixPlotter(AccessorABC):
         ax.set_xlabel("Alternatives")
         if kwargs.get("legend", True):
             ax.legend(self._criteria_labels)
+        return ax
+
+    # DOMINANCE ===============================================================
+
+    def dominance(self, *, strict=False, **kwargs):
+        """Plot dominance as a color-encoded matrix.
+
+        In order to evaluate the dominance of an alternative *a0* over an
+        alternative *a1*, the algorithm evaluates that *a0* is better in at
+        least one criterion and that *a1* is not better in any criterion than
+        *a0*. In the case that ``strict = True`` it also evaluates that there
+        are no equal criteria.
+
+        Parameters
+        ----------
+        strict: bool, default ``False``
+            If True, strict dominance is evaluated.
+        **kwargs:
+            Additional keyword arguments are passed and are documented in
+            ``seaborn.heatmap``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes or numpy.ndarray of them
+
+        """
+        dom = self._dm.dominance.dominance(strict=strict)
+        ax = self._heatmap(dom, **kwargs)
+        ax.set_title("Strict dominance" if strict else "Dominance")
+        ax.set_ylabel("Criteria")
+        ax.set_xlabel("Criteria")
         return ax

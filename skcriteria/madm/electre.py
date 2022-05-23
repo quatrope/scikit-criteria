@@ -214,17 +214,18 @@ def weights_outrank(matrix, weights, objectives):
 
     for a0_idx, a1_idx in alt_combs:
 
-        # sacamos las alternativas
+        # select the two alternatives to compare
         a0, a1 = matrix[[a0_idx, a1_idx]]
 
-        # vemos donde hay maximos y donde hay minimos estrictos
+        # we see where there are strict maximums and minimums
         maxs, mins = (a0 > a1), (a0 < a1)
 
-        # armamos los vectores de a \succ b teniendo en cuenta los objetivs
+        # we assemble the vectors of a \succ b taking the
+        # objectives into account
         a0_s_a1 = np.where(objectives == Objective.MAX.value, maxs, mins)
         a1_s_a0 = np.where(objectives == Objective.MAX.value, mins, maxs)
 
-        # sacamos ahora los criterios
+        # we now draw out the criteria
         outrank[a0_idx, a1_idx] = np.sum(weights * a0_s_a1) >= np.sum(
             weights * a1_s_a0
         )
@@ -319,7 +320,7 @@ def electre2(
 
     # TODO: remove loops
 
-    # calculo del ranking directo
+    # calculation of direct and indirect ranking
 
     ranking_direct = _electre2_ranker(
         alt_n, outrank_s, outrank_w, invert_ranking=False
@@ -346,7 +347,7 @@ def electre2(
 
 
 class ELECTRE2(SKCDecisionMakerABC):
-    """Find the rankin solution through ELECTRE-2.
+    """Find the ranking solution through ELECTRE-2.
 
     ELECTRE II was proposed by Roy and Bertier (1971-1973) to overcome ELECTRE
     I's inability to produce a ranking of alternatives. Instead of simply
@@ -389,12 +390,12 @@ class ELECTRE2(SKCDecisionMakerABC):
         if not (1 >= p0 >= p1 >= p2 >= 0):
             raise ValueError(
                 "Condition '1 >= p0 >= p1 >= p2 >= 0' must be fulfilled. "
-                "Found: p0={p0}, p1={p1} p2={p2}.'"
+                f"Found: p0={p0}, p1={p1} p2={p2}.'"
             )
         if not (1 >= q0 >= q1 >= 0):
             raise ValueError(
                 "Condition '1 >= q0 >= q1 >= 0' must be fulfilled. "
-                "Found: q0={q0}, q1={q1}.'"
+                f"Found: q0={q0}, q1={q1}.'"
             )
 
         self._p0, self._p1, self._p2, self._q0, self._q1 = (p0, p1, p2, q0, q1)

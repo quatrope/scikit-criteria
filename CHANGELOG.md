@@ -2,15 +2,19 @@
 
 <!-- BODY -->
 
+## Version 0.8
+
+- Add a dominance plot `DecisionMatrix.plot.dominance()`.
+
 ## Version 0.7
 
 - **New method**: `ELECTRE2`.
-- **New preprocessin strategy:** A new way to transform  from minimization to
+- **New preprocessing strategy:** A new way to transform  from minimization to
   maximization criteria: `NegateMinimize()` which  reverses the sign of the
   values of the criteria to be minimized (useful for not breaking distance
   relations in methods like *TOPSIS*). Additionally the previous we rename the
   `MinimizeToMaximize()` transformer to `InvertMinimize()`.
-- Now the `RankingResult`, support repeated/tied rankings and some were
+- Now the `RankingResult`, support repeated/tied rankings and some methods were
   implemented to deal with these cases.
 
   - `RankingResult.has_ties_` to see if there are tied values.
@@ -21,7 +25,7 @@
 
   - `kernel_alternatives_` to know which alternatives are in the kernel.
   - `kernel_size_` to know the number of alternatives in the kernel.
-  - `kernel_where_` was replaced by `kernel_where_` to standardize the api.
+  - `kernel_where_` was replaced by `kernelwhere_` to standardize the api.
 
 
 ## Version 0.6

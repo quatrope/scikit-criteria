@@ -512,3 +512,42 @@ def test_DecisionMatrixPlotter_area(decision_matrix, fig_test, fig_ref):
     dm.matrix.plot.area(ax=exp_ax)
     exp_ax.set_xlabel("Alternatives")
     exp_ax.legend(labels)
+
+
+# =============================================================================
+# DOMINANCE
+# =============================================================================
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("strict", [True, False])
+@check_figures_equal()
+def test_DecisionMatrixPlotter_dominance(
+    decision_matrix, fig_test, fig_ref, strict
+):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=3,
+        max_alternatives=3,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    plotter = plot.DecisionMatrixPlotter(dm=dm)
+
+    test_ax = fig_test.subplots()
+    plotter.dominance(strict=strict, ax=test_ax)
+
+    # EXPECTED
+
+    exp_ax = fig_ref.subplots()
+    sns.heatmap(
+        dm.dominance.dominance(),
+        ax=exp_ax,
+        annot=False,
+        cmap=plt.cm.get_cmap(),
+    )
+
+    exp_ax.set_title("Strict dominance" if strict else "Dominance")
+    exp_ax.set_ylabel("Criteria")
+    exp_ax.set_xlabel("Criteria")
