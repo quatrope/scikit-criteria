@@ -1,5 +1,11 @@
 .. FILE AUTO GENERATED !! 
 
+Version 0.8
+-----------
+
+
+* Add a dominance plot ``DecisionMatrix.plot.dominance()``.
+
 Version 0.7
 -----------
 

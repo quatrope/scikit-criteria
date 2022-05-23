@@ -546,6 +546,7 @@ def test_DecisionMatrixPlotter_dominance(
         ax=exp_ax,
         annot=False,
         cmap=plt.cm.get_cmap(),
+        cbar=False,
     )
 
     exp_ax.set_title("Strict dominance" if strict else "Dominance")

@@ -511,8 +511,12 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         dom = self._dm.dominance.dominance(strict=strict)
+
+        kwargs.setdefault("cbar", False)
         ax = self._heatmap(dom, **kwargs)
+
         ax.set_title("Strict dominance" if strict else "Dominance")
         ax.set_ylabel("Criteria")
         ax.set_xlabel("Criteria")
+
         return ax
