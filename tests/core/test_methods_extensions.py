@@ -22,11 +22,13 @@ import pytest
 
 from skcriteria.core import methods
 from skcriteria.pipeline import SKCPipeline
+from skcriteria.preprocessing import SKCMatrixAndWeightTransformerABC
 from skcriteria.preprocessing.filters import (
     Filter,
     SKCArithmeticFilterABC,
     SKCSetFilterABC,
 )
+
 
 # =============================================================================
 # TEST UTILITES
@@ -63,7 +65,7 @@ class _FakeDM:
 
 # Some methods need extra parameters.
 _extra_parameters_by_type = {
-    methods.SKCMatrixAndWeightTransformerABC: {"target": "both"},
+    SKCMatrixAndWeightTransformerABC: {"target": "both"},
     SKCPipeline: {"steps": [("trans", _FakeTrans()), ("dm", _FakeDM())]},
     Filter: {"criteria_filters": {"foo": lambda e: e}},
     SKCArithmeticFilterABC: {"criteria_filters": {"foo": 1}},

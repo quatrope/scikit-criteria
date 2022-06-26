@@ -5,6 +5,11 @@
 ## Version 0.8
 
 - Add a dominance plot `DecisionMatrix.plot.dominance()`.
+- Moved internal modules
+  - `skcriteria.core.methods.SKCTransformerABC`->
+    `skcriteria.preprocessing.SKCTransformerABC`
+  - `skcriteria.core.methods.SKCMatrixAndWeightTransformerABC`->
+    `skcriteria.preprocessing.SKCMatrixAndWeightTransformerABC`
 
 ## Version 0.7
 

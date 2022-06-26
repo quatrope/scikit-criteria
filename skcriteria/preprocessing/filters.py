@@ -21,7 +21,8 @@ from collections.abc import Collection
 
 import numpy as np
 
-from ..core import DecisionMatrix, SKCTransformerABC
+from ._preprocessing_base import SKCTransformerABC
+from ..core import DecisionMatrix
 from ..utils import doc_inherit
 
 # =============================================================================
@@ -486,12 +487,12 @@ class FilterNE(SKCArithmeticFilterABC):
 
 @doc_inherit(SKCByCriteriaFilterABC, warn_class=False)
 class SKCSetFilterABC(SKCByCriteriaFilterABC):
-    """Provide a common behavior to make filters based on set operatopms.
+    """Provide a common behavior to make filters based on set operations.
 
     This abstract class require to redefine ``_set_filter`` method, and this
     will apply to each criteria separately.
 
-    This class is designed to implement in general set comparision like
+    This class is designed to implement in general set comparison like
     "inclusion" and "exclusion".
 
     """

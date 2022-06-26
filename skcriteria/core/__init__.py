@@ -20,11 +20,7 @@ from .data import (
     Objective,
     mkdm,
 )
-from .methods import (
-    SKCMatrixAndWeightTransformerABC,
-    SKCMethodABC,
-    SKCTransformerABC,
-)
+from .methods import SKCMethodABC
 from .plot import DecisionMatrixPlotter
 
 # =============================================================================
@@ -36,7 +32,5 @@ __all__ = [
     "DecisionMatrix",
     "DecisionMatrixPlotter",
     "Objective",
-    "SKCMatrixAndWeightTransformerABC",
     "SKCMethodABC",
-    "SKCTransformerABC",
 ]

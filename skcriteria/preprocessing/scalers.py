@@ -25,7 +25,7 @@ are offered to scale an array along an arbitrary axis.
 import numpy as np
 from numpy import linalg
 
-from ..core import SKCMatrixAndWeightTransformerABC
+from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
 from ..utils import doc_inherit
 
 # =============================================================================

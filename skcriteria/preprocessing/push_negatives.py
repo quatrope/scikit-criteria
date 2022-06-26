@@ -22,7 +22,7 @@ to push negatives values on an array along an arbitrary axis.
 
 import numpy as np
 
-from ..core import SKCMatrixAndWeightTransformerABC
+from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
 from ..utils import doc_inherit
 
 # =============================================================================

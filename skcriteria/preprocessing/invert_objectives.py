@@ -19,7 +19,8 @@ maximization ones."""
 
 import numpy as np
 
-from ..core import Objective, SKCTransformerABC
+from ._preprocessing_base import SKCTransformerABC
+from ..core import Objective
 from ..utils import deprecated, doc_inherit
 
 

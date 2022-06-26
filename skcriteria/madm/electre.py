@@ -33,7 +33,7 @@ import numpy as np
 
 from scipy import stats
 
-from ._base import KernelResult, RankResult, SKCDecisionMakerABC
+from ._madm_base import KernelResult, RankResult, SKCDecisionMakerABC
 from ..core import Objective
 from ..utils import doc_inherit
 

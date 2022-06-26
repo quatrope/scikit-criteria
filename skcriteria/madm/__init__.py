@@ -11,7 +11,12 @@
 
 """MCDA methods."""
 
-from ._base import KernelResult, RankResult, ResultABC, SKCDecisionMakerABC
+from ._madm_base import (
+    KernelResult,
+    RankResult,
+    ResultABC,
+    SKCDecisionMakerABC,
+)
 
 # =============================================================================
 # ALL
