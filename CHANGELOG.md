@@ -4,6 +4,8 @@
 
 ## Version 0.8
 
+- **New** imputation methods for replacing missing data with substituted values.
+  These methods are in the module `skcriteria.preprocessing.impute`.
 - Add a dominance plot `DecisionMatrix.plot.dominance()`.
 - Moved internal modules
   - `skcriteria.core.methods.SKCTransformerABC` `->`
