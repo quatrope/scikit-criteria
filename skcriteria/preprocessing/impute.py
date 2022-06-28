@@ -9,7 +9,12 @@
 # DOCS
 # =============================================================================
 
-"""Normalization through the distance to distance function."""
+"""Module that provides multiple strategies for missing value imputation.
+
+The classes implemented here are a thin layer on top of the `sklearn.impute`
+module classes.
+
+"""
 
 
 # =============================================================================
