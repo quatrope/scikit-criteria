@@ -39,7 +39,7 @@ def doc_inherit(parent, warn_class=True):
     parent : Union[str, Any]
         The docstring, or object of which the docstring is utilized as the
         parent docstring during the docstring merge.
-    warn_class: bool
+    warn_class : bool
         If it is true, and the decorated is a class, it throws a warning
         since there are some issues with inheritance of documentation in
         classes.

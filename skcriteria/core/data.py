@@ -30,13 +30,11 @@ import numpy as np
 import pandas as pd
 from pandas.io.formats import format as pd_fmt
 
-import pyquery as pq
-
 
 from .dominance import DecisionMatrixDominanceAccessor
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, doc_inherit
+from ..utils import deprecated, doc_inherit, df_temporal_header
 
 
 # =============================================================================
@@ -711,26 +709,11 @@ class DecisionMatrix:
         header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
 
-        max_rows = pd.get_option("display.max_rows")
-        min_rows = pd.get_option("display.min_rows")
-        max_cols = pd.get_option("display.max_columns")
-        max_colwidth = pd.get_option("display.max_colwidth")
-
-        width = (
-            pd.io.formats.console.get_console_size()[0]
-            if pd.get_option("display.expand_frame_repr")
-            else None
-        )
-
-        original_string = self._data_df.to_string(
-            max_rows=max_rows,
-            min_rows=min_rows,
-            max_cols=max_cols,
-            line_width=width,
-            max_colwidth=max_colwidth,
-            show_dimensions=False,
-            header=header,
-        )
+        with (
+            df_temporal_header(self._data_df, header) as df,
+            pd.option_context("display.show_dimensions", False),
+        ):
+            original_string = repr(df)
 
         # add dimension
         string = f"{original_string}\n[{dimensions}]"
@@ -742,12 +725,15 @@ class DecisionMatrix:
 
         Mainly for IPython notebook.
         """
-        header = dict(zip(self.criteria, self._get_cow_headers()))
+        header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
 
         # retrieve the original string
-        with pd.option_context("display.show_dimensions", False):
-            original_html = self._data_df._repr_html_()
+        with (
+            df_temporal_header(self._data_df, header) as df,
+            pd.option_context("display.show_dimensions", False),
+        ):
+            original_html = df._repr_html_()
 
         # add dimension
         html = (
@@ -757,13 +743,7 @@ class DecisionMatrix:
             "</div>"
         )
 
-        # now we need to change the table header
-        d = pq.PyQuery(html)
-        for th in d("div.decisionmatrix table.dataframe > thead > tr > th"):
-            crit = th.text
-            th.text = header.get(crit, crit)
-
-        return str(d)
+        return html
 
 
 # =============================================================================

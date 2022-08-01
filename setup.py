@@ -34,7 +34,6 @@ import skcriteria  # noqa
 REQUIREMENTS = [
     "numpy",
     "pandas",
-    "pyquery",
     "scipy",
     "jinja2",
     "custom_inherit",

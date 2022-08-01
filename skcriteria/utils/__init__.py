@@ -18,7 +18,9 @@
 from . import lp, rank
 from .accabc import AccessorABC
 from .bunch import Bunch
+from .cmanagers import df_temporal_header
 from .decorators import deprecated, doc_inherit
+
 
 # =============================================================================
 # ALL
@@ -28,8 +30,8 @@ __all__ = [
     "AccessorABC",
     "doc_inherit",
     "deprecated",
+    "df_temporal_header",
     "rank",
     "Bunch",
     "lp",
-    "dominance",
 ]

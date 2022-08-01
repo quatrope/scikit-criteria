@@ -24,8 +24,6 @@ import numpy as np
 
 import pandas as pd
 
-from pyquery import PyQuery
-
 import pytest
 
 from skcriteria.core import data, dominance, plot, stats
@@ -551,7 +549,7 @@ def test_simple_html():
         weights=[0.1, 0.2, 0.3],
     )
 
-    expected = PyQuery(
+    expected = (
         """
         <div class="decisionmatrix">
             <div>
@@ -605,9 +603,9 @@ def test_simple_html():
     """
     )
 
-    result = PyQuery(dm._repr_html_())
+    result = dm._repr_html_()
 
-    assert result.text() == expected.text()
+    assert result == expected
 
 
 # =============================================================================

@@ -20,8 +20,6 @@ from collections import Counter
 
 import numpy as np
 
-from pyquery import PyQuery
-
 import pytest
 
 from skcriteria.madm import (
@@ -236,14 +234,11 @@ def test_RankResult_repr_html():
     rank = [1, 2, 3]
     extra = {"alfa": 1}
 
-    result = PyQuery(
-        RankResult(
-            method=method, alternatives=alternatives, values=rank, extra=extra
-        )._repr_html_()
-    )
+    result = RankResult(
+        method=method, alternatives=alternatives, values=rank, extra=extra
+    )._repr_html_()
 
-    expected = PyQuery(
-        """
+    expected = """
         <div class='skcresult skcresult-rank'>
         <table id="T_cc7f5_" >
             <thead>
@@ -268,7 +263,6 @@ def test_RankResult_repr_html():
         <em class='rankresult-method'>Method: foo</em>
         </div>
         """
-    )
     assert result.remove("style").text() == expected.remove("style").text()
 
 
