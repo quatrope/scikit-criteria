@@ -39,10 +39,13 @@ def df_temporal_header(df, header, name=None):
 
     """
     original_header = df.columns
-    name = original_header.name if name is None else name
+    original_name = original_header.name
+
+    name = original_name if name is None else name
     try:
         df.columns = header
         df.columns.name = name
         yield df
     finally:
         df.columns = original_header
+        df.columns.name = original_name
