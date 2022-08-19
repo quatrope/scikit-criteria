@@ -28,9 +28,8 @@ import numpy as np
 
 import scipy.stats
 
-
 from ._preprocessing_base import SKCTransformerABC
-from .scalers import cenit_distance
+from .distance import cenit_distance
 from ..core import Objective
 from ..utils import doc_inherit
 

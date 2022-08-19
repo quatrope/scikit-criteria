@@ -60,9 +60,10 @@ def test_SimpleImputer_params_vs_sklearn():
     result = sorted(impute.SimpleImputer._skcriteria_parameters)
 
     ignore = ["verbose", "add_indicator", "copy"]
+    alias = {}
     expected = sorted(
         [
-            p
+            alias.get(p, p)
             for p in sklimpute.SimpleImputer().get_params(deep=False)
             if p not in ignore
         ]
@@ -86,9 +87,11 @@ def test_IterativeImputer_params_vs_sklearn():
     result = sorted(impute.IterativeImputer._skcriteria_parameters)
 
     ignore = ["add_indicator"]
+    alias = {"n_nearest_features": "n_nearest_criteria"}
+
     expected = sorted(
         [
-            p
+            alias.get(p, p)
             for p in sklimpute.IterativeImputer().get_params(deep=False)
             if p not in ignore
         ]
@@ -112,9 +115,10 @@ def test_KNNImputer_params_vs_sklearn():
     result = sorted(impute.KNNImputer._skcriteria_parameters)
 
     ignore = ["add_indicator", "copy"]
+    alias = {}
     expected = sorted(
         [
-            p
+            alias.get(p, p)
             for p in sklimpute.KNNImputer().get_params(deep=False)
             if p not in ignore
         ]

@@ -24,6 +24,8 @@ import numpy as np
 
 import pandas as pd
 
+import pyquery
+
 import pytest
 
 from skcriteria.core import data, dominance, plot, stats
@@ -522,7 +524,7 @@ def test_DecisionMatrix_self_ne(data_values):
 # =============================================================================
 
 
-def test_mksm_simple_repr():
+def test_mkdm_simple_repr():
 
     dm = data.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
@@ -531,10 +533,10 @@ def test_mksm_simple_repr():
     )
 
     expected = (
-        "   C0[\u25bc 0.1] C1[\u25b2 0.2] C2[\u25bc 0.3]\n"
-        "A0         1         2         3\n"
-        "A1         4         5         6\n"
-        "A2         7         8         9\n"
+        "    C0[▼ 0.1]  C1[▲ 0.2]  C2[▼ 0.3]\n"
+        "A0          1          2          3\n"
+        "A1          4          5          6\n"
+        "A2          7          8          9\n"
         "[3 Alternatives x 3 Criteria]"
     )
 
@@ -542,18 +544,18 @@ def test_mksm_simple_repr():
     assert result == expected
 
 
-def test_simple_html():
+def test_mkdm_simple_html():
     dm = data.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
         objectives=[min, max, min],
         weights=[0.1, 0.2, 0.3],
     )
 
-    expected = (
+    expected = pyquery.PyQuery(
         """
         <div class="decisionmatrix">
             <div>
-                <style scoped="">
+                <style scoped=''>
                     .dataframe tbody tr th:only-of-type {
                         vertical-align: middle;
                     }
@@ -597,15 +599,15 @@ def test_simple_html():
                     </tbody>
                 </table>
             </div>
-            <em class="decisionmatrix-dim">3 Alternatives x 3 Criteria
+            <em class='decisionmatrix-dim'>3 Alternatives x 3 Criteria
             </em>
         </div>
     """
     )
 
-    result = dm._repr_html_()
+    result = pyquery.PyQuery(dm._repr_html_())
 
-    assert result == expected
+    assert result.remove("style").text() == expected.remove("style").text()
 
 
 # =============================================================================
