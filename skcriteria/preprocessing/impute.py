@@ -78,15 +78,13 @@ class SKCImputerABC(SKCTransformerABC):
 class SimpleImputer(SKCImputerABC):
     """Imputation transformer for completing missing values.
 
-    Internally this class uses
+    Internally this class uses the ``sklearn.impute.SimpleImputer`` class.
 
     Parameters
     ----------
     missing_values : int, float, str, np.nan, None or pandas.NA, default=np.nan
         The placeholder for the missing values. All occurrences of
-        `missing_values` will be imputed. For pandas' dataframes with
-        nullable integer dtypes with missing values, `missing_values`
-        can be set to either `np.nan` or `pd.NA`.
+        `missing_values` will be imputed.
 
     strategy : str, default='mean'
         The imputation strategy.
@@ -135,7 +133,7 @@ class SimpleImputer(SKCImputerABC):
 
     @property
     def fill_value(self):
-        """ fill_value is used to replace all occurrences of missing_values, \
+        """Used to replace all occurrences of missing_values, \
         when strategy == "constant"."""
         return self._fill_value
 
@@ -159,18 +157,20 @@ class SimpleImputer(SKCImputerABC):
 
 class IterativeImputer(SKCImputerABC):
     """Multivariate imputer that estimates each feature from all the others.
+
     A strategy for imputing missing values by modeling each feature with
     missing values as a function of other features in a round-robin fashion.
-    Read more in the :ref:`User Guide <iterative_imputer>`.
-    .. versionadded:: 0.21
-    .. note::
-      This estimator is still **experimental** for now: the predictions
-      and the API might change without any deprecation cycle. To use it,
-      you need to explicitly import `enable_iterative_imputer`::
+
+    Internally this class uses the ``sklearn.impute.IterativeImputer`` class.
+
+    This estimator is still **experimental** for now: the predictions
+    and the API might change without any deprecation cycle. To use it,
+    you need to explicitly import `enable_iterative_imputer`::
+
         >>> # explicitly require this experimental feature
         >>> from sklearn.experimental import enable_iterative_imputer  # noqa
         >>> # now you can import normally from sklearn.impute
-        >>> from sklearn.impute import IterativeImputer
+        >>> from skcriteria.preprocess.impute import IterativeImputer
 
     Parameters
     ----------
@@ -197,12 +197,12 @@ class IterativeImputer(SKCImputerABC):
         Tolerance of the stopping condition.
     n_nearest_criteria : int, default=None
         Number of other criteria to use to estimate the missing values of
-        each feature column. Nearness between criteria is measured using
-        the absolute correlation coefficient between each feature pair (after
+        each criteria column. Nearness between criteria is measured using
+        the absolute correlation coefficient between each criteria pair (after
         initial imputation). To ensure coverage of criteria throughout the
         imputation process, the neighbor criteria are not necessarily nearest,
         but are drawn with probability proportional to correlation for each
-        imputed target feature. Can provide significant speed-up when the
+        imputed target criteria. Can provide significant speed-up when the
         number of criteria is huge. If `None`, all criteria will be used.
     initial_strategy : {'mean', 'median', 'most_frequent', 'constant'}, \
             default='mean'
@@ -211,35 +211,30 @@ class IterativeImputer(SKCImputerABC):
     imputation_order : {'ascending', 'descending', 'roman', 'arabic', \
             'random'}, default='ascending'
         The order in which the criteria will be imputed. Possible values:
+
         - `'ascending'`: From criteria with fewest missing values to most.
         - `'descending'`: From criteria with most missing values to fewest.
         - `'roman'`: Left to right.
         - `'arabic'`: Right to left.
         - `'random'`: A random order for each round.
-    skip_complete : bool, default=False
-        If `True` then criteria with missing values during :meth:`transform`
-        which did not have any missing values during :meth:`fit` will be
-        imputed with the initial imputation method only. Set to `True` if you
-        have many criteria with no missing values at both :meth:`fit` and
-        :meth:`transform` time to save compute.
+
     min_value : float or array-like of shape (n_criteria,), default=-np.inf
         Minimum possible imputed value. Broadcast to shape `(n_criteria,)` if
         scalar. If array-like, expects shape `(n_criteria,)`, one min value for
-        each feature. The default is `-np.inf`.
+        each criteria. The default is `-np.inf`.
     max_value : float or array-like of shape (n_criteria,), default=np.inf
         Maximum possible imputed value. Broadcast to shape `(n_criteria,)` if
         scalar. If array-like, expects shape `(n_criteria,)`, one max value for
-        each feature. The default is `np.inf`.
+        each criteria. The default is `np.inf`.
     verbose : int, default=0
         Verbosity flag, controls the debug messages that are issued
         as functions are evaluated. The higher, the more verbose. Can be 0, 1,
         or 2.
     random_state : int, RandomState instance or None, default=None
         The seed of the pseudo random number generator to use. Randomizes
-        selection of estimator criteria if `n_nearest_features` is not `None`,
+        selection of estimator criteria if `n_nearest_criteria` is not `None`,
         the `imputation_order` if `random`, and the sampling from posterior if
         `sample_posterior=True`. Use an integer for determinism.
-        See :term:`the Glossary <random_state>`.
 
     """
 
@@ -252,7 +247,6 @@ class IterativeImputer(SKCImputerABC):
         "n_nearest_criteria",
         "initial_strategy",
         "imputation_order",
-        "skip_complete",
         "min_value",
         "max_value",
         "verbose",
@@ -294,61 +288,71 @@ class IterativeImputer(SKCImputerABC):
 
     @property
     def estimator(self):
+        """Used at each step of the round-robin imputation."""
         return self._estimator
 
     @property
     def missing_values(self):
+        """The placeholder for the missing values."""
         return self._missing_values
 
     @property
     def sample_posterior(self):
+        """Whether to sample from the (Gaussian) predictive posterior of the \
+        fitted estimator for each imputation."""
         return self._sample_posterior
 
     @property
     def max_iter(self):
+        """Maximum number of imputation rounds."""
         return self._max_iter
 
     @property
     def tol(self):
+        """Tolerance of the stopping condition."""
         return self._tol
 
     @property
     def n_nearest_criteria(self):
+        """Number of other criteria to use to estimate the missing values of \
+        each criteria column."""
         return self._n_nearest_criteria
 
     @property
     def initial_strategy(self):
+        """Which strategy to use to initialize the missing values."""
         return self._initial_strategy
 
     @property
     def imputation_order(self):
+        """The order in which the criteria will be imputed."""
         return self._imputation_order
 
     @property
-    def skip_complete(self):
-        return self._skip_complete
-
-    @property
     def min_value(self):
+        """Minimum possible imputed value."""
         return self._min_value
 
     @property
     def max_value(self):
+        """Maximum possible imputed value."""
         return self._max_value
 
     @property
     def verbose(self):
+        """Verbosity flag, controls the debug messages that are issued as \
+        functions are evaluated."""
         return self._verbose
 
     @property
     def random_state(self):
+        """The seed of the pseudo random number generator to use."""
         return self._random_state
 
     # THE IMPUTATION LOGIC ====================================================
 
     @doc_inherit(SKCImputerABC._impute)
     def _impute(self, matrix):
-        from sklearn.experimental import enable_iterative_imputer  # noqa
 
         imputer = _sklimpute.IterativeImputer(
             estimator=self._estimator,
@@ -359,7 +363,7 @@ class IterativeImputer(SKCImputerABC):
             n_nearest_features=self._n_nearest_criteria,
             initial_strategy=self._initial_strategy,
             imputation_order=self._imputation_order,
-            skip_complete=self._skip_complete,
+            skip_complete=False,  # is
             min_value=self._min_value,
             max_value=self._max_value,
             verbose=self._verbose,
@@ -375,6 +379,45 @@ class IterativeImputer(SKCImputerABC):
 
 
 class KNNImputer(SKCImputerABC):
+    """Imputation for completing missing values using k-Nearest Neighbors.
+
+    Internally this class uses the ``sklearn.impute.KNNImputer`` class.
+
+    Each sample's missing values are imputed using the mean value from
+    `n_neighbors` nearest neighbors found in the training set.
+    Two samples are close if the criteria that neither is missing are close.
+
+    Parameters
+    ----------
+    missing_values : int, float, str, np.nan or None, default=np.nan
+        The placeholder for the missing values. All occurrences of
+        `missing_values` will be imputed.
+
+    n_neighbors : int, default=5
+        Number of neighboring samples to use for imputation.
+
+    weights : {'uniform', 'distance'} or callable, default='uniform'
+        Weight function used in prediction. Possible values:
+
+        - `'uniform'`: uniform weights. All points in each neighborhood are
+          weighted equally.
+        - `'distance'`: weight points by the inverse of their distance.
+          in this case, closer neighbors of a query point will have a
+          greater influence than neighbors which are further away.
+        - callable: a user-defined function which accepts an
+          array of distances, and returns an array of the same shape
+          containing the weights.
+
+    metric : {'nan_euclidean'} or callable, default='nan_euclidean'
+        Distance metric for searching neighbors. Possible values:
+
+        - 'nan_euclidean'
+        - callable : a user-defined function which conforms to the definition
+          of ``_pairwise_callable(X, Y, metric, **kwds)``. The function
+          accepts two arrays, X and Y, and a `missing_values` keyword in
+          `kwds` and returns a scalar distance value.
+
+    """
 
     _skcriteria_parameters = [
         "missing_values",
@@ -400,18 +443,22 @@ class KNNImputer(SKCImputerABC):
 
     @property
     def missing_values(self):
+        """The placeholder for the missing values."""
         return self._missing_values
 
     @property
     def n_neighbors(self):
+        """Number of neighboring samples to use for imputation."""
         return self._n_neighbors
 
     @property
     def weights(self):
+        """Weight function used in prediction."""
         return self._weights
 
     @property
     def metric(self):
+        """Distance metric for searching neighbors."""
         return self._metric
 
     # THE IMPUTATION LOGIC ====================================================

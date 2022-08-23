@@ -73,6 +73,8 @@ def test_SimpleImputer_params_vs_sklearn():
 
 
 def test_IterativeImputer(decision_matrix):
+    from sklearn.experimental import enable_iterative_imputer  # noqa
+
     dm = decision_matrix(seed=42, nan_proportion=0.3)
     assert np.isnan(dm.matrix.to_numpy()).sum() > 0
 
@@ -84,9 +86,11 @@ def test_IterativeImputer(decision_matrix):
 
 
 def test_IterativeImputer_params_vs_sklearn():
+    from sklearn.experimental import enable_iterative_imputer  # noqa
+
     result = sorted(impute.IterativeImputer._skcriteria_parameters)
 
-    ignore = ["add_indicator"]
+    ignore = ["add_indicator", "skip_complete"]
     alias = {"n_nearest_features": "n_nearest_criteria"}
 
     expected = sorted(

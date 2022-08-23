@@ -26,8 +26,8 @@ import numpy as np
 from numpy import linalg
 
 from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
-
 from ..utils import doc_inherit
+
 
 # =============================================================================
 # STANDAR SCALER

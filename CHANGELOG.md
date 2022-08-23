@@ -12,8 +12,6 @@
     `skcriteria.preprocessing.SKCTransformerABC`
   - `skcriteria.core.methods.SKCMatrixAndWeightTransformerABC` `->`
     `skcriteria.preprocessing.SKCMatrixAndWeightTransformerABC`
-- All the functions and classes of `skcriteria.preprocessing.distance` was
-  moved to `skcriteria.preprocessing.scalers`.
 
 ## Version 0.7
 

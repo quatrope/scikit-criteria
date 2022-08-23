@@ -30,11 +30,10 @@ import numpy as np
 import pandas as pd
 from pandas.io.formats import format as pd_fmt
 
-
 from .dominance import DecisionMatrixDominanceAccessor
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, doc_inherit, df_temporal_header
+from ..utils import deprecated, df_temporal_header, doc_inherit
 
 
 # =============================================================================
@@ -709,11 +708,9 @@ class DecisionMatrix:
         header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
 
-        with (
-            df_temporal_header(self._data_df, header) as df,
-            pd.option_context("display.show_dimensions", False),
-        ):
-            original_string = repr(df)
+        with df_temporal_header(self._data_df, header) as df:
+            with pd.option_context("display.show_dimensions", False):
+                original_string = repr(df)
 
         # add dimension
         string = f"{original_string}\n[{dimensions}]"
@@ -729,11 +726,9 @@ class DecisionMatrix:
         dimensions = self._get_axc_dimensions()
 
         # retrieve the original string
-        with (
-            df_temporal_header(self._data_df, header) as df,
-            pd.option_context("display.show_dimensions", False),
-        ):
-            original_html = df._repr_html_()
+        with df_temporal_header(self._data_df, header) as df:
+            with pd.option_context("display.show_dimensions", False):
+                original_html = df._repr_html_()
 
         # add dimension
         html = (

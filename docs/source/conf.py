@@ -79,7 +79,7 @@ bibtex_bibfiles = ["refs.bib"]
 
 numpydoc_class_members_toctree = False
 
-nbsphinx_execute = "always"
+nbsphinx_execute = "never"
 
 nbsphinx_allow_errors = True
 
@@ -240,7 +240,7 @@ intersphinx_mapping = {"https://docs.python.org/": None}
 # INJECT REAMDE INTO THE RESTRUCTURED TEXT
 # =============================================================================
 
-import m2r
+import m2r2
 
 DYNAMIC_RST = {
     "README.md": "README.rst",
@@ -256,7 +256,7 @@ for md_name, rst_name in DYNAMIC_RST.items():
 
     with open(rst_path, "w") as fp:
         fp.write(".. FILE AUTO GENERATED !! \n")
-        fp.write(m2r.convert(readme_md))
+        fp.write(m2r2.convert(readme_md))
         print(f"{md_path} -> {rst_path} regenerated!")
 
 
