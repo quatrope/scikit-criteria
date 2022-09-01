@@ -4,6 +4,13 @@
 
 ## Version 0.8
 
+- **New** DecisionMatrixes can now be trimmed with syntaxes similar to those
+  of pandas.DataFrame.
+  - `dm["c0"]` cut the $c0$ criteria.
+  - `dm[["c0", "c2"]` cut the criteria $c0$ and $c2$.
+  - `dm.loc["a0"]` cut the alternative $a0$.
+  - `dm.loc[["a0", "a1"]]` cut the alternatives $a0$ and $a1$.
+  - `dm.iloc[0:3]` cuts from the first to the third alternative.
 - **New** imputation methods for replacing missing data with substituted values.
   These methods are in the module `skcriteria.preprocessing.impute`.
 - Add a dominance plot `DecisionMatrix.plot.dominance()`.

@@ -115,7 +115,7 @@ class Objective(enum.Enum):
 
 
 # =============================================================================
-# _SLICER ARRAY
+# SLICERS ARRAY
 # =============================================================================
 class _ACArray(np.ndarray, abc.Mapping):
     """Immutable Array to provide access to the alternative and criteria \
@@ -158,6 +158,45 @@ class _ACArray(np.ndarray, abc.Mapping):
     @doc_inherit(abc.Mapping.values)
     def values(self):
         return (self[e] for e in self)
+
+
+class _Loc:
+    """Locator abstraction.
+
+    this class ensures that the correct objectives and weights are applied to
+    the sliced ``DecisionMatrix``.
+
+    """
+
+    def __init__(self, name, real_loc, objectives, weights):
+        self._name = name
+        self._real_loc = real_loc
+        self._objectives = objectives
+        self._weights = weights
+
+    @property
+    def name(self):
+        """The name of the locator."""
+        return self._name
+
+    def __getitem__(self, slc):
+        """dm[slc] <==> dm.__getitem__(slc)."""
+        df = self._real_loc.__getitem__(slc)
+        if isinstance(df, pd.Series):
+            df = df.to_frame().T
+
+            dtypes = self._real_loc.obj.dtypes
+            dtypes = dtypes[dtypes.index.isin(df.columns)]
+
+            df = df.astype(dtypes)
+
+        objectives = self._objectives
+        objectives = objectives[objectives.index.isin(df.columns)].to_numpy()
+
+        weights = self._weights
+        weights = weights[weights.index.isin(df.columns)].to_numpy()
+
+        return DecisionMatrix(df, objectives, weights)
 
 
 # =============================================================================
@@ -687,7 +726,57 @@ class DecisionMatrix:
             )
         )
 
-    # repr ====================================================================
+    # SLICES ==================================================================
+
+    def __getitem__(self, slc):
+        """dm[slc] <==> dm.__getitem__(slc)."""
+        df = self._data_df.__getitem__(slc)
+        if isinstance(df, pd.Series):
+            df = df.to_frame()
+
+            dtypes = self._data_df.dtypes
+            dtypes = dtypes[dtypes.index.isin(df.columns)]
+
+            df = df.astype(dtypes)
+
+        objectives = self.objectives
+        objectives = objectives[objectives.index.isin(df.columns)].to_numpy()
+
+        weights = self.weights
+        weights = weights[weights.index.isin(df.columns)].to_numpy()
+
+        return DecisionMatrix(df, objectives, weights)
+
+    @property
+    def loc(self):
+        """Access a group of alternatives and criteria by label(s) or a \
+        boolean array.
+
+        ``.loc[]`` is primarily alternative label based, but may also be used
+        with a boolean array.
+
+        Unlike DataFrames, `ìloc`` of ``DecisionMatrix`` always returns an
+        instance of ``DecisionMatrix``.
+
+        """
+        return _Loc("loc", self._data_df.loc, self.objectives, self.weights)
+
+    @property
+    def iloc(self):
+        """Purely integer-location based indexing for selection by position.
+
+        ``.iloc[]`` is primarily integer position based (from ``0`` to
+        ``length-1`` of the axis), but may also be used with a boolean
+        array.
+
+        Unlike DataFrames, `ìloc`` of ``DecisionMatrix`` always returns an
+        instance of ``DecisionMatrix``.
+
+        """
+        return _Loc("iloc", self._data_df.iloc, self.objectives, self.weights)
+
+    # REPR ====================================================================
+
     def _get_cow_headers(self):
         """Columns names with COW (Criteria, Objective, Weight)."""
         headers = []

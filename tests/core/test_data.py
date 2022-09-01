@@ -520,6 +520,74 @@ def test_DecisionMatrix_self_ne(data_values):
 
 
 # =============================================================================
+# SLICES
+# =============================================================================
+
+
+def test_DecisionMatrix__getitem__():
+    dm = data.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm["X"].equals(dm[["X"]])
+
+    expected = data.mkdm(
+        matrix=[[1, 3], [4, 6], [7, 9]],
+        objectives=[min, min],
+        weights=[0.1, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Z".split(),
+    )
+    assert dm[["X", "Z"]].equals(expected)
+
+
+def test_DecisionMatrix_loc():
+    dm = data.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm.loc.name == "loc"
+    assert dm.loc["A"].equals(dm.loc[["A"]])
+
+    expected = data.mkdm(
+        matrix=[[1, 2, 3], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm.loc[["A", "C"]].equals(expected)
+
+
+def test_DecisionMatrix_iloc():
+    dm = data.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm.iloc.name == "iloc"
+    assert dm.iloc[2].equals(dm.iloc[[2]])
+
+    expected = data.mkdm(
+        matrix=[[1, 2, 3], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A C".split(),
+        criteria="X Y Z".split(),
+    )
+
+    assert dm.iloc[[0, 2]].equals(expected)
+
+
+# =============================================================================
 # REPR
 # =============================================================================
 
