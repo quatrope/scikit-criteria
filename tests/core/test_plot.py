@@ -53,7 +53,7 @@ def test_DecisionMatrixPlotter_heatmap(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()
@@ -82,7 +82,7 @@ def test_DecisionMatrixPlotter_wheatmap(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     weights = dm.weights.to_frame().T
@@ -115,7 +115,7 @@ def test_DecisionMatrixPlotter_wheatmap_default_axis(
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     weights = dm.weights.to_frame().T
@@ -153,7 +153,7 @@ def test_DecisionMatrixPlotter_bar(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()
@@ -181,7 +181,7 @@ def test_DecisionMatrixPlotter_wbar(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
     weights = dm.weights.to_frame().T
 
@@ -215,7 +215,7 @@ def test_DecisionMatrixPlotter_barh(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()
@@ -243,7 +243,7 @@ def test_DecisionMatrixPlotter_wbarh(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
     weights = dm.weights.to_frame().T
 
@@ -276,7 +276,7 @@ def test_DecisionMatrixPlotter_hist(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()
@@ -303,7 +303,7 @@ def test_DecisionMatrixPlotter_whist(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
     weights = dm.weights.to_frame().T
 
@@ -337,7 +337,7 @@ def test_DecisionMatrixPlotter_box(decision_matrix, orient, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()
@@ -395,7 +395,7 @@ def test_DecisionMatrixPlotter_kde(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()
@@ -450,7 +450,7 @@ def test_DecisionMatrixPlotter_ogive(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()
@@ -505,7 +505,7 @@ def test_DecisionMatrixPlotter_area(decision_matrix, fig_test, fig_ref):
 
     # EXPECTED
     labels = [
-        f"{c} {o.to_string()}" for c, o in zip(dm.criteria, dm.objectives)
+        f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
 
     exp_ax = fig_ref.subplots()

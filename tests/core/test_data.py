@@ -37,37 +37,11 @@ from skcriteria.core import data, dominance, plot, stats
 
 
 def construct_iobjectives(arr):
-    return [data.Objective.construct_from_alias(obj).value for obj in arr]
+    return [data.Objective.from_alias(obj).value for obj in arr]
 
 
 def construct_objectives(arr):
-    return [data.Objective.construct_from_alias(obj) for obj in arr]
-
-
-# =============================================================================
-# ENUM
-# =============================================================================
-
-
-def test_objective_construct():
-    for alias in data.Objective._MAX_ALIASES.value:
-        objective = data.Objective.construct_from_alias(alias)
-        assert objective is data.Objective.MAX
-    for alias in data.Objective._MIN_ALIASES.value:
-        objective = data.Objective.construct_from_alias(alias)
-        assert objective is data.Objective.MIN
-    with pytest.raises(ValueError):
-        data.Objective.construct_from_alias("no anda")
-
-
-def test_objective_str():
-    assert str(data.Objective.MAX) == data.Objective.MAX.name
-    assert str(data.Objective.MIN) == data.Objective.MIN.name
-
-
-def test_objective_to_string():
-    assert data.Objective.MAX.to_string() == data.Objective._MAX_STR.value
-    assert data.Objective.MIN.to_string() == data.Objective._MIN_STR.value
+    return [data.Objective.from_alias(obj) for obj in arr]
 
 
 # =============================================================================

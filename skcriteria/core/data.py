@@ -12,7 +12,7 @@
 """Data abstraction layer.
 
 This module defines the DecisionMatrix object, which internally encompasses
-the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
+the alternative matrix, weights and objectives (MIN, MAX) of the criteria.
 
 """
 
@@ -21,7 +21,6 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 # =============================================================================
 
 
-import enum
 import functools
 from collections import abc
 
@@ -31,87 +30,10 @@ import pandas as pd
 from pandas.io.formats import format as pd_fmt
 
 from .dominance import DecisionMatrixDominanceAccessor
+from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
 from ..utils import deprecated, df_temporal_header, doc_inherit
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-class Objective(enum.Enum):
-    """Representation of criteria objectives (Minimize, Maximize)."""
-
-    #: Internal representation of minimize criteria
-    MIN = -1
-
-    #: Internal representation of maximize criteria
-    MAX = 1
-
-    # INTERNALS ===============================================================
-
-    _MIN_STR = "\u25bc"
-    _MAX_STR = "\u25b2"
-
-    #: Another way to name the maximization criteria.
-    _MAX_ALIASES = frozenset(
-        [
-            MAX,
-            _MAX_STR,
-            max,
-            np.max,
-            np.nanmax,
-            np.amax,
-            "max",
-            "maximize",
-            "+",
-            ">",
-        ]
-    )
-
-    #: Another ways to name the minimization criteria.
-    _MIN_ALIASES = frozenset(
-        [
-            MIN,
-            _MIN_STR,
-            min,
-            np.min,
-            np.nanmin,
-            np.amin,
-            "min",
-            "minimize",
-            "<",
-            "-",
-        ]
-    )
-
-    # CUSTOM CONSTRUCTOR ======================================================
-
-    @classmethod
-    def construct_from_alias(cls, alias):
-        """Return the alias internal representation of the objective."""
-        if isinstance(alias, cls):
-            return alias
-        if isinstance(alias, str):
-            alias = alias.lower()
-        if alias in cls._MAX_ALIASES.value:
-            return cls.MAX
-        if alias in cls._MIN_ALIASES.value:
-            return cls.MIN
-        raise ValueError(f"Invalid criteria objective {alias}")
-
-    # METHODS =================================================================
-
-    def __str__(self):
-        """Convert the objective to an string."""
-        return self.name
-
-    def to_string(self):
-        """Return the printable representation of the objective."""
-        if self.value in Objective._MIN_ALIASES.value:
-            return Objective._MIN_STR.value
-        if self.value in Objective._MAX_ALIASES.value:
-            return Objective._MAX_STR.value
 
 
 # =============================================================================
@@ -202,6 +124,8 @@ class _Loc:
 # =============================================================================
 # DECISION MATRIX
 # =============================================================================
+
+
 class DecisionMatrix:
     """Representation of all data needed in the MCDA analysis.
 
@@ -440,7 +364,7 @@ class DecisionMatrix:
     def objectives(self):
         """Objectives of the criteria as ``Objective`` instances."""
         return pd.Series(
-            [Objective.construct_from_alias(a) for a in self._objectives],
+            [Objective.from_alias(a) for a in self._objectives],
             index=self._data_df.columns,
             name="Objectives",
         )
@@ -777,14 +701,28 @@ class DecisionMatrix:
 
     # REPR ====================================================================
 
-    def _get_cow_headers(self):
+    def _get_cow_headers(
+        self, only=None, fmt="{criteria}[{objective}{weight}]"
+    ):
         """Columns names with COW (Criteria, Objective, Weight)."""
         headers = []
-        fmt_weights = pd_fmt.format_array(self.weights, None)
-        for c, o, w in zip(self.criteria, self.objectives, fmt_weights):
-            header = f"{c}[{o.to_string()}{w}]"
+        criteria = self._data_df.columns
+        objectives = self.objectives
+        weights = self.weights
+        if only:
+            mask = self._data_df.columns.isin(only)
+            criteria = criteria[mask]
+            objectives = objectives[mask]
+            weights = weights[mask]
+
+        weights = pd_fmt.format_array(weights, None)
+
+        for crit, obj, weight in zip(criteria, objectives, weights):
+            header = fmt.format(
+                criteria=crit, objective=obj.to_symbol(), weight=weight
+            )
             headers.append(header)
-        return headers
+        return np.array(headers)
 
     def _get_axc_dimensions(self):
         """Dimension foote with AxC (Alternativs x Criteria)."""

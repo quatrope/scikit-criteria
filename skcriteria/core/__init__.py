@@ -15,12 +15,9 @@
 # IMPORTS
 # =============================================================================
 
-from .data import (
-    DecisionMatrix,
-    Objective,
-    mkdm,
-)
+from .data import DecisionMatrix, mkdm
 from .methods import SKCMethodABC
+from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 
 # =============================================================================
