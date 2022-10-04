@@ -542,13 +542,9 @@ def test_DecisionMatrixPlotter_dominance(
 
     exp_ax = fig_ref.subplots()
     sns.heatmap(
-        dm.dominance.dominance(),
+        dm.dominance.dominance(strict=strict),
         ax=exp_ax,
         annot=False,
         cmap=plt.cm.get_cmap(),
         cbar=False,
     )
-
-    exp_ax.set_title("Strict dominance" if strict else "Dominance")
-    exp_ax.set_ylabel("Criteria")
-    exp_ax.set_xlabel("Criteria")

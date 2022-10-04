@@ -409,7 +409,10 @@ class DecisionMatrix:
         ``DecisionMatrix.to_dataframe()``
 
         """
-        return self._data_df.copy()
+        mtx = self._data_df.copy()
+        mtx.index.name = "Alternatives"
+        mtx.columns.name = "Criteria"
+        return mtx
 
     @property
     def dtypes(self):

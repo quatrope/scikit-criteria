@@ -62,20 +62,24 @@ class DecisionMatrixPlotter(AccessorABC):
     # PRIVATE =================================================================
     # This method are used "a lot" inside all the different plots, so we can
     # save some lines of code
+    def _get_criteria_labels(self, **kwargs):
+        kwargs.setdefault("fmt", "{criteria} {objective}")
+        labels = self._dm._get_cow_headers(**kwargs)
+        return pd.Series(labels, name="Criteria")
 
     @property
     def _ddf(self):
         # proxy to access the dataframe with the data
-        return self._dm.matrix
+        ddf = self._dm.matrix
+        ddf.columns = self._get_criteria_labels()
+        return ddf
 
     @property
     def _wdf(self):
         # proxy to access the dataframe with the weights
-        return self._dm.weights.to_frame()
-
-    def _get_criteria_labels(self, **kwargs):
-        kwargs.setdefault("fmt", "{criteria} {objective}")
-        return self._dm._get_cow_headers(**kwargs)
+        wdf = self._dm.weights.to_frame()
+        wdf.index = self._get_criteria_labels()
+        return wdf
 
     # HEATMAP =================================================================
 
@@ -100,12 +104,6 @@ class DecisionMatrixPlotter(AccessorABC):
         """
         kwargs.setdefault("annot", True)
         ax = self._heatmap(self._ddf, **kwargs)
-
-        xticklabels = self._get_criteria_labels()
-        ax.set_xticklabels(xticklabels)
-        ax.set_xlabel("Criteria")
-        ax.set_ylabel("Alternatives")
-
         return ax
 
     def wheatmap(self, **kwargs):
@@ -124,11 +122,6 @@ class DecisionMatrixPlotter(AccessorABC):
         """
         kwargs.setdefault("annot", True)
         ax = self._heatmap(self._wdf.T, **kwargs)
-
-        xticklabels = self._get_criteria_labels()
-        ax.set_xticklabels(xticklabels)
-        ax.set_xlabel("Criteria")
-
         if "ax" not in kwargs:
             # if the ax is provided by the user we assume that the figure
             # is already with the expected size. If it's not, we resize the
@@ -162,10 +155,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = self._ddf.plot.bar(**kwargs)
-        ax.set_xlabel("Alternatives")
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     def wbar(self, **kwargs):
@@ -189,9 +178,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = self._wdf.T.plot.bar(**kwargs)
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     # BARH ====================================================================
@@ -217,10 +203,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = self._ddf.plot.barh(**kwargs)
-        ax.set_ylabel("Alternatives")
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     def wbarh(self, **kwargs):
@@ -244,9 +226,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = self._wdf.T.plot.barh(**kwargs)
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     # HIST ====================================================================
@@ -270,8 +249,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = sns.histplot(self._ddf, **kwargs)
-        if kwargs.get("legend", True):
-            ax.legend(self._get_criteria_labels())
         return ax
 
     def whist(self, **kwargs):
@@ -293,9 +270,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = sns.histplot(self._wdf.T, **kwargs)
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     # BOX =====================================================================
@@ -320,19 +294,7 @@ class DecisionMatrixPlotter(AccessorABC):
         matplotlib.axes.Axes or numpy.ndarray of them
 
         """
-        orient = kwargs.setdefault("orient", "v")
-
         ax = sns.boxplot(data=self._ddf, **kwargs)
-
-        if orient == "v":
-            xticklabels = self._get_criteria_labels()
-            ax.set_xticklabels(xticklabels)
-            ax.set_xlabel("Criteria")
-        elif orient == "h":
-            yticklabels = self._get_criteria_labels()
-            ax.set_yticklabels(yticklabels)
-            ax.set_ylabel("Criteria")
-
         return ax
 
     def wbox(self, **kwargs):
@@ -383,9 +345,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = sns.kdeplot(data=self._ddf, **kwargs)
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     def wkde(self, **kwargs):
@@ -441,9 +400,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = sns.ecdfplot(data=self._ddf, **kwargs)
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     def wogive(self, **kwargs):
@@ -495,10 +451,6 @@ class DecisionMatrixPlotter(AccessorABC):
 
         """
         ax = self._ddf.plot.area(**kwargs)
-        ax.set_xlabel("Alternatives")
-        if kwargs.get("legend", True):
-            legend = self._get_criteria_labels()
-            ax.legend(legend)
         return ax
 
     # DOMINANCE ===============================================================
@@ -530,23 +482,27 @@ class DecisionMatrixPlotter(AccessorABC):
         kwargs.setdefault("cbar", False)
         ax = self._heatmap(dom, **kwargs)
 
-        ax.set_title("Strict dominance" if strict else "Dominance")
-        ax.set_ylabel("Alternatives")
-        ax.set_xlabel("Alternatives")
-
         return ax
 
     # FRONTIER
 
     def frontier(
-        self, x, y, *, strict=False, ax=None, scatter_kws=None, line_kws=None
+        self,
+        x,
+        y,
+        *,
+        strict=False,
+        ax=None,
+        legend=True,
+        scatter_kws=None,
+        line_kws=None,
     ):
 
         # cut the dmatrix to only the necesary criteria
         sdm = self._dm[[x, y]]
 
-        # extract objectives and matrix
-        df, (obj_x, obj_y) = sdm.matrix, sdm.objectives
+        # extract the matrix
+        df = sdm.matrix
 
         # draw the scatterplot ================================================
         scatter_kws = {} if scatter_kws is None else scatter_kws
@@ -566,6 +522,8 @@ class DecisionMatrixPlotter(AccessorABC):
             non_dominated = pd.concat([non_dominated] * 3, ignore_index=True)
 
             # esto cambia si x o y son a minimizar
+            obj_x, obj_y = sdm.objectives
+
             non_dominated.iloc[0, 0] = (
                 df[x].min() if obj_x is Objective.MAX else df[x].max()
             )
@@ -573,11 +531,16 @@ class DecisionMatrixPlotter(AccessorABC):
                 df[y].min() if obj_y is Objective.MAX else df[y].max()
             )
 
+        # line style and frontier label
+        frontier_ls, frontier_lb = (
+            ("-", "Strict frontier") if strict else ("--", "Frontier")
+        )
+
         # draw the line plot
         line_kws = {} if line_kws is None else line_kws
         line_kws.setdefault("alpha", 0.5)
-        line_kws.setdefault("linestyle", "--")
-        line_kws.setdefault("label", "Frontier")
+        line_kws.setdefault("linestyle", frontier_ls)
+        line_kws.setdefault("label", frontier_lb)
 
         sns.lineplot(
             x=x,
@@ -589,11 +552,13 @@ class DecisionMatrixPlotter(AccessorABC):
             **line_kws,
         )
 
-        # Set the title
-        title = "Strict frontier" if strict else "Frontier"
+        # Set the labels
         xlabel, ylabel = self._get_criteria_labels(only=[x, y])
-        ax.set_title(title)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
+
+        if legend:
+            handles, labels = ax.get_legend_handles_labels()
+            ax.legend(handles, labels, title="Alternatives")
 
         return ax
