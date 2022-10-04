@@ -705,10 +705,11 @@ class DecisionMatrix:
         self, only=None, fmt="{criteria}[{objective}{weight}]"
     ):
         """Columns names with COW (Criteria, Objective, Weight)."""
-        headers = []
+
         criteria = self._data_df.columns
         objectives = self.objectives
         weights = self.weights
+
         if only:
             mask = self._data_df.columns.isin(only)
             criteria = criteria[mask]
@@ -717,6 +718,7 @@ class DecisionMatrix:
 
         weights = pd_fmt.format_array(weights, None)
 
+        headers = []
         for crit, obj, weight in zip(criteria, objectives, weights):
             header = fmt.format(
                 criteria=crit, objective=obj.to_symbol(), weight=weight
