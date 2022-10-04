@@ -110,6 +110,9 @@ def test_DecisionMatrixDominanceAccessor_bt():
         index=["A0", "A1"],
         columns=["A0", "A1"],
     )
+    expected.index.name = "Better than"
+    expected.columns.name = "Worse than"
+
     pd.testing.assert_frame_equal(dom.bt(), expected)
     pd.testing.assert_frame_equal(dm.dominance.bt(), expected)
 
@@ -140,6 +143,8 @@ def test_DecisionMatrixDominanceAccessor_eq():
         index=["A0", "A1"],
         columns=["A0", "A1"],
     )
+    expected.index.name = "Equals to"
+    expected.columns.name = "Equals to"
 
     pd.testing.assert_frame_equal(dom.eq(), expected)
     pd.testing.assert_frame_equal(dm.dominance.eq(), expected)
@@ -214,6 +219,8 @@ def test_DecisionMatrixDominanceAccessor_dominance():
         index=["A0", "A1"],
         columns=["A0", "A1"],
     )
+    expected.index.name = "Dominators"
+    expected.columns.name = "Dominated"
 
     pd.testing.assert_frame_equal(dom.dominance(), expected)
     pd.testing.assert_frame_equal(dm.dominance.dominance(), expected)
@@ -240,6 +247,8 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict():
         index=["A0", "A1"],
         columns=["A0", "A1"],
     )
+    expected.index.name = "Strict dominators"
+    expected.columns.name = "Strictly dominated"
 
     pd.testing.assert_frame_equal(dom.dominance(strict=True), expected)
     pd.testing.assert_frame_equal(
@@ -268,6 +277,8 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict_false():
         index=["A0", "A1"],
         columns=["A0", "A1"],
     )
+    strict_expected.index.name = "Strict dominators"
+    strict_expected.columns.name = "Strictly dominated"
 
     pd.testing.assert_frame_equal(dom.dominance(strict=True), strict_expected)
     pd.testing.assert_frame_equal(
@@ -282,6 +293,8 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict_false():
         index=["A0", "A1"],
         columns=["A0", "A1"],
     )
+    not_strict_expected.index.name = "Dominators"
+    not_strict_expected.columns.name = "Dominated"
 
     pd.testing.assert_frame_equal(
         dom.dominance(strict=False), not_strict_expected
@@ -310,7 +323,8 @@ def test_DecisionMatrixDominanceAccessor_dominated():
 
     dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
-    expected = pd.Series([True, False], index=["A0", "A1"])
+    expected = pd.Series([True, False], index=["A0", "A1"], name="Dominated")
+    expected.index.name = "Alternatives"
 
     pd.testing.assert_series_equal(dom.dominated(), expected)
     pd.testing.assert_series_equal(dm.dominance.dominated(), expected)
@@ -329,7 +343,10 @@ def test_DecisionMatrixDominanceAccessor_dominated_strict():
 
     dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
-    expected = pd.Series([True, False], index=["A0", "A1"])
+    expected = pd.Series(
+        [True, False], index=["A0", "A1"], name="Strictly dominated"
+    )
+    expected.index.name = "Alternatives"
 
     pd.testing.assert_series_equal(dom.dominated(strict=True), expected)
     pd.testing.assert_series_equal(
@@ -350,14 +367,20 @@ def test_DecisionMatrixDominanceAccessor_dominated_strict_false():
 
     dom = dominance.DecisionMatrixDominanceAccessor(dm)
 
-    strict_expected = pd.Series([False, False], index=["A0", "A1"])
+    strict_expected = pd.Series(
+        [False, False], index=["A0", "A1"], name="Strictly dominated"
+    )
+    strict_expected.index.name = "Alternatives"
 
     pd.testing.assert_series_equal(dom.dominated(strict=True), strict_expected)
     pd.testing.assert_series_equal(
         dm.dominance.dominated(strict=True), strict_expected
     )
 
-    not_strict_expected = pd.Series([True, False], index=["A0", "A1"])
+    not_strict_expected = pd.Series(
+        [True, False], index=["A0", "A1"], name="Dominated"
+    )
+    not_strict_expected.index.name = "Alternatives"
 
     pd.testing.assert_series_equal(
         dom.dominated(strict=False), not_strict_expected
