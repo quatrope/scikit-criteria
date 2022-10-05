@@ -52,16 +52,14 @@ def test_DecisionMatrixPlotter_heatmap(decision_matrix, fig_test, fig_ref):
     plotter.heatmap(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.heatmap(dm.matrix, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
-
-    exp_ax.set_xticklabels(labels)
-    exp_ax.set_ylabel("Alternatives")
-    exp_ax.set_xlabel("Criteria")
+    sns.heatmap(df, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
 
 
 @pytest.mark.slow
@@ -81,17 +79,14 @@ def test_DecisionMatrixPlotter_wheatmap(decision_matrix, fig_test, fig_ref):
     plotter.wheatmap(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.weights.to_frame().T
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
-
-    weights = dm.weights.to_frame().T
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.heatmap(weights, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
-
-    exp_ax.set_xticklabels(labels)
-    exp_ax.set_xlabel("Criteria")
+    sns.heatmap(df, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
 
 
 @pytest.mark.slow
@@ -152,15 +147,14 @@ def test_DecisionMatrixPlotter_bar(decision_matrix, fig_test, fig_ref):
     plotter.bar(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    dm.matrix.plot.bar(ax=exp_ax)
-
-    exp_ax.set_xlabel("Alternatives")
-    exp_ax.legend(labels)
+    df.plot.bar(ax=exp_ax)
 
 
 @pytest.mark.slow
@@ -180,16 +174,14 @@ def test_DecisionMatrixPlotter_wbar(decision_matrix, fig_test, fig_ref):
     plotter.wbar(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.weights.to_frame().T
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
-    weights = dm.weights.to_frame().T
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    weights.plot.bar(ax=exp_ax)
-
-    exp_ax.set_xlabel("Alternatives")
-    exp_ax.legend(labels)
+    df.plot.bar(ax=exp_ax)
 
 
 # =============================================================================
@@ -214,15 +206,14 @@ def test_DecisionMatrixPlotter_barh(decision_matrix, fig_test, fig_ref):
     plotter.barh(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    dm.matrix.plot.barh(ax=exp_ax)
-
-    exp_ax.set_ylabel("Alternatives")
-    exp_ax.legend(labels)
+    df.plot.barh(ax=exp_ax)
 
 
 @pytest.mark.slow
@@ -242,15 +233,14 @@ def test_DecisionMatrixPlotter_wbarh(decision_matrix, fig_test, fig_ref):
     plotter.wbarh(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.weights.to_frame().T
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
-    weights = dm.weights.to_frame().T
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    weights.plot.barh(ax=exp_ax)
-
-    exp_ax.legend(labels)
+    df.plot.barh(ax=exp_ax)
 
 
 # =============================================================================
@@ -275,14 +265,14 @@ def test_DecisionMatrixPlotter_hist(decision_matrix, fig_test, fig_ref):
     plotter.hist(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.histplot(data=dm.matrix, ax=exp_ax)
-
-    exp_ax.legend(labels)
+    sns.histplot(data=df, ax=exp_ax)
 
 
 @pytest.mark.slow
@@ -302,15 +292,14 @@ def test_DecisionMatrixPlotter_whist(decision_matrix, fig_test, fig_ref):
     plotter.whist(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.weights.to_frame().T
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
-    weights = dm.weights.to_frame().T
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.histplot(data=weights, ax=exp_ax)
-
-    exp_ax.legend(labels)
+    sns.histplot(data=df, ax=exp_ax)
 
 
 # =============================================================================
@@ -336,19 +325,14 @@ def test_DecisionMatrixPlotter_box(decision_matrix, orient, fig_test, fig_ref):
     plotter.box(ax=test_ax, orient=orient)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.boxplot(data=dm.matrix, ax=exp_ax, orient=orient)
-
-    if orient == "v":
-        exp_ax.set_xticklabels(labels)
-        exp_ax.set_xlabel("Criteria")
-    elif orient == "h":
-        exp_ax.set_yticklabels(labels)
-        exp_ax.set_ylabel("Criteria")
+    sns.boxplot(data=df, ax=exp_ax, orient=orient)
 
 
 @pytest.mark.slow
@@ -394,14 +378,14 @@ def test_DecisionMatrixPlotter_kde(decision_matrix, fig_test, fig_ref):
     plotter.kde(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.kdeplot(data=dm.matrix, ax=exp_ax)
-
-    exp_ax.legend(labels)
+    sns.kdeplot(data=df, ax=exp_ax)
 
 
 @pytest.mark.slow
@@ -449,14 +433,14 @@ def test_DecisionMatrixPlotter_ogive(decision_matrix, fig_test, fig_ref):
     plotter.ogive(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.ecdfplot(data=dm.matrix, ax=exp_ax)
-
-    exp_ax.legend(labels)
+    sns.ecdfplot(data=df, ax=exp_ax)
 
 
 @pytest.mark.slow
@@ -504,14 +488,14 @@ def test_DecisionMatrixPlotter_area(decision_matrix, fig_test, fig_ref):
     plotter.area(ax=test_ax)
 
     # EXPECTED
-    labels = [
+    df = dm.matrix
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    dm.matrix.plot.area(ax=exp_ax)
-    exp_ax.set_xlabel("Alternatives")
-    exp_ax.legend(labels)
+    df.plot.area(ax=exp_ax)
 
 
 # =============================================================================
