@@ -477,10 +477,24 @@ class DecisionMatrixPlotter(AccessorABC):
         matplotlib.axes.Axes or numpy.ndarray of them
 
         """
-        dom = self._dm.dominance.dominance(strict=strict)
+        dm = self._dm
+        import numpy as np
+
+        dom = dm.dominance.dominance(strict=strict)
+        bt = dm.dominance.bt().to_numpy().astype(str)
+        eq = dm.dominance.eq().to_numpy().astype(str)
+
+        annot = kwargs.get("annot", True)
+        if annot:
+            annot = ""
+            for elem in [r"$\succ", bt, "$/$=", eq, "$"]:
+                annot = np.char.add(annot, elem)
+            fmt = ""
+        else:
+            fmt = ""
 
         kwargs.setdefault("cbar", False)
-        ax = self._heatmap(dom, **kwargs)
+        ax = self._heatmap(dom, annot=annot, fmt=fmt, **kwargs)
 
         return ax
 
