@@ -25,11 +25,13 @@ from matplotlib.testing.decorators import check_figures_equal
 
 import numpy as np
 
+import pandas as pd
+
 import pytest
 
 import seaborn as sns
 
-from skcriteria.core import plot
+from skcriteria.core import mkdm, plot
 
 
 # =============================================================================
@@ -540,3 +542,71 @@ def test_DecisionMatrixPlotter_dominance(
         cmap=plt.cm.get_cmap(),
         cbar=False,
     )
+
+
+# =============================================================================
+# FRONTIER
+# =============================================================================
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("strict", [True, False])
+@check_figures_equal()
+def test_DecisionMatrixPlotter_frontier(
+    decision_matrix, fig_test, fig_ref, strict
+):
+    dm = mkdm(
+        matrix=[
+            [0.65229926, 0.04377532],
+            [0.02002959, 0.83921258],
+            [0.58714305, 0.22470523],
+        ],
+        objectives=[min, max],
+        weights=[0.41997791, 0.45103139],
+        alternatives=["A0", "A1", "A2"],
+        criteria=["C0", "C1"],
+    )
+
+    x, y = dm.criteria
+
+    plotter = plot.DecisionMatrixPlotter(dm=dm)
+
+    test_ax = fig_test.subplots()
+    plotter.frontier(x=x, y=y, strict=strict, ax=test_ax)
+
+    # EXPECTED
+    exp_ax = fig_ref.subplots()
+
+    # scatter
+    sdm = dm[[x, y]]
+    df = sdm.matrix
+
+    sns.scatterplot(x=x, y=y, data=df, hue=df.index, ax=exp_ax)
+
+    # frontier
+    non_dominated = pd.DataFrame(
+        [
+            [0.65229926, 0.83921258],
+            [0.02002959, 0.83921258],
+            [0.02002959, 0.04377532],
+        ],
+        columns=pd.Index(["C0", "C1"], name="Criteria"),
+    )
+
+    sns.lineplot(
+        x=x,
+        y=y,
+        data=non_dominated,
+        estimator=None,
+        sort=False,
+        ax=exp_ax,
+        alpha=0.5,
+        linestyle="-" if strict else "--",
+        label="Strict frontier" if strict else "Frontier",
+    )
+
+    exp_ax.set_xlabel(f"{x} {dm.objectives[x].to_symbol()}")
+    exp_ax.set_ylabel(f"{y} {dm.objectives[y].to_symbol()}")
+
+    handles, labels = exp_ax.get_legend_handles_labels()
+    exp_ax.legend(handles, labels, title="Alternatives")

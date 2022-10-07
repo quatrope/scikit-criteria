@@ -66,6 +66,19 @@ def test_WeightedSumModel_minimize_fail():
         ranker.evaluate(dm)
 
 
+def test_WeightedProductModel_lt0_fail():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, -1, 6]],
+        objectives=[max, max, max],
+    )
+
+    ranker = WeightedSumModel()
+
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
+
+
 def test_WeightedSumModel_kracka2010ranking():
     """
     Data from:
