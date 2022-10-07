@@ -23,6 +23,8 @@ from unittest import mock
 from matplotlib import pyplot as plt
 from matplotlib.testing.decorators import check_figures_equal
 
+import numpy as np
+
 import pytest
 
 import seaborn as sns
@@ -109,17 +111,14 @@ def test_DecisionMatrixPlotter_wheatmap_default_axis(
         plotter.wheatmap()
 
     # EXPECTED
-    labels = [
+    df = dm.weights.to_frame().T
+    df.columns = [
         f"{c} {o.to_symbol()}" for c, o in zip(dm.criteria, dm.objectives)
     ]
-
-    weights = dm.weights.to_frame().T
+    df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.heatmap(weights, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
-
-    exp_ax.set_xticklabels(labels)
-    exp_ax.set_xlabel("Criteria")
+    sns.heatmap(df, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
 
     size = fig_ref.get_size_inches() / [1, 5]
     fig_ref.set_size_inches(size)
@@ -523,12 +522,21 @@ def test_DecisionMatrixPlotter_dominance(
     plotter.dominance(strict=strict, ax=test_ax)
 
     # EXPECTED
-
     exp_ax = fig_ref.subplots()
+
+    dom = dm.dominance.dominance(strict=strict)
+    bt = dm.dominance.bt().to_numpy().astype(str)
+    eq = dm.dominance.eq().to_numpy().astype(str)
+
+    annot = ""
+    for elem in [r"$\succ", bt, "$/$=", eq, "$"]:
+        annot = np.char.add(annot, elem)
+
     sns.heatmap(
-        dm.dominance.dominance(strict=strict),
+        dom,
         ax=exp_ax,
-        annot=False,
+        annot=annot,
+        fmt="",
         cmap=plt.cm.get_cmap(),
         cbar=False,
     )

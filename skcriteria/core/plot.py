@@ -51,6 +51,7 @@ class DecisionMatrixPlotter(AccessorABC):
     - 'wogive' : weights empirical cumulative distribution plot.
     - 'area' : criteria area plot.
     - 'dominance': the dominance matrix as a heatmap.
+    - 'frontier': criteria pair-wise Pareto-Frontier.
 
     """
 
@@ -484,21 +485,17 @@ class DecisionMatrixPlotter(AccessorABC):
         bt = dm.dominance.bt().to_numpy().astype(str)
         eq = dm.dominance.eq().to_numpy().astype(str)
 
-        annot = kwargs.get("annot", True)
+        annot = kwargs.pop("annot", True)
         if annot:
             annot = ""
             for elem in [r"$\succ", bt, "$/$=", eq, "$"]:
                 annot = np.char.add(annot, elem)
-            fmt = ""
-        else:
-            fmt = ""
 
         kwargs.setdefault("cbar", False)
-        ax = self._heatmap(dom, annot=annot, fmt=fmt, **kwargs)
+        kwargs.setdefault("fmt", "")
+        ax = self._heatmap(dom, annot=annot, **kwargs)
 
         return ax
-
-    # FRONTIER
 
     def frontier(
         self,
