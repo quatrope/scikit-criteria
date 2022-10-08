@@ -70,16 +70,50 @@ class StandarScaler(SKCMatrixAndWeightTransformerABC):
     where `u` is the mean of the values, and `s` is the standard deviation
     of the training samples or one if `with_std=False`.
 
+    This is a thin wrapper around ``sklearn.preprocessing.StandarScaler``.
+
+    Parameters
+    ----------
+    with_mean : bool, default=True
+        If True, center the data before scaling.
+
+    with_std : bool, default=True
+        If True, scale the data to unit variance (or equivalently, unit
+        standard deviation).
+
     """
+
+    _skcriteria_parameters = ["target", "with_mean", "with_std"]
+
+    def __init__(self, target, *, with_mean=True, with_std=True):
+        super().__init__(target)
+        self._with_mean = bool(with_mean)
+        self._with_std = bool(with_std)
+
+    @property
+    def with_mean(self):
+        """True if the features will be center before scaling."""
+        return self._with_mean
+
+    @property
+    def with_std(self):
+        """True if the features will be scaled to the unit variance."""
+        return self._with_std
+
+    def _get_scaler(self):
+        return _sklpreproc.StandardScaler(
+            with_mean=self.with_mean,
+            with_std=self.with_std,
+        )
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
-        scaler = _sklpreproc.StandardScaler()
+        scaler = self._get_scaler()
         return _run_sklearn_scaler(weights, scaler)
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
-        scaler = _sklpreproc.StandardScaler()
+        scaler = self._get_scaler()
         return _run_sklearn_scaler(matrix, scaler)
 
 
@@ -91,26 +125,66 @@ class StandarScaler(SKCMatrixAndWeightTransformerABC):
 class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
     r"""Scaler based on the range.
 
-    .. math::
+    The matrix transformation is given by::
 
-        \overline{X}_{ij} =
-        \frac{X_{ij} - \min{X_{ij}}}{\max_{X_{ij}} - \min_{X_{ij}}}
+        X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+        X_scaled = X_std * (max - min) + min
+
+    And the weight transformation::
+
+        X_std = (X - X.min(axis=None)) / (X.max(axis=None) - X.min(axis=None))
+        X_scaled = X_std * (max - min) + min
 
     If the scaler is configured to work with 'matrix' each value
     of each criteria is divided by the range of that criteria.
     In other hand if is configure to work with 'weights',
     each value of weight is divided by the range the weights.
 
+    This is a thin wrapper around ``sklearn.preprocessing.MinMaxScaler``.
+
+    Parameters
+    ----------
+    criteria_range : tuple (min, max), default=(0, 1)
+        Desired range of transformed data.
+
+    clip : bool, default=False
+        Set to True to clip transformed values of held-out data to
+        provided `criteria_range`.
+
     """
+
+    _skcriteria_parameters = ["target", "clip", "criteria_range"]
+
+    def __init__(self, target, *, clip=False, criteria_range=(0, 1)):
+        super().__init__(target)
+        self._clip = bool(clip)
+        self._cr_min, self._cr_max = map(float, criteria_range)
+
+    @property
+    def clip(self):
+        """True if the transformed values will be clipped to held-out the \
+        value provided `criteria_range`."""
+        return self._clip
+
+    @property
+    def criteria_range(self):
+        """Range of transformed data."""
+        return (self._cr_min, self._cr_max)
+
+    def _get_scaler(self):
+        return _sklpreproc.MinMaxScaler(
+            clip=self.clip,
+            feature_range=self.criteria_range,
+        )
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
-        scaler = _sklpreproc.MinMaxScaler()
+        scaler = self._get_scaler()
         return _run_sklearn_scaler(weights, scaler)
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
-        scaler = _sklpreproc.MinMaxScaler()
+        scaler = self._get_scaler()
         return _run_sklearn_scaler(matrix, scaler)
 
 
@@ -122,14 +196,17 @@ class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
 class MaxAbsScaler(SKCMatrixAndWeightTransformerABC):
     r"""Scaler based on the maximum values.
 
-    .. math::
-
-        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
-
     If the scaler is configured to work with 'matrix' each value
     of each criteria is divided by the maximum value of that criteria.
     In other hand if is configure to work with 'weights',
     each value of weight is divided by the maximum value the weights.
+
+    This estimator scales and translates each criteria individually such that
+    the maximal absolute value of each criteria in the training set will be
+    1.0. It does not shift/center the data, and thus does not destroy any
+    sparsity.
+
+    This is a thin wrapper around ``sklearn.preprocessing.MaxAbsScaler``.
 
     """
 
@@ -151,14 +228,8 @@ class MaxAbsScaler(SKCMatrixAndWeightTransformerABC):
 class MaxScaler(MaxAbsScaler):
     r"""Scaler based on the maximum values.
 
-    .. math::
-
-        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
-
-    If the scaler is configured to work with 'matrix' each value
-    of each criteria is divided by the maximum value of that criteria.
-    In other hand if is configure to work with 'weights',
-    each value of weight is divided by the maximum value the weights.
+    From skcriteria >= 0.8 this is a thin wrapper around
+    ``sklearn.preprocessing.MaxAbsScaler``.
 
     """
 
