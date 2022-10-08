@@ -338,14 +338,24 @@ class DecisionMatrix:
 
     @property
     def alternatives(self):
-        """Names of the alternatives."""
+        """Names of the alternatives.
+
+        From this array you can also access the values of the alternatives as
+        ``pandas.Series``.
+
+        """
         arr = self._data_df.index.to_numpy()
         slicer = self._data_df.loc.__getitem__
         return _ACArray(arr, slicer)
 
     @property
     def criteria(self):
-        """Names of the criteria."""
+        """Names of the criteria.
+
+        From this array you can also access the values of the criteria as
+        ``pandas.Series``.
+
+        """
         arr = self._data_df.columns.to_numpy()
         slicer = self._data_df.__getitem__
         return _ACArray(arr, slicer)
@@ -405,7 +415,7 @@ class DecisionMatrix:
 
         The matrix excludes weights and objectives.
 
-        If you want to create a DataFrame with objetvies and weights, use
+        If you want to create a DataFrame with objectives and weights, use
         ``DecisionMatrix.to_dataframe()``
 
         """
