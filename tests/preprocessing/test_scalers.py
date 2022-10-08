@@ -22,7 +22,7 @@ import numpy as np
 
 import skcriteria
 from skcriteria.preprocessing.scalers import (
-    MaxScaler,
+    MaxAbsScaler,
     MinMaxScaler,
     StandarScaler,
     SumScaler,
@@ -756,7 +756,7 @@ def test_SumScaler_no_change_original_dm(decision_matrix):
 # =============================================================================
 
 
-def test_MaxScaler_simple_matrix():
+def test_MaxAbsScaler_simple_matrix():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -771,14 +771,14 @@ def test_MaxScaler_simple_matrix():
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(target="matrix")
+    scaler = MaxAbsScaler(target="matrix")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_matrix(decision_matrix):
+def test_MaxAbsScaler_matrix(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -799,13 +799,13 @@ def test_MaxScaler_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="matrix")
+    scaler = MaxAbsScaler(target="matrix")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_simple_weights():
+def test_MaxAbsScaler_simple_weights():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -820,14 +820,14 @@ def test_MaxScaler_simple_weights():
         dtypes=[int, int, int],
     )
 
-    scaler = MaxScaler(target="weights")
+    scaler = MaxAbsScaler(target="weights")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_weights(decision_matrix):
+def test_MaxAbsScaler_weights(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -847,13 +847,13 @@ def test_MaxScaler_weights(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="weights")
+    scaler = MaxAbsScaler(target="weights")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_simple_both():
+def test_MaxAbsScaler_simple_both():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -868,14 +868,14 @@ def test_MaxScaler_simple_both():
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(target="both")
+    scaler = MaxAbsScaler(target="both")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_both(decision_matrix):
+def test_MaxAbsScaler_both(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -896,13 +896,13 @@ def test_MaxScaler_both(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="both")
+    scaler = MaxAbsScaler(target="both")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_no_change_original_dm(decision_matrix):
+def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -915,7 +915,7 @@ def test_MaxScaler_no_change_original_dm(decision_matrix):
 
     expected = dm.copy()
 
-    scaler = MaxScaler(target="both")
+    scaler = MaxAbsScaler(target="both")
     dmt = scaler.transform(dm)
 
     assert (

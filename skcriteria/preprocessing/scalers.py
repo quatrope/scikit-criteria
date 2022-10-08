@@ -22,14 +22,13 @@ are offered to scale an array along an arbitrary axis.
 # =============================================================================
 
 
-from cProfile import run
 import numpy as np
 from numpy import linalg
 
 from sklearn import preprocessing as _sklpreproc
 
 from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
-from ..utils import doc_inherit, Bunch
+from ..utils import deprecated, doc_inherit
 
 
 # =============================================================================
@@ -120,7 +119,7 @@ class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
 # =============================================================================
 
 
-class MaxScaler(SKCMatrixAndWeightTransformerABC):
+class MaxAbsScaler(SKCMatrixAndWeightTransformerABC):
     r"""Scaler based on the maximum values.
 
     .. math::
@@ -143,6 +142,25 @@ class MaxScaler(SKCMatrixAndWeightTransformerABC):
     def _transform_matrix(self, matrix):
         scaler = _sklpreproc.MaxAbsScaler()
         return _run_sklearn_scaler(matrix, scaler)
+
+
+@deprecated(
+    reason="Use 'skcriteria.preprocessing.scalers.MaxAbsScaler' instead",
+    version=0.8,
+)
+class MaxScaler(MaxAbsScaler):
+    r"""Scaler based on the maximum values.
+
+    .. math::
+
+        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
+
+    If the scaler is configured to work with 'matrix' each value
+    of each criteria is divided by the maximum value of that criteria.
+    In other hand if is configure to work with 'weights',
+    each value of weight is divided by the maximum value the weights.
+
+    """
 
 
 # =============================================================================
