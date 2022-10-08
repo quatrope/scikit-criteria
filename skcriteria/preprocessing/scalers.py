@@ -22,66 +22,43 @@ are offered to scale an array along an arbitrary axis.
 # =============================================================================
 
 
+from cProfile import run
 import numpy as np
 from numpy import linalg
 
+from sklearn import preprocessing as _sklpreproc
+
 from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
-from ..utils import doc_inherit
+from ..utils import doc_inherit, Bunch
+
+
+# =============================================================================
+# HELPER FUNCTION
+# =============================================================================
+
+
+def _run_sklearn_scaler(mtx_or_weights, scaler):
+    """Runs sklearn scalers against 1D (weights) or 2D (alternatives) \
+    arrays.
+
+    This function is in charge of verifying if the array provided has adequate
+    dimensions to work with the scikit-learn scalers.
+
+    It also ensures that the output has the same input dimensions.
+
+    """
+    ndims = np.ndim(mtx_or_weights)
+    if ndims == 1:  # is a weights
+        mtx_or_weights = mtx_or_weights.reshape(len(mtx_or_weights), 1)
+    result = scaler.fit_transform(mtx_or_weights)
+    if ndims == 1:
+        result = result.flatten()
+    return result
 
 
 # =============================================================================
 # STANDAR SCALER
 # =============================================================================
-
-
-def scale_by_stdscore(arr, axis=None):
-    r"""Standardize the values by removing the mean and divided by the std-dev.
-
-    The standard score of a sample `x` is calculated as:
-
-    .. math::
-
-        z = (x - \mu) / \sigma
-
-    Parameters
-    ----------
-    arr: :py:class:`numpy.ndarray` like.
-        A array with values
-    axis : :py:class:`int` optional
-        Axis along which to operate.  By default, flattened input is used.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        array of ratios
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria.preprocess import scale_by_stdscore
-        >>> mtx = [[1, 2], [3, 4]]
-
-        # ratios with the max value of the array
-        >>> scale_by_stdscore(mtx)
-        array([[-1.34164079, -0.4472136 ],
-               [ 0.4472136 ,  1.34164079]])
-
-        # ratios with the max value of the arr by column
-        >>> scale_by_stdscore(mtx, axis=0)
-        array([[-1., -1.],
-               [ 1.,  1.]])
-
-        # ratios with the max value of the array by row
-        >>> scale_by_stdscore(mtx, axis=1)
-        array([[-1.,  1.],
-               [-1.,  1.]])
-
-    """
-    arr = np.asarray(arr, dtype=float)
-    mean = np.mean(arr, axis=axis, keepdims=True)
-    std = np.std(arr, axis=axis, keepdims=True)
-    return (arr - mean) / std
 
 
 class StandarScaler(SKCMatrixAndWeightTransformerABC):
@@ -98,11 +75,74 @@ class StandarScaler(SKCMatrixAndWeightTransformerABC):
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
-        return scale_by_stdscore(weights, axis=None)
+        scaler = _sklpreproc.StandardScaler()
+        return _run_sklearn_scaler(weights, scaler)
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
-        return scale_by_stdscore(matrix, axis=0)
+        scaler = _sklpreproc.StandardScaler()
+        return _run_sklearn_scaler(matrix, scaler)
+
+
+# =============================================================================
+# MINMAX
+# =============================================================================
+
+
+class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
+    r"""Scaler based on the range.
+
+    .. math::
+
+        \overline{X}_{ij} =
+        \frac{X_{ij} - \min{X_{ij}}}{\max_{X_{ij}} - \min_{X_{ij}}}
+
+    If the scaler is configured to work with 'matrix' each value
+    of each criteria is divided by the range of that criteria.
+    In other hand if is configure to work with 'weights',
+    each value of weight is divided by the range the weights.
+
+    """
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
+    def _transform_weights(self, weights):
+        scaler = _sklpreproc.MinMaxScaler()
+        return _run_sklearn_scaler(weights, scaler)
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
+    def _transform_matrix(self, matrix):
+        scaler = _sklpreproc.MinMaxScaler()
+        return _run_sklearn_scaler(matrix, scaler)
+
+
+# =============================================================================
+# MAX
+# =============================================================================
+
+
+class MaxScaler(SKCMatrixAndWeightTransformerABC):
+    r"""Scaler based on the maximum values.
+
+    .. math::
+
+        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
+
+    If the scaler is configured to work with 'matrix' each value
+    of each criteria is divided by the maximum value of that criteria.
+    In other hand if is configure to work with 'weights',
+    each value of weight is divided by the maximum value the weights.
+
+    """
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
+    def _transform_weights(self, weights):
+        scaler = _sklpreproc.MaxAbsScaler()
+        return _run_sklearn_scaler(weights, scaler)
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
+    def _transform_matrix(self, matrix):
+        scaler = _sklpreproc.MaxAbsScaler()
+        return _run_sklearn_scaler(matrix, scaler)
 
 
 # =============================================================================
@@ -189,88 +229,6 @@ class VectorScaler(SKCMatrixAndWeightTransformerABC):
 
 
 # =============================================================================
-# MINMAX
-# =============================================================================
-
-
-def scale_by_minmax(arr, axis=None):
-    r"""Fraction of the range normalizer.
-
-    Subtracts to each value of the array the minimum and then divides
-    it by the total range.
-
-    .. math::
-
-        \overline{X}_{ij} =
-        \frac{X_{ij} - \min{X_{ij}}}{\max_{X_{ij}} - \min_{X_{ij}}}
-
-    Parameters
-    ----------
-    arr: :py:class:`numpy.ndarray` like.
-        A array with values
-    axis : :py:class:`int` optional
-        Axis along which to operate.  By default, flattened input is used.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        array of ratios
-
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria.preprocess import scale_by_minmax
-        >>> mtx = [[1, 2], [3, 4]]
-
-        # ratios with the range of the array
-        >>> scale_by_minmax(mtx)
-        array([[0.        , 0.33333333],
-               [0.66666667, 1.        ]])
-
-        # ratios with the range by column
-        >>> scale_by_minmax(mtx, axis=0)
-        array([[0., 0.],
-               [1., 1.]])
-
-        # ratios with the range by row
-        >>> scale_by_minmax(mtx, axis=1)
-        array([[0., 1.],
-              [0., 1.]])
-
-    """
-    arr = np.asarray(arr, dtype=float)
-    minval = np.min(arr, axis=axis, keepdims=True)
-    maxval = np.max(arr, axis=axis, keepdims=True)
-    return (arr - minval) / (maxval - minval)
-
-
-class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
-    r"""Scaler based on the range.
-
-    .. math::
-
-        \overline{X}_{ij} =
-        \frac{X_{ij} - \min{X_{ij}}}{\max_{X_{ij}} - \min_{X_{ij}}}
-
-    If the scaler is configured to work with 'matrix' each value
-    of each criteria is divided by the range of that criteria.
-    In other hand if is configure to work with 'weights',
-    each value of weight is divided by the range the weights.
-
-    """
-
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
-    def _transform_weights(self, weights):
-        return scale_by_minmax(weights, axis=None)
-
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
-    def _transform_matrix(self, matrix):
-        return scale_by_minmax(matrix, axis=0)
-
-
-# =============================================================================
 # SUM
 # =============================================================================
 
@@ -343,78 +301,3 @@ class SumScaler(SKCMatrixAndWeightTransformerABC):
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
         return scale_by_sum(matrix, axis=0)
-
-
-# =============================================================================
-# MAX
-# =============================================================================
-
-
-def scale_by_max(arr, axis=None):
-    r"""Divide of every value on the array by max value along an axis.
-
-    .. math::
-
-        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
-
-    Parameters
-    ----------
-    arr: :py:class:`numpy.ndarray` like.
-        A array with values
-    axis : :py:class:`int` optional
-        Axis along which to operate.  By default, flattened input is used.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        array of ratios
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria.preprocess import scale_by_max
-        >>> mtx = [[1, 2], [3, 4]]
-
-        # ratios with the max value of the array
-        >>> scale_by_max(mtx)
-        array([[ 0.25,  0.5 ],
-               [ 0.75,  1.  ]])
-
-        # ratios with the max value of the arr by column
-        >>> scale_by_max(mtx, axis=0)
-        array([[ 0.33333334,  0.5],
-               [ 1.        ,  1. ]])
-
-        # ratios with the max value of the array by row
-        >>> scale_by_max(mtx, axis=1)
-        array([[ 0.5 ,  1.],
-               [ 0.75,  1.]])
-
-    """
-    arr = np.asarray(arr, dtype=float)
-    maxval = np.max(arr, axis=axis, keepdims=True)
-    return arr / maxval
-
-
-class MaxScaler(SKCMatrixAndWeightTransformerABC):
-    r"""Scaler based on the maximum values.
-
-    .. math::
-
-        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
-
-    If the scaler is configured to work with 'matrix' each value
-    of each criteria is divided by the maximum value of that criteria.
-    In other hand if is configure to work with 'weights',
-    each value of weight is divided by the maximum value the weights.
-
-    """
-
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
-    def _transform_weights(self, weights):
-        return scale_by_max(weights, axis=None)
-
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
-    def _transform_matrix(self, matrix):
-        return scale_by_max(matrix, axis=0)

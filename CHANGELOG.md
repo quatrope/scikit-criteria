@@ -24,6 +24,8 @@
 
 - Add a dominance plot `DecisionMatrix.plot.dominance()`.
 
+- `WeightedSumModel` raises a `ValueError` when some value $< 0$.
+
 - Moved internal modules
   - `skcriteria.core.methods.SKCTransformerABC` `->`
     `skcriteria.preprocessing.SKCTransformerABC`

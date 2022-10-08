@@ -80,9 +80,8 @@ def data_values():
             nan_positions = random.choice(mtx.size, nan_number, replace=False)
             mtx.ravel()[nan_positions] = np.nan
 
-        # determine the number of minimize objectives bases on the proportion
+        # determine the number of minimize objectives based on the proportion
         # of the total number of criteria, and the maximize is the complement
-
         min_objectives_number = round(
             criteria_number * min_objectives_proportion
         )

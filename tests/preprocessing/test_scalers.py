@@ -56,7 +56,7 @@ def test_MinMaxScaler_simple_matrix():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_matrix(decision_matrix):
@@ -86,7 +86,7 @@ def test_MinMaxScaler_matrix(decision_matrix):
     scaler = MinMaxScaler(target="matrix")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_simple_weights():
@@ -108,7 +108,7 @@ def test_MinMaxScaler_simple_weights():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_weights(decision_matrix):
@@ -135,7 +135,7 @@ def test_MinMaxScaler_weights(decision_matrix):
     scaler = MinMaxScaler(target="weights")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_simple_both():
@@ -160,7 +160,7 @@ def test_MinMaxScaler_simple_both():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_both(decision_matrix):
@@ -191,7 +191,7 @@ def test_MinMaxScaler_both(decision_matrix):
     scaler = MinMaxScaler(target="both")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_no_change_original_dm(decision_matrix):

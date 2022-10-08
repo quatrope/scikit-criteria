@@ -708,7 +708,6 @@ class DecisionMatrix:
         self, only=None, fmt="{criteria}[{objective}{weight}]"
     ):
         """Columns names with COW (Criteria, Objective, Weight)."""
-
         criteria = self._data_df.columns
         objectives = self.objectives
         weights = self.weights
