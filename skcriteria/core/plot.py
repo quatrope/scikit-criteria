@@ -508,7 +508,55 @@ class DecisionMatrixPlotter(AccessorABC):
         scatter_kws=None,
         line_kws=None,
     ):
+        """Pareto frontier on two arbitrarily selected criteria.
 
+        A selection of an alternative of an $A_o$ is a pareto-optimal solution
+        when there is no other solution that selects an alternative that does
+        not belong to $A_o$ such that it improves on one objective without
+        worsening at least one of the others.
+
+        From this point of view, the concept is used to analyze the possible
+        optimal options of a solution given a variety of objectives or desires
+        and one or more evaluation criteria.
+
+        Given a "universe" of alternatives, one seeks to determine the set that
+        are Pareto efficient (i.e., those alternatives that satisfy the
+        condition of not being able to better satisfy one of those desires or
+        objectives without worsening some other). That set of optimal
+        alternatives establishes a "Pareto set" or the "Pareto Frontier".
+
+        The study of the solutions in the frontier allows designers to analyze
+        the possible alternatives within the established parameters, without
+        having to analyze the totality of possible solutions.
+
+        Parameters
+        ----------
+        x, y : str
+            Criteria names.
+            Variables that specify positions on the x and y axes.
+        weighted: bool, default ``False``
+            If its True the domination analysis is performed over the weighted
+            matrix.
+        strict: bool, default ``False``
+            If True, strict dominance is evaluated.
+        weighted: bool, default ``False``
+            If True, the weighted matrix is evaluated.
+        ax : :class:`matplotlib.axes.Axes`
+            Pre-existing axes for the plot. Otherwise, call
+            ``matplotlib.pyplot.gca`` internally.
+        legend : bool, default ``True``
+            If ``False``, no legend data is added and no legend is drawn.
+        scatter_kws: dict, default ``None``
+            Additional parameters passed to ``seaborn.scatterplot``.
+        scatter_kws: dict, default ``None``
+            Additional parameters passed to ``seaborn.lineplot``,
+            except for ``estimator`` and ``sort``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes or numpy.ndarray of them
+
+        """
         # cut the dmatrix to only the necesary criteria
         sdm = self._dm[[x, y]]
 
@@ -518,6 +566,7 @@ class DecisionMatrixPlotter(AccessorABC):
         # draw the scatterplot ================================================
         scatter_kws = {} if scatter_kws is None else scatter_kws
         scatter_kws.setdefault("ax", ax)
+        scatter_kws.setdefault("legend", lengend)
         ax = sns.scatterplot(x=x, y=y, data=df, hue=df.index, **scatter_kws)
 
         # draw the frontier ===================================================
@@ -552,6 +601,7 @@ class DecisionMatrixPlotter(AccessorABC):
         line_kws.setdefault("alpha", 0.5)
         line_kws.setdefault("linestyle", frontier_ls)
         line_kws.setdefault("label", frontier_lb)
+        line_kws.setdefault("legend", legend)
 
         sns.lineplot(
             x=x,
