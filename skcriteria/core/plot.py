@@ -566,7 +566,7 @@ class DecisionMatrixPlotter(AccessorABC):
         # draw the scatterplot ================================================
         scatter_kws = {} if scatter_kws is None else scatter_kws
         scatter_kws.setdefault("ax", ax)
-        scatter_kws.setdefault("legend", lengend)
+        scatter_kws.setdefault("legend", legend)
         ax = sns.scatterplot(x=x, y=y, data=df, hue=df.index, **scatter_kws)
 
         # draw the frontier ===================================================
