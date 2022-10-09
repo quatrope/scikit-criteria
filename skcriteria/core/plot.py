@@ -556,6 +556,11 @@ class DecisionMatrixPlotter(AccessorABC):
         -------
         matplotlib.axes.Axes or numpy.ndarray of them
 
+         References
+        ----------
+        :cite:p:`enwiki:1107297090`
+        :cite:p:`enwiki:1110412520`
+
         """
         # cut the dmatrix to only the necesary criteria
         sdm = self._dm[[x, y]]
