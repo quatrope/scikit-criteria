@@ -556,7 +556,7 @@ class DecisionMatrixPlotter(AccessorABC):
         -------
         matplotlib.axes.Axes or numpy.ndarray of them
 
-         References
+        References
         ----------
         :cite:p:`enwiki:1107297090`
         :cite:p:`enwiki:1110412520`
