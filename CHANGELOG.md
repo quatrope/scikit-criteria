@@ -15,6 +15,8 @@
 - **New** imputation methods for replacing missing data with substituted
   values. These methods are in the module `skcriteria.preprocessing.impute`.
 
+- **New** results object now has a `to_series` method.
+
 - Two method of the `Objective` enum was deprecated and replaced:
 
   - `Objective.construct_from_alias()` `->` `Objective.from_alias()` (classmethod)

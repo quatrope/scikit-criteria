@@ -122,7 +122,7 @@ def test_SKCDecisionMakerABC_make_result_not_implemented(decision_matrix):
 # =============================================================================
 
 
-class test_ResultBase_skacriteria_result_column_no_defined:
+class test_ResultBase_skacriteria_result_series_no_defined:
 
     with pytest.raises(TypeError):
 
@@ -133,13 +133,87 @@ class test_ResultBase_skacriteria_result_column_no_defined:
 
 class test_ResultBase_original_validare_result_fail:
     class Foo(ResultABC):
-        _skcriteria_result_column = "foo"
+        _skcriteria_result_series = "foo"
 
         def _validate_result(self, values):
             return super()._validate_result(values)
 
     with pytest.raises(NotImplementedError):
         Foo("foo", ["abc"], [1, 2, 3], {})
+
+
+def test_ResultBase_repr():
+    class TestResult(ResultABC):
+        _skcriteria_result_series = "foo"
+
+        def _validate_result(self, values):
+            pass
+
+    method = "test_method"
+    alternatives = ["a", "b", "c"]
+    rank = [1, 2, 3]
+    extra = {"alfa": 1}
+
+    result = TestResult(
+        method=method, alternatives=alternatives, values=rank, extra=extra
+    )
+
+    expected = (
+        "Alternatives  a  b  c\nfoo           1  2  3\n[Method: test_method]"
+    )
+
+    assert repr(result) == expected
+
+
+def test_ResultBase_repr_html():
+    class TestResult(ResultABC):
+        _skcriteria_result_series = "foo"
+
+        def _validate_result(self, values):
+            pass
+
+    method = "test_method"
+    alternatives = ["a", "b", "c"]
+    rank = [1, 2, 3]
+    extra = {"alfa": 1}
+
+    result = PyQuery(
+        TestResult(
+            method=method, alternatives=alternatives, values=rank, extra=extra
+        )._repr_html_()
+    )
+
+    expected = PyQuery(
+        """
+        <div class='skcresult skcresult-foo'>
+        <table id="T_cc7f5_" >
+            <thead>
+            <tr>
+                <th class="blank level0" >Alternatives</th>
+                <th class="col_heading level0 col0" >a</th>
+                <th class="col_heading level0 col1" >b</th>
+                <th class="col_heading level0 col2" >c</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th id="T_cc7f5_level0_row0" class="row_heading level0 row0" >
+                    foo
+                </th>
+                <td id="T_cc7f5_row0_col0" class="data row0 col0" >1</td>
+                <td id="T_cc7f5_row0_col1" class="data row0 col1" >2</td>
+                <td id="T_cc7f5_row0_col2" class="data row0 col2" >3</td>
+            </tr>
+            </tbody>
+        </table>
+        <em class='skcresult-method'>Method: test_method</em>
+        </div>
+        """
+    )
+    result_html = result.remove("style").text()
+    expected_html = expected.remove("style").text()
+
+    assert result_html == expected_html
 
 
 # =============================================================================
@@ -170,6 +244,11 @@ def test_RankResult(rank, has_ties, untied_rank):
     assert np.all(result.extra_ == result.e_ == extra)
     assert np.all(result.untied_rank_ == untied_rank)
 
+    result_as_series = result.to_series()
+    assert np.all(result_as_series.index == alternatives)
+    assert np.all(result_as_series.to_numpy() == rank)
+    assert np.all(result_as_series.name == "Rank")
+
 
 @pytest.mark.parametrize("rank", [[1, 2, 5], [1, 2]])
 def test_RankResult_invalid_rank(rank):
@@ -196,7 +275,7 @@ def test_RankResult_shape():
         method=method, alternatives=alternatives, values=rank, extra=extra
     )
 
-    assert result.shape == (length, 1)
+    assert result.shape == (length,)
 
 
 def test_RankResult_len():
@@ -213,63 +292,6 @@ def test_RankResult_len():
     )
 
     assert len(result) == length
-
-
-def test_RankResult_repr():
-    method = "foo"
-    alternatives = ["a", "b", "c"]
-    rank = [1, 2, 3]
-    extra = {"alfa": 1}
-
-    result = RankResult(
-        method=method, alternatives=alternatives, values=rank, extra=extra
-    )
-
-    expected = "      a  b  c\n" "Rank  1  2  3\n" "[Method: foo]"
-
-    assert repr(result) == expected
-
-
-def test_RankResult_repr_html():
-    method = "foo"
-    alternatives = ["a", "b", "c"]
-    rank = [1, 2, 3]
-    extra = {"alfa": 1}
-
-    result = PyQuery(
-        RankResult(
-            method=method, alternatives=alternatives, values=rank, extra=extra
-        )._repr_html_()
-    )
-
-    expected = PyQuery(
-        """
-        <div class='skcresult skcresult-rank'>
-        <table id="T_cc7f5_" >
-            <thead>
-            <tr>
-                <th class="blank level0" ></th>
-                <th class="col_heading level0 col0" >a</th>
-                <th class="col_heading level0 col1" >b</th>
-                <th class="col_heading level0 col2" >c</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <th id="T_cc7f5_level0_row0" class="row_heading level0 row0" >
-                    Rank
-                </th>
-                <td id="T_cc7f5_row0_col0" class="data row0 col0" >1</td>
-                <td id="T_cc7f5_row0_col1" class="data row0 col1" >2</td>
-                <td id="T_cc7f5_row0_col2" class="data row0 col2" >3</td>
-            </tr>
-            </tbody>
-        </table>
-        <em class='rankresult-method'>Method: foo</em>
-        </div>
-        """
-    )
-    assert result.remove("style").text() == expected.remove("style").text()
 
 
 # =============================================================================
@@ -303,6 +325,11 @@ def test_KernelResult(kernel, kernel_size, kernel_where, kernel_alternatives):
     assert np.all(result.kernel_where_ == kernel_where)
     assert np.all(result.kernel_alternatives_ == kernel_alternatives)
 
+    result_as_series = result.to_series()
+    assert np.all(result_as_series.index == alternatives)
+    assert np.all(result_as_series.to_numpy() == kernel)
+    assert np.all(result_as_series.name == "Kernel")
+
     with pytest.deprecated_call():
         assert np.all(result.kernelwhere_ == kernel_where)
 
@@ -320,46 +347,3 @@ def test_KernelResult_invalid_rank(values):
             values=values,
             extra=extra,
         )
-
-
-def test_KernelResult_repr_html():
-    method = "foo"
-    alternatives = ["a", "b", "c"]
-    rank = [True, False, True]
-    extra = {"alfa": 1}
-
-    result = PyQuery(
-        KernelResult(
-            method=method, alternatives=alternatives, values=rank, extra=extra
-        )._repr_html_()
-    )
-
-    expected = PyQuery(
-        """
-        <div class='rankresult'>
-        <table id="T_cc7f5_" >
-            <thead>
-            <tr>
-                <th class="blank level0" ></th>
-                <th class="col_heading level0 col0" >a</th>
-                <th class="col_heading level0 col1" >b</th>
-                <th class="col_heading level0 col2" >c</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <th id="T_cc7f5_level0_row0" class="row_heading level0 row0" >
-                    Kernel
-                </th>
-                <td id="T_cc7f5_row0_col0" class="data row0 col0" >True</td>
-                <td id="T_cc7f5_row0_col1" class="data row0 col1" >False</td>
-                <td id="T_cc7f5_row0_col2" class="data row0 col2" >True</td>
-            </tr>
-            </tbody>
-        </table>
-        <em class='rankresult-method'>Method: foo</em>
-        </div>
-        """
-    )
-
-    assert result.remove("style").text() == expected.remove("style").text()
