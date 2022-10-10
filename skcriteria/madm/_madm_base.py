@@ -157,7 +157,9 @@ class ResultABC(metaclass=abc.ABCMeta):
 
     def to_series(self):
         """The result as `pandas.Series`."""
-        return self._result_series.copy(deep=True)
+        series = self._result_series.copy(deep=True)
+        series.index = self._result_series.index.copy(deep=True)
+        return series
 
     # CMP =====================================================================
 

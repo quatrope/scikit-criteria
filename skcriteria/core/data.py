@@ -366,7 +366,7 @@ class DecisionMatrix:
         return pd.Series(
             self._weights,
             dtype=float,
-            index=self._data_df.columns,
+            index=self._data_df.columns.copy(deep=True),
             name="Weights",
             copy=True,
         )
@@ -408,7 +408,7 @@ class DecisionMatrix:
         return pd.Series(
             [o.value for o in self.objectives],
             dtype=np.int8,
-            index=self._data_df.columns,
+            index=self._data_df.columns.copy(deep=True),
             copy=True,
         )
 
@@ -423,14 +423,18 @@ class DecisionMatrix:
 
         """
         mtx = self._data_df.copy(deep=True)
+        mtx.index = self._data_df.index.copy(deep=True)
         mtx.index.name = "Alternatives"
+        mtx.columns = self._data_df.columns.copy(deep=True)
         mtx.columns.name = "Criteria"
         return mtx
 
     @property
     def dtypes(self):
         """Dtypes of the criteria."""
-        return self._data_df.dtypes.copy(deep=True)
+        series = self._data_df.dtypes.copy(deep=True)
+        series.index = self._data_df.dtypes.index.copy(deep=True)
+        return series
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 
