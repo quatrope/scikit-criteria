@@ -202,7 +202,7 @@ class DecisionMatrix:
     def __init__(self, data_df, objectives, weights):
 
         self._data_df = (
-            data_df.copy()
+            data_df.copy(deep=True)
             if isinstance(data_df, pd.DataFrame)
             else pd.DataFrame(data_df)
         )
@@ -422,7 +422,7 @@ class DecisionMatrix:
         ``DecisionMatrix.to_dataframe()``
 
         """
-        mtx = self._data_df.copy()
+        mtx = self._data_df.copy(deep=True)
         mtx.index.name = "Alternatives"
         mtx.columns.name = "Criteria"
         return mtx
@@ -430,7 +430,7 @@ class DecisionMatrix:
     @property
     def dtypes(self):
         """Dtypes of the criteria."""
-        return self._data_df.dtypes.copy()
+        return self._data_df.dtypes.copy(deep=True)
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 

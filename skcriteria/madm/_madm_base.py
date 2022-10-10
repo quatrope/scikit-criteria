@@ -113,7 +113,6 @@ class ResultABC(metaclass=abc.ABCMeta):
             values,
             index=pd.Index(alternatives, name="Alternatives"),
             name=self._skcriteria_result_series,
-            copy=True,
         )
 
     @abc.abstractmethod
@@ -157,7 +156,7 @@ class ResultABC(metaclass=abc.ABCMeta):
 
     def to_series(self):
         """The result as `pandas.Series`."""
-        return self._result_series.copy()
+        return self._result_series.copy(deep=True)
 
     # CMP =====================================================================
 
