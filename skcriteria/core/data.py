@@ -344,7 +344,7 @@ class DecisionMatrix:
         ``pandas.Series``.
 
         """
-        arr = self._data_df.index.to_numpy()
+        arr = self._data_df.index.to_numpy(copy=True)
         slicer = self._data_df.loc.__getitem__
         return _ACArray(arr, slicer)
 
@@ -356,7 +356,7 @@ class DecisionMatrix:
         ``pandas.Series``.
 
         """
-        arr = self._data_df.columns.to_numpy()
+        arr = self._data_df.columns.to_numpy(copy=True)
         slicer = self._data_df.__getitem__
         return _ACArray(arr, slicer)
 
@@ -368,6 +368,7 @@ class DecisionMatrix:
             dtype=float,
             index=self._data_df.columns,
             name="Weights",
+            copy=True,
         )
 
     @property
@@ -377,6 +378,7 @@ class DecisionMatrix:
             [Objective.from_alias(a) for a in self._objectives],
             index=self._data_df.columns,
             name="Objectives",
+            copy=True,
         )
 
     @property
@@ -407,6 +409,7 @@ class DecisionMatrix:
             [o.value for o in self.objectives],
             dtype=np.int8,
             index=self._data_df.columns,
+            copy=True,
         )
 
     @property
