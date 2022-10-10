@@ -204,7 +204,7 @@ class DecisionMatrix:
         self._data_df = (
             data_df.copy(deep=True)
             if isinstance(data_df, pd.DataFrame)
-            else pd.DataFrame(data_df)
+            else pd.DataFrame(data_df, copy=True)
         )
 
         self._objectives = np.asarray(objectives, dtype=object)

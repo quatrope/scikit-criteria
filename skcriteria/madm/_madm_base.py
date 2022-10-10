@@ -111,8 +111,9 @@ class ResultABC(metaclass=abc.ABCMeta):
         self._extra = Bunch("extra", extra)
         self._result_series = pd.Series(
             values,
-            index=pd.Index(alternatives, name="Alternatives"),
+            index=pd.Index(alternatives, name="Alternatives", copy=True),
             name=self._skcriteria_result_series,
+            copy=True,
         )
 
     @abc.abstractmethod
