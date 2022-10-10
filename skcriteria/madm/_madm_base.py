@@ -113,6 +113,7 @@ class ResultABC(metaclass=abc.ABCMeta):
             values,
             index=pd.Index(alternatives, name="Alternatives"),
             name=self._skcriteria_result_series,
+            copy=True,
         )
 
     @abc.abstractmethod
@@ -127,7 +128,7 @@ class ResultABC(metaclass=abc.ABCMeta):
         The i-th value refers to the valuation of the i-th. alternative.
 
         """
-        return self._result_series.to_numpy()
+        return self._result_series.to_numpy(copy=True)
 
     @property
     def method(self):
@@ -137,7 +138,7 @@ class ResultABC(metaclass=abc.ABCMeta):
     @property
     def alternatives(self):
         """Names of the alternatives evaluated."""
-        return self._result_series.index.to_numpy()
+        return self._result_series.index.to_numpy(copy=True)
 
     @property
     def extra_(self):
@@ -318,4 +319,6 @@ class KernelResult(ResultABC):
     @property
     def kernel_alternatives_(self):
         """Return the names of alternatives in the kernel."""
-        return self._result_series.index[self._result_series].to_numpy()
+        return self._result_series.index[self._result_series].to_numpy(
+            copy=True
+        )
