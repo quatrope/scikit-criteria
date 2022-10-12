@@ -277,6 +277,16 @@ class RankResult(ResultABC):
             return np.argsort(self.rank_) + 1
         return self.rank_
 
+    def to_series(self, *, untied=False):
+        """The result as `pandas.Series`."""
+        if untied:
+            return pd.Series(
+                self.untied_rank_,
+                index=self._result_series.index.copy(deep=True),
+                copy=True,
+            )
+        return super().to_series()
+
 
 @doc_inherit(ResultABC, warn_class=False)
 class KernelResult(ResultABC):
