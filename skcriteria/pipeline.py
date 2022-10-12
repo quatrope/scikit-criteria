@@ -15,8 +15,6 @@
 # IMPORTS
 # =============================================================================
 
-from collections import Counter
-
 from .core import SKCMethodABC
 from .utils import Bunch, unique_names
 

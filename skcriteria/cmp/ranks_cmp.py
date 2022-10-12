@@ -15,34 +15,23 @@
 # IMPORTS
 # =============================================================================
 
+import itertools as it
 from collections import Counter
 from collections.abc import Mapping
-import itertools as it
-
 
 import matplotlib.pyplot as plt
 
-import seaborn as sns
-
 import pandas as pd
+
+import seaborn as sns
 
 from sklearn import metrics as _skl_metrics
 
-from ..utils import unique_names
+from ..utils import Singleton, unique_names
 
 # =============================================================================
 # CLASSES
 # =============================================================================
-
-_INSTANCE_ATTRIBUTE = "_singleton_instance"
-
-
-class Singleton:
-    def __new__(cls, *args, **kwargs):
-        if _INSTANCE_ATTRIBUTE not in vars(cls):
-            instance = super().__new__(cls, *args, **kwargs)
-            setattr(cls, _INSTANCE_ATTRIBUTE, instance)
-        return getattr(cls, _INSTANCE_ATTRIBUTE)
 
 
 class _RanksComparator(Singleton):
@@ -61,7 +50,7 @@ class _RanksComparator(Singleton):
 
         missing = {aname for aname, acnt in cnt.items() if acnt < total}
         if missing:
-            miss_str = f", ".join(missing)
+            miss_str = ", ".join(missing)
             raise ValueError(
                 f"Some ranks miss the alternative/s: {miss_str!r}"
             )
@@ -209,5 +198,6 @@ class _RanksComparator(Singleton):
 # The instance!
 # =============================================================================
 
+
 #: Unique instance of the _RanksComparator
-ranks_cmp = _RanksComparator()
+ranks = _RanksComparator()

@@ -9,33 +9,18 @@
 # DOCS
 # =============================================================================
 
-"""Utilities for skcriteria."""
+"""Utilities for a-posteriori analysis of experiments"""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from . import lp, rank
-from .accabc import AccessorABC
-from .bunch import Bunch
-from .cmanagers import df_temporal_header
-from .decorators import deprecated, doc_inherit
-from .singleton import Singleton
-from .unique_names import unique_names
-
+from .ranks_cmp import ranks
 
 # =============================================================================
 # ALL
 # =============================================================================
 
 __all__ = [
-    "AccessorABC",
-    "doc_inherit",
-    "deprecated",
-    "df_temporal_header",
-    "rank",
-    "Bunch",
-    "lp",
-    "unique_names",
-    "Singleton",
+    "ranks",
 ]
