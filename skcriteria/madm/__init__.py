@@ -17,9 +17,16 @@ from ._madm_base import (
     ResultABC,
     SKCDecisionMakerABC,
 )
+from ._cmp import ranks_cmp
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["KernelResult", "RankResult", "ResultABC", "SKCDecisionMakerABC"]
+__all__ = [
+    "KernelResult",
+    "RankResult",
+    "ResultABC",
+    "SKCDecisionMakerABC",
+    "ranks",
+]
