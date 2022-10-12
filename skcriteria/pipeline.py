@@ -18,7 +18,7 @@
 from collections import Counter
 
 from .core import SKCMethodABC
-from .utils import Bunch
+from .utils import Bunch, unique_names
 
 
 # =============================================================================
@@ -161,30 +161,6 @@ class SKCPipeline(SKCMethodABC):
 # =============================================================================
 
 
-def _name_steps(steps):
-    """Generate names for steps."""
-    # Based on sklearn.pipeline._name_estimators
-
-    steps = list(reversed(steps))
-
-    names = [type(step).__name__.lower() for step in steps]
-
-    name_count = {k: v for k, v in Counter(names).items() if v > 1}
-
-    named_steps = []
-    for name, step in zip(names, steps):
-        count = name_count.get(name, 0)
-        if count:
-            name_count[name] = count - 1
-            name = f"{name}_{count}"
-
-        named_steps.append((name, step))
-
-    named_steps.reverse()
-
-    return named_steps
-
-
 def mkpipe(*steps):
     """Construct a Pipeline from the given transformers and decision-maker.
 
@@ -204,5 +180,6 @@ def mkpipe(*steps):
         Returns a scikit-learn :class:`SKCPipeline` object.
 
     """
-    named_steps = _name_steps(steps)
+    names = [type(step).__name__.lower() for step in steps]
+    named_steps = unique_names(names=names, elements=steps)
     return SKCPipeline(named_steps)
