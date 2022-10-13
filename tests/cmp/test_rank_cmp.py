@@ -77,14 +77,16 @@ def test_ranks_flow(fig_test, fig_ref, untied):
             "test_2": {"a": 1, "b": 2 if untied else 1},
         }
     )
+    expected.columns.name = "Method"
+    expected.index.name = "Alternatives"
 
     sns.lineplot(data=expected.T, estimator=None, sort=False, ax=exp_ax)
     exp_ax.grid(alpha=0.3)
 
     handles, labels = exp_ax.get_legend_handles_labels()
-    exp_ax.legend(handles, labels, title="Alternatives")
 
-    exp_ax.set_xlabel("Method")
+
+
     exp_ax.set_ylabel(ranks_cmp._RANKS_LABELS[untied])
     exp_ax.invert_yaxis()
 
