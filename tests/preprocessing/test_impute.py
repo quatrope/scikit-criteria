@@ -49,11 +49,20 @@ def test_SimpleImputer(decision_matrix):
     dm = decision_matrix(seed=42, nan_proportion=0.3)
     assert np.isnan(dm.matrix.to_numpy()).sum() > 0
 
-    result = impute.SimpleImputer().transform(dm)
+    imputer = impute.SimpleImputer()
+    assert imputer.missing_values is np.nan
+    assert imputer.strategy == "mean"
+    assert imputer.fill_value is None
+
+    result = imputer.transform(dm)
+
+
     expected_mtx = sklimpute.SimpleImputer().fit_transform(dm.matrix)
 
     assert np.isnan(result.matrix.to_numpy()).sum() == 0
     np.testing.assert_array_equal(result.matrix.to_numpy(), expected_mtx)
+
+
 
 
 def test_SimpleImputer_params_vs_sklearn():
@@ -78,7 +87,21 @@ def test_IterativeImputer(decision_matrix):
     dm = decision_matrix(seed=42, nan_proportion=0.3)
     assert np.isnan(dm.matrix.to_numpy()).sum() > 0
 
-    result = impute.IterativeImputer().transform(dm)
+    imputer = impute.IterativeImputer()
+    assert imputer.imputation_order == 'ascending'
+    assert imputer.initial_strategy == 'mean'
+    assert imputer.min_value == -np.inf
+    assert imputer.n_nearest_criteria is None
+    assert imputer.max_value == np.inf
+    assert imputer.verbose == 0
+    assert imputer.max_iter == 10
+    assert imputer.random_state is None
+    assert imputer.tol == 0.001
+    assert imputer.missing_values is np.nan
+    assert imputer.sample_posterior is False
+    assert imputer.estimator is None
+
+    result = imputer.transform(dm)
     expected_mtx = sklimpute.IterativeImputer().fit_transform(dm.matrix)
 
     assert np.isnan(result.matrix.to_numpy()).sum() == 0
