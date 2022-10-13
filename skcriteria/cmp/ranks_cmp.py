@@ -29,6 +29,16 @@ from sklearn import metrics as _skl_metrics
 
 from ..utils import Singleton, unique_names
 
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+_RANKS_LABELS = {
+    True: "Untied ranks (lower is better)",
+    False: "Ranks (lower is better)",
+}
+
 # =============================================================================
 # CLASSES
 # =============================================================================
@@ -58,7 +68,7 @@ class _RanksComparator(Singleton):
         return missing
 
     # TO DATA =================================================================
-    def dataframe_merge(
+    def merge(
         self,
         ranks,
         *,
@@ -86,7 +96,7 @@ class _RanksComparator(Singleton):
     # These plots have a much more manually orchestrated code.
 
     def flow(self, ranks, *, untied=False, grid_kws=None, **kwargs):
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
 
         ax = sns.lineplot(data=df.T, estimator=None, sort=False, **kwargs)
 
@@ -94,11 +104,7 @@ class _RanksComparator(Singleton):
         grid_kws.setdefault("alpha", 0.3)
         ax.grid(**grid_kws)
 
-        ax.set_ylabel(
-            "{untied}Ranks".format(
-                untied="Untied " if untied else ""
-            ).capitalize()
-        )
+        ax.set_ylabel(_RANKS_LABELS[untied])
         ax.invert_yaxis()
 
         return ax
@@ -111,10 +117,11 @@ class _RanksComparator(Singleton):
         r2=True,
         palette=None,
         legend=True,
+        fmt=".2g",
         **kwargs,
     ):
 
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
 
         # Just to ensure that no manual color reaches regalot
         if "color" in kwargs:
@@ -137,15 +144,16 @@ class _RanksComparator(Singleton):
             # The r2 correlation index
             r2_label = ""
             if r2:
-                r2_score = _skl_metrics.r2_score(df[x], df[y])
-                r2_label = f" - R2={r2_score:.4f}"
+                r2_score = format(_skl_metrics.r2_score(df[x], df[y]), fmt)
+                r2_label = f" - R2={r2_score}"
 
             label = "x={x}, y={y}{r2}".format(x=x, y=y, r2=r2_label)
             ax = sns.regplot(
                 x=x, y=y, data=df, ax=ax, label=label, color=color, **kwargs
             )
 
-        ax.set(xlabel="x", ylabel="y")
+        ranks_label = _RANKS_LABELS[untied]
+        ax.set(xlabel=f"'x' {ranks_label}", ylabel=f"'y' {ranks_label}")
 
         if legend:
             ax.legend()
@@ -156,41 +164,59 @@ class _RanksComparator(Singleton):
     # Thin wrapper around seaborn plots
 
     def heatmap(self, ranks, *, untied=False, **kwargs):
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
         kwargs.setdefault("annot", True)
+        kwargs.setdefault(
+            "cbar_kws",
+            {"label": _RANKS_LABELS[untied]},
+        )
         return sns.heatmap(data=df, **kwargs)
 
     def corr(self, ranks, *, untied=False, **kwargs):
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
         kwargs.setdefault("annot", True)
+        kwargs.setdefault(
+            "cbar_kws",
+            {"label": "Correlation"},
+        )
         return sns.heatmap(data=df.corr(), **kwargs)
 
     def cov(self, ranks, *, untied=False, **kwargs):
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
         kwargs.setdefault("annot", True)
+        kwargs.setdefault(
+            "cbar_kws",
+            {"label": "Covariance"},
+        )
         return sns.heatmap(data=df.cov(), **kwargs)
 
     def box(self, ranks, *, untied=False, **kwargs):
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
         ax = sns.boxplot(data=df.T, **kwargs)
-        ax.set_ylabel("Ranks")
+
+        ranks_label = _RANKS_LABELS[untied]
+        if kwargs.get("orient") in (None, "v"):
+            ax.set_ylabel(ranks_label)
+        else:
+            ax.set_xlabel(ranks_label)
+
         return ax
 
     # DATAFRAME BASED  ========================================================
     # Thin wrapper around pandas.DataFrame.plot
 
     def bar(self, ranks, *, untied=False, **kwargs):
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
         kwargs["ax"] = kwargs.get("ax") or plt.gca()
         ax = df.plot.bar(**kwargs)
-        ax.set_ylabel("Ranks")
+        ax.set_ylabel(_RANKS_LABELS[untied])
         return ax
 
     def barh(self, ranks, *, untied=False, **kwargs):
-        df = self.dataframe_merge(ranks, untied=untied)
+        df = self.merge(ranks, untied=untied)
         kwargs["ax"] = kwargs.get("ax") or plt.gca()
         ax = df.plot.barh(**kwargs)
-        ax.set_xlabel("Ranks")
+        ax.set_xlabel(_RANKS_LABELS[untied])
         return ax
 
 

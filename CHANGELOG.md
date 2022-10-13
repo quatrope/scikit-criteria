@@ -4,6 +4,8 @@
 
 ## Version 0.8
 
+- **New** The ``skcriteria.cmp`` package utilities to compare rankings.
+
 - **New** DecisionMatrix now can be sliced with a syntax similar of the
   pandas.DataFrame.
   - `dm["c0"]` cut the $c0$ criteria.
