@@ -284,6 +284,7 @@ class RankResult(ResultABC):
                 self.untied_rank_,
                 index=self._result_series.index.copy(deep=True),
                 copy=True,
+                name="Untied rank",
             )
         return super().to_series()
 

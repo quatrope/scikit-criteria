@@ -249,6 +249,11 @@ def test_RankResult(rank, has_ties, untied_rank):
     assert np.all(result_as_series.to_numpy() == rank)
     assert np.all(result_as_series.name == "Rank")
 
+    result_as_series_untied = result.to_series(untied=True)
+    assert np.all(result_as_series_untied.index == alternatives)
+    assert np.all(result_as_series_untied.to_numpy() == untied_rank)
+    assert np.all(result_as_series_untied.name == "Untied rank")
+
 
 @pytest.mark.parametrize("rank", [[1, 2, 5], [1, 2]])
 def test_RankResult_invalid_rank(rank):

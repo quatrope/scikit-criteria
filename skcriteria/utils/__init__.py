@@ -21,7 +21,7 @@ from .bunch import Bunch
 from .cmanagers import df_temporal_header
 from .decorators import deprecated, doc_inherit
 from .singleton import Singleton
-from .unique_names import unique_names
+from .unames import unique_names
 
 
 # =============================================================================

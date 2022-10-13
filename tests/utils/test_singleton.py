@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.utils.decorator
+"""test for skcriteria.utils.Singleton
 
 """
 
@@ -21,7 +21,7 @@
 
 import pytest
 
-from skcriteria.utils import Singleton
+from skcriteria.utils import singleton
 
 
 # =============================================================================
@@ -30,7 +30,7 @@ from skcriteria.utils import Singleton
 
 
 def test_Singleton():
-    class SingleInstance(Singleton):
+    class SingleInstance(singleton.Singleton):
         ...
 
     assert SingleInstance() is SingleInstance()
@@ -38,11 +38,11 @@ def test_Singleton():
 
 def test_Singleton_cant_be_instantiated():
     with pytest.raises(TypeError):
-        Singleton()
+        singleton.Singleton()
 
 
 def test_Singleton_cant_be_inherited_more_than_one():
-    class SingleInstance(Singleton):
+    class SingleInstance(singleton.Singleton):
         ...
 
     with pytest.raises(TypeError):
@@ -52,10 +52,10 @@ def test_Singleton_cant_be_inherited_more_than_one():
 
 
 def test_Singleton_one_instance_by_class():
-    class SingleInstance1(Singleton):
+    class SingleInstance1(singleton.Singleton):
         ...
 
-    class SingleInstance2(Singleton):
+    class SingleInstance2(singleton.Singleton):
         ...
 
     assert SingleInstance1() is SingleInstance1()
