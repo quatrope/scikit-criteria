@@ -28,7 +28,7 @@ import seaborn as sns
 
 from sklearn import metrics as _skl_metrics
 
-from ..utils import AccessorABC, Singleton, unique_names
+from ..utils import AccessorABC, unique_names
 
 
 # =============================================================================
@@ -55,8 +55,8 @@ class RanksComparatorPlotter(AccessorABC):
     # MANUAL MADE PLOT ========================================================
     # These plots have a much more manually orchestrated code.
 
-    def flow(self, ranks, *, untied=False, grid_kws=None, **kwargs):
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+    def flow(self, *, untied=False, grid_kws=None, **kwargs):
+        df = self._ranks_cmp.to_dataframe(untied=untied)
 
         ax = sns.lineplot(data=df.T, estimator=None, sort=False, **kwargs)
 
@@ -70,7 +70,6 @@ class RanksComparatorPlotter(AccessorABC):
 
     def reg(
         self,
-        ranks,
         *,
         untied=False,
         r2=True,
@@ -80,7 +79,7 @@ class RanksComparatorPlotter(AccessorABC):
         **kwargs,
     ):
 
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+        df = self._ranks_cmp.to_dataframe(untied=untied)
 
         # Just to ensure that no manual color reaches regalot
         if "color" in kwargs:
@@ -104,7 +103,7 @@ class RanksComparatorPlotter(AccessorABC):
             r2_label = ""
             if r2:
                 r2_score = format(_skl_metrics.r2_score(df[x], df[y]), r2_fmt)
-                r2_label = f" - R2={r2_score}"
+                r2_label = f" - $R^2={r2_score}$"
 
             label = "x={x}, y={y}{r2}".format(x=x, y=y, r2=r2_label)
             ax = sns.regplot(
@@ -122,8 +121,8 @@ class RanksComparatorPlotter(AccessorABC):
     # SEABORN BASED ===========================================================
     # Thin wrapper around seaborn plots
 
-    def heatmap(self, ranks, *, untied=False, **kwargs):
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+    def heatmap(self, *, untied=False, **kwargs):
+        df = self._ranks_cmp.to_dataframe(untied=untied)
         kwargs.setdefault("annot", True)
         kwargs.setdefault(
             "cbar_kws",
@@ -131,26 +130,26 @@ class RanksComparatorPlotter(AccessorABC):
         )
         return sns.heatmap(data=df, **kwargs)
 
-    def corr(self, ranks, *, untied=False, **kwargs):
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+    def corr(self, *, untied=False, **kwargs):
+        corr = self._ranks_cmp.corr(untied=untied)
         kwargs.setdefault("annot", True)
         kwargs.setdefault(
             "cbar_kws",
             {"label": "Correlation"},
         )
-        return sns.heatmap(data=df.corr(), **kwargs)
+        return sns.heatmap(data=corr, **kwargs)
 
-    def cov(self, ranks, *, untied=False, **kwargs):
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+    def cov(self, *, untied=False, **kwargs):
+        cov = self._ranks_cmp.cov(untied=untied)
         kwargs.setdefault("annot", True)
         kwargs.setdefault(
             "cbar_kws",
             {"label": "Covariance"},
         )
-        return sns.heatmap(data=df.cov(), **kwargs)
+        return sns.heatmap(data=cov, **kwargs)
 
-    def box(self, ranks, *, untied=False, **kwargs):
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+    def box(self, *, untied=False, **kwargs):
+        df = self._ranks_cmp.to_dataframe(untied=untied)
         ax = sns.boxplot(data=df.T, **kwargs)
 
         ranks_label = RANKS_LABELS[untied]
@@ -164,15 +163,15 @@ class RanksComparatorPlotter(AccessorABC):
     # DATAFRAME BASED  ========================================================
     # Thin wrapper around pandas.DataFrame.plot
 
-    def bar(self, ranks, *, untied=False, **kwargs):
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+    def bar(self, *, untied=False, **kwargs):
+        df = self._ranks_cmp.to_dataframe(untied=untied)
         kwargs["ax"] = kwargs.get("ax") or plt.gca()
         ax = df.plot.bar(**kwargs)
         ax.set_ylabel(RANKS_LABELS[untied])
         return ax
 
-    def barh(self, ranks, *, untied=False, **kwargs):
-        df = self._ranks_cmp.merge(ranks, untied=untied)
+    def barh(self, *, untied=False, **kwargs):
+        df = self._ranks_cmp.to_dataframe(untied=untied)
         kwargs["ax"] = kwargs.get("ax") or plt.gca()
         ax = df.plot.barh(**kwargs)
         ax.set_xlabel(RANKS_LABELS[untied])
@@ -184,12 +183,20 @@ class RanksComparatorPlotter(AccessorABC):
 # =============================================================================
 
 
-class RanksComparator(Singleton):
+class RanksComparator(Mapping):
+    def __init__(self, ranks):
+
+        if isinstance(ranks, Mapping):
+            ranks = ranks.copy()
+        else:
+            names = [r.method for r in ranks]
+            ranks = dict(unique_names(names=names, elements=ranks))
+            del names
+
+        self._validate_ranks_with_same_atlernatives(ranks)
+        self._ranks = ranks
 
     # INTERNALS ===============================================================
-    def __repr__(self):
-        return type(self).__name__
-
     def _validate_ranks_with_same_atlernatives(self, ranks):
         total, cnt = len(ranks), Counter()
         if total == 1:
@@ -207,30 +214,43 @@ class RanksComparator(Singleton):
 
         return missing
 
+    # MAGIC! ==================================================================
+
+    def __repr__(self):
+        cls_name = type(self).__name__
+        ranks_str = list(self._ranks.keys())
+        return f"<{cls_name} ranks={ranks_str!r}>"
+
+    def __getitem__(self, rname):
+        return self._ranks[rname]
+
+    def __iter__(self):
+        return iter(self._ranks)
+
+    def __len__(self):
+        return len(self._ranks)
+
+    def __hash__(self):
+        return id(self)
+
     # TO DATA =================================================================
-    def merge(
-        self,
-        ranks,
-        *,
-        untied=False,
-    ):
 
-        if not isinstance(ranks, Mapping):
-            names = [r.method for r in ranks]
-            ranks = dict(unique_names(names=names, elements=ranks))
-            del names
-
-        self._validate_ranks_with_same_atlernatives(ranks)
-
+    def to_dataframe(self, *, untied=False):
         columns = {
             rank_name: rank.to_series(untied=untied)
-            for rank_name, rank in ranks.items()
+            for rank_name, rank in self._ranks.items()
         }
 
         df = pd.DataFrame.from_dict(columns)
         df.columns.name = "Method"
 
         return df
+
+    def corr(self, *, untied=False):
+        return self.to_dataframe(untied=untied).corr()
+
+    def cov(self, *, untied=False):
+        return self.to_dataframe(untied=untied).cov()
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 
@@ -239,12 +259,3 @@ class RanksComparator(Singleton):
     def plot(self):
         """Plot accessor."""
         return RanksComparatorPlotter(self)
-
-
-# =============================================================================
-# The instance!
-# =============================================================================
-
-
-#: Unique instance of the RanksComparator
-ranks = RanksComparator()

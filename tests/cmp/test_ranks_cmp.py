@@ -20,6 +20,8 @@
 
 from matplotlib.testing.decorators import check_figures_equal
 
+import numpy as np
+
 import pandas as pd
 
 import pytest
@@ -34,28 +36,24 @@ from skcriteria.cmp import ranks_cmp
 # =============================================================================
 
 
-def test_ranks_merge_only_one_rank():
+def test_Ranks_only_one_rank():
     rank = madm.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
-        ranks_cmp.ranks.merge([rank])
+        ranks_cmp.RanksComparator([rank])
 
 
-def test_ranks_merge_only_missing_alternatives():
+def test_RanksComparator_missing_alternatives():
     rank0 = madm.RankResult("test", ["a"], [1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 2], {})
     with pytest.raises(ValueError):
-        ranks_cmp.ranks.merge([rank0, rank1])
-
-
-def test_ranks_repr():
-    assert repr(ranks_cmp.ranks) == "RanksComparator"
+        ranks_cmp.RanksComparator([rank0, rank1])
 
 
 @pytest.mark.parametrize("untied", [True, False])
-def test_ranks_merge(untied):
+def test_RanksComparator_to_dataframe(untied):
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    df = ranks_cmp.ranks.merge([rank0, rank1], untied=untied)
+    df = ranks_cmp.RanksComparator([rank0, rank1]).to_dataframe(untied=untied)
 
     expected = pd.DataFrame.from_dict(
         {
@@ -70,10 +68,10 @@ def test_ranks_merge(untied):
     pd.testing.assert_frame_equal(df, expected)
 
 
-def test_ranks_merge_with_alias():
+def test_RanksComparator_to_dataframe_with_alias():
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    df = ranks_cmp.ranks.merge({"a0": rank0, "a1": rank1})
+    df = ranks_cmp.RanksComparator({"a0": rank0, "a1": rank1}).to_dataframe()
 
     expected = pd.DataFrame.from_dict(
         {"a0": {"a": 1, "b": 1}, "a1": {"a": 1, "b": 1}}
@@ -85,20 +83,115 @@ def test_ranks_merge_with_alias():
     pd.testing.assert_frame_equal(df, expected)
 
 
+@pytest.mark.parametrize("untied", [True, False])
+def test_RanksComparator_cov(untied):
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    cov = ranks_cmp.RanksComparator([rank0, rank1]).cov(untied=untied)
+
+    expected = pd.DataFrame.from_dict(
+        {
+            "test_1": {"test_1": 0.5, "test_2": 0.5}
+            if untied
+            else {"test_1": 0.0, "test_2": 0.0},
+            "test_2": {"test_1": 0.5, "test_2": 0.5}
+            if untied
+            else {"test_1": 0.0, "test_2": 0.0},
+        },
+    )
+
+    expected.columns.name = "Method"
+    expected.index.name = "Method"
+
+    pd.testing.assert_frame_equal(cov, expected)
+
+
+@pytest.mark.parametrize("untied", [True, False])
+def test_RanksComparator_corr(untied):
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    corr = ranks_cmp.RanksComparator([rank0, rank1]).corr(untied=untied)
+
+    expected = pd.DataFrame.from_dict(
+        {
+            "test_1": {"test_1": 1.0, "test_2": 1.0}
+            if untied
+            else {"test_1": np.nan, "test_2": np.nan},
+            "test_2": {"test_1": 1.0, "test_2": 1.0}
+            if untied
+            else {"test_1": np.nan, "test_2": np.nan},
+        },
+    )
+
+    expected.columns.name = "Method"
+    expected.index.name = "Method"
+
+    pd.testing.assert_frame_equal(corr, expected)
+
+
+def test_RanksComparator_repr():
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    assert (
+        repr(ranks_cmp.RanksComparator([rank0, rank1]))
+        == "<RanksComparator ranks=['test_1', 'test_2']>"
+    )
+
+
+def test_RanksComparator_len():
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    assert len(ranks_cmp.RanksComparator([rank0, rank1])) == 2
+
+
+def test_RanksComparator_iter():
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    nr0, nr1 = iter(ranks_cmp.RanksComparator([rank0, rank1]))
+    assert nr0 == "test_1"
+    assert nr1 == "test_2"
+
+
+def test_RanksComparator_getattr():
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+    assert rank0 == rcmp["test_1"]
+    assert rank1 == rcmp["test_2"]
+
+
+def test_RanksComparator_hash():
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+    assert id(rcmp) == hash(rcmp)
+
+
+def test_RanksComparator_plot():
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    assert isinstance(rcmp.plot, ranks_cmp.RanksComparatorPlotter)
+    assert rcmp.plot._ranks_cmp is rcmp
+
+
 # =============================================================================
-# PLOTS
+# RanksComparatorPlotter
 # =============================================================================
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize("untied", [True, False])
 @check_figures_equal()
-def test_ranks_plot_flow(fig_test, fig_ref, untied):
+def test_RanksComparatorPlotter_flow(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.flow([rank0, rank1], ax=test_ax, untied=untied)
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).flow(ax=test_ax, untied=untied)
 
     # EXPECTED
     exp_ax = fig_ref.subplots()
@@ -121,12 +214,14 @@ def test_ranks_plot_flow(fig_test, fig_ref, untied):
 @pytest.mark.slow
 @pytest.mark.parametrize("untied", [True, False])
 @check_figures_equal()
-def test_ranks_plot_reg(fig_test, fig_ref, untied):
+def test_RanksComparatorPlotter_reg(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.reg([rank0, rank1], ax=test_ax, untied=untied)
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).reg(ax=test_ax, untied=untied)
 
     # EXPECTED
     exp_ax = fig_ref.subplots()
@@ -144,7 +239,7 @@ def test_ranks_plot_reg(fig_test, fig_ref, untied):
         x="test_1",
         y="test_2",
         data=expected,
-        label="x=test_1, y=test_2 - R2=1",
+        label="x=test_1, y=test_2 - $R^2=1$",
         ax=exp_ax,
     )
 
@@ -155,22 +250,26 @@ def test_ranks_plot_reg(fig_test, fig_ref, untied):
 
 
 @pytest.mark.parametrize("untied", [True, False])
-def test_ranks_plot_reg_unexpected_keyword_argument_color(untied):
+def test_RanksComparatorPlotter_reg_unexpected_keyword_argument_color(untied):
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
     with pytest.raises(TypeError):
-        ranks_cmp.ranks.plot.reg([rank0, rank1], color="k", untied=untied)
+        ranks_cmp.RanksComparatorPlotter(rcmp).reg(color="k", untied=untied)
 
 
 @pytest.mark.slow
 @pytest.mark.parametrize("untied", [True, False])
 @check_figures_equal()
-def test_ranks_plot_heatmap(fig_test, fig_ref, untied):
+def test_RanksComparatorPlotter_heatmap(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.heatmap([rank0, rank1], ax=test_ax, untied=untied)
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).heatmap(ax=test_ax, untied=untied)
 
     # EXPECTED
     exp_ax = fig_ref.subplots()
@@ -195,12 +294,14 @@ def test_ranks_plot_heatmap(fig_test, fig_ref, untied):
 @pytest.mark.slow
 @pytest.mark.parametrize("untied", [True, False])
 @check_figures_equal()
-def test_ranks_plot_corr(fig_test, fig_ref, untied):
+def test_RanksComparatorPlotter_corr(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.corr([rank0, rank1], ax=test_ax, untied=untied)
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).corr(ax=test_ax, untied=untied)
 
     # EXPECTED
     exp_ax = fig_ref.subplots()
@@ -225,12 +326,14 @@ def test_ranks_plot_corr(fig_test, fig_ref, untied):
 @pytest.mark.slow
 @pytest.mark.parametrize("untied", [True, False])
 @check_figures_equal()
-def test_ranks_plot_cov(fig_test, fig_ref, untied):
+def test_RanksComparatorPlotter_cov(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.cov([rank0, rank1], ax=test_ax, untied=untied)
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).cov(ax=test_ax, untied=untied)
 
     # EXPECTED
     exp_ax = fig_ref.subplots()
@@ -256,13 +359,15 @@ def test_ranks_plot_cov(fig_test, fig_ref, untied):
 @pytest.mark.parametrize("untied", [True, False])
 @pytest.mark.parametrize("orient", ["v", "h"])
 @check_figures_equal()
-def test_ranks_plot_box(fig_test, fig_ref, untied, orient):
+def test_RanksComparatorPlotter_box(fig_test, fig_ref, untied, orient):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.box(
-        [rank0, rank1], ax=test_ax, orient=orient, untied=untied
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).box(
+        ax=test_ax, orient=orient, untied=untied
     )
 
     # EXPECTED
@@ -289,12 +394,14 @@ def test_ranks_plot_box(fig_test, fig_ref, untied, orient):
 @pytest.mark.slow
 @pytest.mark.parametrize("untied", [True, False])
 @check_figures_equal()
-def test_ranks_plot_bar(fig_test, fig_ref, untied):
+def test_RanksComparatorPlotter_bar(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.bar([rank0, rank1], ax=test_ax, untied=untied)
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).bar(ax=test_ax, untied=untied)
 
     # EXPECTED
     exp_ax = fig_ref.subplots()
@@ -316,12 +423,14 @@ def test_ranks_plot_bar(fig_test, fig_ref, untied):
 @pytest.mark.slow
 @pytest.mark.parametrize("untied", [True, False])
 @check_figures_equal()
-def test_ranks_plot_barh(fig_test, fig_ref, untied):
+def test_RanksComparatorPlotter_barh(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    ranks_cmp.ranks.plot.barh([rank0, rank1], ax=test_ax, untied=untied)
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).barh(ax=test_ax, untied=untied)
 
     # EXPECTED
     exp_ax = fig_ref.subplots()

@@ -20,7 +20,6 @@ from .accabc import AccessorABC
 from .bunch import Bunch
 from .cmanagers import df_temporal_header
 from .decorators import deprecated, doc_inherit
-from .singleton import Singleton
 from .unames import unique_names
 
 
@@ -37,5 +36,4 @@ __all__ = [
     "Bunch",
     "lp",
     "unique_names",
-    "Singleton",
 ]
