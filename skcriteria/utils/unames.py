@@ -42,6 +42,8 @@ def unique_names(*, names, elements):
 
     """
     # Based on sklearn.pipeline._name_estimators
+    if len(names) != len(elements):
+        raise ValueError("'names' and 'elements' must has same length")
 
     names = list(reversed(names))
     elements = list(reversed(elements))
@@ -49,7 +51,7 @@ def unique_names(*, names, elements):
     name_count = {k: v for k, v in Counter(names).items() if v > 1}
 
     named_elements = []
-    for name, step in zip(names, elements, strict=True):
+    for name, step in zip(names, elements):
         count = name_count.get(name, 0)
         if count:
             name_count[name] = count - 1

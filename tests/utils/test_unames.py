@@ -18,6 +18,7 @@
 # IMPORTS
 # =============================================================================
 
+import pytest
 
 from skcriteria.utils import unames
 
@@ -39,3 +40,9 @@ def test_unique_names_with_duplticates():
     result = dict(unames.unique_names(names=names, elements=elements))
     expected = {"foo_1": 0, "foo_2": 1}
     assert result == expected
+
+
+def test_unique_names_with_different_len():
+    names, elements = ["foo", "foo"], [0]
+    with pytest.raises(ValueError):
+        unames.unique_names(names=names, elements=elements)
