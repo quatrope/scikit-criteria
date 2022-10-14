@@ -34,7 +34,7 @@ from ..utils import Singleton, unique_names
 # CONSTANTS
 # =============================================================================
 
-_RANKS_LABELS = {
+RANKS_LABELS = {
     True: "Untied ranks (lower is better)",
     False: "Ranks (lower is better)",
 }
@@ -104,8 +104,7 @@ class _RanksComparator(Singleton):
         grid_kws.setdefault("alpha", 0.3)
         ax.grid(**grid_kws)
 
-        ax.set_ylabel(_RANKS_LABELS[untied])
-        ax.invert_yaxis()
+        ax.set_ylabel(RANKS_LABELS[untied])
 
         return ax
 
@@ -152,7 +151,7 @@ class _RanksComparator(Singleton):
                 x=x, y=y, data=df, ax=ax, label=label, color=color, **kwargs
             )
 
-        ranks_label = _RANKS_LABELS[untied]
+        ranks_label = RANKS_LABELS[untied]
         ax.set(xlabel=f"'x' {ranks_label}", ylabel=f"'y' {ranks_label}")
 
         if legend:
@@ -168,7 +167,7 @@ class _RanksComparator(Singleton):
         kwargs.setdefault("annot", True)
         kwargs.setdefault(
             "cbar_kws",
-            {"label": _RANKS_LABELS[untied]},
+            {"label": RANKS_LABELS[untied]},
         )
         return sns.heatmap(data=df, **kwargs)
 
@@ -194,7 +193,7 @@ class _RanksComparator(Singleton):
         df = self.merge(ranks, untied=untied)
         ax = sns.boxplot(data=df.T, **kwargs)
 
-        ranks_label = _RANKS_LABELS[untied]
+        ranks_label = RANKS_LABELS[untied]
         if kwargs.get("orient") in (None, "v"):
             ax.set_ylabel(ranks_label)
         else:
@@ -209,14 +208,14 @@ class _RanksComparator(Singleton):
         df = self.merge(ranks, untied=untied)
         kwargs["ax"] = kwargs.get("ax") or plt.gca()
         ax = df.plot.bar(**kwargs)
-        ax.set_ylabel(_RANKS_LABELS[untied])
+        ax.set_ylabel(RANKS_LABELS[untied])
         return ax
 
     def barh(self, ranks, *, untied=False, **kwargs):
         df = self.merge(ranks, untied=untied)
         kwargs["ax"] = kwargs.get("ax") or plt.gca()
         ax = df.plot.barh(**kwargs)
-        ax.set_xlabel(_RANKS_LABELS[untied])
+        ax.set_xlabel(RANKS_LABELS[untied])
         return ax
 
 

@@ -56,13 +56,10 @@ def test_SimpleImputer(decision_matrix):
 
     result = imputer.transform(dm)
 
-
     expected_mtx = sklimpute.SimpleImputer().fit_transform(dm.matrix)
 
     assert np.isnan(result.matrix.to_numpy()).sum() == 0
     np.testing.assert_array_equal(result.matrix.to_numpy(), expected_mtx)
-
-
 
 
 def test_SimpleImputer_params_vs_sklearn():
@@ -88,8 +85,8 @@ def test_IterativeImputer(decision_matrix):
     assert np.isnan(dm.matrix.to_numpy()).sum() > 0
 
     imputer = impute.IterativeImputer()
-    assert imputer.imputation_order == 'ascending'
-    assert imputer.initial_strategy == 'mean'
+    assert imputer.imputation_order == "ascending"
+    assert imputer.initial_strategy == "mean"
     assert imputer.min_value == -np.inf
     assert imputer.n_nearest_criteria is None
     assert imputer.max_value == np.inf
