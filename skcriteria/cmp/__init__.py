@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""Utilities for a-posteriori analysis of experiments"""
+"""Utilities for a-posteriori analysis of experiments."""
 
 # =============================================================================
 # IMPORTS

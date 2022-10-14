@@ -44,7 +44,7 @@ RANKS_LABELS = {
 # =============================================================================
 
 
-class _RanksComparator(Singleton):
+class RanksComparator(Singleton):
 
     # INTERNALS ===============================================================
     def __repr__(self):
@@ -116,7 +116,7 @@ class _RanksComparator(Singleton):
         r2=True,
         palette=None,
         legend=True,
-        fmt=".2g",
+        r2_fmt=".2g",
         **kwargs,
     ):
 
@@ -143,7 +143,7 @@ class _RanksComparator(Singleton):
             # The r2 correlation index
             r2_label = ""
             if r2:
-                r2_score = format(_skl_metrics.r2_score(df[x], df[y]), fmt)
+                r2_score = format(_skl_metrics.r2_score(df[x], df[y]), r2_fmt)
                 r2_label = f" - R2={r2_score}"
 
             label = "x={x}, y={y}{r2}".format(x=x, y=y, r2=r2_label)
@@ -224,5 +224,5 @@ class _RanksComparator(Singleton):
 # =============================================================================
 
 
-#: Unique instance of the _RanksComparator
-ranks = _RanksComparator()
+#: Unique instance of the RanksComparator
+ranks = RanksComparator()
