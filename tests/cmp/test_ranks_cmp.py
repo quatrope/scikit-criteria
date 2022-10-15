@@ -129,6 +129,25 @@ def test_RanksComparator_corr(untied):
     pd.testing.assert_frame_equal(corr, expected)
 
 
+@pytest.mark.parametrize("untied", [True, False])
+def test_RanksComparator_r2_score(untied):
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    r2 = ranks_cmp.RanksComparator([rank0, rank1]).r2_score(untied=untied)
+
+    expected = pd.DataFrame.from_dict(
+        {
+            "test_1": {"test_1": 1.0, "test_2": 1.0},
+            "test_2": {"test_1": 1.0, "test_2": 1.0},
+        },
+    )
+
+    expected.columns.name = "Method"
+    expected.index.name = "Method"
+
+    pd.testing.assert_frame_equal(r2, expected)
+
+
 def test_RanksComparator_repr():
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})

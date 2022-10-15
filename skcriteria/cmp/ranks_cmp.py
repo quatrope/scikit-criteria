@@ -17,7 +17,7 @@
 
 import functools
 import itertools as it
-from collections import Counter
+from collections import Counter, defaultdict
 from collections.abc import Mapping
 
 import matplotlib.pyplot as plt
@@ -95,6 +95,10 @@ class RanksComparatorPlotter(AccessorABC):
         # if there is a custom axis, we take it out
         ax = kwargs.pop("ax", None)
 
+        # r2
+        if r2:
+            r2_df = self._ranks_cmp.r2_score(untied=untied)
+
         # combinamos los rankings de dos en dos
         for x, y in it.combinations(df.columns, 2):
             color = next(colors)
@@ -102,7 +106,7 @@ class RanksComparatorPlotter(AccessorABC):
             # The r2 correlation index
             r2_label = ""
             if r2:
-                r2_score = format(_skl_metrics.r2_score(df[x], df[y]), r2_fmt)
+                r2_score = format(r2_df[x][y], r2_fmt)
                 r2_label = f" - $R^2={r2_score}$"
 
             label = "x={x}, y={y}{r2}".format(x=x, y=y, r2=r2_label)
@@ -251,6 +255,28 @@ class RanksComparator(Mapping):
 
     def cov(self, *, untied=False):
         return self.to_dataframe(untied=untied).cov()
+
+    def r2_score(self, *, untied=False):
+        df = self.to_dataframe(untied=untied)
+        # here we are going to create a dict of dict
+        rows = defaultdict(dict)
+
+        # combine the methods pairwise
+        for r0, r1 in it.combinations(df.columns, 2):
+            r2_score = _skl_metrics.r2_score(df[r0], df[r1])
+
+            # add the metrics in both directions
+            rows[r0][r1] = r2_score
+            rows[r1][r0] = r2_score
+
+        # create the dataframe and change the nan for 1 (perfect R2)
+        r2_df = pd.DataFrame.from_dict(rows).fillna(1)
+        r2_df = r2_df[df.columns].loc[df.columns]
+
+        r2_df.index.name = "Method"
+        r2_df.columns.name = "Method"
+
+        return r2_df
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 
