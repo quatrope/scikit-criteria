@@ -24,7 +24,7 @@ from skcriteria import pipeline
 from skcriteria.madm.similarity import TOPSIS
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import StandarScaler
-from skcriteria.preprocessing.weighters import Critic
+from skcriteria.preprocessing.weighters import CRITIC
 
 # =============================================================================
 # TESTS
@@ -37,8 +37,8 @@ def test_pipeline_mkpipe(decision_matrix):
     steps = [
         InvertMinimize(),
         StandarScaler(target="matrix"),
-        Critic(correlation="spearman"),
-        Critic(),
+        CRITIC(correlation="spearman"),
+        CRITIC(),
         TOPSIS(),
     ]
 
@@ -62,8 +62,8 @@ def test_pipeline_slicing():
     steps = [
         InvertMinimize(),
         StandarScaler(target="matrix"),
-        Critic(correlation="spearman"),
-        Critic(),
+        CRITIC(correlation="spearman"),
+        CRITIC(),
         TOPSIS(),
     ]
 
@@ -91,13 +91,13 @@ def test_pipeline_not_transformer_fail():
 
 
 def test_pipeline_not_dmaker_fail():
-    steps = [Critic()]
+    steps = [CRITIC()]
     with pytest.raises(TypeError):
         pipeline.mkpipe(*steps)
 
 
 def test_pipeline_name_not_str():
     with pytest.raises(TypeError):
-        pipeline.SKCPipeline(steps=[(..., Critic()), ("final", TOPSIS())])
+        pipeline.SKCPipeline(steps=[(..., CRITIC()), ("final", TOPSIS())])
     with pytest.raises(TypeError):
-        pipeline.SKCPipeline(steps=[("first", Critic()), (..., TOPSIS())])
+        pipeline.SKCPipeline(steps=[("first", CRITIC()), (..., TOPSIS())])

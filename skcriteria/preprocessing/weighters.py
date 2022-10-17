@@ -31,7 +31,7 @@ import scipy.stats
 from ._preprocessing_base import SKCTransformerABC
 from .scalers import matrix_scale_by_cenit_distance
 from ..core import Objective
-from ..utils import doc_inherit
+from ..utils import deprecated, doc_inherit
 
 # =============================================================================
 # BASE CLASS
@@ -331,7 +331,7 @@ def critic_weights(
     return weights
 
 
-class Critic(SKCWeighterABC):
+class CRITIC(SKCWeighterABC):
     """CRITIC (CRiteria Importance Through Intercriteria Correlation).
 
     The method aims at the determination of objective weights of relative
@@ -406,3 +406,12 @@ class Critic(SKCWeighterABC):
         return critic_weights(
             matrix, objectives, correlation=self.correlation, scale=self.scale
         )
+
+
+@deprecated(
+    reason="Use 'skcriteria.preprocessing.weighters.CRITIC' instead",
+    version=0.8,
+)
+@doc_inherit(CRITIC, warn_class=False)
+class Critic(CRITIC):
+    ...

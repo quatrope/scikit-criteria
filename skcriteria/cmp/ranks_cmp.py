@@ -81,7 +81,7 @@ class RanksComparatorPlotter(AccessorABC):
 
         df = self._ranks_cmp.to_dataframe(untied=untied)
 
-        # Just to ensure that no manual color reaches regalot
+        # Just to ensure that no manual color reaches regplot
         if "color" in kwargs:
             cls_name = type(self).__name__
             raise TypeError(

@@ -924,7 +924,7 @@ def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
     )
 
 
-def test_CenitDistance_simple_matrix():
+def test_CenitDistanceMatrixScaler_simple_matrix():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
@@ -945,7 +945,7 @@ def test_CenitDistance_simple_matrix():
     assert result.equals(expected)
 
 
-def test_CenitDistance_diakoulaki1995determining():
+def test_CenitDistanceMatrixScaler_diakoulaki1995determining():
     """
     Data from:
         Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
@@ -989,7 +989,7 @@ def test_CenitDistance_diakoulaki1995determining():
     assert result.aequals(expected)
 
 
-def test_CenitDistance_no_change_original_dm():
+def test_CenitDistanceMatrixScaler_no_change_original_dm():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],

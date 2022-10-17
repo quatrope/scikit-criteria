@@ -26,6 +26,7 @@ import scipy
 
 import skcriteria
 from skcriteria.preprocessing.weighters import (
+    CRITIC,
     Critic,
     EntropyWeighter,
     EqualWeighter,
@@ -254,7 +255,7 @@ def test_EntropyWeighter(decision_matrix):
 # =============================================================================
 
 
-def test_Critic_diakoulaki1995determining():
+def test_CRITIC_diakoulaki1995determining():
     """
     Data from:
         Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
@@ -292,7 +293,7 @@ def test_Critic_diakoulaki1995determining():
         weights=[0.20222554, 0.48090173, 0.31687273],
     )
 
-    weighter = Critic()
+    weighter = CRITIC()
 
     result = weighter.transform(dm)
     assert result.aequals(expected)
@@ -305,7 +306,7 @@ def test_CRITIC_minimize_warning():
         objectives=[max, min, max],
     )
 
-    weighter = Critic()
+    weighter = CRITIC()
 
     with pytest.warns(UserWarning):
         weighter.transform(dm)
@@ -313,9 +314,9 @@ def test_CRITIC_minimize_warning():
 
 def test_Critic_bad_correlation():
     with pytest.raises(ValueError):
-        Critic(correlation="foo")
+        CRITIC(correlation="foo")
     with pytest.raises(ValueError):
-        Critic(correlation=1)
+        CRITIC(correlation=1)
 
 
 @pytest.mark.parametrize(
@@ -366,3 +367,8 @@ def test_critic_weight_weights_diakoulaki1995determining(
         mtx, objectives=[1, 1, 1], scale=scale, correlation=correlation
     )
     assert np.allclose(weights, result)
+
+
+def test_Critic_deprecation_warning():
+    with pytest.deprecated_call():
+        Critic()
