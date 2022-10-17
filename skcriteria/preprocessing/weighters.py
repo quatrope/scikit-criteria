@@ -29,7 +29,7 @@ import numpy as np
 import scipy.stats
 
 from ._preprocessing_base import SKCTransformerABC
-from .distance import cenit_distance
+from .scalers import matrix_scale_by_cenit_distance
 from ..core import Objective
 from ..utils import doc_inherit
 
@@ -163,7 +163,7 @@ def std_weights(matrix):
 
     .. math::
 
-        w_j = \frac{base\_value}{m}
+        w_j = \frac{s_j}{m}
 
     Where $m$ is the number os columns/criteria in matrix.
 
@@ -188,7 +188,7 @@ def std_weights(matrix):
          array([0.5, 0.5])
 
     """
-    std = np.std(matrix, axis=0)
+    std = np.std(matrix, axis=0, ddof=1)
     return std / np.sum(std)
 
 
@@ -239,7 +239,7 @@ class EntropyWeighter(SKCWeighterABC):
     It uses the underlying ``scipy.stats.entropy`` function which assumes that
     the values of the criteria are probabilities of a distribution.
 
-    This transformer will normalize the criteria if they don’t sum to 1.
+    This transformer will normalize the criteria if they don't sum to 1.
 
     See Also
     --------
@@ -317,7 +317,11 @@ def critic_weights(
 ):
     """Execute the CRITIC method without any validation."""
     matrix = np.asarray(matrix, dtype=float)
-    matrix = cenit_distance(matrix, objectives=objectives) if scale else matrix
+    matrix = (
+        matrix_scale_by_cenit_distance(matrix, objectives=objectives)
+        if scale
+        else matrix
+    )
 
     dindex = np.std(matrix, axis=0)
 

@@ -9,30 +9,39 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.distance
+"""test for ``skcriteria.datasets``.
 
 """
+
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
 
-import pytest
-
-from skcriteria.preprocessing.distance import CenitDistance, cenit_distance
+import skcriteria as skc
+from skcriteria import datasets
 
 
 # =============================================================================
-# TEST CLASSES
+# TESTS
 # =============================================================================
 
 
-def test_cenit_distance_deprecation_warning():
-    with pytest.deprecated_call():
-        cenit_distance([[1, 2, 3]], [max, max, max])
-
-
-def test_CenitDistance_deprecation_warning():
-    with pytest.deprecated_call():
-        CenitDistance()
+def test_load_simple_stock_selection():
+    df = datasets.load_simple_stock_selection()
+    expected = skc.mkdm(
+        matrix=[
+            [7, 5, 35],
+            [5, 4, 26],
+            [5, 6, 28],
+            [3, 4, 36],
+            [1, 7, 30],
+            [5, 8, 30],
+        ],
+        objectives=[max, max, min],
+        weights=[2, 4, 1],
+        alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
+        criteria=["ROE", "CAP", "RI"],
+    )
+    assert df.equals(expected)

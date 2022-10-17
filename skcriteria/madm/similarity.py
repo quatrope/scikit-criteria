@@ -72,8 +72,10 @@ def topsis(matrix, objectives, weights, metric="euclidean", **kwargs):
     maxs = np.max(wmtx, axis=0)
 
     # create the ideal and the anti ideal arrays
-    ideal = np.where(objectives == Objective.MAX.value, maxs, mins)
-    anti_ideal = np.where(objectives == Objective.MAX.value, mins, maxs)
+    where_max = np.equal(objectives, Objective.MAX.value)
+
+    ideal = np.where(where_max, maxs, mins)
+    anti_ideal = np.where(where_max, mins, maxs)
 
     # calculate distances
     d_better = distance.cdist(

@@ -159,7 +159,7 @@ def test_StdWeighter_simple_matrix():
     expected = skcriteria.mkdm(
         matrix=[[1, 2], [4, 16]],
         objectives=[min, max],
-        weights=[0.176471, 0.82352],
+        weights=[0.176471, 0.82353],
     )
 
     weighter = StdWeighter()
@@ -179,7 +179,7 @@ def test_StdWeighter(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    std = np.std(dm.matrix, axis=0)
+    std = np.std(dm.matrix, axis=0, ddof=1)
 
     expected = skcriteria.mkdm(
         matrix=dm.matrix,

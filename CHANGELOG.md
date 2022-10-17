@@ -19,6 +19,11 @@
 
 - **New** results object now has a `to_series` method.
 
+- The ``StdWeighter`` now uses the sample standar deviation.
+  From the numerical point of view, this does not generate any change,
+  since the deviations are scaled by the sum. Computationally speaking there
+  may be some difference from the ~5th decimal digit onwards.
+
 - Two method of the `Objective` enum was deprecated and replaced:
 
   - `Objective.construct_from_alias()` `->` `Objective.from_alias()` (classmethod)
