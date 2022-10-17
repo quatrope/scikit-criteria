@@ -15,8 +15,6 @@
 # IMPORTS
 # =============================================================================
 
-import matplotlib.pyplot as plt
-
 import pandas as pd
 
 import seaborn as sns
@@ -85,7 +83,6 @@ class DecisionMatrixPlotter(AccessorABC):
     # HEATMAP =================================================================
 
     def _heatmap(self, df, **kwargs):
-        kwargs.setdefault("cmap", plt.cm.get_cmap())
         ax = sns.heatmap(df, **kwargs)
         return ax
 

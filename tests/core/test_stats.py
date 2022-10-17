@@ -79,6 +79,26 @@ def test_DecisionMatrixStatsAccessor_df_whitelist_by_kind(
     assert cmp(result_method, expected)
 
 
+def test_DecisionMatrixStatsAccessor_mad(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=3,
+        max_criteria=3,
+    )
+
+    # Expected
+    df = dm._data_df
+    expected = (df - df.mean()).abs().mean()
+
+    # result
+    stats = data.DecisionMatrixStatsAccessor(dm)
+    result = stats(kind="mad")
+
+    assert result.equals(expected)
+
+
 def test_DecisionMatrixStatsAccessor_invalid_kind(decision_matrix):
     dm = decision_matrix(
         seed=42,

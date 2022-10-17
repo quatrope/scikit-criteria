@@ -41,6 +41,7 @@ REQUIREMENTS = [
     "pulp",
     "Deprecated",
     "scikit-learn",
+    "matplotlib!=3.6.1",
 ]
 
 PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))

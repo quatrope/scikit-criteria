@@ -20,7 +20,6 @@
 
 from unittest import mock
 
-from matplotlib import pyplot as plt
 from matplotlib.testing.decorators import check_figures_equal
 
 import numpy as np
@@ -63,7 +62,7 @@ def test_DecisionMatrixPlotter_heatmap(decision_matrix, fig_test, fig_ref):
     df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.heatmap(df, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
+    sns.heatmap(df, ax=exp_ax, annot=True)
 
 
 @pytest.mark.slow
@@ -90,7 +89,7 @@ def test_DecisionMatrixPlotter_wheatmap(decision_matrix, fig_test, fig_ref):
     df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.heatmap(df, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
+    sns.heatmap(df, ax=exp_ax, annot=True)
 
 
 @pytest.mark.slow
@@ -120,7 +119,7 @@ def test_DecisionMatrixPlotter_wheatmap_default_axis(
     df.columns.name = "Criteria"
 
     exp_ax = fig_ref.subplots()
-    sns.heatmap(df, ax=exp_ax, annot=True, cmap=plt.cm.get_cmap())
+    sns.heatmap(df, ax=exp_ax, annot=True)
 
     size = fig_ref.get_size_inches() / [1, 5]
     fig_ref.set_size_inches(size)
@@ -534,14 +533,7 @@ def test_DecisionMatrixPlotter_dominance(
     for elem in [r"$\succ", bt, "$/$=", eq, "$"]:
         annot = np.char.add(annot, elem)
 
-    sns.heatmap(
-        dom,
-        ax=exp_ax,
-        annot=annot,
-        fmt="",
-        cmap=plt.cm.get_cmap(),
-        cbar=False,
-    )
+    sns.heatmap(dom, ax=exp_ax, annot=annot, fmt="", cbar=False)
 
 
 # =============================================================================
@@ -552,9 +544,7 @@ def test_DecisionMatrixPlotter_dominance(
 @pytest.mark.slow
 @pytest.mark.parametrize("strict", [True, False])
 @check_figures_equal()
-def test_DecisionMatrixPlotter_frontier(
-    decision_matrix, fig_test, fig_ref, strict
-):
+def test_DecisionMatrixPlotter_frontier(fig_test, fig_ref, strict):
     dm = mkdm(
         matrix=[
             [0.65229926, 0.04377532],
