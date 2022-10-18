@@ -22,7 +22,10 @@
 - `Critic` weightes was renamed to `CRITIC` (all capitals) to be consistent
   with the literature. The old class is still there but is deprecated.
 
-- The ``StdWeighter`` now uses the sample standar-deviation.
+- - All the functions and classes of `skcriteria.preprocessing.distance` was
+  moved to `skcriteria.preprocessing.scalers`.
+
+- The ``StdWeighter`` now uses the **sample** standar-deviation.
   From the numerical point of view, this does not generate any change,
   since the deviations are scaled by the sum. Computationally speaking there
   may be some difference from the ~5th decimal digit onwards.
