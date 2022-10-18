@@ -10,3 +10,67 @@ markers = [
 testpaths = [
     "tests",
 ]
+
+# =============================================================================
+# PACKAGING
+# =============================================================================
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scikit-criteria"
+version = "0.8.dev0"
+authors = [{name = "Juan B Cabral & QuatroPe", email = "jbcabral@unc.edu.ar"}]
+readme = "README.md"
+license = {file = "LICENSE.txt"}
+description = "Scikit-Criteria is a collections of algorithms, methods and techniques for multiple-criteria decision analysis."
+keywords = [
+    "muticriteria",
+    "mcda",
+    "mcdm",
+    "weightedsum",
+    "weightedproduct",
+    "simus",
+    "topsis",
+    "moora",
+    "electre",
+    "critic",
+    "entropy",
+    "dominance",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Scientific/Engineering",
+]
+urls = { Homepage = "https://scikit-criteria.quatrope.org/", Repository = "https://github.com/quatrope/scikit-criteria" }
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "jinja2",
+    "custom_inherit",
+    "seaborn",
+    "pulp",
+    "Deprecated",
+    "scikit-learn",
+    "matplotlib!=3.6.1",
+]
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["skcriteria", "skcriteria.*"]
+namespaces = false
