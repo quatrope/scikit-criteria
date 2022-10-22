@@ -148,6 +148,25 @@ def test_RanksComparator_r2_score(untied):
     pd.testing.assert_frame_equal(r2, expected)
 
 
+@pytest.mark.parametrize("untied", [True, False])
+def test_RanksComparator_distance(untied):
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    dis = ranks_cmp.RanksComparator([rank0, rank1]).distance(untied=untied)
+
+    expected = pd.DataFrame.from_dict(
+        {
+            "test_1": {"test_1": 0.0, "test_2": 0.0},
+            "test_2": {"test_1": 0.0, "test_2": 0.0},
+        },
+    )
+
+    expected.columns.name = "Method"
+    expected.index.name = "Method"
+
+    pd.testing.assert_frame_equal(dis, expected)
+
+
 def test_RanksComparator_repr():
     rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
@@ -370,6 +389,70 @@ def test_RanksComparatorPlotter_cov(fig_test, fig_ref, untied):
         expected.cov(),
         annot=True,
         cbar_kws={"label": "Covariance"},
+        ax=exp_ax,
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("untied", [True, False])
+@check_figures_equal()
+def test_RanksComparatorPlotter_r2_score(fig_test, fig_ref, untied):
+    test_ax = fig_test.subplots()
+
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).r2_score(ax=test_ax, untied=untied)
+
+    # EXPECTED
+    exp_ax = fig_ref.subplots()
+
+    expected = pd.DataFrame.from_dict(
+        {
+            "test_1": {"test_1": 1.0, "test_2": 1.0},
+            "test_2": {"test_1": 1.0, "test_2": 1.0},
+        },
+    )
+    expected.columns.name = "Method"
+    expected.index.name = "Method"
+
+    sns.heatmap(
+        expected,
+        annot=True,
+        cbar_kws={"label": "$R^2$"},
+        ax=exp_ax,
+    )
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize("untied", [True, False])
+@check_figures_equal()
+def test_RanksComparatorPlotter_distance(fig_test, fig_ref, untied):
+    test_ax = fig_test.subplots()
+
+    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.RanksComparator([rank0, rank1])
+
+    ranks_cmp.RanksComparatorPlotter(rcmp).distance(ax=test_ax, untied=untied)
+
+    # EXPECTED
+    exp_ax = fig_ref.subplots()
+
+    expected = pd.DataFrame.from_dict(
+        {
+            "test_1": {"test_1": 0, "test_2": 0},
+            "test_2": {"test_1": 0, "test_2": 0},
+        },
+    )
+    expected.columns.name = "Method"
+    expected.index.name = "Method"
+
+    sns.heatmap(
+        expected,
+        annot=True,
+        cbar_kws={"label": "Hamming distance"},
         ax=exp_ax,
     )
 

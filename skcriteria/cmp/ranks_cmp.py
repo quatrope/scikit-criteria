@@ -24,6 +24,8 @@ import matplotlib.pyplot as plt
 
 import pandas as pd
 
+from scipy.spatial import distance
+
 import seaborn as sns
 
 from sklearn import metrics as _skl_metrics
@@ -99,7 +101,7 @@ class RanksComparatorPlotter(AccessorABC):
         if r2:
             r2_df = self._ranks_cmp.r2_score(untied=untied)
 
-        # combinamos los rankings de dos en dos
+        # pairwise ranks iteration
         for x, y in it.combinations(df.columns, 2):
             color = next(colors)
 
@@ -128,29 +130,34 @@ class RanksComparatorPlotter(AccessorABC):
     def heatmap(self, *, untied=False, **kwargs):
         df = self._ranks_cmp.to_dataframe(untied=untied)
         kwargs.setdefault("annot", True)
-        kwargs.setdefault(
-            "cbar_kws",
-            {"label": RANKS_LABELS[untied]},
-        )
+        kwargs.setdefault("cbar_kws", {"label": RANKS_LABELS[untied]})
         return sns.heatmap(data=df, **kwargs)
 
     def corr(self, *, untied=False, **kwargs):
         corr = self._ranks_cmp.corr(untied=untied)
         kwargs.setdefault("annot", True)
-        kwargs.setdefault(
-            "cbar_kws",
-            {"label": "Correlation"},
-        )
+        kwargs.setdefault("cbar_kws", {"label": "Correlation"})
         return sns.heatmap(data=corr, **kwargs)
 
     def cov(self, *, untied=False, **kwargs):
         cov = self._ranks_cmp.cov(untied=untied)
         kwargs.setdefault("annot", True)
-        kwargs.setdefault(
-            "cbar_kws",
-            {"label": "Covariance"},
-        )
+        kwargs.setdefault("cbar_kws", {"label": "Covariance"})
         return sns.heatmap(data=cov, **kwargs)
+
+    def r2_score(self, untied=False, **kwargs):
+        r2 = self._ranks_cmp.r2_score(untied=untied)
+        kwargs.setdefault("annot", True)
+        kwargs.setdefault("cbar_kws", {"label": "$R^2$"})
+        return sns.heatmap(data=r2, **kwargs)
+
+    def distance(self, *, untied=False, metric="hamming", **kwargs):
+        dis = self._ranks_cmp.distance(untied=untied, metric=metric)
+        kwargs.setdefault("annot", True)
+        kwargs.setdefault(
+            "cbar_kws", {"label": f"{metric} distance".capitalize()}
+        )
+        return sns.heatmap(data=dis, **kwargs)
 
     def box(self, *, untied=False, **kwargs):
         df = self._ranks_cmp.to_dataframe(untied=untied)
@@ -277,6 +284,15 @@ class RanksComparator(Mapping):
         r2_df.columns.name = "Method"
 
         return r2_df
+
+    def distance(self, *, untied=False, metric="hamming"):
+        df = self.to_dataframe(untied=untied).T
+        dis_array = distance.pdist(df, metric=metric)
+        dis_mtx = distance.squareform(dis_array)
+        dis_df = pd.DataFrame(
+            dis_mtx, columns=df.index.copy(), index=df.index.copy()
+        )
+        return dis_df
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 
