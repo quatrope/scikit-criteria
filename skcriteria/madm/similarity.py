@@ -27,37 +27,6 @@ from ..utils import doc_inherit, rank
 
 
 # =============================================================================
-# CONSTANTS
-# =============================================================================
-
-_VALID_DISTANCES_METRICS = [
-    "braycurtis",
-    "canberra",
-    "chebyshev",
-    "cityblock",
-    "correlation",
-    "cosine",
-    "dice",
-    "euclidean",
-    "hamming",
-    "jaccard",
-    "jensenshannon",
-    "kulsinski",
-    "mahalanobis",
-    "matching",
-    "minkowski",
-    "rogerstanimoto",
-    "russellrao",
-    "seuclidean",
-    "sokalmichener",
-    "sokalsneath",
-    "sqeuclidean",
-    "wminkowski",
-    "yule",
-]
-
-
-# =============================================================================
 # TOPSIS
 # =============================================================================
 
@@ -138,8 +107,8 @@ class TOPSIS(SKCDecisionMakerABC):
 
     def __init__(self, *, metric="euclidean"):
 
-        if not callable(metric) and metric not in _VALID_DISTANCES_METRICS:
-            metrics = ", ".join(f"'{m}'" for m in _VALID_DISTANCES_METRICS)
+        if not callable(metric) and metric not in distance._METRICS_NAMES:
+            metrics = ", ".join(f"'{m}'" for m in distance._METRICS_NAMES)
             raise ValueError(
                 f"Invalid metric '{metric}'. Plese choose from: {metrics}"
             )
