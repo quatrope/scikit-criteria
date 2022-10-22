@@ -3,6 +3,7 @@ include README.md
 include CHANGELOG.md
 
 recursive-include skcriteria *.py
+recursive-include skcriteria *.json
 
 exclude tox.ini
 exclude pyproject.toml
