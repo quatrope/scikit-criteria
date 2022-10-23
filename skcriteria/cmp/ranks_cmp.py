@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""Ranking comparation utilities."""
+"""Ranking comparison routines."""
 
 # =============================================================================
 # IMPORTS
@@ -17,8 +17,7 @@
 
 import functools
 import itertools as it
-from collections import Counter, defaultdict
-from collections.abc import Mapping
+from collections import defaultdict
 
 import matplotlib.pyplot as plt
 
@@ -30,7 +29,8 @@ import seaborn as sns
 
 from sklearn import metrics as _skl_metrics
 
-from ..utils import AccessorABC, unique_names
+from ..core import SKCMethodABC
+from ..utils import AccessorABC, Bunch, unique_names
 
 
 # =============================================================================
@@ -41,6 +41,171 @@ RANKS_LABELS = {
     True: "Untied ranks (lower is better)",
     False: "Ranks (lower is better)",
 }
+
+
+# =============================================================================
+# COMPARATOR
+# =============================================================================
+
+
+class RanksComparator(SKCMethodABC):
+    """Clase comparadora de rankings.
+
+    Esta clase tiene como proposito contener una colección de rankings
+    que fueran obtenidos de manera diferente y los cuales desean ser
+    comparados.
+
+    Todos los rankings tienen que tener exactamente las mismas alternativas
+    aunque su orden puede variar.
+
+    Esta coleccion puede tiene que ser una interable
+
+
+
+    """
+
+    _skcriteria_dm_type = "ranks_comparator"
+    _skcriteria_parameters = ["ranks"]
+
+    def __init__(self, ranks):
+        self._validate_parts(ranks)
+        self._ranks = ranks
+
+    # INTERNALS ===============================================================
+    def _validate_parts(self, parts):
+
+        if len(parts) <= 1:
+            raise ValueError("Please provide more than one ranking")
+
+        used_names = set()
+        first_alternatives = set(parts[0][1].alternatives)
+        for name, part in parts:
+
+            if not isinstance(name, str):
+                raise ValueError("'name' must be instance of str")
+
+            if name in used_names:
+                raise ValueError(f"Duplicated name {name!r}")
+            used_names.add(name)
+
+            diff = first_alternatives.symmetric_difference(part.alternatives)
+            if diff:
+                miss_str = ", ".join(diff)
+                raise ValueError(
+                    f"Some ranks miss the alternative/s: {miss_str!r}"
+                )
+
+    # PROPERTIES ==============================================================
+    @property
+    def ranks(self):
+        """List of ranks in the comparator"""
+        return list(self._ranks)
+
+    @property
+    def named_ranks(self):
+        """Dictionary-like object, with the following attributes.
+
+        Read-only attribute to access any rank parameter by user given name.
+        Keys are ranks names and values are rannks parameters.
+
+        """
+        return Bunch("ranks", dict(self.ranks))
+
+    # MAGIC! ==================================================================
+
+    def __repr__(self):
+        """x.__repr__() <==> repr(x)."""
+        cls_name = type(self).__name__
+        ranks_names = [rn for rn, _ in self._ranks]
+        return f"<{cls_name} [ranks={ranks_names!r}]>"
+
+    def __len__(self):
+        """Return the number of rankings to compare."""
+        return len(self._ranks)
+
+    def __getitem__(self, ind):
+        """Return a sub-comparator or a single ranking in the pipeline.
+
+        Indexing with an integer will return an ranking; using a slice
+        returns another RankComparator instance which copies a slice of this
+        RankComparator. This copy is shallow: modifying ranks in the
+        sub-comparator will affect the larger pipeline and vice-versa.
+        However, replacing a value in `step` will not affect a copy.
+
+        """
+        if isinstance(ind, slice):
+            if ind.step not in (1, None):
+                cname = type(self).__name__
+                raise ValueError(f"{cname} slicing only supports a step of 1")
+            return self.__class__(self.ranks[ind])
+        elif isinstance(ind, int):
+            return self._ranks[ind][-1]
+        elif isinstance(ind, str):
+            return self.named_ranks[ind]
+        raise KeyError(ind)
+
+    def __hash__(self):
+        """x.__hash__() <==> hash(x)."""
+        return id(self)
+
+    # TO DATA =================================================================
+
+    def to_dataframe(self, *, untied=False):
+        columns = {
+            rank_name: rank.to_series(untied=untied)
+            for rank_name, rank in self._ranks
+        }
+
+        df = pd.DataFrame.from_dict(columns)
+        df.columns.name = "Method"
+
+        return df
+
+    def corr(self, *, untied=False):
+        return self.to_dataframe(untied=untied).corr()
+
+    def cov(self, *, untied=False):
+        return self.to_dataframe(untied=untied).cov()
+
+    def r2_score(self, *, untied=False):
+        df = self.to_dataframe(untied=untied)
+        # here we are going to create a dict of dict
+        rows = defaultdict(dict)
+
+        # combine the methods pairwise
+        for r0, r1 in it.combinations(df.columns, 2):
+            r2_score = _skl_metrics.r2_score(df[r0], df[r1])
+
+            # add the metrics in both directions
+            rows[r0][r1] = r2_score
+            rows[r1][r0] = r2_score
+
+        # create the dataframe and change the nan for 1 (perfect R2)
+        r2_df = pd.DataFrame.from_dict(rows).fillna(1)
+        r2_df = r2_df[df.columns].loc[df.columns]
+
+        r2_df.index.name = "Method"
+        r2_df.columns.name = "Method"
+
+        return r2_df
+
+    def distance(self, *, untied=False, metric="hamming"):
+        df = self.to_dataframe(untied=untied).T
+        dis_array = distance.pdist(df, metric=metric)
+        dis_mtx = distance.squareform(dis_array)
+        dis_df = pd.DataFrame(
+            dis_mtx, columns=df.index.copy(), index=df.index.copy()
+        )
+        return dis_df
+
+    # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
+
+    @property
+    @functools.lru_cache(maxsize=None)
+    def plot(self):
+        """Plot accessor."""
+        return RanksComparatorPlotter(self)
+
 
 # =============================================================================
 # PLOTTER
@@ -190,114 +355,28 @@ class RanksComparatorPlotter(AccessorABC):
 
 
 # =============================================================================
-# COMPARATOR
+# FACTORY
 # =============================================================================
 
 
-class RanksComparator(Mapping):
-    def __init__(self, ranks):
+def mkrank_cmp(*ranks):
+    """Construct a RankComparator from the given rankings.
 
-        if isinstance(ranks, Mapping):
-            ranks = ranks.copy()
-        else:
-            names = [r.method for r in ranks]
-            ranks = dict(unique_names(names=names, elements=ranks))
-            del names
+    This is a shorthand for the RankComparator constructor; it does not
+    require, and does not permit, naming the estimators. Instead, their names
+    will be set to the method attribute of the rankins automatically.
 
-        self._validate_ranks_with_same_atlernatives(ranks)
-        self._ranks = ranks
+    Parameters
+    ----------
+    *ranks: list of RankResult objects
+        List of the scikit-criteria RankResult objcects.
 
-    # INTERNALS ===============================================================
-    def _validate_ranks_with_same_atlernatives(self, ranks):
-        total, cnt = len(ranks), Counter()
-        if total == 1:
-            raise ValueError("Please provide more than one ranking")
+    Returns
+    -------
+    rcmp : RanksComparator
+        Returns a scikit-criteria :class:`RanksComparator` object.
 
-        for rank in ranks.values():
-            cnt.update(rank.alternatives)
-
-        missing = {aname for aname, acnt in cnt.items() if acnt < total}
-        if missing:
-            miss_str = ", ".join(missing)
-            raise ValueError(
-                f"Some ranks miss the alternative/s: {miss_str!r}"
-            )
-
-        return missing
-
-    # MAGIC! ==================================================================
-
-    def __repr__(self):
-        cls_name = type(self).__name__
-        ranks_str = list(self._ranks.keys())
-        return f"<{cls_name} ranks={ranks_str!r}>"
-
-    def __getitem__(self, rname):
-        return self._ranks[rname]
-
-    def __iter__(self):
-        return iter(self._ranks)
-
-    def __len__(self):
-        return len(self._ranks)
-
-    def __hash__(self):
-        return id(self)
-
-    # TO DATA =================================================================
-
-    def to_dataframe(self, *, untied=False):
-        columns = {
-            rank_name: rank.to_series(untied=untied)
-            for rank_name, rank in self._ranks.items()
-        }
-
-        df = pd.DataFrame.from_dict(columns)
-        df.columns.name = "Method"
-
-        return df
-
-    def corr(self, *, untied=False):
-        return self.to_dataframe(untied=untied).corr()
-
-    def cov(self, *, untied=False):
-        return self.to_dataframe(untied=untied).cov()
-
-    def r2_score(self, *, untied=False):
-        df = self.to_dataframe(untied=untied)
-        # here we are going to create a dict of dict
-        rows = defaultdict(dict)
-
-        # combine the methods pairwise
-        for r0, r1 in it.combinations(df.columns, 2):
-            r2_score = _skl_metrics.r2_score(df[r0], df[r1])
-
-            # add the metrics in both directions
-            rows[r0][r1] = r2_score
-            rows[r1][r0] = r2_score
-
-        # create the dataframe and change the nan for 1 (perfect R2)
-        r2_df = pd.DataFrame.from_dict(rows).fillna(1)
-        r2_df = r2_df[df.columns].loc[df.columns]
-
-        r2_df.index.name = "Method"
-        r2_df.columns.name = "Method"
-
-        return r2_df
-
-    def distance(self, *, untied=False, metric="hamming"):
-        df = self.to_dataframe(untied=untied).T
-        dis_array = distance.pdist(df, metric=metric)
-        dis_mtx = distance.squareform(dis_array)
-        dis_df = pd.DataFrame(
-            dis_mtx, columns=df.index.copy(), index=df.index.copy()
-        )
-        return dis_df
-
-    # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
-
-    @property
-    @functools.lru_cache(maxsize=None)
-    def plot(self):
-        """Plot accessor."""
-        return RanksComparatorPlotter(self)
+    """
+    names = [r.method for r in ranks]
+    named_ranks = unique_names(names=names, elements=ranks)
+    return RanksComparator(named_ranks)

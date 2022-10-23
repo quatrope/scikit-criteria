@@ -48,7 +48,7 @@ def test_WeightedSumModel():
 
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.all(result.e_.score == expected.e_.score)
 
@@ -127,7 +127,7 @@ def test_WeightedSumModel_kracka2010ranking():
     ranker = WeightedSumModel()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)
 
@@ -155,7 +155,7 @@ def test_WeightedProductModel():
 
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)
 
@@ -217,6 +217,6 @@ def test_WeightedProductModel_enwiki_1015567716():
     ranker = WeightedProductModel()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)

@@ -22,6 +22,8 @@ import warnings
 
 import pytest
 
+from skcriteria import madm
+from skcriteria.cmp import RanksComparator
 from skcriteria.core import methods
 from skcriteria.pipeline import SKCPipeline
 from skcriteria.preprocessing import SKCMatrixAndWeightTransformerABC
@@ -73,10 +75,22 @@ def test_SLCMethodABC_concrete_subclass_copy():
         def __eq__(self, o):
             return isinstance(o, _FakeDM)
 
+    steps = [
+        ("trans", _FakeTrans()),
+        ("dm", _FakeDM()),
+    ]
+
+    # ranks for fake RanksComparator
+    ranks = [
+        ("r0", madm.RankResult("r0", ["a1"], [1], {})),
+        ("r1", madm.RankResult("r1", ["a1"], [1], {})),
+    ]
+
     # Some methods need extra parameters.
     extra_parameters_by_type = {
         SKCMatrixAndWeightTransformerABC: {"target": "both"},
-        SKCPipeline: {"steps": [("trans", _FakeTrans()), ("dm", _FakeDM())]},
+        SKCPipeline: {"steps": steps},
+        RanksComparator: {"ranks": ranks},
         Filter: {"criteria_filters": {"foo": lambda e: e}},
         SKCArithmeticFilterABC: {"criteria_filters": {"foo": 1}},
         SKCSetFilterABC: {"criteria_filters": {"foo": [1]}},
@@ -89,12 +103,14 @@ def test_SLCMethodABC_concrete_subclass_copy():
             if issubclass(scls, cls):
                 kwargs.update(extra_params)
 
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=SKCriteriaDeprecationWarning)
-        original = scls(**kwargs)
+        with warnings.catch_warnings():
+            warnings.simplefilter(
+                "ignore", category=SKCriteriaDeprecationWarning
+            )
+            original = scls(**kwargs)
 
-    copy = original.copy()
+            copy = original.copy()
 
-    assert (
-        original.get_parameters() == copy.get_parameters()
-    ), f"'{scls.__qualname__}' instance not correctly copied."
+        assert (
+            original.get_parameters() == copy.get_parameters()
+        ), f"'{scls.__qualname__}' instance not correctly copied."

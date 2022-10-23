@@ -580,7 +580,7 @@ class DecisionMatrix:
     def equals(self, other):
         """Return True if the decision matrix are equal.
 
-        This method calls `DecisionMatrix.aquals` whitout tolerance.
+        This method calls `DecisionMatrix.aquals` without tolerance.
 
         Parameters
         ----------

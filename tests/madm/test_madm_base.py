@@ -16,6 +16,7 @@
 # IMPORTS
 # =============================================================================
 
+import copy
 from collections import Counter
 
 import numpy as np
@@ -214,6 +215,47 @@ def test_ResultBase_repr_html():
     expected_html = expected.remove("style").text()
 
     assert result_html == expected_html
+
+
+def test_ResultBase_equals():
+    class TestResult(ResultABC):
+        _skcriteria_result_series = "foo"
+
+        def _validate_result(self, values):
+            pass
+
+    method = "test_method"
+    alternatives = ["a", "b", "c"]
+    rank = [1, 2, 3]
+    extra = {"alfa": 1, "beta": np.array([1, 2])}
+
+    result = TestResult(
+        method=method, alternatives=alternatives, values=rank, extra=extra
+    )
+
+    # the same
+    assert result.values_equals(result)
+    assert result == result
+    assert result.equals(result)
+    assert result.aequals(result)
+
+    # copy
+    rcopy = copy.deepcopy(result)
+
+    assert result.values_equals(rcopy)
+    assert result == rcopy
+    assert result.equals(rcopy)
+    assert result.aequals(rcopy)
+
+    # not equals
+    neq = TestResult(
+        method=method, alternatives=alternatives, values=rank, extra={}
+    )
+
+    assert result.values_equals(neq)
+    assert result != neq
+    assert not result.equals(neq)
+    assert not result.aequals(neq)
 
 
 # =============================================================================

@@ -79,7 +79,7 @@ def test_RatioMOORA_kracka2010ranking():
     ranker = RatioMOORA()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)
 
@@ -141,7 +141,7 @@ def test_ReferencePointMOORA_kracka2010ranking():
     ranker = ReferencePointMOORA()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)
     assert np.allclose(result.e_.reference_point, expected.e_.reference_point)
@@ -190,7 +190,7 @@ def test_FullMultiplicativeForm_kracka2010ranking():
     ranker = FullMultiplicativeForm()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
 
@@ -220,7 +220,7 @@ def test_FullMultiplicativeForm_only_minimize():
     ranker = FullMultiplicativeForm()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
 
@@ -250,7 +250,7 @@ def test_FullMultiplicativeForm_only_maximize():
     ranker = FullMultiplicativeForm()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
 
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
@@ -341,7 +341,7 @@ def test_MultiMOORA_kracka2010ranking():
     ranker = MultiMOORA()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert np.all(result.e_.rank_matrix == expected.e_.rank_matrix)
     assert np.allclose(result.e_.score, expected.e_.score)
     assert np.allclose(result.e_.ratio_score, expected.e_.ratio_score)

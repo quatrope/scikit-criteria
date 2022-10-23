@@ -86,7 +86,7 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
                 parameters.append(f"{pname}={repr(pvalue)}")
 
         str_parameters = ", ".join(parameters)
-        return f"{cls_name}({str_parameters})"
+        return f"<{cls_name} [{str_parameters}]>"
 
     def get_parameters(self):
         """Return the parameters of the method as dictionary."""
@@ -114,6 +114,7 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
         """
         asdict = self.get_parameters()
+
         asdict.update(kwargs)
 
         cls = type(self)

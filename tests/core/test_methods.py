@@ -58,7 +58,7 @@ def test_SKCMethodABC_repr():
 
     foo = Foo(foo=2, faa=1)
 
-    assert repr(foo) == "Foo(faa=1, foo=2)"
+    assert repr(foo) == "<Foo [faa=1, foo=2]>"
 
 
 def test_SKCMethodABC_repr_no_params():
@@ -68,7 +68,7 @@ def test_SKCMethodABC_repr_no_params():
 
     foo = Foo()
 
-    assert repr(foo) == "Foo()"
+    assert repr(foo) == "<Foo []>"
 
 
 def test_SKCMethodABC_no_params():
@@ -107,3 +107,32 @@ def test_SKCMethodABC_params_in_init():
         class Foo(Base):
             def __init__(self):
                 pass
+
+
+def test_SKCMethodABC_get_parameters():
+    class Foo(methods.SKCMethodABC):
+        _skcriteria_dm_type = "foo"
+        _skcriteria_parameters = ["foo", "faa"]
+
+        def __init__(self, foo, faa):
+            self.foo = foo
+            self.faa = faa
+
+    foo = Foo(foo=2, faa=1)
+
+    assert foo.get_parameters() == {"foo": 2, "faa": 1}
+
+
+def test_SKCMethodABC_copy():
+    class Foo(methods.SKCMethodABC):
+        _skcriteria_dm_type = "foo"
+        _skcriteria_parameters = ["foo", "faa"]
+
+        def __init__(self, foo, faa):
+            self.foo = foo
+            self.faa = faa
+
+    foo = Foo(foo=2, faa=1)
+    copy = foo.copy()
+
+    assert foo.get_parameters() == copy.get_parameters()

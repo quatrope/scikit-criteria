@@ -128,7 +128,13 @@ def test_KNNImputer(decision_matrix):
     dm = decision_matrix(seed=42, nan_proportion=0.3)
     assert np.isnan(dm.matrix.to_numpy()).sum() > 0
 
-    result = impute.KNNImputer().transform(dm)
+    imputer = impute.KNNImputer()
+    assert imputer.missing_values is np.nan
+    assert imputer.n_neighbors == 5
+    assert imputer.weights == "uniform"
+    assert imputer.metric == "nan_euclidean"
+
+    result = imputer.transform(dm)
     expected_mtx = sklimpute.KNNImputer().fit_transform(dm.matrix)
 
     assert np.isnan(result.matrix.to_numpy()).sum() == 0

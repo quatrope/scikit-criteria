@@ -15,7 +15,7 @@
 # IMPORTS
 # =============================================================================
 
-from .ranks_cmp import RanksComparator
+from .ranks_cmp import RanksComparator, mkrank_cmp
 
 # =============================================================================
 # ALL
@@ -23,4 +23,5 @@ from .ranks_cmp import RanksComparator
 
 __all__ = [
     "RanksComparator",
+    "mkrank_cmp",
 ]

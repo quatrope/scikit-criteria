@@ -180,16 +180,117 @@ class ResultABC(metaclass=abc.ABCMeta):
         """
         return len(self._result_series)
 
-    def equals(self, other):
+    def values_equals(self, other):
         """Check if the alternatives and ranking are the same.
 
         The method doesn't check the method or the extra parameters.
 
         """
         return (self is other) or (
-            isinstance(other, RankResult)
+            isinstance(other, type(self))
             and self._result_series.equals(other._result_series)
         )
+
+    def aequals(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
+        """Return True if the result are equal within a tolerance.
+
+        The tolerance values are positive, typically very small numbers.  The
+        relative difference (`rtol` * abs(`b`)) and the absolute difference
+        `atol` are added together to compare against the absolute difference
+        between `a` and `b`.
+
+        NaNs are treated as equal if they are in the same place and if
+        ``equal_nan=True``.  Infs are treated as equal if they are in the same
+        place and of the same sign in both arrays.
+
+        The proceeds as follows:
+
+        - If ``other`` is the same object return ``True``.
+        - If ``other`` is not instance of 'DecisionMatrix', has different shape
+          'criteria', 'alternatives' or 'objectives' returns ``False``.
+        - Next check the 'weights' and the matrix itself using the provided
+          tolerance.
+
+        Parameters
+        ----------
+        other : Result
+            Other result to compare.
+        rtol : float
+            The relative tolerance parameter
+            (see Notes in :py:func:`numpy.allclose`).
+        atol : float
+            The absolute tolerance parameter
+            (see Notes in :py:func:`numpy.allclose`).
+        equal_nan : bool
+            Whether to compare NaN's as equal.  If True, NaN's in dm will be
+            considered equal to NaN's in `other` in the output array.
+
+        Returns
+        -------
+        aequals : :py:class:`bool:py:class:`
+            Returns True if the two result are equal within the given
+            tolerance; False otherwise.
+
+        See Also
+        --------
+        equals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
+
+        """
+        if self is other:
+            return True
+        is_veq = self.values_equals(other) and set(self._extra) == set(
+            other._extra
+        )
+        keys = set(self._extra)
+        while is_veq and keys:
+            k = keys.pop()
+            sv = self._extra[k]
+            ov = other._extra[k]
+            if isinstance(ov, np.ndarray):
+                is_veq = is_veq and np.allclose(
+                    sv,
+                    ov,
+                    rtol=rtol,
+                    atol=atol,
+                    equal_nan=equal_nan,
+                )
+            else:
+                is_veq = is_veq and sv == ov
+        return is_veq
+
+    def equals(self, other):
+        """Return True if the results are equal.
+
+        This method calls `aquals` without tolerance.
+
+        Parameters
+        ----------
+        other : :py:class:`skcriteria.DecisionMatrix`
+            Other instance to compare.
+
+        Returns
+        -------
+        equals : :py:class:`bool:py:class:`
+            Returns True if the two results are equals.
+
+        See Also
+        --------
+        aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
+
+        """
+        return self.aequals(other, 0, 0, False)
+
+    def __eq__(self, other):
+        """x.__eq__(y) <==> x == y"""
+        return self.equals(other)
+
+    def __ne__(self, other):
+        """x.__eq__(y) <==> x == y"""
+        return not self == other
 
     # REPR ====================================================================
 

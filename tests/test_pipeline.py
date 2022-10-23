@@ -50,7 +50,7 @@ def test_pipeline_mkpipe(decision_matrix):
     pipe = pipeline.mkpipe(*steps)
     result = pipe.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert len(pipe) == len(steps)
     assert steps == [s for _, s in pipe.steps]
     for s in pipe.named_steps.values():

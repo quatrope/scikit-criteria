@@ -22,6 +22,14 @@
 
 - **New** results object now has a `to_series` method.
 
+- **Changed Behaviour**: The ranks and kernels `equals` are now called
+  `values_equals`. The new `aequals` support tolerances to compare
+  numpy arrays internally stored in `extra_`, and the `equals` method is
+  equivalent to `aequals(rtol=0, atol=0)`.
+
+- Multiple `__repr__` was improved to folow the
+  [Python recomendation](https://docs.python.org/3/library/functions.html#repr)
+
 - `Critic` weighter was renamed to `CRITIC` (all capitals) to be consistent
   with the literature. The old class is still there but is deprecated.
 
