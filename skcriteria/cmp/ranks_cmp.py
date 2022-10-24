@@ -95,6 +95,7 @@ class RanksComparator(SKCMethodABC):
 
             if not isinstance(name, str):
                 raise ValueError("'name' must be instance of str")
+
             if not isinstance(part, RankResult):
                 raise TypeError("ranks must be instance of madm.RankResult")
 

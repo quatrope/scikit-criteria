@@ -12,7 +12,7 @@
 [![PyPI](https://img.shields.io/pypi/v/scikit-criteria)](https://pypi.org/project/scikit-criteria/)
 [![Conda Forge](https://anaconda.org/conda-forge/scikit-criteria/badges/version.svg)](https://anaconda.org/conda-forge/scikit-criteria)
 [![License](https://img.shields.io/pypi/l/uttrs?color=blue)](https://www.tldrlegal.com/l/bsd3)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://badge.fury.io/py/uttrs)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://badge.fury.io/py/uttrs)
 
 
 **Scikit-Criteria** is a collection of Multiple-criteria decision
