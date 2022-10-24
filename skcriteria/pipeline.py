@@ -32,10 +32,7 @@ class SKCPipeline(SKCMethodABC):
     The final decision-maker only needs to implement `evaluate`.
 
     The purpose of the pipeline is to assemble several steps that can be
-    applied together while setting different parameters. A step's
-    estimator may be replaced entirely by setting the parameter with its name
-    to another dmaker or a transformer removed by setting it to
-    `'passthrough'` or `None`.
+    applied together while setting different parameters.
 
     Parameters
     ----------

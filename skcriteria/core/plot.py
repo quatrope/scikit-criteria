@@ -29,7 +29,7 @@ from ..utils import AccessorABC
 
 
 class DecisionMatrixPlotter(AccessorABC):
-    """Make plots of DecisionMatrix.
+    """DecisionMatrix plot utilities.
 
     Kind of plot to produce:
 

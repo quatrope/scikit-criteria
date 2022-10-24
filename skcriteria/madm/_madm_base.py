@@ -285,11 +285,11 @@ class ResultABC(metaclass=abc.ABCMeta):
         return self.aequals(other, 0, 0, False)
 
     def __eq__(self, other):
-        """x.__eq__(y) <==> x == y"""
+        """x.__eq__(y) <==> x == y."""
         return self.equals(other)
 
     def __ne__(self, other):
-        """x.__eq__(y) <==> x == y"""
+        """x.__eq__(y) <==> x == y."""
         return not self == other
 
     # REPR ====================================================================

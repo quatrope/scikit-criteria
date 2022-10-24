@@ -66,7 +66,7 @@ class Bunch(Mapping):
             raise AttributeError(a)
 
     def __setstate__(self, state):
-        """Needed for some deep copy operations"""
+        """Needed for some deep copy operations."""
         self.__dict__.update(state)
 
     def __iter__(self):

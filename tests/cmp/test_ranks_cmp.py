@@ -48,6 +48,12 @@ def test_Ranks_name_not_str():
         ranks_cmp.RanksComparator([("a", rank), (1, rank)])
 
 
+def test_Ranks_not_rank_result():
+    rank = madm.RankResult("test", ["a"], [1], {})
+    with pytest.raises(TypeError):
+        ranks_cmp.RanksComparator([("a", rank), ("b", None)])
+
+
 def test_Ranks_duplicated_names():
     rank = madm.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
