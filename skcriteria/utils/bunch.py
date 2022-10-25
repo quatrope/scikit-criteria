@@ -16,7 +16,9 @@
 # IMPORTS
 # =============================================================================
 
+import copy
 from collections.abc import Mapping
+
 
 # =============================================================================
 # DOC INHERITANCE
@@ -65,9 +67,28 @@ class Bunch(Mapping):
         except KeyError:
             raise AttributeError(a)
 
-    def __setstate__(self, state):
-        """Needed for some deep copy operations."""
-        self.__dict__.update(state)
+    def __copy__(self):
+        """x.__copy__() <==> copy.copy(x)."""
+        cls = type(self)
+        return cls(str(self._name), data=self._data)
+
+    def __deepcopy__(self, memo):
+        """x.__deepcopy__() <==> copy.copy(x)."""
+
+        # extract the class
+        cls = type(self)
+
+        # make the copy but withou the data
+        clone = cls(name=str(self._name), data=None)
+
+        # store in the memo that clone is copy of self
+        # https://docs.python.org/3/library/copy.html
+        memo[id(self)] = clone
+
+        # now we copy the data
+        clone._data = copy.deepcopy(self._data, memo)
+
+        return clone
 
     def __iter__(self):
         """x.__iter__() <==> iter(x)."""
