@@ -74,7 +74,6 @@ class Bunch(Mapping):
 
     def __deepcopy__(self, memo):
         """x.__deepcopy__() <==> copy.copy(x)."""
-
         # extract the class
         cls = type(self)
 
