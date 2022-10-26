@@ -423,7 +423,7 @@ class KernelResult(ResultABC):
 
     @property
     @deprecated(
-        reason=("Use 'kernel_where_' instead"),
+        reason=("Use ``kernel_where_`` instead"),
         version=0.7,
     )
     def kernelwhere_(self):

@@ -533,9 +533,9 @@ class DecisionMatrix:
 
     @deprecated(
         reason=(
-            "Use 'DecisionMatrix.stats()', "
-            "'DecisionMatrix.stats(\"describe\")' or "
-            "'DecisionMatrix.stats.describe()' instead."
+            "Use ``DecisionMatrix.stats()``, "
+            "``DecisionMatrix.stats('describe)`` or "
+            "``DecisionMatrix.stats.describe()`` instead."
         ),
         version=0.6,
     )

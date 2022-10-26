@@ -35,7 +35,7 @@ from scipy import stats
 
 from ._madm_base import KernelResult, RankResult, SKCDecisionMakerABC
 from ..core import Objective
-from ..utils import doc_inherit
+from ..utils import doc_inherit, will_change
 
 
 # =============================================================================
@@ -298,6 +298,10 @@ def _electre2_ranker(
     return ranking
 
 
+@will_change(
+    reason="electre2 implementation will change in version after 0.8",
+    version=0.8,
+)
 def electre2(
     matrix, objectives, weights, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35
 ):
@@ -346,6 +350,10 @@ def electre2(
     )
 
 
+@will_change(
+    reason="ELECTRE2 implementation will change in version after 0.8",
+    version=0.8,
+)
 class ELECTRE2(SKCDecisionMakerABC):
     """Find the ranking solution through ELECTRE-2.
 

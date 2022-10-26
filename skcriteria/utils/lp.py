@@ -26,7 +26,7 @@ import numpy as np
 import pulp
 
 from .bunch import Bunch
-from .decorators import doc_inherit
+from .doctools import doc_inherit
 
 
 # =============================================================================

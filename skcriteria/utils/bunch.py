@@ -77,7 +77,7 @@ class Bunch(Mapping):
         # extract the class
         cls = type(self)
 
-        # make the copy but withou the data
+        # make the copy but without the data
         clone = cls(name=str(self._name), data=None)
 
         # store in the memo that clone is copy of self

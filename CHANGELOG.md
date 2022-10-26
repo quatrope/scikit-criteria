@@ -27,6 +27,10 @@
   numpy arrays internally stored in `extra_`, and the `equals` method is
   equivalent to `aequals(rtol=0, atol=0)`.
 
+- We detected a bad behavior in ELECTRE2, so we decided to launch a `FutureWarning` when the
+  class is instantiated. In the version after 0.8, a new implementation of ELECTRE2 will be
+  provided.
+
 - Multiple `__repr__` was improved to folow the
   [Python recomendation](https://docs.python.org/3/library/functions.html#repr)
 

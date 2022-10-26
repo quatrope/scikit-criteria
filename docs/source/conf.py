@@ -97,7 +97,9 @@ master_doc = "index"
 
 # General information about the project.
 project = skcriteria.NAME
-copyright = "2016-2022, Juan B. Cabral - Nadia A. Luczywo"
+copyright = "2016-2021, Juan B. Cabral - Nadia A. Luczywo - Copyright (c) 2022, QuatroPe"
+
+
 author = "Juan BC"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -237,7 +239,7 @@ intersphinx_mapping = {"https://docs.python.org/": None}
 
 
 # =============================================================================
-# INJECT REAMDE INTO THE RESTRUCTURED TEXT
+# INJECT README INTO THE RESTRUCTURED TEXT
 # =============================================================================
 
 import m2r2

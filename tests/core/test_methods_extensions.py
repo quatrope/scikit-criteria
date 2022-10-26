@@ -18,8 +18,6 @@
 # IMPORTS
 # =============================================================================
 
-import warnings
-
 import pytest
 
 from skcriteria import madm
@@ -32,7 +30,6 @@ from skcriteria.preprocessing.filters import (
     SKCArithmeticFilterABC,
     SKCSetFilterABC,
 )
-from skcriteria.utils.decorators import SKCriteriaDeprecationWarning
 
 
 # =============================================================================
@@ -103,13 +100,8 @@ def test_SLCMethodABC_concrete_subclass_copy():
             if issubclass(scls, cls):
                 kwargs.update(extra_params)
 
-        with warnings.catch_warnings():
-            warnings.simplefilter(
-                "ignore", category=SKCriteriaDeprecationWarning
-            )
-            original = scls(**kwargs)
-
-            copy = original.copy()
+        original = scls(**kwargs)
+        copy = original.copy()
 
         assert (
             original.get_parameters() == copy.get_parameters()

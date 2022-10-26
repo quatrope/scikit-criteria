@@ -135,7 +135,7 @@ class InvertMinimize(SKCObjectivesInverterABC):
 # =============================================================================
 @deprecated(
     reason=(
-        "Use 'skcriteria.preprocessing.invert_objectives.InvertMinimize' "
+        "Use ``skcriteria.preprocessing.invert_objectives.InvertMinimize`` "
         "instead"
     ),
     version=0.7,

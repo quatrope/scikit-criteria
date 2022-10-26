@@ -226,7 +226,7 @@ class MaxAbsScaler(SKCMatrixAndWeightTransformerABC):
 
 
 @deprecated(
-    reason="Use 'skcriteria.preprocessing.scalers.MaxAbsScaler' instead",
+    reason="Use ``skcriteria.preprocessing.scalers.MaxAbsScaler`` instead",
     version=0.8,
 )
 class MaxScaler(MaxAbsScaler):
