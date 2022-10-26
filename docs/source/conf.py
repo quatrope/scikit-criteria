@@ -79,7 +79,7 @@ bibtex_bibfiles = ["refs.bib"]
 
 numpydoc_class_members_toctree = False
 
-nbsphinx_execute = "always"
+nbsphinx_execute = "never"
 
 nbsphinx_allow_errors = True
 
@@ -97,7 +97,9 @@ master_doc = "index"
 
 # General information about the project.
 project = skcriteria.NAME
-copyright = "2016-2022, Juan B. Cabral - Nadia A. Luczywo"
+copyright = "2016-2021, Juan B. Cabral - Nadia A. Luczywo - Copyright (c) 2022, QuatroPe"
+
+
 author = "Juan BC"
 
 # The version info for the project you're documenting, acts as replacement for
@@ -114,7 +116,7 @@ release = version
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = "en"
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -237,10 +239,10 @@ intersphinx_mapping = {"https://docs.python.org/": None}
 
 
 # =============================================================================
-# INJECT REAMDE INTO THE RESTRUCTURED TEXT
+# INJECT README INTO THE RESTRUCTURED TEXT
 # =============================================================================
 
-import m2r
+import m2r2
 
 DYNAMIC_RST = {
     "README.md": "README.rst",
@@ -256,7 +258,7 @@ for md_name, rst_name in DYNAMIC_RST.items():
 
     with open(rst_path, "w") as fp:
         fp.write(".. FILE AUTO GENERATED !! \n")
-        fp.write(m2r.convert(readme_md))
+        fp.write(m2r2.convert(readme_md))
         print(f"{md_path} -> {rst_path} regenerated!")
 
 

@@ -97,22 +97,23 @@ class ResultABC(metaclass=abc.ABCMeta):
 
     """
 
-    _skcriteria_result_column = None
+    _skcriteria_result_series = None
 
     def __init_subclass__(cls):
         """Validate if the subclass are well formed."""
-        result_column = cls._skcriteria_result_column
+        result_column = cls._skcriteria_result_series
         if result_column is None:
-            raise TypeError(f"{cls} must redefine '_skcriteria_result_column'")
+            raise TypeError(f"{cls} must redefine '_skcriteria_result_series'")
 
     def __init__(self, method, alternatives, values, extra):
         self._validate_result(values)
         self._method = str(method)
         self._extra = Bunch("extra", extra)
-        self._result_df = pd.DataFrame(
+        self._result_series = pd.Series(
             values,
-            index=alternatives,
-            columns=[self._skcriteria_result_column],
+            index=pd.Index(alternatives, name="Alternatives", copy=True),
+            name=self._skcriteria_result_series,
+            copy=True,
         )
 
     @abc.abstractmethod
@@ -127,7 +128,7 @@ class ResultABC(metaclass=abc.ABCMeta):
         The i-th value refers to the valuation of the i-th. alternative.
 
         """
-        return self._result_df[self._skcriteria_result_column].to_numpy()
+        return self._result_series.to_numpy(copy=True)
 
     @property
     def method(self):
@@ -137,7 +138,7 @@ class ResultABC(metaclass=abc.ABCMeta):
     @property
     def alternatives(self):
         """Names of the alternatives evaluated."""
-        return self._result_df.index.to_numpy()
+        return self._result_series.index.to_numpy(copy=True)
 
     @property
     def extra_(self):
@@ -152,16 +153,24 @@ class ResultABC(metaclass=abc.ABCMeta):
 
     e_ = extra_
 
+    # UTILS ===================================================================
+
+    def to_series(self):
+        """The result as `pandas.Series`."""
+        series = self._result_series.copy(deep=True)
+        series.index = self._result_series.index.copy(deep=True)
+        return series
+
     # CMP =====================================================================
 
     @property
     def shape(self):
-        """Tuple with (number_of_alternatives, number_of_alternatives).
+        """Tuple with (number_of_alternatives, ).
 
         rank.shape <==> np.shape(rank)
 
         """
-        return np.shape(self._result_df)
+        return np.shape(self._result_series)
 
     def __len__(self):
         """Return the number ot alternatives.
@@ -169,18 +178,119 @@ class ResultABC(metaclass=abc.ABCMeta):
         rank.__len__() <==> len(rank).
 
         """
-        return len(self._result_df)
+        return len(self._result_series)
 
-    def equals(self, other):
+    def values_equals(self, other):
         """Check if the alternatives and ranking are the same.
 
         The method doesn't check the method or the extra parameters.
 
         """
         return (self is other) or (
-            isinstance(other, RankResult)
-            and self._result_df.equals(other._result_df)
+            isinstance(other, type(self))
+            and self._result_series.equals(other._result_series)
         )
+
+    def aequals(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
+        """Return True if the result are equal within a tolerance.
+
+        The tolerance values are positive, typically very small numbers.  The
+        relative difference (`rtol` * abs(`b`)) and the absolute difference
+        `atol` are added together to compare against the absolute difference
+        between `a` and `b`.
+
+        NaNs are treated as equal if they are in the same place and if
+        ``equal_nan=True``.  Infs are treated as equal if they are in the same
+        place and of the same sign in both arrays.
+
+        The proceeds as follows:
+
+        - If ``other`` is the same object return ``True``.
+        - If ``other`` is not instance of 'DecisionMatrix', has different shape
+          'criteria', 'alternatives' or 'objectives' returns ``False``.
+        - Next check the 'weights' and the matrix itself using the provided
+          tolerance.
+
+        Parameters
+        ----------
+        other : Result
+            Other result to compare.
+        rtol : float
+            The relative tolerance parameter
+            (see Notes in :py:func:`numpy.allclose`).
+        atol : float
+            The absolute tolerance parameter
+            (see Notes in :py:func:`numpy.allclose`).
+        equal_nan : bool
+            Whether to compare NaN's as equal.  If True, NaN's in dm will be
+            considered equal to NaN's in `other` in the output array.
+
+        Returns
+        -------
+        aequals : :py:class:`bool:py:class:`
+            Returns True if the two result are equal within the given
+            tolerance; False otherwise.
+
+        See Also
+        --------
+        equals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
+
+        """
+        if self is other:
+            return True
+        is_veq = self.values_equals(other) and set(self._extra) == set(
+            other._extra
+        )
+        keys = set(self._extra)
+        while is_veq and keys:
+            k = keys.pop()
+            sv = self._extra[k]
+            ov = other._extra[k]
+            if isinstance(ov, np.ndarray):
+                is_veq = is_veq and np.allclose(
+                    sv,
+                    ov,
+                    rtol=rtol,
+                    atol=atol,
+                    equal_nan=equal_nan,
+                )
+            else:
+                is_veq = is_veq and sv == ov
+        return is_veq
+
+    def equals(self, other):
+        """Return True if the results are equal.
+
+        This method calls `aquals` without tolerance.
+
+        Parameters
+        ----------
+        other : :py:class:`skcriteria.DecisionMatrix`
+            Other instance to compare.
+
+        Returns
+        -------
+        equals : :py:class:`bool:py:class:`
+            Returns True if the two results are equals.
+
+        See Also
+        --------
+        aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
+
+        """
+        return self.aequals(other, 0, 0, False)
+
+    def __eq__(self, other):
+        """x.__eq__(y) <==> x == y."""
+        return self.equals(other)
+
+    def __ne__(self, other):
+        """x.__eq__(y) <==> x == y."""
+        return not self == other
 
     # REPR ====================================================================
 
@@ -189,13 +299,33 @@ class ResultABC(metaclass=abc.ABCMeta):
         kwargs = {"show_dimensions": False}
 
         # retrieve the original string
-        df = self._result_df.T
+        df = self._result_series.to_frame().T
         original_string = df.to_string(**kwargs)
 
         # add dimension
         string = f"{original_string}\n[Method: {self.method}]"
 
         return string
+
+    def _repr_html_(self):
+        """Return a html representation for a particular result.
+
+        Mainly for IPython notebook.
+
+        """
+        df = self._result_series.to_frame().T
+        original_html = df.style._repr_html_()
+        rtype = self._skcriteria_result_series.lower()
+
+        # add metadata
+        html = (
+            f"<div class='skcresult-{rtype} skcresult'>\n"
+            f"{original_html}"
+            f"<em class='skcresult-method'>Method: {self.method}</em>\n"
+            "</div>"
+        )
+
+        return html
 
 
 @doc_inherit(ResultABC, warn_class=False)
@@ -207,7 +337,7 @@ class RankResult(ResultABC):
 
     """
 
-    _skcriteria_result_column = "Rank"
+    _skcriteria_result_series = "Rank"
 
     @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
@@ -248,24 +378,16 @@ class RankResult(ResultABC):
             return np.argsort(self.rank_) + 1
         return self.rank_
 
-    def _repr_html_(self):
-        """Return a html representation for a particular result.
-
-        Mainly for IPython notebook.
-
-        """
-        df = self._result_df.T
-        original_html = df.style._repr_html_()
-
-        # add metadata
-        html = (
-            "<div class='skcresult-rank skcresult'>\n"
-            f"{original_html}"
-            f"<em class='skcresult-method'>Method: {self.method}</em>\n"
-            "</div>"
-        )
-
-        return html
+    def to_series(self, *, untied=False):
+        """The result as `pandas.Series`."""
+        if untied:
+            return pd.Series(
+                self.untied_rank_,
+                index=self._result_series.index.copy(deep=True),
+                copy=True,
+                name="Untied rank",
+            )
+        return super().to_series()
 
 
 @doc_inherit(ResultABC, warn_class=False)
@@ -277,7 +399,7 @@ class KernelResult(ResultABC):
 
     """
 
-    _skcriteria_result_column = "Kernel"
+    _skcriteria_result_series = "Kernel"
 
     @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
@@ -301,7 +423,7 @@ class KernelResult(ResultABC):
 
     @property
     @deprecated(
-        reason=("Use 'kernel_where_' instead"),
+        reason=("Use ``kernel_where_`` instead"),
         version=0.7,
     )
     def kernelwhere_(self):
@@ -311,23 +433,6 @@ class KernelResult(ResultABC):
     @property
     def kernel_alternatives_(self):
         """Return the names of alternatives in the kernel."""
-        return self._result_df.index[self._result_df.Kernel].to_numpy()
-
-    def _repr_html_(self):
-        """Return a html representation for a particular result.
-
-        Mainly for IPython notebook.
-
-        """
-        df = self._result_df.T
-        original_html = df._repr_html_()
-
-        # add metadata
-        html = (
-            "<div class='skcresult-kernel skcresult'>\n"
-            f"{original_html}"
-            f"<em class='skcresult-method'>Method: {self.method}</em>\n"
-            "</div>"
+        return self._result_series.index[self._result_series].to_numpy(
+            copy=True
         )
-
-        return html

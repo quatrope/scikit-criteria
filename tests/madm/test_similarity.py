@@ -51,7 +51,7 @@ def test_TOPSIS():
     ranker = TOPSIS()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.all(result.e_.ideal == expected.e_.ideal)
     assert np.allclose(result.e_.anti_ideal, expected.e_.anti_ideal)
@@ -108,7 +108,7 @@ def test_TOPSIS_tzeng2011multiple():
     ranker = TOPSIS()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(
         result.e_.similarity, expected.e_.similarity, atol=1.0e-4

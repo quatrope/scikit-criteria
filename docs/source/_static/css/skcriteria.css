@@ -9,6 +9,8 @@
     --links: #7b8e2d;
     /* Background color of jupyter input cell */
     --jupyter-in-cell-bg: #e3ffd28c;
+    /* Deprecation color */
+    --deprecated: #ff7474;
 }
 
 
@@ -38,6 +40,17 @@ code {
 a:hover,
 a:hover code {
     color: var(--primary) !important;
+}
+
+span.deprecated {
+    color: var(--deprecated) !important;
+}
+
+
+/* remove the title of the first page */
+
+section#scikit-criteria-documentation>h1:nth-child(1) {
+    display: none;
 }
 
 

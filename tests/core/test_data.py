@@ -24,7 +24,7 @@ import numpy as np
 
 import pandas as pd
 
-from pyquery import PyQuery
+import pyquery
 
 import pytest
 
@@ -37,37 +37,11 @@ from skcriteria.core import data, dominance, plot, stats
 
 
 def construct_iobjectives(arr):
-    return [data.Objective.construct_from_alias(obj).value for obj in arr]
+    return [data.Objective.from_alias(obj).value for obj in arr]
 
 
 def construct_objectives(arr):
-    return [data.Objective.construct_from_alias(obj) for obj in arr]
-
-
-# =============================================================================
-# ENUM
-# =============================================================================
-
-
-def test_objective_construct():
-    for alias in data.Objective._MAX_ALIASES.value:
-        objective = data.Objective.construct_from_alias(alias)
-        assert objective is data.Objective.MAX
-    for alias in data.Objective._MIN_ALIASES.value:
-        objective = data.Objective.construct_from_alias(alias)
-        assert objective is data.Objective.MIN
-    with pytest.raises(ValueError):
-        data.Objective.construct_from_alias("no anda")
-
-
-def test_objective_str():
-    assert str(data.Objective.MAX) == data.Objective.MAX.name
-    assert str(data.Objective.MIN) == data.Objective.MIN.name
-
-
-def test_objective_to_string():
-    assert data.Objective.MAX.to_string() == data.Objective._MAX_STR.value
-    assert data.Objective.MIN.to_string() == data.Objective._MIN_STR.value
+    return [data.Objective.from_alias(obj) for obj in arr]
 
 
 # =============================================================================
@@ -520,11 +494,79 @@ def test_DecisionMatrix_self_ne(data_values):
 
 
 # =============================================================================
+# SLICES
+# =============================================================================
+
+
+def test_DecisionMatrix__getitem__():
+    dm = data.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm["X"].equals(dm[["X"]])
+
+    expected = data.mkdm(
+        matrix=[[1, 3], [4, 6], [7, 9]],
+        objectives=[min, min],
+        weights=[0.1, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Z".split(),
+    )
+    assert dm[["X", "Z"]].equals(expected)
+
+
+def test_DecisionMatrix_loc():
+    dm = data.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm.loc.name == "loc"
+    assert dm.loc["A"].equals(dm.loc[["A"]])
+
+    expected = data.mkdm(
+        matrix=[[1, 2, 3], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm.loc[["A", "C"]].equals(expected)
+
+
+def test_DecisionMatrix_iloc():
+    dm = data.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A B C".split(),
+        criteria="X Y Z".split(),
+    )
+    assert dm.iloc.name == "iloc"
+    assert dm.iloc[2].equals(dm.iloc[[2]])
+
+    expected = data.mkdm(
+        matrix=[[1, 2, 3], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        alternatives="A C".split(),
+        criteria="X Y Z".split(),
+    )
+
+    assert dm.iloc[[0, 2]].equals(expected)
+
+
+# =============================================================================
 # REPR
 # =============================================================================
 
 
-def test_mksm_simple_repr():
+def test_mkdm_simple_repr():
 
     dm = data.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
@@ -533,10 +575,10 @@ def test_mksm_simple_repr():
     )
 
     expected = (
-        "   C0[\u25bc 0.1] C1[\u25b2 0.2] C2[\u25bc 0.3]\n"
-        "A0         1         2         3\n"
-        "A1         4         5         6\n"
-        "A2         7         8         9\n"
+        "    C0[▼ 0.1]  C1[▲ 0.2]  C2[▼ 0.3]\n"
+        "A0          1          2          3\n"
+        "A1          4          5          6\n"
+        "A2          7          8          9\n"
         "[3 Alternatives x 3 Criteria]"
     )
 
@@ -544,18 +586,18 @@ def test_mksm_simple_repr():
     assert result == expected
 
 
-def test_simple_html():
+def test_mkdm_simple_html():
     dm = data.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
         objectives=[min, max, min],
         weights=[0.1, 0.2, 0.3],
     )
 
-    expected = PyQuery(
+    expected = pyquery.PyQuery(
         """
         <div class="decisionmatrix">
             <div>
-                <style scoped="">
+                <style scoped=''>
                     .dataframe tbody tr th:only-of-type {
                         vertical-align: middle;
                     }
@@ -599,15 +641,15 @@ def test_simple_html():
                     </tbody>
                 </table>
             </div>
-            <em class="decisionmatrix-dim">3 Alternatives x 3 Criteria
+            <em class='decisionmatrix-dim'>3 Alternatives x 3 Criteria
             </em>
         </div>
     """
     )
 
-    result = PyQuery(dm._repr_html_())
+    result = pyquery.PyQuery(dm._repr_html_())
 
-    assert result.text() == expected.text()
+    assert result.remove("style").text() == expected.remove("style").text()
 
 
 # =============================================================================

@@ -1,7 +1,7 @@
-``skcriteria.utils.decorators`` module
+``skcriteria.utils.cmanagers`` module
 ======================================
 
-.. automodule:: skcriteria.utils.decorators
+.. automodule:: skcriteria.utils.cmanagers
    :members:
    :undoc-members:
    :show-inheritance:

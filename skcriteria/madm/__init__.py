@@ -11,10 +11,25 @@
 
 """MCDA methods."""
 
-from ._base import KernelResult, RankResult, ResultABC, SKCDecisionMakerABC
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
+from ._madm_base import (
+    KernelResult,
+    RankResult,
+    ResultABC,
+    SKCDecisionMakerABC,
+)
 
 # =============================================================================
 # ALL
 # =============================================================================
 
-__all__ = ["KernelResult", "RankResult", "ResultABC", "SKCDecisionMakerABC"]
+__all__ = [
+    "KernelResult",
+    "RankResult",
+    "ResultABC",
+    "SKCDecisionMakerABC",
+]

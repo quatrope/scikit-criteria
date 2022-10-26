@@ -15,10 +15,8 @@
 # IMPORTS
 # =============================================================================
 
-from collections import Counter
-
 from .core import SKCMethodABC
-from .utils import Bunch
+from .utils import Bunch, unique_names
 
 
 # =============================================================================
@@ -34,10 +32,7 @@ class SKCPipeline(SKCMethodABC):
     The final decision-maker only needs to implement `evaluate`.
 
     The purpose of the pipeline is to assemble several steps that can be
-    applied together while setting different parameters. A step's
-    estimator may be replaced entirely by setting the parameter with its name
-    to another dmaker or a transformer removed by setting it to
-    `'passthrough'` or `None`.
+    applied together while setting different parameters.
 
     Parameters
     ----------
@@ -61,34 +56,7 @@ class SKCPipeline(SKCMethodABC):
         self._validate_steps(steps)
         self._steps = steps
 
-    @property
-    def steps(self):
-        """List of steps of the pipeline."""
-        return list(self._steps)
-
-    def __len__(self):
-        """Return the length of the Pipeline."""
-        return len(self.steps)
-
-    def __getitem__(self, ind):
-        """Return a sub-pipeline or a single step in the pipeline.
-
-        Indexing with an integer will return an step; using a slice
-        returns another Pipeline instance which copies a slice of this
-        Pipeline. This copy is shallow: modifying steps in the sub-pipeline
-        will affect the larger pipeline and vice-versa.
-        However, replacing a value in `step` will not affect a copy.
-
-        """
-        if isinstance(ind, slice):
-            if ind.step not in (1, None):
-                raise ValueError("Pipeline slicing only supports a step of 1")
-            return self.__class__(self.steps[ind])
-        elif isinstance(ind, int):
-            return self.steps[ind][-1]
-        elif isinstance(ind, str):
-            return self.named_steps[ind]
-        raise KeyError(ind)
+    # INTERNALS ===============================================================
 
     def _validate_steps(self, steps):
         for name, step in steps[:-1]:
@@ -107,6 +75,13 @@ class SKCPipeline(SKCMethodABC):
                 f"step '{name}' must implement 'evaluate()' method"
             )
 
+    # PROPERTIES ==============================================================
+
+    @property
+    def steps(self):
+        """List of steps of the pipeline."""
+        return list(self._steps)
+
     @property
     def named_steps(self):
         """Dictionary-like object, with the following attributes.
@@ -116,6 +91,35 @@ class SKCPipeline(SKCMethodABC):
 
         """
         return Bunch("steps", dict(self.steps))
+
+    # DUNDERS =================================================================
+
+    def __len__(self):
+        """Return the length of the Pipeline."""
+        return len(self._steps)
+
+    def __getitem__(self, ind):
+        """Return a sub-pipeline or a single step in the pipeline.
+
+        Indexing with an integer will return an step; using a slice
+        returns another Pipeline instance which copies a slice of this
+        Pipeline. This copy is shallow: modifying steps in the sub-pipeline
+        will affect the larger pipeline and vice-versa.
+        However, replacing a value in `step` will not affect a copy.
+
+        """
+        if isinstance(ind, slice):
+            if ind.step not in (1, None):
+                cname = type(self).__name__
+                raise ValueError(f"{cname} slicing only supports a step of 1")
+            return self.__class__(self.steps[ind])
+        elif isinstance(ind, int):
+            return self.steps[ind][-1]
+        elif isinstance(ind, str):
+            return self.named_steps[ind]
+        raise KeyError(ind)
+
+    # API =====================================================================
 
     def evaluate(self, dm):
         """Run the all the transformers and the decision maker.
@@ -157,32 +161,8 @@ class SKCPipeline(SKCMethodABC):
 
 
 # =============================================================================
-# FUNCTIONS
+# FACTORY
 # =============================================================================
-
-
-def _name_steps(steps):
-    """Generate names for steps."""
-    # Based on sklearn.pipeline._name_estimators
-
-    steps = list(reversed(steps))
-
-    names = [type(step).__name__.lower() for step in steps]
-
-    name_count = {k: v for k, v in Counter(names).items() if v > 1}
-
-    named_steps = []
-    for name, step in zip(names, steps):
-        count = name_count.get(name, 0)
-        if count:
-            name_count[name] = count - 1
-            name = f"{name}_{count}"
-
-        named_steps.append((name, step))
-
-    named_steps.reverse()
-
-    return named_steps
 
 
 def mkpipe(*steps):
@@ -201,8 +181,9 @@ def mkpipe(*steps):
     Returns
     -------
     p : SKCPipeline
-        Returns a scikit-learn :class:`SKCPipeline` object.
+        Returns a scikit-criteria :class:`SKCPipeline` object.
 
     """
-    named_steps = _name_steps(steps)
+    names = [type(step).__name__.lower() for step in steps]
+    named_steps = unique_names(names=names, elements=steps)
     return SKCPipeline(named_steps)

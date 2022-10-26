@@ -29,24 +29,24 @@ class DecisionMatrixStatsAccessor(AccessorABC):
     Kind of statistic to produce:
 
     - 'corr' : Compute pairwise correlation of columns, excluding
-        NA/null values.
+      NA/null values.
     - 'cov' : Compute pairwise covariance of columns, excluding NA/null
-        values.
+      values.
     - 'describe' : Generate descriptive statistics.
     - 'kurtosis' : Return unbiased kurtosis over requested axis.
     - 'mad' : Return the mean absolute deviation of the values over the
-        requested axis.
+      requested axis.
     - 'max' : Return the maximum of the values over the requested axis.
     - 'mean' : Return the mean of the values over the requested axis.
     - 'median' : Return the median of the values over the requested
-        axis.
+      axis.
     - 'min' : Return the minimum of the values over the requested axis.
     - 'pct_change' : Percentage change between the current and a prior
-        element.
+      element.
     - 'quantile' : Return values at the given quantile over requested
-        axis.
+      axis.
     - 'sem' : Return unbiased standard error of the mean over requested
-        axis.
+      axis.
     - 'skew' : Return unbiased skew over requested axis.
     - 'std' : Return sample standard deviation over requested axis.
     - 'var' : Return unbiased variance over requested axis.
@@ -59,7 +59,6 @@ class DecisionMatrixStatsAccessor(AccessorABC):
         "cov",
         "describe",
         "kurtosis",
-        "mad",
         "max",
         "mean",
         "median",
@@ -88,3 +87,17 @@ class DecisionMatrixStatsAccessor(AccessorABC):
         return super().__dir__() + [
             e for e in dir(self._dm._data_df) if e in self._DF_WHITELIST
         ]
+
+    def mad(self, axis=0, skipna=True):
+        """Return the mean absolute deviation of the values over a given axis.
+
+        Parameters
+        ----------
+        axis : int
+            Axis for the function to be applied on.
+        skipna : bool, default True
+            Exclude NA/null values when computing the result.
+
+        """
+        df = self._dm._data_df
+        return (df - df.mean(axis=axis)).abs().mean(axis=axis, skipna=skipna)

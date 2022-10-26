@@ -21,40 +21,9 @@ import numpy as np
 
 from scipy.spatial import distance
 
-from ._base import RankResult, SKCDecisionMakerABC
+from ._madm_base import RankResult, SKCDecisionMakerABC
 from ..core import Objective
 from ..utils import doc_inherit, rank
-
-
-# =============================================================================
-# CONSTANTS
-# =============================================================================
-
-_VALID_DISTANCES_METRICS = [
-    "braycurtis",
-    "canberra",
-    "chebyshev",
-    "cityblock",
-    "correlation",
-    "cosine",
-    "dice",
-    "euclidean",
-    "hamming",
-    "jaccard",
-    "jensenshannon",
-    "kulsinski",
-    "mahalanobis",
-    "matching",
-    "minkowski",
-    "rogerstanimoto",
-    "russellrao",
-    "seuclidean",
-    "sokalmichener",
-    "sokalsneath",
-    "sqeuclidean",
-    "wminkowski",
-    "yule",
-]
 
 
 # =============================================================================
@@ -72,8 +41,10 @@ def topsis(matrix, objectives, weights, metric="euclidean", **kwargs):
     maxs = np.max(wmtx, axis=0)
 
     # create the ideal and the anti ideal arrays
-    ideal = np.where(objectives == Objective.MAX.value, maxs, mins)
-    anti_ideal = np.where(objectives == Objective.MIN.value, maxs, mins)
+    where_max = np.equal(objectives, Objective.MAX.value)
+
+    ideal = np.where(where_max, maxs, mins)
+    anti_ideal = np.where(where_max, mins, maxs)
 
     # calculate distances
     d_better = distance.cdist(
@@ -136,8 +107,8 @@ class TOPSIS(SKCDecisionMakerABC):
 
     def __init__(self, *, metric="euclidean"):
 
-        if not callable(metric) and metric not in _VALID_DISTANCES_METRICS:
-            metrics = ", ".join(f"'{m}'" for m in _VALID_DISTANCES_METRICS)
+        if not callable(metric) and metric not in distance._METRICS_NAMES:
+            metrics = ", ".join(f"'{m}'" for m in distance._METRICS_NAMES)
             raise ValueError(
                 f"Invalid metric '{metric}'. Plese choose from: {metrics}"
             )

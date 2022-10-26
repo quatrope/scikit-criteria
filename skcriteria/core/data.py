@@ -12,7 +12,7 @@
 """Data abstraction layer.
 
 This module defines the DecisionMatrix object, which internally encompasses
-the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
+the alternative matrix, weights and objectives (MIN, MAX) of the criteria.
 
 """
 
@@ -21,7 +21,6 @@ the alternative matrix,   weights and objectives (MIN, MAX) of the criteria.
 # =============================================================================
 
 
-import enum
 import functools
 from collections import abc
 
@@ -30,95 +29,15 @@ import numpy as np
 import pandas as pd
 from pandas.io.formats import format as pd_fmt
 
-import pyquery as pq
-
-
 from .dominance import DecisionMatrixDominanceAccessor
+from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, doc_inherit
+from ..utils import deprecated, df_temporal_header, doc_inherit
 
 
 # =============================================================================
-# CONSTANTS
-# =============================================================================
-class Objective(enum.Enum):
-    """Representation of criteria objectives (Minimize, Maximize)."""
-
-    #: Internal representation of minimize criteria
-    MIN = -1
-
-    #: Internal representation of maximize criteria
-    MAX = 1
-
-    # INTERNALS ===============================================================
-
-    _MIN_STR = "\u25bc"
-    _MAX_STR = "\u25b2"
-
-    #: Another way to name the maximization criteria.
-    _MAX_ALIASES = frozenset(
-        [
-            MAX,
-            _MAX_STR,
-            max,
-            np.max,
-            np.nanmax,
-            np.amax,
-            "max",
-            "maximize",
-            "+",
-            ">",
-        ]
-    )
-
-    #: Another ways to name the minimization criteria.
-    _MIN_ALIASES = frozenset(
-        [
-            MIN,
-            _MIN_STR,
-            min,
-            np.min,
-            np.nanmin,
-            np.amin,
-            "min",
-            "minimize",
-            "<",
-            "-",
-        ]
-    )
-
-    # CUSTOM CONSTRUCTOR ======================================================
-
-    @classmethod
-    def construct_from_alias(cls, alias):
-        """Return the alias internal representation of the objective."""
-        if isinstance(alias, cls):
-            return alias
-        if isinstance(alias, str):
-            alias = alias.lower()
-        if alias in cls._MAX_ALIASES.value:
-            return cls.MAX
-        if alias in cls._MIN_ALIASES.value:
-            return cls.MIN
-        raise ValueError(f"Invalid criteria objective {alias}")
-
-    # METHODS =================================================================
-
-    def __str__(self):
-        """Convert the objective to an string."""
-        return self.name
-
-    def to_string(self):
-        """Return the printable representation of the objective."""
-        if self.value in Objective._MIN_ALIASES.value:
-            return Objective._MIN_STR.value
-        if self.value in Objective._MAX_ALIASES.value:
-            return Objective._MAX_STR.value
-
-
-# =============================================================================
-# _SLICER ARRAY
+# SLICERS ARRAY
 # =============================================================================
 class _ACArray(np.ndarray, abc.Mapping):
     """Immutable Array to provide access to the alternative and criteria \
@@ -163,9 +82,50 @@ class _ACArray(np.ndarray, abc.Mapping):
         return (self[e] for e in self)
 
 
+class _Loc:
+    """Locator abstraction.
+
+    this class ensures that the correct objectives and weights are applied to
+    the sliced ``DecisionMatrix``.
+
+    """
+
+    def __init__(self, name, real_loc, objectives, weights):
+        self._name = name
+        self._real_loc = real_loc
+        self._objectives = objectives
+        self._weights = weights
+
+    @property
+    def name(self):
+        """The name of the locator."""
+        return self._name
+
+    def __getitem__(self, slc):
+        """dm[slc] <==> dm.__getitem__(slc)."""
+        df = self._real_loc.__getitem__(slc)
+        if isinstance(df, pd.Series):
+            df = df.to_frame().T
+
+            dtypes = self._real_loc.obj.dtypes
+            dtypes = dtypes[dtypes.index.isin(df.columns)]
+
+            df = df.astype(dtypes)
+
+        objectives = self._objectives
+        objectives = objectives[objectives.index.isin(df.columns)].to_numpy()
+
+        weights = self._weights
+        weights = weights[weights.index.isin(df.columns)].to_numpy()
+
+        return DecisionMatrix(df, objectives, weights)
+
+
 # =============================================================================
 # DECISION MATRIX
 # =============================================================================
+
+
 class DecisionMatrix:
     """Representation of all data needed in the MCDA analysis.
 
@@ -242,9 +202,9 @@ class DecisionMatrix:
     def __init__(self, data_df, objectives, weights):
 
         self._data_df = (
-            data_df.copy()
+            data_df.copy(deep=True)
             if isinstance(data_df, pd.DataFrame)
-            else pd.DataFrame(data_df)
+            else pd.DataFrame(data_df, copy=True)
         )
 
         self._objectives = np.asarray(objectives, dtype=object)
@@ -378,15 +338,25 @@ class DecisionMatrix:
 
     @property
     def alternatives(self):
-        """Names of the alternatives."""
-        arr = self._data_df.index.to_numpy()
+        """Names of the alternatives.
+
+        From this array you can also access the values of the alternatives as
+        ``pandas.Series``.
+
+        """
+        arr = self._data_df.index.to_numpy(copy=True)
         slicer = self._data_df.loc.__getitem__
         return _ACArray(arr, slicer)
 
     @property
     def criteria(self):
-        """Names of the criteria."""
-        arr = self._data_df.columns.to_numpy()
+        """Names of the criteria.
+
+        From this array you can also access the values of the criteria as
+        ``pandas.Series``.
+
+        """
+        arr = self._data_df.columns.to_numpy(copy=True)
         slicer = self._data_df.__getitem__
         return _ACArray(arr, slicer)
 
@@ -396,17 +366,19 @@ class DecisionMatrix:
         return pd.Series(
             self._weights,
             dtype=float,
-            index=self._data_df.columns,
+            index=self._data_df.columns.copy(deep=True),
             name="Weights",
+            copy=True,
         )
 
     @property
     def objectives(self):
         """Objectives of the criteria as ``Objective`` instances."""
         return pd.Series(
-            [Objective.construct_from_alias(a) for a in self._objectives],
+            [Objective.from_alias(a) for a in self._objectives],
             index=self._data_df.columns,
             name="Objectives",
+            copy=True,
         )
 
     @property
@@ -436,7 +408,8 @@ class DecisionMatrix:
         return pd.Series(
             [o.value for o in self.objectives],
             dtype=np.int8,
-            index=self._data_df.columns,
+            index=self._data_df.columns.copy(deep=True),
+            copy=True,
         )
 
     @property
@@ -445,16 +418,23 @@ class DecisionMatrix:
 
         The matrix excludes weights and objectives.
 
-        If you want to create a DataFrame with objetvies and weights, use
+        If you want to create a DataFrame with objectives and weights, use
         ``DecisionMatrix.to_dataframe()``
 
         """
-        return self._data_df.copy()
+        mtx = self._data_df.copy(deep=True)
+        mtx.index = self._data_df.index.copy(deep=True)
+        mtx.index.name = "Alternatives"
+        mtx.columns = self._data_df.columns.copy(deep=True)
+        mtx.columns.name = "Criteria"
+        return mtx
 
     @property
     def dtypes(self):
         """Dtypes of the criteria."""
-        return self._data_df.dtypes.copy()
+        series = self._data_df.dtypes.copy(deep=True)
+        series.index = self._data_df.dtypes.index.copy(deep=True)
+        return series
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 
@@ -553,9 +533,9 @@ class DecisionMatrix:
 
     @deprecated(
         reason=(
-            "Use 'DecisionMatrix.stats()', "
-            "'DecisionMatrix.stats(\"describe\")' or "
-            "'DecisionMatrix.stats.describe()' instead."
+            "Use ``DecisionMatrix.stats()``, "
+            "``DecisionMatrix.stats('describe)`` or "
+            "``DecisionMatrix.stats.describe()`` instead."
         ),
         version=0.6,
     )
@@ -600,7 +580,7 @@ class DecisionMatrix:
     def equals(self, other):
         """Return True if the decision matrix are equal.
 
-        This method calls `DecisionMatrix.aquals` whitout tolerance.
+        This method calls `DecisionMatrix.aquals` without tolerance.
 
         Parameters
         ----------
@@ -690,15 +670,80 @@ class DecisionMatrix:
             )
         )
 
-    # repr ====================================================================
-    def _get_cow_headers(self):
+    # SLICES ==================================================================
+
+    def __getitem__(self, slc):
+        """dm[slc] <==> dm.__getitem__(slc)."""
+        df = self._data_df.__getitem__(slc)
+        if isinstance(df, pd.Series):
+            df = df.to_frame()
+
+            dtypes = self._data_df.dtypes
+            dtypes = dtypes[dtypes.index.isin(df.columns)]
+
+            df = df.astype(dtypes)
+
+        objectives = self.objectives
+        objectives = objectives[objectives.index.isin(df.columns)].to_numpy()
+
+        weights = self.weights
+        weights = weights[weights.index.isin(df.columns)].to_numpy()
+
+        return DecisionMatrix(df, objectives, weights)
+
+    @property
+    def loc(self):
+        """Access a group of alternatives and criteria by label(s) or a \
+        boolean array.
+
+        ``.loc[]`` is primarily alternative label based, but may also be used
+        with a boolean array.
+
+        Unlike DataFrames, `ìloc`` of ``DecisionMatrix`` always returns an
+        instance of ``DecisionMatrix``.
+
+        """
+        return _Loc("loc", self._data_df.loc, self.objectives, self.weights)
+
+    @property
+    def iloc(self):
+        """Purely integer-location based indexing for selection by position.
+
+        ``.iloc[]`` is primarily integer position based (from ``0`` to
+        ``length-1`` of the axis), but may also be used with a boolean
+        array.
+
+        Unlike DataFrames, `ìloc`` of ``DecisionMatrix`` always returns an
+        instance of ``DecisionMatrix``.
+
+        """
+        return _Loc("iloc", self._data_df.iloc, self.objectives, self.weights)
+
+    # REPR ====================================================================
+
+    def _get_cow_headers(
+        self, only=None, fmt="{criteria}[{objective}{weight}]"
+    ):
         """Columns names with COW (Criteria, Objective, Weight)."""
+        criteria = self._data_df.columns
+        objectives = self.objectives
+        weights = self.weights
+
+        if only:
+            mask = self._data_df.columns.isin(only)
+            criteria = criteria[mask]
+            objectives = objectives[mask]
+            weights = weights[mask]
+
+        weights = pd_fmt.format_array(weights, None)
+
         headers = []
-        fmt_weights = pd_fmt.format_array(self.weights, None)
-        for c, o, w in zip(self.criteria, self.objectives, fmt_weights):
-            header = f"{c}[{o.to_string()}{w}]"
+        for crit, obj, weight in zip(criteria, objectives, weights):
+            header = fmt.format(
+                criteria=crit, objective=obj.to_symbol(), weight=weight
+            )
             headers.append(header)
-        return headers
+        return np.array(headers)
 
     def _get_axc_dimensions(self):
         """Dimension foote with AxC (Alternativs x Criteria)."""
@@ -711,26 +756,9 @@ class DecisionMatrix:
         header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
 
-        max_rows = pd.get_option("display.max_rows")
-        min_rows = pd.get_option("display.min_rows")
-        max_cols = pd.get_option("display.max_columns")
-        max_colwidth = pd.get_option("display.max_colwidth")
-
-        width = (
-            pd.io.formats.console.get_console_size()[0]
-            if pd.get_option("display.expand_frame_repr")
-            else None
-        )
-
-        original_string = self._data_df.to_string(
-            max_rows=max_rows,
-            min_rows=min_rows,
-            max_cols=max_cols,
-            line_width=width,
-            max_colwidth=max_colwidth,
-            show_dimensions=False,
-            header=header,
-        )
+        with df_temporal_header(self._data_df, header) as df:
+            with pd.option_context("display.show_dimensions", False):
+                original_string = repr(df)
 
         # add dimension
         string = f"{original_string}\n[{dimensions}]"
@@ -742,12 +770,13 @@ class DecisionMatrix:
 
         Mainly for IPython notebook.
         """
-        header = dict(zip(self.criteria, self._get_cow_headers()))
+        header = self._get_cow_headers()
         dimensions = self._get_axc_dimensions()
 
         # retrieve the original string
-        with pd.option_context("display.show_dimensions", False):
-            original_html = self._data_df._repr_html_()
+        with df_temporal_header(self._data_df, header) as df:
+            with pd.option_context("display.show_dimensions", False):
+                original_html = df._repr_html_()
 
         # add dimension
         html = (
@@ -757,13 +786,7 @@ class DecisionMatrix:
             "</div>"
         )
 
-        # now we need to change the table header
-        d = pq.PyQuery(html)
-        for th in d("div.decisionmatrix table.dataframe > thead > tr > th"):
-            crit = th.text
-            th.text = header.get(crit, crit)
-
-        return str(d)
+        return html
 
 
 # =============================================================================

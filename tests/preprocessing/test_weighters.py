@@ -20,12 +20,15 @@
 
 import numpy as np
 
+import pandas as pd
+
 import pytest
 
 import scipy
 
 import skcriteria
 from skcriteria.preprocessing.weighters import (
+    CRITIC,
     Critic,
     EntropyWeighter,
     EqualWeighter,
@@ -159,7 +162,7 @@ def test_StdWeighter_simple_matrix():
     expected = skcriteria.mkdm(
         matrix=[[1, 2], [4, 16]],
         objectives=[min, max],
-        weights=[0.176471, 0.82352],
+        weights=[0.176471, 0.82353],
     )
 
     weighter = StdWeighter()
@@ -179,7 +182,7 @@ def test_StdWeighter(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    std = np.std(dm.matrix, axis=0)
+    std = np.std(dm.matrix, axis=0, ddof=1)
 
     expected = skcriteria.mkdm(
         matrix=dm.matrix,
@@ -254,7 +257,7 @@ def test_EntropyWeighter(decision_matrix):
 # =============================================================================
 
 
-def test_Critic_diakoulaki1995determining():
+def test_CRITIC_diakoulaki1995determining():
     """
     Data from:
         Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
@@ -292,7 +295,7 @@ def test_Critic_diakoulaki1995determining():
         weights=[0.20222554, 0.48090173, 0.31687273],
     )
 
-    weighter = Critic()
+    weighter = CRITIC()
 
     result = weighter.transform(dm)
     assert result.aequals(expected)
@@ -305,7 +308,7 @@ def test_CRITIC_minimize_warning():
         objectives=[max, min, max],
     )
 
-    weighter = Critic()
+    weighter = CRITIC()
 
     with pytest.warns(UserWarning):
         weighter.transform(dm)
@@ -313,9 +316,9 @@ def test_CRITIC_minimize_warning():
 
 def test_Critic_bad_correlation():
     with pytest.raises(ValueError):
-        Critic(correlation="foo")
+        CRITIC(correlation="foo")
     with pytest.raises(ValueError):
-        Critic(correlation=1)
+        CRITIC(correlation=1)
 
 
 @pytest.mark.parametrize(
@@ -323,22 +326,22 @@ def test_Critic_bad_correlation():
     [
         (
             True,
-            pearson_correlation,
+            "pearson",
             [0.20222554, 0.48090173, 0.31687273],
         ),
         (
             False,
-            pearson_correlation,
+            "pearson",
             [0.86874234, 0.08341434, 0.04784331],
         ),
         (
             True,
-            spearman_correlation,
+            "spearman",
             [0.21454645, 0.4898563, 0.29559726],
         ),
         (
             False,
-            spearman_correlation,
+            "spearman",
             [0.87672195, 0.08082369, 0.04245436],
         ),
     ],
@@ -366,3 +369,53 @@ def test_critic_weight_weights_diakoulaki1995determining(
         mtx, objectives=[1, 1, 1], scale=scale, correlation=correlation
     )
     assert np.allclose(weights, result)
+
+
+# deprecated ==================================================================
+
+
+def test_Critic_deprecation_warning():
+    with pytest.deprecated_call():
+        Critic()
+
+
+def test_pearson_correlation_with_deprecation_warning():
+    mtx = np.array(
+        [
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98],
+        ]
+    )
+    expected = pd.DataFrame(mtx).corr("pearson").to_numpy()
+
+    with pytest.deprecated_call():
+        result = pearson_correlation(mtx.T)
+
+    np.testing.assert_allclose(result, expected)
+
+
+def test_spearman_correlation_with_deprecation_warning():
+    mtx = np.array(
+        [
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98],
+        ]
+    )
+    expected = pd.DataFrame(mtx).corr("spearman").to_numpy()
+
+    with pytest.deprecated_call():
+        result = spearman_correlation(mtx.T)
+
+    np.testing.assert_allclose(result, expected)

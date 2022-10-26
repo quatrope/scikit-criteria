@@ -81,7 +81,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
     # FRAME ALT VS ALT ========================================================
 
-    def _create_frame(self, compute_cell):
+    def _create_frame(self, compute_cell, iname, cname):
         """Create a data frame comparing two alternatives.
 
         The value of each cell is calculated with the "compute_cell"
@@ -95,7 +95,13 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             for a1 in alternatives:
                 row[a1] = compute_cell(a0, a1)
             rows.append(row)
-        return pd.DataFrame(rows, index=alternatives)
+
+        df = pd.DataFrame(rows, index=alternatives)
+
+        df.index.name = iname
+        df.columns.name = cname
+
+        return df
 
     def bt(self):
         """Compare on how many criteria one alternative is better than another.
@@ -116,7 +122,9 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             centry, ckreverted = self._cache_read(a0, a1)
             return centry.aDb if not ckreverted else centry.bDa
 
-        return self._create_frame(compute_cell)
+        return self._create_frame(
+            compute_cell, iname="Better than", cname="Worse than"
+        )
 
     def eq(self):
         """Compare on how many criteria two alternatives are equal.
@@ -136,7 +144,9 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             centry, _ = self._cache_read(a0, a1)
             return centry.eq
 
-        return self._create_frame(compute_cell)
+        return self._create_frame(
+            compute_cell, iname="Equals to", cname="Equals to"
+        )
 
     def dominance(self, *, strict=False):
         """Compare if one alternative dominates or strictly dominates another \
@@ -176,7 +186,15 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
             return performance_a0 > 0 and performance_a1 == 0
 
-        return self._create_frame(compute_cell)
+        iname, cname = (
+            ("Strict dominators", "Strictly dominated")
+            if strict
+            else ("Dominators", "Dominated")
+        )
+
+        dom = self._create_frame(compute_cell, iname=iname, cname=cname)
+
+        return dom
 
     # COMPARISONS =============================================================
 
@@ -238,7 +256,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
         return df
 
-    # The dominated============================================================
+    # The dominated ===========================================================
 
     def dominated(self, *, strict=False):
         """Which alternative is dominated or strictly dominated by at least \
@@ -257,7 +275,10 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             by at least one other alternative.
 
         """
-        return self.dominance(strict=strict).any()
+        dom = self.dominance(strict=strict).any()
+        dom.name = dom.index.name
+        dom.index.name = "Alternatives"
+        return dom
 
     @functools.lru_cache(maxsize=None)
     def dominators_of(self, a, *, strict=False):

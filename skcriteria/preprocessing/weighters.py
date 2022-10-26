@@ -28,10 +28,14 @@ import numpy as np
 
 import scipy.stats
 
+from ._preprocessing_base import SKCTransformerABC
+from .scalers import matrix_scale_by_cenit_distance
+from ..core import Objective
+from ..utils import deprecated, doc_inherit
 
-from .distance import cenit_distance
-from ..core import Objective, SKCTransformerABC
-from ..utils import doc_inherit
+# =============================================================================
+# BASE CLASS
+# =============================================================================
 
 
 class SKCWeighterABC(SKCTransformerABC):
@@ -159,7 +163,7 @@ def std_weights(matrix):
 
     .. math::
 
-        w_j = \frac{base\_value}{m}
+        w_j = \frac{s_j}{m}
 
     Where $m$ is the number os columns/criteria in matrix.
 
@@ -184,7 +188,7 @@ def std_weights(matrix):
          array([0.5, 0.5])
 
     """
-    std = np.std(matrix, axis=0)
+    std = np.std(matrix, axis=0, ddof=1)
     return std / np.sum(std)
 
 
@@ -235,7 +239,7 @@ class EntropyWeighter(SKCWeighterABC):
     It uses the underlying ``scipy.stats.entropy`` function which assumes that
     the values of the criteria are probabilities of a distribution.
 
-    This transformer will normalize the criteria if they don’t sum to 1.
+    This transformer will normalize the criteria if they don't sum to 1.
 
     See Also
     --------
@@ -256,6 +260,10 @@ class EntropyWeighter(SKCWeighterABC):
 # =============================================================================
 
 
+@deprecated(
+    reason="Please use ``pd.DataFrame(arr.T).correlation('pearson')``",
+    version=0.8,
+)
 def pearson_correlation(arr):
     """Return Pearson product-moment correlation coefficients.
 
@@ -282,6 +290,10 @@ def pearson_correlation(arr):
     return np.corrcoef(arr)
 
 
+@deprecated(
+    reason="Please use ``pd.DataFrame(arr.T).correlation('spearman')``",
+    version=0.8,
+)
 def spearman_correlation(arr):
     """Calculate a Spearman correlation coefficient.
 
@@ -308,22 +320,25 @@ def spearman_correlation(arr):
     return scipy.stats.spearmanr(arr.T, axis=0).correlation
 
 
-def critic_weights(
-    matrix, objectives, correlation=pearson_correlation, scale=True
-):
+def critic_weights(matrix, objectives, correlation="pearson", scale=True):
     """Execute the CRITIC method without any validation."""
     matrix = np.asarray(matrix, dtype=float)
-    matrix = cenit_distance(matrix, objectives=objectives) if scale else matrix
+    matrix = (
+        matrix_scale_by_cenit_distance(matrix, objectives=objectives)
+        if scale
+        else matrix
+    )
 
     dindex = np.std(matrix, axis=0)
+    import pandas as pd
 
-    corr_m1 = 1 - correlation(matrix.T)
+    corr_m1 = 1 - pd.DataFrame(matrix).corr(method=correlation).to_numpy()
     uweights = dindex * np.sum(corr_m1, axis=0)
     weights = uweights / np.sum(uweights)
     return weights
 
 
-class Critic(SKCWeighterABC):
+class CRITIC(SKCWeighterABC):
     """CRITIC (CRiteria Importance Through Intercriteria Correlation).
 
     The method aims at the determination of objective weights of relative
@@ -333,19 +348,21 @@ class Critic(SKCWeighterABC):
 
     Parameters
     ----------
-    correlation: str ["pearson" or "spearman"] or callable. (default "pearson")
+    correlation: str ["pearson", "spearman", "kendall"] or callable.
         This is the correlation function used to evaluate the discordance
         between two criteria. In other words, what conflict does one criterion
         a criterion with  respect to the decision made by the other criteria.
-        By default the ``pearson`` correlation is used, and the ``kendall``
-        correlation is also available implemented.
-        It is also possible to provide a function that receives as a single
-        parameter, the matrix of alternatives, and returns the correlation
-        matrix.
+        By default the ``pearson`` correlation is used, and the ``spearman``
+        and ``kendall`` correlation is also available implemented.
+        It is also possible to provide a callable with input two 1d arrays
+        and returning a float. Note that the returned matrix from corr will
+        have 1 along the diagonals and will be symmetric regardless of the
+        callable's behavior
+
     scale: bool (default ``True``)
         True if it is necessary to scale the data with
-        ``skcriteria.preprocesisng.cenit_distance`` prior to calculating the
-        correlation
+        ``skcriteria.preprocessing.matrix_scale_by_cenit_distance`` prior
+        to calculating the correlation
 
     Warnings
     --------
@@ -360,19 +377,15 @@ class Critic(SKCWeighterABC):
 
     """
 
-    CORRELATION = {
-        "pearson": pearson_correlation,
-        "spearman": spearman_correlation,
-    }
+    CORRELATION = ("pearson", "spearman", "kendall")
 
     _skcriteria_parameters = ["correlation", "scale"]
 
     def __init__(self, correlation="pearson", scale=True):
-        correlation_func = self.CORRELATION.get(correlation, correlation)
-        if not callable(correlation_func):
+        if not (correlation in self.CORRELATION or callable(correlation)):
             corr_keys = ", ".join(f"'{c}'" for c in self.CORRELATION)
-            raise ValueError(f"Correlation must be {corr_keys} or callable")
-        self._correlation = correlation_func
+            raise ValueError(f"Correlation must be {corr_keys} or a callable")
+        self._correlation = correlation
 
         self._scale = bool(scale)
 
@@ -398,3 +411,12 @@ class Critic(SKCWeighterABC):
         return critic_weights(
             matrix, objectives, correlation=self.correlation, scale=self.scale
         )
+
+
+@deprecated(
+    reason="Use ``skcriteria.preprocessing.weighters.CRITIC`` instead",
+    version=0.8,
+)
+@doc_inherit(CRITIC, warn_class=False)
+class Critic(CRITIC):
+    ...

@@ -48,7 +48,7 @@ def test_WeightedSumModel():
 
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.all(result.e_.score == expected.e_.score)
 
@@ -58,6 +58,19 @@ def test_WeightedSumModel_minimize_fail():
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, min, max],
+    )
+
+    ranker = WeightedSumModel()
+
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
+
+
+def test_WeightedProductModel_lt0_fail():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, -1, 6]],
+        objectives=[max, max, max],
     )
 
     ranker = WeightedSumModel()
@@ -114,7 +127,7 @@ def test_WeightedSumModel_kracka2010ranking():
     ranker = WeightedSumModel()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)
 
@@ -142,7 +155,7 @@ def test_WeightedProductModel():
 
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)
 
@@ -204,6 +217,6 @@ def test_WeightedProductModel_enwiki_1015567716():
     ranker = WeightedProductModel()
     result = ranker.evaluate(dm)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score)

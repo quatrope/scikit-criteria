@@ -18,6 +18,8 @@
 # IMPORTS
 # =============================================================================
 
+import copy
+
 import pytest
 
 from skcriteria.utils import bunch
@@ -60,9 +62,27 @@ def test_Bunch_iter():
 
 def test_Bunch_repr():
     md = bunch.Bunch("foo", {"alfa": 1})
-    assert repr(md) == "foo({'alfa'})"
+    assert repr(md) == "<foo {'alfa'}>"
 
 
 def test_Bunch_dir():
     md = bunch.Bunch("foo", {"alfa": 1})
     assert "alfa" in dir(md)
+
+
+def test_Bunch_deepcopy():
+    md = bunch.Bunch("foo", {"alfa": 1})
+    md_c = copy.deepcopy(md)
+
+    assert md is not md_c
+    assert md._name == md_c._name  # string are inmutable never deep copy
+    assert md._data == md_c._data and md._data is not md_c._data
+
+
+def test_Bunch_copy():
+    md = bunch.Bunch("foo", {"alfa": 1})
+    md_c = copy.copy(md)
+
+    assert md is not md_c
+    assert md._name == md_c._name
+    assert md._data == md_c._data and md._data is md_c._data

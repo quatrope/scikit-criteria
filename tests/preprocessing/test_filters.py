@@ -31,6 +31,21 @@ from skcriteria.preprocessing import filters
 # =============================================================================
 
 
+def test_SKCByCriteriaFilterABC():
+    class FooFilter(filters.SKCByCriteriaFilterABC):
+        def _make_mask(
+            self, matrix, criteria, criteria_to_use, criteria_filters
+        ):
+            pass
+
+        def _coerce_filters(self, filters):
+            return list(filters.keys()), list(filters.values())
+
+    flt = FooFilter({"a": 1})
+    assert flt.criteria_filters == {"a": 1}
+    assert flt.ignore_missing_criteria is False
+
+
 def test_SKCByCriteriaFilterABC_not_provide_filters():
     class FooFilter(filters.SKCByCriteriaFilterABC):
         def _make_mask(
@@ -576,6 +591,7 @@ def test_FilterNonDominated():
     )
 
     tfm = filters.FilterNonDominated(strict=False)
+    assert tfm.strict is False
 
     result = tfm.transform(dm)
 
@@ -613,6 +629,7 @@ def test_FilterNonDominated_strict():
     )
 
     tfm = filters.FilterNonDominated(strict=True)
+    assert tfm.strict is True
 
     result = tfm.transform(dm)
 

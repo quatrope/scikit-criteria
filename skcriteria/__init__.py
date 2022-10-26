@@ -16,24 +16,26 @@ techniques for multiple-criteria decision analysis."""
 # IMPORTS
 # =============================================================================
 
-import os
+import importlib.metadata
 
-if os.getenv("__SKCRITERIA_IN_SETUP__") != "True":
-    from .core import DecisionMatrix, Objective, mkdm
-
-del os
+from . import datasets
+from .core import DecisionMatrix, Objective, mkdm
 
 
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
-__all__ = ["mkdm", "DecisionMatrix", "Objective"]
+__all__ = ["mkdm", "DecisionMatrix", "Objective", "datasets"]
 
-__version__ = ("0", "7")
 
 NAME = "scikit-criteria"
 
 DOC = __doc__
 
-VERSION = ".".join(__version__)
+VERSION = importlib.metadata.version(NAME)
+
+__version__ = tuple(VERSION.split("."))
+
+
+del importlib

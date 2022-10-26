@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""Functionalities for scale values based on differrent strategies.
+"""Functionalities for scale values based on different strategies.
 
 In addition to the Transformers, a collection of an MCDA agnostic functions
 are offered to scale an array along an arbitrary axis.
@@ -25,62 +25,43 @@ are offered to scale an array along an arbitrary axis.
 import numpy as np
 from numpy import linalg
 
-from ..core import SKCMatrixAndWeightTransformerABC
-from ..utils import doc_inherit
+from sklearn import preprocessing as _sklpreproc
+
+from ._preprocessing_base import (
+    SKCMatrixAndWeightTransformerABC,
+    SKCTransformerABC,
+)
+from ..core import Objective
+from ..utils import deprecated, doc_inherit
+
+
+# =============================================================================
+# HELPER FUNCTION
+# =============================================================================
+
+
+def _run_sklearn_scaler(mtx_or_weights, scaler):
+    """Runs sklearn scalers against 1D (weights) or 2D (alternatives) \
+    arrays.
+
+    This function is in charge of verifying if the array provided has adequate
+    dimensions to work with the scikit-learn scalers.
+
+    It also ensures that the output has the same input dimensions.
+
+    """
+    ndims = np.ndim(mtx_or_weights)
+    if ndims == 1:  # is a weights
+        mtx_or_weights = mtx_or_weights.reshape(len(mtx_or_weights), 1)
+    result = scaler.fit_transform(mtx_or_weights)
+    if ndims == 1:
+        result = result.flatten()
+    return result
+
 
 # =============================================================================
 # STANDAR SCALER
 # =============================================================================
-
-
-def scale_by_stdscore(arr, axis=None):
-    r"""Standardize the values by removing the mean and divided by the std-dev.
-
-    The standard score of a sample `x` is calculated as:
-
-    .. math::
-
-        z = (x - \mu) / \sigma
-
-    Parameters
-    ----------
-    arr: :py:class:`numpy.ndarray` like.
-        A array with values
-    axis : :py:class:`int` optional
-        Axis along which to operate.  By default, flattened input is used.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        array of ratios
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria.preprocess import scale_by_stdscore
-        >>> mtx = [[1, 2], [3, 4]]
-
-        # ratios with the max value of the array
-        >>> scale_by_stdscore(mtx)
-        array([[-1.34164079, -0.4472136 ],
-               [ 0.4472136 ,  1.34164079]])
-
-        # ratios with the max value of the arr by column
-        >>> scale_by_stdscore(mtx, axis=0)
-        array([[-1., -1.],
-               [ 1.,  1.]])
-
-        # ratios with the max value of the array by row
-        >>> scale_by_stdscore(mtx, axis=1)
-        array([[-1.,  1.],
-               [-1.,  1.]])
-
-    """
-    arr = np.asarray(arr, dtype=float)
-    mean = np.mean(arr, axis=axis, keepdims=True)
-    std = np.std(arr, axis=axis, keepdims=True)
-    return (arr - mean) / std
 
 
 class StandarScaler(SKCMatrixAndWeightTransformerABC):
@@ -93,15 +74,168 @@ class StandarScaler(SKCMatrixAndWeightTransformerABC):
     where `u` is the mean of the values, and `s` is the standard deviation
     of the training samples or one if `with_std=False`.
 
+    This is a thin wrapper around ``sklearn.preprocessing.StandarScaler``.
+
+    Parameters
+    ----------
+    with_mean : bool, default=True
+        If True, center the data before scaling.
+
+    with_std : bool, default=True
+        If True, scale the data to unit variance (or equivalently, unit
+        standard deviation).
+
+    """
+
+    _skcriteria_parameters = ["target", "with_mean", "with_std"]
+
+    def __init__(self, target, *, with_mean=True, with_std=True):
+        super().__init__(target)
+        self._with_mean = bool(with_mean)
+        self._with_std = bool(with_std)
+
+    @property
+    def with_mean(self):
+        """True if the features will be center before scaling."""
+        return self._with_mean
+
+    @property
+    def with_std(self):
+        """True if the features will be scaled to the unit variance."""
+        return self._with_std
+
+    def _get_scaler(self):
+        return _sklpreproc.StandardScaler(
+            with_mean=self.with_mean,
+            with_std=self.with_std,
+        )
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
+    def _transform_weights(self, weights):
+        scaler = self._get_scaler()
+        return _run_sklearn_scaler(weights, scaler)
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
+    def _transform_matrix(self, matrix):
+        scaler = self._get_scaler()
+        return _run_sklearn_scaler(matrix, scaler)
+
+
+# =============================================================================
+# MINMAX
+# =============================================================================
+
+
+class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
+    r"""Scaler based on the range.
+
+    The matrix transformation is given by::
+
+        X_std = (X - X.min(axis=0)) / (X.max(axis=0) - X.min(axis=0))
+        X_scaled = X_std * (max - min) + min
+
+    And the weight transformation::
+
+        X_std = (X - X.min(axis=None)) / (X.max(axis=None) - X.min(axis=None))
+        X_scaled = X_std * (max - min) + min
+
+    If the scaler is configured to work with 'matrix' each value
+    of each criteria is divided by the range of that criteria.
+    In other hand if is configure to work with 'weights',
+    each value of weight is divided by the range the weights.
+
+    This is a thin wrapper around ``sklearn.preprocessing.MinMaxScaler``.
+
+    Parameters
+    ----------
+    criteria_range : tuple (min, max), default=(0, 1)
+        Desired range of transformed data.
+
+    clip : bool, default=False
+        Set to True to clip transformed values of held-out data to
+        provided `criteria_range`.
+
+    """
+
+    _skcriteria_parameters = ["target", "clip", "criteria_range"]
+
+    def __init__(self, target, *, clip=False, criteria_range=(0, 1)):
+        super().__init__(target)
+        self._clip = bool(clip)
+        self._cr_min, self._cr_max = map(float, criteria_range)
+
+    @property
+    def clip(self):
+        """True if the transformed values will be clipped to held-out the \
+        value provided `criteria_range`."""
+        return self._clip
+
+    @property
+    def criteria_range(self):
+        """Range of transformed data."""
+        return (self._cr_min, self._cr_max)
+
+    def _get_scaler(self):
+        return _sklpreproc.MinMaxScaler(
+            clip=self.clip,
+            feature_range=self.criteria_range,
+        )
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
+    def _transform_weights(self, weights):
+        scaler = self._get_scaler()
+        return _run_sklearn_scaler(weights, scaler)
+
+    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
+    def _transform_matrix(self, matrix):
+        scaler = self._get_scaler()
+        return _run_sklearn_scaler(matrix, scaler)
+
+
+# =============================================================================
+# MAX
+# =============================================================================
+
+
+class MaxAbsScaler(SKCMatrixAndWeightTransformerABC):
+    r"""Scaler based on the maximum values.
+
+    If the scaler is configured to work with 'matrix' each value
+    of each criteria is divided by the maximum value of that criteria.
+    In other hand if is configure to work with 'weights',
+    each value of weight is divided by the maximum value the weights.
+
+    This estimator scales and translates each criteria individually such that
+    the maximal absolute value of each criteria in the training set will be
+    1.0. It does not shift/center the data, and thus does not destroy any
+    sparsity.
+
+    This is a thin wrapper around ``sklearn.preprocessing.MaxAbsScaler``.
+
     """
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
-        return scale_by_stdscore(weights, axis=None)
+        scaler = _sklpreproc.MaxAbsScaler()
+        return _run_sklearn_scaler(weights, scaler)
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
-        return scale_by_stdscore(matrix, axis=0)
+        scaler = _sklpreproc.MaxAbsScaler()
+        return _run_sklearn_scaler(matrix, scaler)
+
+
+@deprecated(
+    reason="Use ``skcriteria.preprocessing.scalers.MaxAbsScaler`` instead",
+    version=0.8,
+)
+class MaxScaler(MaxAbsScaler):
+    r"""Scaler based on the maximum values.
+
+    From skcriteria >= 0.8 this is a thin wrapper around
+    ``sklearn.preprocessing.MaxAbsScaler``.
+
+    """
 
 
 # =============================================================================
@@ -188,88 +322,6 @@ class VectorScaler(SKCMatrixAndWeightTransformerABC):
 
 
 # =============================================================================
-# MINMAX
-# =============================================================================
-
-
-def scale_by_minmax(arr, axis=None):
-    r"""Fraction of the range normalizer.
-
-    Subtracts to each value of the array the minimum and then divides
-    it by the total range.
-
-    .. math::
-
-        \overline{X}_{ij} =
-        \frac{X_{ij} - \min{X_{ij}}}{\max_{X_{ij}} - \min_{X_{ij}}}
-
-    Parameters
-    ----------
-    arr: :py:class:`numpy.ndarray` like.
-        A array with values
-    axis : :py:class:`int` optional
-        Axis along which to operate.  By default, flattened input is used.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        array of ratios
-
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria.preprocess import scale_by_minmax
-        >>> mtx = [[1, 2], [3, 4]]
-
-        # ratios with the range of the array
-        >>> scale_by_minmax(mtx)
-        array([[0.        , 0.33333333],
-               [0.66666667, 1.        ]])
-
-        # ratios with the range by column
-        >>> scale_by_minmax(mtx, axis=0)
-        array([[0., 0.],
-               [1., 1.]])
-
-        # ratios with the range by row
-        >>> scale_by_minmax(mtx, axis=1)
-        array([[0., 1.],
-              [0., 1.]])
-
-    """
-    arr = np.asarray(arr, dtype=float)
-    minval = np.min(arr, axis=axis, keepdims=True)
-    maxval = np.max(arr, axis=axis, keepdims=True)
-    return (arr - minval) / (maxval - minval)
-
-
-class MinMaxScaler(SKCMatrixAndWeightTransformerABC):
-    r"""Scaler based on the range.
-
-    .. math::
-
-        \overline{X}_{ij} =
-        \frac{X_{ij} - \min{X_{ij}}}{\max_{X_{ij}} - \min_{X_{ij}}}
-
-    If the scaler is configured to work with 'matrix' each value
-    of each criteria is divided by the range of that criteria.
-    In other hand if is configure to work with 'weights',
-    each value of weight is divided by the range the weights.
-
-    """
-
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
-    def _transform_weights(self, weights):
-        return scale_by_minmax(weights, axis=None)
-
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
-    def _transform_matrix(self, matrix):
-        return scale_by_minmax(matrix, axis=0)
-
-
-# =============================================================================
 # SUM
 # =============================================================================
 
@@ -345,75 +397,77 @@ class SumScaler(SKCMatrixAndWeightTransformerABC):
 
 
 # =============================================================================
-# MAX
+# CENIT DISTANCE
 # =============================================================================
 
 
-def scale_by_max(arr, axis=None):
-    r"""Divide of every value on the array by max value along an axis.
+def matrix_scale_by_cenit_distance(matrix, objectives):
+    r"""Calculate a scores with respect to an ideal and anti-ideal alternative.
+
+    For every criterion :math:`f` of this multicriteria problem we define a
+    membership function :math:`x_j` mapping the values of :math:`f_j` to the
+    interval [0, 1].
+
+    The result score :math:`x_{aj}`expresses the degree to which the
+    alternative  :math:`a` is close to the ideal value :math:`f_{j}^*`, which
+    is the best performance in criterion , and  far from the anti-ideal value
+    :math:`f_{j^*}`, which is the worst performance in  criterion :math:`j`.
+    Both ideal and anti-ideal, are achieved by at least one of the alternatives
+    under consideration.
 
     .. math::
 
-        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
+        x_{aj} = \frac{f_j(a) - f_{j^*}}{f_{j}^* - f_{j^*}}
 
-    Parameters
+    """
+    matrix = np.asarray(matrix, dtype=float)
+
+    maxs = np.max(matrix, axis=0)
+    mins = np.min(matrix, axis=0)
+
+    where_max = np.equal(objectives, Objective.MAX.value)
+
+    cenit = np.where(where_max, maxs, mins)
+    nadir = np.where(where_max, mins, maxs)
+
+    return (matrix - nadir) / (cenit - nadir)
+
+
+class CenitDistanceMatrixScaler(SKCTransformerABC):
+    r"""Relative scores with respect to an ideal and anti-ideal alternative.
+
+    For every criterion :math:`f` of this multicriteria problem we define a
+    membership function :math:`x_j` mapping the values of :math:`f_j` to the
+    interval [0, 1].
+
+    The result score :math:`x_{aj}`expresses the degree to which the
+    alternative  :math:`a` is close to the ideal value :math:`f_{j}^*`, which
+    is the best performance in criterion , and  far from the anti-ideal value
+    :math:`f_{j^*}`, which is the worst performance in  criterion :math:`j`.
+    Both ideal and anti-ideal, are achieved by at least one of the alternatives
+    under consideration.
+
+    .. math::
+
+        x_{aj} = \frac{f_j(a) - f_{j^*}}{f_{j}^* - f_{j^*}}
+
+
+    References
     ----------
-    arr: :py:class:`numpy.ndarray` like.
-        A array with values
-    axis : :py:class:`int` optional
-        Axis along which to operate.  By default, flattened input is used.
-
-    Returns
-    -------
-    :py:class:`numpy.ndarray`
-        array of ratios
-
-    Examples
-    --------
-    .. code-block:: pycon
-
-        >>> from skcriteria.preprocess import scale_by_max
-        >>> mtx = [[1, 2], [3, 4]]
-
-        # ratios with the max value of the array
-        >>> scale_by_max(mtx)
-        array([[ 0.25,  0.5 ],
-               [ 0.75,  1.  ]])
-
-        # ratios with the max value of the arr by column
-        >>> scale_by_max(mtx, axis=0)
-        array([[ 0.33333334,  0.5],
-               [ 1.        ,  1. ]])
-
-        # ratios with the max value of the array by row
-        >>> scale_by_max(mtx, axis=1)
-        array([[ 0.5 ,  1.],
-               [ 0.75,  1.]])
-
-    """
-    arr = np.asarray(arr, dtype=float)
-    maxval = np.max(arr, axis=axis, keepdims=True)
-    return arr / maxval
-
-
-class MaxScaler(SKCMatrixAndWeightTransformerABC):
-    r"""Scaler based on the maximum values.
-
-    .. math::
-
-        \overline{X}_{ij} = \frac{X_{ij}}{\max_{X_{ij}}}
-
-    If the scaler is configured to work with 'matrix' each value
-    of each criteria is divided by the maximum value of that criteria.
-    In other hand if is configure to work with 'weights',
-    each value of weight is divided by the maximum value the weights.
+    :cite:p:`diakoulaki1995determining`
 
     """
 
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
-    def _transform_weights(self, weights):
-        return scale_by_max(weights, axis=None)
+    _skcriteria_parameters = []
 
-    @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
-    def _transform_matrix(self, matrix):
-        return scale_by_max(matrix, axis=0)
+    @doc_inherit(SKCTransformerABC._transform_data)
+    def _transform_data(self, matrix, objectives, **kwargs):
+
+        distance_mtx = matrix_scale_by_cenit_distance(matrix, objectives)
+
+        dtypes = np.full(np.shape(objectives), float)
+
+        kwargs.update(
+            matrix=distance_mtx, objectives=objectives, dtypes=dtypes
+        )
+        return kwargs

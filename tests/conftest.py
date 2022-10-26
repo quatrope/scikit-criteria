@@ -45,12 +45,14 @@ MINS_O_ALIAS = list(core.Objective._MIN_ALIASES.value)
 @pytest.fixture(scope="session")
 def data_values():
     def make(
+        *,
         seed=None,
         min_alternatives=3,
         max_alternatives=10,
         min_criteria=3,
         max_criteria=10,
         min_objectives_proportion=0.5,
+        nan_proportion=0,
     ):
 
         # start the random generator
@@ -71,9 +73,15 @@ def data_values():
         # create the data matrix with rows = alt and columns = crit
         mtx = random.random((alternatives_number, criteria_number))
 
-        # determine the number of minimize objectives bases on the proportion
-        # of the total number of criteria, and the maximize is the complement
+        # if we have a nan ratio >0 of nan we have to add them randomly
+        # in the matrix
+        if nan_proportion:
+            nan_number = round(mtx.size * float(nan_proportion))
+            nan_positions = random.choice(mtx.size, nan_number, replace=False)
+            mtx.ravel()[nan_positions] = np.nan
 
+        # determine the number of minimize objectives based on the proportion
+        # of the total number of criteria, and the maximize is the complement
         min_objectives_number = round(
             criteria_number * min_objectives_proportion
         )
@@ -118,9 +126,9 @@ def data_values():
 @pytest.fixture(scope="session")
 def decision_matrix(data_values):
     @functools.wraps(data_values)
-    def make(*args, **kwargs):
+    def make(**kwargs):
         mtx, objectives, weights, alternatives, criteria = data_values(
-            *args, **kwargs
+            **kwargs
         )
 
         dm = core.mkdm(

@@ -29,6 +29,18 @@
 .. toctree::
    :maxdepth: 2
 
+   cmp/index
+
+
+.. toctree::
+   :maxdepth: 2
+
+   datasets/index
+
+
+.. toctree::
+   :maxdepth: 2
+
    pipeline
 
 

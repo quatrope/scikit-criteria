@@ -9,7 +9,7 @@ on:
 
 jobs:
   testing:
-    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@991bafd28ebc638429e2fcd2c69d7cb9722209ea
+    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@acc77ab49cec6a541095b1ea46c84e2b16174990
 
   deploy:
     needs: testing
@@ -25,11 +25,11 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install setuptools wheel twine
+        pip install setuptools wheel twine build
     - name: Build and publish
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       run: |
-        python setup.py sdist
+        python -m build --sdist --wheel
         twine upload dist/*

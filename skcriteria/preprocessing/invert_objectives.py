@@ -19,7 +19,8 @@ maximization ones."""
 
 import numpy as np
 
-from ..core import Objective, SKCTransformerABC
+from ._preprocessing_base import SKCTransformerABC
+from ..core import Objective
 from ..utils import deprecated, doc_inherit
 
 
@@ -133,7 +134,10 @@ class InvertMinimize(SKCObjectivesInverterABC):
 # DEPRECATED
 # =============================================================================
 @deprecated(
-    reason="Use 'skcriteria.preprocessing.InvertMinimize' instead",
+    reason=(
+        "Use ``skcriteria.preprocessing.invert_objectives.InvertMinimize`` "
+        "instead"
+    ),
     version=0.7,
 )
 class MinimizeToMaximize(InvertMinimize):

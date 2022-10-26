@@ -22,7 +22,8 @@ import numpy as np
 
 import skcriteria
 from skcriteria.preprocessing.scalers import (
-    MaxScaler,
+    CenitDistanceMatrixScaler,
+    MaxAbsScaler,
     MinMaxScaler,
     StandarScaler,
     SumScaler,
@@ -56,7 +57,7 @@ def test_MinMaxScaler_simple_matrix():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_matrix(decision_matrix):
@@ -86,7 +87,7 @@ def test_MinMaxScaler_matrix(decision_matrix):
     scaler = MinMaxScaler(target="matrix")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_simple_weights():
@@ -108,7 +109,7 @@ def test_MinMaxScaler_simple_weights():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_weights(decision_matrix):
@@ -135,7 +136,7 @@ def test_MinMaxScaler_weights(decision_matrix):
     scaler = MinMaxScaler(target="weights")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_simple_both():
@@ -160,7 +161,7 @@ def test_MinMaxScaler_simple_both():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_both(decision_matrix):
@@ -191,7 +192,7 @@ def test_MinMaxScaler_both(decision_matrix):
     scaler = MinMaxScaler(target="both")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    assert result.aequals(expected)
 
 
 def test_MinMaxScaler_no_change_original_dm(decision_matrix):
@@ -756,7 +757,7 @@ def test_SumScaler_no_change_original_dm(decision_matrix):
 # =============================================================================
 
 
-def test_MaxScaler_simple_matrix():
+def test_MaxAbsScaler_simple_matrix():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -771,14 +772,14 @@ def test_MaxScaler_simple_matrix():
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(target="matrix")
+    scaler = MaxAbsScaler(target="matrix")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_matrix(decision_matrix):
+def test_MaxAbsScaler_matrix(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -799,13 +800,13 @@ def test_MaxScaler_matrix(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="matrix")
+    scaler = MaxAbsScaler(target="matrix")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_simple_weights():
+def test_MaxAbsScaler_simple_weights():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -820,14 +821,14 @@ def test_MaxScaler_simple_weights():
         dtypes=[int, int, int],
     )
 
-    scaler = MaxScaler(target="weights")
+    scaler = MaxAbsScaler(target="weights")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_weights(decision_matrix):
+def test_MaxAbsScaler_weights(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -847,13 +848,13 @@ def test_MaxScaler_weights(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="weights")
+    scaler = MaxAbsScaler(target="weights")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_simple_both():
+def test_MaxAbsScaler_simple_both():
 
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -868,14 +869,14 @@ def test_MaxScaler_simple_both():
         dtypes=[float, float, float],
     )
 
-    scaler = MaxScaler(target="both")
+    scaler = MaxAbsScaler(target="both")
 
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_both(decision_matrix):
+def test_MaxAbsScaler_both(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -896,13 +897,13 @@ def test_MaxScaler_both(decision_matrix):
         dtypes=dm.dtypes,
     )
 
-    scaler = MaxScaler(target="both")
+    scaler = MaxAbsScaler(target="both")
     result = scaler.transform(dm)
 
     assert result.equals(expected)
 
 
-def test_MaxScaler_no_change_original_dm(decision_matrix):
+def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
 
     dm = decision_matrix(
         seed=42,
@@ -915,8 +916,91 @@ def test_MaxScaler_no_change_original_dm(decision_matrix):
 
     expected = dm.copy()
 
-    scaler = MaxScaler(target="both")
+    scaler = MaxAbsScaler(target="both")
     dmt = scaler.transform(dm)
+
+    assert (
+        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
+    )
+
+
+def test_CenitDistanceMatrixScaler_simple_matrix():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[min, max, min],
+        weights=[1, 2, 0],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[[-0.0, 0.0, 1.0], [1.0, 1.0, -0.0]],
+        objectives=[min, max, min],
+        weights=[1, 2, 0],
+    )
+
+    tfm = CenitDistanceMatrixScaler()
+
+    result = tfm.transform(dm)
+
+    assert result.equals(expected)
+
+
+def test_CenitDistanceMatrixScaler_diakoulaki1995determining():
+    """
+    Data from:
+        Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
+        Determining objective weights in multiple criteria problems:
+        The critic method. Computers & Operations Research, 22(7), 763-770.
+    """
+
+    dm = skcriteria.mkdm(
+        matrix=[
+            [61, 1.08, 4.33],
+            [20.7, 0.26, 4.34],
+            [16.3, 1.98, 2.53],
+            [9, 3.29, 1.65],
+            [5.4, 2.77, 2.33],
+            [4, 4.12, 1.21],
+            [-6.1, 3.52, 2.10],
+            [-34.6, 3.31, 0.98],
+        ],
+        objectives=[max, max, max],
+        weights=[61, 1.08, 4.33],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[
+            [1.0, 0.21243523, 0.99702381],
+            [0.57845188, 0.0, 1.0],
+            [0.53242678, 0.44559585, 0.46130952],
+            [0.45606695, 0.78497409, 0.19940476],
+            [0.41841004, 0.65025907, 0.40178571],
+            [0.40376569, 1.0, 0.06845238],
+            [0.29811715, 0.84455959, 0.33333333],
+            [0.0, 0.79015544, 0.0],
+        ],
+        objectives=[max, max, max],
+        weights=[61, 1.08, 4.33],
+    )
+
+    tfm = CenitDistanceMatrixScaler()
+    result = tfm.transform(dm)
+
+    assert result.aequals(expected)
+
+
+def test_CenitDistanceMatrixScaler_no_change_original_dm():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[min, max, min],
+        weights=[1, 2, 0],
+    )
+
+    expected = dm.copy()
+
+    tfm = CenitDistanceMatrixScaler()
+    dmt = tfm.transform(dm)
 
     assert (
         dm.equals(expected) and not dmt.equals(expected) and dm is not expected

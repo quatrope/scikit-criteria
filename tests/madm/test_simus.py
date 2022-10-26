@@ -64,7 +64,7 @@ def test_SIMUS_munier24metodo():
     ranker = SIMUS()
     result = ranker.evaluate(dm, b=b)
 
-    assert result.equals(expected)
+    assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.all(result.e_.b == b)
     assert np.all(result.e_.rank_by == expected.e_.rank_by)

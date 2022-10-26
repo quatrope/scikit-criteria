@@ -18,7 +18,7 @@
 
 import numpy as np
 
-from ._base import RankResult, SKCDecisionMakerABC
+from ._madm_base import RankResult, SKCDecisionMakerABC
 from ..core import Objective
 from ..utils import doc_inherit, rank
 
@@ -85,6 +85,8 @@ class WeightedSumModel(SKCDecisionMakerABC):
             raise ValueError(
                 "WeightedSumModel can't operate with minimize objective"
             )
+        if np.any(matrix < 0):
+            raise ValueError("WeightedSumModel can't operate with values < 0")
 
         rank, score = wsm(matrix, weights)
         return rank, {"score": score}
