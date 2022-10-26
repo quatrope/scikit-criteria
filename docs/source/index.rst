@@ -38,7 +38,7 @@ Contents
 
 .. toctree::
     :maxdepth: 1
-    :caption: -Tutorials
+    :caption: Tutorials
 
     install
     tutorial/index
