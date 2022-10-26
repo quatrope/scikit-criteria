@@ -12,7 +12,6 @@
 .. image:: _static/logo_medium.png
     :align: center
     :scale: 100 %
-|
 
 ----
 
