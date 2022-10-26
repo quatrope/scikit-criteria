@@ -46,11 +46,11 @@ span.deprecated {
     color: var(--deprecated) !important;
 }
 
-
-/* remove the title of the first page */
-
-section#scikit-criteria-documentation>h1:nth-child(1) {
-    display: none;
+.version {
+    text-align: center;
+    font-weight: bold;
+    font-size: large;
+    color: var(--navbar-header-bg);
 }
 
 

@@ -3,12 +3,24 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Scikit-Criteria Documentation
-=============================
+.. meta::
+   :keywords: muticriteria, mcda, mcdm, weightedsum, weightedproduct, simus, topsis, moora, electre, critic, entropy, dominance
+
+.. title:: Scikit-Criteria Documentation
+
 
 .. image:: _static/logo_medium.png
     :align: center
     :scale: 100 %
+|
+
+----
+
+.. rst-class:: version
+
+Ver. |version|
+
+----
 
 |
 
