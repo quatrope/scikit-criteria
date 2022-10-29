@@ -27,6 +27,7 @@ import pandas as pd
 
 import pytest
 
+import skcriteria as skc
 from skcriteria.core import data, dominance
 
 # =============================================================================
@@ -148,6 +149,30 @@ def test_DecisionMatrixDominanceAccessor_eq():
 
     pd.testing.assert_frame_equal(dom.eq(), expected)
     pd.testing.assert_frame_equal(dm.dominance.eq(), expected)
+
+
+def test_DecisionMatrixDominanceAccessor_eq_simple_stock_selection():
+    dm = skc.datasets.load_simple_stock_selection()
+    dom = dominance.DecisionMatrixDominanceAccessor(dm)
+
+    expected = pd.DataFrame(
+        [
+            [3, 0, 0, 0, 0, 0],
+            [0, 3, 1, 1, 0, 1],
+            [0, 1, 3, 0, 0, 1],
+            [0, 1, 0, 3, 0, 0],
+            [0, 0, 0, 0, 3, 1],
+            [0, 1, 1, 0, 1, 3],
+        ],
+        index=["PE", "JN", "AA", "FX", "MM", "GN"],
+        columns=["PE", "JN", "AA", "FX", "MM", "GN"],
+    )
+    expected.index.name = "Equals to"
+    expected.columns.name = "Equals to"
+
+    pd.testing.assert_frame_equal(dom.eq(), expected)
+    pd.testing.assert_frame_equal(dm.dominance.eq(), expected)
+
 
 
 # =============================================================================

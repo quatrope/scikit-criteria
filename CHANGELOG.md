@@ -75,7 +75,7 @@
 
   - `RankingResult.has_ties_` to see if there are tied values.
   - `RankingResult.ties_` to see how often values are repeated.
-  - `RankingResult.untided_rank_` to get a ranking with no repeated values.
+  - `RankingResult.untied_rank_` to get a ranking with no repeated values.
       repeated values.
 - `KernelResult` now implements several new properties:
 

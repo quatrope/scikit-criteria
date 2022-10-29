@@ -136,11 +136,11 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             and column alternatives are equal.
 
         """
-        alternatives_len = len(self._dm.alternatives)
+        criteria_len = len(self._dm.criteria)
 
         def compute_cell(a0, a1):
             if a0 == a1:
-                return alternatives_len
+                return criteria_len
             centry, _ = self._cache_read(a0, a1)
             return centry.eq
 
