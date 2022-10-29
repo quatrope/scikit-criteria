@@ -11,10 +11,10 @@
 
 - **New** DecisionMatrix now can be sliced with a syntax similar of the
   pandas.DataFrame.
-  - `dm["c0"]` cut the $c0$ criteria.
-  - `dm[["c0", "c2"]` cut the criteria $c0$ and $c2$.
-  - `dm.loc["a0"]` cut the alternative $a0$.
-  - `dm.loc[["a0", "a1"]]` cut the alternatives $a0$ and $a1$.
+  - `dm["c0"]` cut the *c0* criteria.
+  - `dm[["c0", "c2"]` cut the criteria *c0* and *c2*.
+  - `dm.loc["a0"]` cut the alternative *a0*.
+  - `dm.loc[["a0", "a1"]]` cut the alternatives *a0* and *a1*.
   - `dm.iloc[0:3]` cuts from the first to the third alternative.
 
 - **New** imputation methods for replacing missing data with substituted
@@ -47,14 +47,14 @@
 
 - Two method of the `Objective` enum was deprecated and replaced:
 
-  - `Objective.construct_from_alias()` `->` `Objective.from_alias()` (classmethod)
-  - `Objective.to_string()` `->` `Objective.to_symbol()'`
+  - `Objective.construct_from_alias()` `->` `Objective.from_alias()` (*classmethod*)
+  - `Objective.to_string()` `->` `Objective.to_symbol()`
 
   The deprecated methods will be removed in version *1.0*.
 
 - Add a dominance plot `DecisionMatrix.plot.dominance()`.
 
-- `WeightedSumModel` raises a `ValueError` when some value $< 0$.
+- `WeightedSumModel` raises a `ValueError` when some value *< 0*.
 
 - Moved internal modules
   - `skcriteria.core.methods.SKCTransformerABC` `->`
