@@ -725,15 +725,15 @@ class DecisionMatrix:
         self, only=None, fmt="{criteria}[{objective}{weight}]"
     ):
         """Columns names with COW (Criteria, Objective, Weight)."""
-        criteria = self._data_df.columns
+        criteria = self._data_df.columns.to_series()
         objectives = self.objectives
         weights = self.weights
 
         if only:
             mask = self._data_df.columns.isin(only)
-            criteria = criteria[mask]
-            objectives = objectives[mask]
-            weights = weights[mask]
+            criteria = criteria[mask][only]
+            objectives = objectives[mask][only]
+            weights = weights[mask][only]
 
         weights = pd_fmt.format_array(weights, None)
 

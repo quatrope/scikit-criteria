@@ -566,6 +566,26 @@ def test_DecisionMatrix_iloc():
 # =============================================================================
 
 
+def test_mkdm__get_cow_headers():
+    dm = data.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[0.1, 0.2, 0.3],
+        criteria="A B C".split(),
+    )
+
+    expected = ["A[▼ 0.1]", "B[▲ 0.2]", "C[▼ 0.3]"]
+    cow_headers = dm._get_cow_headers()
+    np.testing.assert_array_equal(cow_headers, expected)
+
+    expected = [
+        "B[▲ 0.2]",
+        "A[▼ 0.1]",
+    ]
+    cow_headers = dm._get_cow_headers(only=["B", "A"])
+    np.testing.assert_array_equal(cow_headers, expected)
+
+
 def test_mkdm_simple_repr():
 
     dm = data.mkdm(

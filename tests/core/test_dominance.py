@@ -174,7 +174,6 @@ def test_DecisionMatrixDominanceAccessor_eq_simple_stock_selection():
     pd.testing.assert_frame_equal(dm.dominance.eq(), expected)
 
 
-
 # =============================================================================
 # COMPARE
 # =============================================================================
