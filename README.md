@@ -10,11 +10,11 @@
 [![Gihub Actions CI](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml/badge.svg)](https://github.com/quatrope/scikit-criteria/actions/workflows/CI.yml)
 [![Documentation Status](https://readthedocs.org/projects/scikit-criteria/badge/?version=latest&style=flat)](http://scikit-criteria.readthedocs.io)
 [![PyPI](https://img.shields.io/pypi/v/scikit-criteria)](https://pypi.org/project/scikit-criteria/)
-![PyPI - Downloads](https://img.shields.io/pypi/dw/scikit-criteria?label=PyPi%20Downloads)
+[![PyPI - Downloads](https://img.shields.io/pypi/dw/scikit-criteria?label=PyPi%20Downloads)](https://pypistats.org/packages/scikit-criteria)
 [![Conda Forge](https://anaconda.org/conda-forge/scikit-criteria/badges/version.svg)](https://anaconda.org/conda-forge/scikit-criteria)
 ![Conda](https://img.shields.io/conda/dn/conda-forge/scikit-criteria?label=Conda-Forge%20downloads)
 [![License](https://img.shields.io/pypi/l/uttrs?color=blue)](https://www.tldrlegal.com/l/bsd3)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://badge.fury.io/py/uttrs)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://badge.fury.io/py/scikit-criteria)
 
 
 
