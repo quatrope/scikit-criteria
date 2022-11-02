@@ -1,6 +1,11 @@
 # Changelog of Scikit-Criteria
 
 <!-- BODY -->
+## Version 0.8.2
+
+- We bring back Python 3.7 because is the version used in google.colab.
+- Bugfixes in `plot.frontier` and `dominance.eq`.
+
 
 ## Version 0.8
 
