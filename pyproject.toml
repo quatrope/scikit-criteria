@@ -66,6 +66,7 @@ dependencies = [
     "Deprecated",
     "scikit-learn",
     "matplotlib!=3.6.1",
+    "importlib_metadata",
 ]
 
 [tool.setuptools]
