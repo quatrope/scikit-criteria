@@ -332,7 +332,7 @@ class DecisionMatrix:
         return cls(data_df=data_df, objectives=objectives, weights=weights)
 
     # MCDA ====================================================================
-    #     This properties are usefull to access interactively to the
+    #     This properties are useful to access interactively to the
     #     underlying data a. Except for alternatives and criteria all other
     #     properties expose the data as dataframes or series
 
@@ -746,7 +746,7 @@ class DecisionMatrix:
         return np.array(headers)
 
     def _get_axc_dimensions(self):
-        """Dimension foote with AxC (Alternativs x Criteria)."""
+        """Dimension footnote with AxC (Alternatives x Criteria)."""
         a_number, c_number = self.shape
         dimensions = f"{a_number} Alternatives x {c_number} Criteria"
         return dimensions
