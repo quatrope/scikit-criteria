@@ -1,6 +1,12 @@
 # Changelog of Scikit-Criteria
 
 <!-- BODY -->
+
+## Version 0.8.3
+
+- Fixed a bug detected on the EntropyWeighted, Now works as the literature
+  specifies
+
 ## Version 0.8.2
 
 - We bring back Python 3.7 because is the version used in google.colab.

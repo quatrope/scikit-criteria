@@ -215,12 +215,12 @@ def test_EntropyWeighter_simple_matrix():
     expected = skcriteria.mkdm(
         matrix=[[1, 2], [4, 16]],
         objectives=[min, max],
-        weights=[0.589239, 0.410761],
+        weights=[0.358889, 0.641111],
     )
 
     weighter = EntropyWeighter()
-
     result = weighter.transform(dm)
+
     assert result.aequals(expected, atol=1e-5)
 
 
@@ -235,7 +235,7 @@ def test_EntropyWeighter(decision_matrix):
         min_objectives_proportion=0.5,
     )
 
-    entropy = scipy.stats.entropy(dm.matrix, axis=0)
+    entropy = 1 - scipy.stats.entropy(dm.matrix, base=10, axis=0)
 
     expected = skcriteria.mkdm(
         matrix=dm.matrix,
@@ -250,6 +250,28 @@ def test_EntropyWeighter(decision_matrix):
     result = weighter.transform(dm)
 
     assert result.equals(expected)
+
+
+def test_EntropyWeighter_less_predictable_more_weight():
+
+    dm = skcriteria.mkdm(
+        [
+            [1, 20, 300],
+            [1, 20, 400],
+            [1, 30, 500],
+            [1, 30, 600],
+            [1, 40, 700],
+            [1, 40, 800],
+        ],
+        objectives=[max, max, max],
+        criteria="C0 C1 C2".split(),
+    )
+
+    weighter = EntropyWeighter()
+    result = weighter.transform(dm)
+
+    assert result.weights["C0"] < result.weights["C1"]
+    assert result.weights["C1"] < result.weights["C2"]
 
 
 # =============================================================================
