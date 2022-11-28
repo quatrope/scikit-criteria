@@ -11,6 +11,7 @@ Contents:
 
    quickstart.ipynb
    sufdom.ipynb
+   rankcmp.ipynb
 
 
 
