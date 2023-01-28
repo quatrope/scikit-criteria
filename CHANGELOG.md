@@ -4,6 +4,7 @@
 
 ## Version 0.9
 
+- Add support for Python 3.11
 - Removed Python 3.7. Google collab now work with 3.8.
 - Updated Scikit-Learn to 1.2.
 
