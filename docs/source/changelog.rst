@@ -4,5 +4,5 @@
 Changelog
 ==========================
 
-.. Here we render the CHANGELOG.md of the repository as a main page
+.. Here we render the CHANGELOG.md of the repository
 .. include:: _dynamic/CHANGELOG.rst
