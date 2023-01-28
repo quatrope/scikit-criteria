@@ -154,7 +154,7 @@ class SimpleImputer(SKCImputerABC):
 
     @property
     def keep_empty_features(self):
-        """If True, criteria that consist exclusively of missing values when
+        """If True, criteria that consist exclusively of missing values when \
         `fit` is called are returned in results when `transform` is called."""
         return self._keep_empty_features
 
@@ -200,14 +200,17 @@ class IterativeImputer(SKCImputerABC):
         The estimator to use at each step of the round-robin imputation.
         If `sample_posterior=True`, the estimator must support
         `return_std` in its `predict` method.
+
     missing_values : int or np.nan, default=np.nan
         The placeholder for the missing values. All occurrences of
         `missing_values` will be imputed.
+
     sample_posterior : bool, default=False
         Whether to sample from the (Gaussian) predictive posterior of the
         fitted estimator for each imputation. Estimator must support
         `return_std` in its `predict` method if set to `True`. Set to
         `True` if using `IterativeImputer` for multiple imputations.
+
     max_iter : int, default=10
         Maximum number of imputation rounds to perform before returning the
         imputations computed during the final round. A round is a single
@@ -215,8 +218,10 @@ class IterativeImputer(SKCImputerABC):
         is met once `max(abs(X_t - X_{t-1}))/max(abs(X[known_vals])) < tol`,
         where `X_t` is `X` at iteration `t`. Note that early stopping is only
         applied if `sample_posterior=False`.
+
     tol : float, default=1e-3
         Tolerance of the stopping condition.
+
     n_nearest_criteria : int, default=None
         Number of other criteria to use to estimate the missing values of
         each criteria column. Nearness between criteria is measured using
@@ -226,10 +231,12 @@ class IterativeImputer(SKCImputerABC):
         but are drawn with probability proportional to correlation for each
         imputed target criteria. Can provide significant speed-up when the
         number of criteria is huge. If `None`, all criteria will be used.
+
     initial_strategy : {'mean', 'median', 'most_frequent', 'constant'}, \
             default='mean'
         Which strategy to use to initialize the missing values. Same as the
         `strategy` parameter in :class:`~sklearn.impute.SimpleImputer`.
+
     imputation_order : {'ascending', 'descending', 'roman', 'arabic', \
             'random'}, default='ascending'
         The order in which the criteria will be imputed. Possible values:
@@ -244,19 +251,30 @@ class IterativeImputer(SKCImputerABC):
         Minimum possible imputed value. Broadcast to shape `(n_criteria,)` if
         scalar. If array-like, expects shape `(n_criteria,)`, one min value for
         each criteria. The default is `-np.inf`.
+
     max_value : float or array-like of shape (n_criteria,), default=np.inf
         Maximum possible imputed value. Broadcast to shape `(n_criteria,)` if
         scalar. If array-like, expects shape `(n_criteria,)`, one max value for
         each criteria. The default is `np.inf`.
+
     verbose : int, default=0
         Verbosity flag, controls the debug messages that are issued
         as functions are evaluated. The higher, the more verbose. Can be 0, 1,
         or 2.
+
     random_state : int, RandomState instance or None, default=None
         The seed of the pseudo random number generator to use. Randomizes
         selection of estimator criteria if `n_nearest_criteria` is not `None`,
         the `imputation_order` if `random`, and the sampling from posterior if
         `sample_posterior=True`. Use an integer for determinism.
+
+    keep_empty_features : bool, default=False
+        If True, criteria that consist exclusively of missing values when
+        `fit` is called are returned in results when `transform` is called.
+        The imputed value is always `0` except when `strategy="constant"`
+        in which case `fill_value` will be used instead.
+
+        .. versionadded:: 0.9
 
     """
 
@@ -273,6 +291,7 @@ class IterativeImputer(SKCImputerABC):
         "max_value",
         "verbose",
         "random_state",
+        "keep_empty_features",
     ]
 
     def __init__(
@@ -291,6 +310,7 @@ class IterativeImputer(SKCImputerABC):
         max_value=np.inf,
         verbose=0,
         random_state=None,
+        keep_empty_features=False,
     ):
         self._estimator = estimator
         self._missing_values = missing_values
@@ -305,6 +325,7 @@ class IterativeImputer(SKCImputerABC):
         self._max_value = max_value
         self._verbose = verbose
         self._random_state = random_state
+        self._keep_empty_features = keep_empty_features
 
     # PROPERTIES ==============================================================
 
@@ -371,6 +392,12 @@ class IterativeImputer(SKCImputerABC):
         """The seed of the pseudo random number generator to use."""
         return self._random_state
 
+    @property
+    def keep_empty_features(self):
+        """If True, criteria that consist exclusively of missing values when \
+        `fit` is called are returned in results when `transform` is called."""
+        return self._keep_empty_features
+
     # THE IMPUTATION LOGIC ====================================================
 
     @doc_inherit(SKCImputerABC._impute)
@@ -385,11 +412,12 @@ class IterativeImputer(SKCImputerABC):
             n_nearest_features=self._n_nearest_criteria,
             initial_strategy=self._initial_strategy,
             imputation_order=self._imputation_order,
-            skip_complete=False,  # is
+            skip_complete=False,
             min_value=self._min_value,
             max_value=self._max_value,
             verbose=self._verbose,
             random_state=self._random_state,
+            keep_empty_features=self._keep_empty_features,
         )
         imputed_matrix = imputer.fit_transform(matrix)
         return imputed_matrix
@@ -439,6 +467,14 @@ class KNNImputer(SKCImputerABC):
           accepts two arrays, X and Y, and a `missing_values` keyword in
           `kwds` and returns a scalar distance value.
 
+    keep_empty_features : bool, default=False
+        If True, criteria that consist exclusively of missing values when
+        `fit` is called are returned in results when `transform` is called.
+        The imputed value is always `0` except when `strategy="constant"`
+        in which case `fill_value` will be used instead.
+
+        .. versionadded:: 0.9
+
     """
 
     _skcriteria_parameters = [
@@ -446,6 +482,7 @@ class KNNImputer(SKCImputerABC):
         "n_neighbors",
         "weights",
         "metric",
+        "keep_empty_features",
     ]
 
     def __init__(
@@ -455,11 +492,13 @@ class KNNImputer(SKCImputerABC):
         n_neighbors=5,
         weights="uniform",
         metric="nan_euclidean",
+        keep_empty_features=False,
     ):
         self._missing_values = missing_values
         self._n_neighbors = n_neighbors
         self._weights = weights
         self._metric = metric
+        self._keep_empty_features = keep_empty_features
 
     # PROPERTIES ==============================================================
 
@@ -483,6 +522,12 @@ class KNNImputer(SKCImputerABC):
         """Distance metric for searching neighbors."""
         return self._metric
 
+    @property
+    def keep_empty_features(self):
+        """If True, criteria that consist exclusively of missing values when \
+        `fit` is called are returned in results when `transform` is called."""
+        return self._keep_empty_features
+
     # THE IMPUTATION LOGIC ====================================================
 
     @doc_inherit(SKCImputerABC._impute)
@@ -492,6 +537,7 @@ class KNNImputer(SKCImputerABC):
             n_neighbors=self._n_neighbors,
             weights=self._weights,
             metric=self._metric,
+            keep_empty_features=self._keep_empty_features,
         )
         imputed_matrix = imputer.fit_transform(matrix)
         return imputed_matrix

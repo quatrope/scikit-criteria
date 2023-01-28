@@ -37,13 +37,13 @@ def unique_names(*, names, elements):
     -------
     list of tuples:
         Returns a list where each element is a tuple.
-        Each tuple contains two elements: The first is the unique name of
-        the second.
+        Each tuple contains two elements: The first element is the unique name
+        of the second is the named object.
 
     """
     # Based on sklearn.pipeline._name_estimators
     if len(names) != len(elements):
-        raise ValueError("'names' and 'elements' must has same length")
+        raise ValueError("'names' and 'elements' must have the same length")
 
     names = list(reversed(names))
     elements = list(reversed(elements))

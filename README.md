@@ -14,7 +14,7 @@
 [![Conda Forge](https://anaconda.org/conda-forge/scikit-criteria/badges/version.svg)](https://anaconda.org/conda-forge/scikit-criteria)
 ![Conda](https://img.shields.io/conda/dn/conda-forge/scikit-criteria?label=Conda-Forge%20downloads)
 [![License](https://img.shields.io/pypi/l/uttrs?color=blue)](https://www.tldrlegal.com/l/bsd3)
-[![Python 3.7+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://badge.fury.io/py/scikit-criteria)
+[![Python 3.8+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://badge.fury.io/py/scikit-criteria)
 
 
 
