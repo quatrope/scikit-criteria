@@ -83,3 +83,15 @@ span.deprecated {
 div.input_area div.highlight {
     background-color: var(--jupyter-in-cell-bg) !important;
 }
+
+blockquote {
+    border-left: .5em solid var(--secondary);
+    padding-left: .5em;
+    font-style: italic;
+}
+
+.binder-container p,
+.binder-container a,
+.binder-container a img {
+    display: inline;
+}

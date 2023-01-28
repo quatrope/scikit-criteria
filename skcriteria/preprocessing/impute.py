@@ -104,9 +104,22 @@ class SimpleImputer(SKCImputerABC):
         occurrences of missing_values.
         If left to the default, fill_value will be 0.
 
+    keep_empty_features : bool, default=False
+        If True, criteria that consist exclusively of missing values when
+        `fit` is called are returned in results when `transform` is called.
+        The imputed value is always `0` except when `strategy="constant"`
+        in which case `fill_value` will be used instead.
+
+        .. versionadded:: 0.9
+
     """
 
-    _skcriteria_parameters = ["missing_values", "strategy", "fill_value"]
+    _skcriteria_parameters = [
+        "missing_values",
+        "strategy",
+        "fill_value",
+        "keep_empty_features",
+    ]
 
     def __init__(
         self,
@@ -114,10 +127,12 @@ class SimpleImputer(SKCImputerABC):
         missing_values=np.nan,
         strategy="mean",
         fill_value=None,
+        keep_empty_features=False,
     ):
         self._missing_values = missing_values
         self._strategy = strategy
         self._fill_value = fill_value
+        self._keep_empty_features = keep_empty_features
 
     # PROPERTIES ==============================================================
 
@@ -137,6 +152,12 @@ class SimpleImputer(SKCImputerABC):
         when strategy == "constant"."""
         return self._fill_value
 
+    @property
+    def keep_empty_features(self):
+        """If True, criteria that consist exclusively of missing values when
+        `fit` is called are returned in results when `transform` is called."""
+        return self._keep_empty_features
+
     # THE IMPUTATION LOGIC ====================================================
 
     @doc_inherit(SKCImputerABC._impute)
@@ -145,6 +166,7 @@ class SimpleImputer(SKCImputerABC):
             missing_values=self._missing_values,
             strategy=self._strategy,
             fill_value=self._fill_value,
+            keep_empty_features=self._keep_empty_features,
         )
         imputed_matrix = imputer.fit_transform(matrix)
         return imputed_matrix
