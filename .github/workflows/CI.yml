@@ -13,4 +13,4 @@ env:
 
 jobs:
   testing:
-    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@403f436b266d1b33b6f3a6c95f346c229c8758f5
+    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@6db4ae6bfd66bd03d52bd82b780b30770fff3247
