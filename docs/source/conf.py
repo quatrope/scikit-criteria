@@ -95,7 +95,6 @@ nbsphinx_allow_errors = True
 
 nbsphinx_prompt_width = "0pt"
 
-cosotroco = "foo"
 nbsphinx_prolog = """
 {% set docname = "docs/source/" + env.doc2path(env.docname, base=False) %}
 {% set release = "master" %}
