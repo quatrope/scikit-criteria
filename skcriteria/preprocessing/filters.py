@@ -116,7 +116,6 @@ class SKCByCriteriaFilterABC(SKCTransformerABC):
                 criteria_filters.append(flt)
 
         if criteria_to_use:
-
             mask = self._make_mask(
                 matrix=matrix,
                 criteria=criteria,
@@ -254,7 +253,6 @@ class SKCArithmeticFilterABC(SKCByCriteriaFilterABC):
         return tuple(criteria), tuple(criteria_filters)
 
     def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
-
         idxs = np.in1d(criteria, criteria_to_use)
         matrix = matrix[:, idxs]
         mask = np.all(self._filter(matrix, criteria_filters), axis=1)
@@ -669,7 +667,6 @@ class FilterNonDominated(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, alternatives, dominated_mask, **kwargs):
-
         filtered_matrix = matrix[~dominated_mask]
         filtered_alternatives = alternatives[~dominated_mask]
 
@@ -681,7 +678,6 @@ class FilterNonDominated(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC.transform)
     def transform(self, dm):
-
         data = dm.to_dict()
         dominated_mask = dm.dominance.dominated(strict=self._strict).to_numpy()
 

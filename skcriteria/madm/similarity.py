@@ -106,7 +106,6 @@ class TOPSIS(SKCDecisionMakerABC):
     _skcriteria_parameters = ["metric"]
 
     def __init__(self, *, metric="euclidean"):
-
         if not callable(metric) and metric not in distance._METRICS_NAMES:
             metrics = ", ".join(f"'{m}'" for m in distance._METRICS_NAMES)
             raise ValueError(

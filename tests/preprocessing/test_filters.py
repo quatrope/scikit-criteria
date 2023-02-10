@@ -147,19 +147,16 @@ def test_SKCByCriteriaFilterABC_missing_criteria():
 
 
 def test_Filter_criteria_is_not_str():
-
     with pytest.raises(ValueError):
         filters.Filter({1: lambda e: e > 1})
 
 
 def test_Filter_filter_is_not_callable():
-
     with pytest.raises(ValueError):
         filters.Filter({"foo": 2})
 
 
 def test_Filter():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -244,7 +241,6 @@ def test_SKCArithmeticFilterABC_filter_is_not_a_number():
 
 
 def test_FilterGT():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -278,7 +274,6 @@ def test_FilterGT():
 
 
 def test_FilterGE():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -312,7 +307,6 @@ def test_FilterGE():
 
 
 def test_FilterLT():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -344,7 +338,6 @@ def test_FilterLT():
 
 
 def test_FilterLE():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -376,7 +369,6 @@ def test_FilterLE():
 
 
 def test_FilterEQ():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -408,7 +400,6 @@ def test_FilterEQ():
 
 
 def test_FilterNE():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -490,7 +481,6 @@ def test_SKCSetFilterABC_filter_is_not_a_number():
 
 
 def test_FilterIn():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -524,7 +514,6 @@ def test_FilterIn():
 
 
 def test_FilterNotIn():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -562,7 +551,6 @@ def test_FilterNotIn():
 
 
 def test_FilterNonDominated():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],
@@ -599,7 +587,6 @@ def test_FilterNonDominated():
 
 
 def test_FilterNonDominated_strict():
-
     dm = skc.mkdm(
         matrix=[
             [7, 5, 35],

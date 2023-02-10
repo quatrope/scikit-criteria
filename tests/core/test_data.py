@@ -51,7 +51,6 @@ def construct_objectives(arr):
 
 def test__ACArray():
     with warnings.catch_warnings():
-
         # see: https://stackoverflow.com/a/46721064
         warnings.simplefilter(action="ignore", category=FutureWarning)
 
@@ -83,7 +82,6 @@ def test__ACArray():
 
 
 def test_DecisionMatrix_simple_creation(data_values):
-
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -146,7 +144,6 @@ def test_DecisionMatrix_no_provide_weights(data_values):
 
 
 def test_DecisionMatrix_no_provide_anames(data_values):
-
     mtx, objectives, weights, _, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -305,7 +302,6 @@ def test_DecisionMatrix_copy(data_values):
 
 
 def test_DecisionMatrix_to_dataframe(data_values):
-
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -327,7 +323,6 @@ def test_DecisionMatrix_to_dataframe(data_values):
 
 
 def test_DecisionMatrix_to_dict(data_values):
-
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -354,7 +349,6 @@ def test_DecisionMatrix_to_dict(data_values):
 
 
 def test_DecisionMatrix_describe(data_values):
-
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
     dm = data.mkdm(
@@ -587,7 +581,6 @@ def test_mkdm__get_cow_headers():
 
 
 def test_mkdm_simple_repr():
-
     dm = data.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
         objectives=[min, max, min],

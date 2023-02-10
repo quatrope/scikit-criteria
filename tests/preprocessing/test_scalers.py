@@ -36,7 +36,6 @@ from skcriteria.preprocessing.scalers import (
 
 
 def test_MinMaxScaler_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -61,7 +60,6 @@ def test_MinMaxScaler_simple_matrix():
 
 
 def test_MinMaxScaler_matrix(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -91,7 +89,6 @@ def test_MinMaxScaler_matrix(decision_matrix):
 
 
 def test_MinMaxScaler_simple_weights():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -113,7 +110,6 @@ def test_MinMaxScaler_simple_weights():
 
 
 def test_MinMaxScaler_weights(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -140,7 +136,6 @@ def test_MinMaxScaler_weights(decision_matrix):
 
 
 def test_MinMaxScaler_simple_both():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -165,7 +160,6 @@ def test_MinMaxScaler_simple_both():
 
 
 def test_MinMaxScaler_both(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -196,7 +190,6 @@ def test_MinMaxScaler_both(decision_matrix):
 
 
 def test_MinMaxScaler_no_change_original_dm(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -222,7 +215,6 @@ def test_MinMaxScaler_no_change_original_dm(decision_matrix):
 
 
 def test_StandarScaler_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -247,7 +239,6 @@ def test_StandarScaler_simple_matrix():
 
 
 def test_StandarScaler_matrix(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -275,7 +266,6 @@ def test_StandarScaler_matrix(decision_matrix):
 
 
 def test_StandarScaler_simple_weights():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -301,7 +291,6 @@ def test_StandarScaler_simple_weights():
 
 
 def test_StandarScaler_weights(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -327,7 +316,6 @@ def test_StandarScaler_weights(decision_matrix):
 
 
 def test_StandarScaler_simple_both():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -356,7 +344,6 @@ def test_StandarScaler_simple_both():
 
 
 def test_StandarScaler_both(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -384,7 +371,6 @@ def test_StandarScaler_both(decision_matrix):
 
 
 def test_StandarScaler_no_change_original_dm(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -410,7 +396,6 @@ def test_StandarScaler_no_change_original_dm(decision_matrix):
 
 
 def test_VectorScaler_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -435,7 +420,6 @@ def test_VectorScaler_simple_matrix():
 
 
 def test_VectorScaler_matrix(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -461,7 +445,6 @@ def test_VectorScaler_matrix(decision_matrix):
 
 
 def test_VectorScaler_simple_weights():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -483,7 +466,6 @@ def test_VectorScaler_simple_weights():
 
 
 def test_VectorScaler_weights(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -509,7 +491,6 @@ def test_VectorScaler_weights(decision_matrix):
 
 
 def test_VectorScaler_simple_both():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -534,7 +515,6 @@ def test_VectorScaler_simple_both():
 
 
 def test_VectorScaler_both(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -560,7 +540,6 @@ def test_VectorScaler_both(decision_matrix):
 
 
 def test_VectorScaler_no_change_original_dm(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -586,7 +565,6 @@ def test_VectorScaler_no_change_original_dm(decision_matrix):
 
 
 def test_SumScaler_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -608,7 +586,6 @@ def test_SumScaler_simple_matrix():
 
 
 def test_SumScaler_matrix(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -635,7 +612,6 @@ def test_SumScaler_matrix(decision_matrix):
 
 
 def test_SumScaler_simple_weights():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -657,7 +633,6 @@ def test_SumScaler_simple_weights():
 
 
 def test_SumScaler_weights(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -683,7 +658,6 @@ def test_SumScaler_weights(decision_matrix):
 
 
 def test_SumScaler_simple_both():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -705,7 +679,6 @@ def test_SumScaler_simple_both():
 
 
 def test_SumScaler_both(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -732,7 +705,6 @@ def test_SumScaler_both(decision_matrix):
 
 
 def test_SumScaler_no_change_original_dm(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -758,7 +730,6 @@ def test_SumScaler_no_change_original_dm(decision_matrix):
 
 
 def test_MaxAbsScaler_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -780,7 +751,6 @@ def test_MaxAbsScaler_simple_matrix():
 
 
 def test_MaxAbsScaler_matrix(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -807,7 +777,6 @@ def test_MaxAbsScaler_matrix(decision_matrix):
 
 
 def test_MaxAbsScaler_simple_weights():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -829,7 +798,6 @@ def test_MaxAbsScaler_simple_weights():
 
 
 def test_MaxAbsScaler_weights(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -855,7 +823,6 @@ def test_MaxAbsScaler_weights(decision_matrix):
 
 
 def test_MaxAbsScaler_simple_both():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[min, max, min],
@@ -877,7 +844,6 @@ def test_MaxAbsScaler_simple_both():
 
 
 def test_MaxAbsScaler_both(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -904,7 +870,6 @@ def test_MaxAbsScaler_both(decision_matrix):
 
 
 def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -925,7 +890,6 @@ def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
 
 
 def test_CenitDistanceMatrixScaler_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[min, max, min],
@@ -990,7 +954,6 @@ def test_CenitDistanceMatrixScaler_diakoulaki1995determining():
 
 
 def test_CenitDistanceMatrixScaler_no_change_original_dm():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[min, max, min],

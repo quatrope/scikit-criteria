@@ -402,7 +402,6 @@ class IterativeImputer(SKCImputerABC):
 
     @doc_inherit(SKCImputerABC._impute)
     def _impute(self, matrix):
-
         imputer = _sklimpute.IterativeImputer(
             estimator=self._estimator,
             missing_values=self._missing_values,

@@ -67,7 +67,6 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
         params_not_in_signature = params.difference(signature.parameters)
         if params_not_in_signature and not has_kwargs:
-
             raise TypeError(
                 f"{cls} defines the parameters {params_not_in_signature} "
                 "which is not found as a parameter in the __init__ method."

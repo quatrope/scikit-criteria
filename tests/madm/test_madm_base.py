@@ -38,7 +38,6 @@ from skcriteria.madm import (
 
 
 def test_SKCDecisionMakerABC_flow(decision_matrix):
-
     dm = decision_matrix(seed=42)
 
     class Foo(SKCDecisionMakerABC):
@@ -77,7 +76,6 @@ def test_SKCDecisionMakerABC_not_redefined(not_redefine):
 
 
 def test_SKCDecisionMakerABC_evaluate_data_not_implemented(decision_matrix):
-
     dm = decision_matrix(seed=42)
 
     class Foo(SKCDecisionMakerABC):
@@ -100,7 +98,6 @@ def test_SKCDecisionMakerABC_evaluate_data_not_implemented(decision_matrix):
 
 
 def test_SKCDecisionMakerABC_make_result_not_implemented(decision_matrix):
-
     dm = decision_matrix(seed=42)
 
     class Foo(SKCDecisionMakerABC):
@@ -124,7 +121,6 @@ def test_SKCDecisionMakerABC_make_result_not_implemented(decision_matrix):
 
 
 class test_ResultBase_skacriteria_result_series_no_defined:
-
     with pytest.raises(TypeError):
 
         class Foo(ResultABC):

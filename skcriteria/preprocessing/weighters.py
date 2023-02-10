@@ -71,7 +71,6 @@ class SKCWeighterABC(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, weights, **kwargs):
-
         new_weights = self._weight_matrix(
             matrix=matrix, objectives=objectives, weights=weights
         )

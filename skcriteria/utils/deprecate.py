@@ -63,14 +63,12 @@ def _create_doc_with_deprecated_directive(text, *, reason, version):
 
     # we iterate line by line
     for idx, line in enumerate(lines):
-
         line_stripped = line.strip()
 
         # if we found a line full of "-" is a underline of the first section
         # in numpy format.
         # check: https://numpydoc.readthedocs.io/en/latest/format.html
         if line_stripped and line_stripped.replace("-", "") == "":
-
             # the the location of the directive is one line above the first
             # section
             location = idx - 2

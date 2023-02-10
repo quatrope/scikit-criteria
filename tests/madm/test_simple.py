@@ -34,7 +34,6 @@ from skcriteria.preprocessing.scalers import SumScaler
 
 
 def test_WeightedSumModel():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, max, max],
@@ -54,7 +53,6 @@ def test_WeightedSumModel():
 
 
 def test_WeightedSumModel_minimize_fail():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, min, max],
@@ -67,7 +65,6 @@ def test_WeightedSumModel_minimize_fail():
 
 
 def test_WeightedProductModel_lt0_fail():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, -1, 6]],
         objectives=[max, max, max],
@@ -138,7 +135,6 @@ def test_WeightedSumModel_kracka2010ranking():
 
 
 def test_WeightedProductModel():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[max, max, max],
@@ -161,7 +157,6 @@ def test_WeightedProductModel():
 
 
 def test_WeightedProductModel_minimize_fail():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[max, min, max],
@@ -174,7 +169,6 @@ def test_WeightedProductModel_minimize_fail():
 
 
 def test_WeightedProductModel_with0_fail():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 0, 6]],
         objectives=[max, max, max],

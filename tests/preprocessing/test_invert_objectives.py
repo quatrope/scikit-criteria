@@ -54,7 +54,6 @@ def test_SKCObjectivesInverterABC__invert_not_implemented(decision_matrix):
 
 
 def test_NegateMinimize_all_min(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -79,7 +78,6 @@ def test_NegateMinimize_all_min(decision_matrix):
 
 
 def test_NegateMinimize_50percent_min(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -112,7 +110,6 @@ def test_NegateMinimize_50percent_min(decision_matrix):
 
 
 def test_NegateMinimize_no_change_original_dm(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -138,7 +135,6 @@ def test_NegateMinimize_no_change_original_dm(decision_matrix):
 
 
 def test_InvertMinimize_all_min(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -163,7 +159,6 @@ def test_InvertMinimize_all_min(decision_matrix):
 
 
 def test_InvertMinimize_50percent_min(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -196,7 +191,6 @@ def test_InvertMinimize_50percent_min(decision_matrix):
 
 
 def test_InvertMinimize_no_change_original_dm(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,

@@ -200,7 +200,6 @@ class DecisionMatrix:
     """
 
     def __init__(self, data_df, objectives, weights):
-
         self._data_df = (
             data_df.copy(deep=True)
             if isinstance(data_df, pd.DataFrame)

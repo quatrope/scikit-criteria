@@ -208,7 +208,6 @@ def test_ELECTRE1_invalid_p_and_q():
 
 
 def test_weight_outrank():
-
     matrix = scale_by_sum(
         [
             [6, 5, 28, 5, 5],

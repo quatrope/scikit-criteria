@@ -31,7 +31,6 @@ from skcriteria.preprocessing.scalers import VectorScaler
 
 
 def test_TOPSIS():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, max, max],
@@ -64,7 +63,6 @@ def test_TOPSIS_invalid_metric():
 
 
 def test_TOPSIS_minimize_warning():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, min, max],

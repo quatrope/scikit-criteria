@@ -85,14 +85,12 @@ class RanksComparator(SKCMethodABC):
 
     # INTERNALS ===============================================================
     def _validate_ranks(self, ranks):
-
         if len(ranks) <= 1:
             raise ValueError("Please provide more than one ranking")
 
         used_names = set()
         first_alternatives = set(ranks[0][1].alternatives)
         for name, part in ranks:
-
             if not isinstance(name, str):
                 raise ValueError("'name' must be instance of str")
 

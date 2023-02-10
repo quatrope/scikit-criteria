@@ -33,7 +33,6 @@ from skcriteria.utils import doctools
 
 
 def test_doc_inherit():
-
     chars = tuple(string.ascii_letters + string.digits)
     random = np.random.default_rng(seed=42)
 

@@ -341,7 +341,6 @@ class RankResult(ResultABC):
 
     @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
-
         cleaned_values = np.unique(values)
 
         length = len(cleaned_values)

@@ -48,7 +48,6 @@ def test_is_available(solver, expected):
     "solver", [None, "PULP_CBC_CMD", "pulp", "PuLP", "PULP"]
 )
 def test_maximize(solver):
-
     x0 = lp.Float("x0", low=0)
     x1 = lp.Float("x1", low=0)
     x2 = lp.Float("x2", low=0)
@@ -86,7 +85,6 @@ def test_maximize(solver):
     "solver", [None, "PULP_CBC_CMD", "pulp", "PuLP", "PULP"]
 )
 def test_minimize_from_matrix(solver):
-
     x0 = lp.Float("x0", low=0)
     x1 = lp.Float("x1", low=0)
     x2 = lp.Float("x2", low=0)

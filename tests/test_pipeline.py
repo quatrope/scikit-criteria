@@ -58,7 +58,6 @@ def test_pipeline_mkpipe(decision_matrix):
 
 
 def test_pipeline_slicing():
-
     steps = [
         InvertMinimize(),
         StandarScaler(target="matrix"),

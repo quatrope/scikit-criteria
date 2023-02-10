@@ -462,7 +462,6 @@ class CenitDistanceMatrixScaler(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, **kwargs):
-
         distance_mtx = matrix_scale_by_cenit_distance(matrix, objectives)
 
         dtypes = np.full(np.shape(objectives), float)

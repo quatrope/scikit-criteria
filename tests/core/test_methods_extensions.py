@@ -38,7 +38,6 @@ from skcriteria.preprocessing.filters import (
 
 
 def _get_subclasses(cls):
-
     is_abstract = vars(cls).get("_skcriteria_abstract_class", False)
 
     if not is_abstract and cls.copy == methods.SKCMethodABC.copy:
@@ -56,7 +55,6 @@ def _get_subclasses(cls):
 
 @pytest.mark.run(order=-1)
 def test_SLCMethodABC_concrete_subclass_copy():
-
     # CLASSES FOR THE FAKE PIPELINE
     class _FakeTrans:
         def transform(self):
@@ -94,7 +92,6 @@ def test_SLCMethodABC_concrete_subclass_copy():
     }
 
     for scls in _get_subclasses(methods.SKCMethodABC):
-
         kwargs = {}
         for cls, extra_params in extra_parameters_by_type.items():
             if issubclass(scls, cls):

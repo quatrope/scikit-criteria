@@ -29,7 +29,6 @@ from skcriteria.core import methods
 
 
 def test_SKCMethodABC_no__skcriteria_dm_type():
-
     with pytest.raises(TypeError):
 
         class Foo(methods.SKCMethodABC):
@@ -37,7 +36,6 @@ def test_SKCMethodABC_no__skcriteria_dm_type():
 
 
 def test_SKCMethodABC_no__skcriteria_parameters():
-
     with pytest.raises(TypeError):
 
         class Foo(methods.SKCMethodABC):

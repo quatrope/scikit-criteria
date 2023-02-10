@@ -54,7 +54,6 @@ def data_values():
         min_objectives_proportion=0.5,
         nan_proportion=0,
     ):
-
         # start the random generator
         random = np.random.default_rng(seed=seed)
 

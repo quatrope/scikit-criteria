@@ -28,7 +28,6 @@ from skcriteria.preprocessing.push_negatives import PushNegatives
 
 
 def test_PushNegatives_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, -2, 3], [-1, 5, 6]],
         objectives=[min, max, min],
@@ -49,7 +48,6 @@ def test_PushNegatives_simple_matrix():
 
 
 def test_PushNegatives_simple_matrix_ge0():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [1, 5, 6]],
         objectives=[min, max, min],
@@ -70,7 +68,6 @@ def test_PushNegatives_simple_matrix_ge0():
 
 
 def test_PushNegatives_simple_weights():
-
     dm = skcriteria.mkdm(
         matrix=[[1, -2, 3], [-1, 5, 6]],
         objectives=[min, max, min],
@@ -91,7 +88,6 @@ def test_PushNegatives_simple_weights():
 
 
 def test_PushNegatives_simple_weights_ge0():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [1, 5, 6]],
         objectives=[min, max, min],
@@ -112,7 +108,6 @@ def test_PushNegatives_simple_weights_ge0():
 
 
 def test_PushNegatives_simple_both():
-
     dm = skcriteria.mkdm(
         matrix=[[1, -2, 3], [-1, 5, 6]],
         objectives=[min, max, min],
@@ -133,7 +128,6 @@ def test_PushNegatives_simple_both():
 
 
 def test_PushNegatives_simple_both_ge0():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [1, 5, 6]],
         objectives=[min, max, min],
@@ -154,7 +148,6 @@ def test_PushNegatives_simple_both_ge0():
 
 
 def test_PushNegatives_no_change_original_dm():
-
     dm = skcriteria.mkdm(
         matrix=[[-1, 0, 3], [0, -5, 6]],
         objectives=[min, max, min],

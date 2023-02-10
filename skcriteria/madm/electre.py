@@ -213,7 +213,6 @@ def weights_outrank(matrix, weights, objectives):
     outrank = np.full((alt_n, alt_n), False, dtype=bool)
 
     for a0_idx, a1_idx in alt_combs:
-
         # select the two alternatives to compare
         a0, a1 = matrix[[a0_idx, a1_idx]]
 
@@ -239,7 +238,6 @@ def weights_outrank(matrix, weights, objectives):
 def _electre2_ranker(
     alt_n, original_outrank_s, original_outrank_w, invert_ranking
 ):
-
     # here we store the final rank
     ranking = np.zeros(alt_n, dtype=int)
 
@@ -254,7 +252,6 @@ def _electre2_ranker(
     current_rank_position = 1
 
     while len(outrank_w) or len(outrank_s):
-
         kernel_s = ~outrank_s.any(axis=0)
         kernel_w = ~outrank_w.any(axis=0)
 

@@ -334,7 +334,6 @@ def test_DecisionMatrixDominanceAccessor_dominance_strict_false():
 
 
 def test_DecisionMatrixDominanceAccessor_dominated():
-
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -420,7 +419,6 @@ def test_DecisionMatrixDominanceAccessor_dominated_strict_false():
 
 
 def test_DecisionMatrixDominanceAccessor_dominators_of():
-
     dm = data.mkdm(
         matrix=[
             [10, 80],
@@ -521,5 +519,4 @@ def test_DecisionMatrixDominanceAccessor_has_loops_true():
     with mock.patch.object(
         dm.dominance, "dominance", return_value=fake_dominance
     ):
-
         assert dm.dominance.has_loops()

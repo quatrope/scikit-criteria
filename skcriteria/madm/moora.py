@@ -266,7 +266,6 @@ def multimoora(matrix, objectives, weights):
     # comparamos alternativa a alternativa y vemos cual domina a cual
     # la mas dominante va primero, la menos dominante va ultima
     for idx_a, idx_b in it.combinations(range(alternatives), 2):
-
         # retrieve the two ranks
         alt_a, alt_b = rank_matrix[[idx_a, idx_b]]
 

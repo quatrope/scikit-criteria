@@ -68,7 +68,6 @@ def test_SKCWeighterABC_not_redefined_abc_methods():
 
 
 def test_SKCWeighterABC_flow(decision_matrix):
-
     dm = decision_matrix(seed=42)
     expected_weights = np.ones(dm.matrix.shape[1]) * 42
 
@@ -100,7 +99,6 @@ def test_SKCWeighterABC_flow(decision_matrix):
 
 
 def test_EqualWeighter_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2], [4, 5]],
         objectives=[min, max],
@@ -121,7 +119,6 @@ def test_EqualWeighter_simple_matrix():
 
 
 def test_EqualWeighter(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -152,7 +149,6 @@ def test_EqualWeighter(decision_matrix):
 
 
 def test_StdWeighter_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2], [4, 16]],
         objectives=[min, max],
@@ -172,7 +168,6 @@ def test_StdWeighter_simple_matrix():
 
 
 def test_StdWeighter(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -205,7 +200,6 @@ def test_StdWeighter(decision_matrix):
 
 
 def test_EntropyWeighter_simple_matrix():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2], [4, 16]],
         objectives=[min, max],
@@ -225,7 +219,6 @@ def test_EntropyWeighter_simple_matrix():
 
 
 def test_EntropyWeighter(decision_matrix):
-
     dm = decision_matrix(
         seed=42,
         min_alternatives=10,
@@ -253,7 +246,6 @@ def test_EntropyWeighter(decision_matrix):
 
 
 def test_EntropyWeighter_less_predictable_more_weight():
-
     dm = skcriteria.mkdm(
         [
             [1, 20, 300],
@@ -324,7 +316,6 @@ def test_CRITIC_diakoulaki1995determining():
 
 
 def test_CRITIC_minimize_warning():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, min, max],
