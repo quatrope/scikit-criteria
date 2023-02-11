@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, QuatroPe
+# Copyright (c) 2022, 2023, QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -16,6 +16,7 @@
 # =============================================================================
 
 from .ranks_cmp import RanksComparator, mkrank_cmp
+from .rankrev import RankReversalTest1
 
 # =============================================================================
 # ALL
@@ -23,5 +24,6 @@ from .ranks_cmp import RanksComparator, mkrank_cmp
 
 __all__ = [
     "RanksComparator",
+    "RankReversalTest1",
     "mkrank_cmp",
 ]
