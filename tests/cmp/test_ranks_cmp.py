@@ -36,25 +36,25 @@ from skcriteria.cmp import ranks_cmp
 # =============================================================================
 
 
-def test_Ranks_only_one_rank():
+def test_RanksComparator_only_one_rank():
     rank = madm.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
         ranks_cmp.mkrank_cmp(rank)
 
 
-def test_Ranks_name_not_str():
+def test_RanksComparator_name_not_str():
     rank = madm.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
         ranks_cmp.RanksComparator([("a", rank), (1, rank)])
 
 
-def test_Ranks_not_rank_result():
+def test_RanksComparator_not_rank_result():
     rank = madm.RankResult("test", ["a"], [1], {})
     with pytest.raises(TypeError):
         ranks_cmp.RanksComparator([("a", rank), ("b", None)])
 
 
-def test_Ranks_duplicated_names():
+def test_RanksComparator_duplicated_names():
     rank = madm.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
         ranks_cmp.RanksComparator([("a", rank), ("a", rank)])

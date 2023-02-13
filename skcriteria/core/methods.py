@@ -30,13 +30,13 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
     Notes
     -----
-    All estimators should specify:
+    All subclasses should specify:
 
     - ``_skcriteria_dm_type``: The type of the decision maker.
     - ``_skcriteria_parameters``: Availebe parameters.
     - ``_skcriteria_abstract_class``: If the class is abstract.
 
-    If the class is *abstract* the user can ignore the other two attributes.
+    If the class is *abstract* all validations are turned off.
 
     """
 
@@ -96,7 +96,7 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
         return the_parameters
 
     def copy(self, **kwargs):
-        """Return a deep copy of the current Object..
+        """Return a custom copy of the current decision-maker.
 
         This method is also useful for manually modifying the values of the
         object.

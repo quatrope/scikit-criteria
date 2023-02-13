@@ -46,9 +46,9 @@ def load_simple_stock_selection():
     one minimization criterion (RI), dominated alternatives (FX), and
     one alternative with an outlier criterion (ROE, MM = 1).
 
-    Although the criteria and alternatives are original from the authors of
-    Scikit-Criteria, the numerical values were extracted at some point from a
-    somewhere which we have forgotten.
+    The criteria and alternatives in Scikit-Criteria are original
+    to the authors, but the numerical values used were taken from
+    an unknown source that has since been forgotten.
 
     Description:
 
@@ -130,7 +130,6 @@ def load_van2021evaluation(windows_size=7):
     windows_size: 7 o 15, default 7
         If the decision matrix based on 7 or 15 day overlapping moving windows
         is desired.
-
 
     References
     ----------

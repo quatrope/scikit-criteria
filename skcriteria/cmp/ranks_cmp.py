@@ -95,7 +95,7 @@ class RanksComparator(SKCMethodABC):
                 raise ValueError("'name' must be instance of str")
 
             if not isinstance(part, RankResult):
-                raise TypeError("ranks must be instance of madm.RankResult")
+                raise TypeError("ranks must be instances of 'madm.RankResult'")
 
             if name in used_names:
                 raise ValueError(f"Duplicated name {name!r}")
