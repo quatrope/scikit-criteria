@@ -73,15 +73,12 @@ class RankReversalTest1:
 
     def __repr__(self):
         dm = repr(self._dmaker)
-        if len(dm) > 50:
-            dm = dm[:50] + "..." + dm[-1]
-
         repeats = self._repeat
         ama = self._allow_missing_alternatives
         lds = self._last_diff_strategy
         seed = self._seed
         return (
-            f"<RankReversalTest1 {dm} repeats={repeats},  "
+            f"<RankReversalTest1 {dm} repeats={repeats}, "
             f"allow_missing_alternatives={ama} last_diff_strategy={lds!r} "
             f"seed={seed!r}>"
         )
@@ -172,13 +169,12 @@ class RankReversalTest1:
                 f"{mutated!r} of iteration {iteration}"
             )
         elif len(alts_diff):
-            # TODO MEJORAR cuando hay mas de una alternativa faltante
-            import ipdb
+            # All missing alternatives have the maximum ranking + 1
+            fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
 
-            ipdb.set_trace()
-            fill = np.full_like(alts_diff, len(full_alternatives))
+            # concatenate the missing alternatives and the new rankings
             alternatives = np.concatenate((alternatives, alts_diff))
-            values = np.concatenate((values, fill))
+            values = np.concatenate((values, fill_values))
 
         # patch the new data
         extra["rrt1"] = Bunch(
