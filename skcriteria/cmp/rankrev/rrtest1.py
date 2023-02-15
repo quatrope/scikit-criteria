@@ -93,11 +93,25 @@ class RankReversalTest1:
         so the value calculated by ``last_diff_strategy`` is applied as the
         abs difference (the default is the ``np.nanmedian``).
 
-        """
-        # TODO: room for improvement by replace all pandas operation
-        # into numpy operations
+        Parameters
+        ----------
+        dm : ``skcriteria.core.data.DecisionMatrix``
+            The decision matrix from which the maximum possible absolute noises
+            of each alternative are to be extracted.
+        rank : ``skcriteria.madm.Rank``
+            Ranking of alternatives.
 
-        # here we create a pd.Series of alternatives in rank order
+        Returns
+        -------
+        Maximum absolute noise: pandas.DataFrame
+            Each row contains the maximum possible absolute noise to worsen
+            the current alternative (``mutate``) with respect to the next
+            (``mute_next``).
+
+        """
+        # TODO: room for improvement: pandas to numpy
+
+        # Here we generate a pandas Series of alternatives in order of ranking
         alts = rank.to_series().sort_values().index.to_numpy()
 
         # We only need all but the best one.
@@ -128,20 +142,58 @@ class RankReversalTest1:
 
         return maximum_abs_noises
 
-    def _mutate(self, *, dm, mutate, max_abs_noise, random):
-        # TODO: room for improvement by replace all pandas operation
-        # into numpy operations
+    def _mutate_dm(self, *, dm, mutate, alternative_max_abs_noise, random):
+        """Create a new decision matrix by replacing a suboptimal alternative \
+        with a slightly worse one.
 
-        # matrix to prevent to easy mutation
+        The algorithm operates as follows:
+
+            - A random uniform noise [0, b] is generated, where b is the
+              absolute difference in value of the criterion to be modified
+              with respect to the immediately worse alternative.
+            - Negative sign is assigned to criteria to be maximized.
+            - The noise is applied to the alternative to be worsened
+              ('mutated').
+
+        This algorithm is designed in such a way that the 'worsened'
+        alternative is not worse than the immediately worse one in the original
+        ranking
+
+        Parameters
+        ----------
+        dm : ``skcriteria.core.data.DecisionMatrix``
+            The original decision matrix.
+        mutate : str
+            The alternative to mutate.
+        alternative_max_abs_noise: pandas.Series
+            The maximum possible noise with which the alternative to mutate can
+            be made worse, without being worse than the immediately worse
+            alternative.
+        random: `numpy.random.default_rng`
+            Random number generator.
+
+        Returns
+        -------
+        mutated_dm: ``skcriteria.DecisionMatrix``
+            Decision matrix with the 'mutate' alternative "worsened".
+        noise: ``pandas.Series``
+            Noise used to worsen the alternative.
+
+        """
+        # TODO: room for improvement: pandas to numpy
+
+        # matrix with alternatives
         df = dm.matrix
 
         noise = 0  # all noises == 0
         while np.all(noise == 0):  # at least we need one noise > 0
-            # calculate the noises withoun sign
-            noise = max_abs_noise.apply(lambda b: random.uniform(0, b))
+            # calculate the noises without sign
+            noise = alternative_max_abs_noise.apply(
+                lambda b: random.uniform(0, b)
+            )
 
         # negate when the objective is to maximize
-        # onwards the noise is no loger absolute
+        # onwards the noise is no longer absolute
         noise[dm.maxwhere] *= -1
 
         # apply the noise
@@ -155,20 +207,24 @@ class RankReversalTest1:
     def _add_mutation_info_to_rank(
         self, *, rank, mutated, noise, iteration, full_alternatives
     ):
+        """Adds information on how an alternative was "worsened" in the \
+        decision matrix with respect to the original.
+
+        All aggregated information is included within the ``rrt1`` (Rank
+        Reversal Test 1) key in the ``extra_`` attribute.
+
+        """
         # extract the original data
         method = f"{rank.method}+RRT1+{mutated}_{iteration}"
         alternatives = rank.alternatives
         values = rank.values
         extra = dict(rank.extra_.items())
 
+        # we check if the decision_maker did not eliminate any alternatives
         alts_diff = arrset.setxor1d(alternatives, full_alternatives)
 
-        if len(alts_diff) and self._allow_missing_alternatives is False:
-            raise ValueError(
-                f"Missing alternative/s {set(alts_diff)!r} in mutation "
-                f"{mutated!r} of iteration {iteration}"
-            )
-        elif len(alts_diff):
+        # add the missing alternatives withe the worst ranking value
+        if len(alts_diff):
             # All missing alternatives have the maximum ranking + 1
             fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
 
@@ -188,22 +244,64 @@ class RankReversalTest1:
         )
 
         # return the new rank result
-        return RankResult(
+        patched_rank = RankResult(
             method=method,
             alternatives=alternatives,
             values=values,
             extra=extra,
         )
+        return patched_rank
+
+    def _make_mutations(self, *, dm, orank):
+        """Generate all experiments data.
+
+        This method yields all the data needed to run the underlying
+        decision-maker with all possible worst suboptimal alternatives.
+
+        Parameters
+        ----------
+        dm : ``skcriteria.core.data.DecisionMatrix``
+            The decision matrix to mutate in every experiment.
+        orank : ``skcriteria.madm.Rank``
+            The original ranking without mutations.
+
+        Yields
+        ------
+        iteration: int
+            Each suboptimal alternative is worsened `repeat` times. This value
+            keeps a count of which of those times the ``mutated`` alternative
+            is worsened.
+        mutate: str
+            The name of the worsened alternative.
+        mutated_dm: ``skcriteria.core.data.DecisionMatrix``
+            The decision matrix with the suboptimal alternative already
+            worsen.
+        noise: ``pandas.Series``
+            Noise used to worsen the 'mutate' alternative.
+
+        """
+        # check the maximum absolute difference between any alternative and
+        # the next one in the ranking to establish a worse-limit
+        maximum_abs_noises = self._maximum_abs_noises(dm=dm, rank=orank)
+
+        # we repeat the experiment _repeats time
+        for iteration in range(self._repeat):
+            # we iterate over every sub optimal alternative
+            for (mutate, _), alt_max_anoise in maximum_abs_noises.iterrows():
+                # create the new matrix with a worse alternative than mutate
+                mutated_dm, noise = self._mutate_dm(
+                    dm=dm,
+                    mutate=mutate,
+                    alternative_max_abs_noise=alt_max_anoise,
+                    random=self._random,
+                )
+                yield iteration, mutate, mutated_dm, noise
 
     def evaluate(self, dm):
         # FIRST THE DATA THAT WILL BE USED IN ALL THE ITERATIONS ==============
 
         # we need a first reference ranking
         rank = self._dmaker.evaluate(dm)
-
-        # check the maximum absolute difference between any alternative and
-        # the next one in the ranking
-        maximum_abs_noises = self._maximum_abs_noises(dm=dm, rank=rank)
 
         # all alternatives to be used to check consistency
         full_alternatives = dm.alternatives
@@ -214,33 +312,30 @@ class RankReversalTest1:
 
         # START EXPERIMENTS ===================================================
 
-        # we repeat the experiment _repeats time
-        for iteration in range(self._repeat):
-            # we iterate over every sub optimal alternative
-            for (mutate, _), max_abs_noise in maximum_abs_noises.iterrows():
-                # create the new matrix with a worse alternative than mutate
-                mutated_dm, noise = self._mutate(
-                    dm=dm,
-                    mutate=mutate,
-                    max_abs_noise=max_abs_noise,
-                    random=self._random,
+        for it, mutated, mdm, noise in self._make_mutations(dm=dm, orank=rank):
+            # calculate the new rank
+            mrank = self._dmaker.evaluate(mdm)
+
+            # add info about the mutation to rhe rank
+            patched_mutated_rank = self._add_mutation_info_to_rank(
+                rank=mrank,
+                mutated=mutated,
+                noise=noise,
+                iteration=it,
+                full_alternatives=full_alternatives,
+            )
+
+            # check for missing alternatives
+            miss_alts = set(patched_mutated_rank.e_.rrt1.missing_alternatives)
+            if self._allow_missing_alternatives is False and miss_alts:
+                raise ValueError(
+                    f"Missing alternative/s {miss_alts!r} in mutation "
+                    f"{mutated!r} of iteration {it}"
                 )
 
-                # calculate the new rank
-                mutated_rank = self._dmaker.evaluate(mutated_dm)
-
-                # add info about the mutation to rhe rank
-                patched_mutated_rank = self._add_mutation_info_to_rank(
-                    rank=mutated_rank,
-                    mutated=mutate,
-                    noise=noise,
-                    iteration=iteration,
-                    full_alternatives=full_alternatives,
-                )
-
-                # store the information
-                names.append(f"M.{mutate}")
-                results.append(patched_mutated_rank)
+            # store the information
+            names.append(f"M.{mutated}")
+            results.append(patched_mutated_rank)
 
         # manually creates a new RankComparator
         named_ranks = unique_names(names=names, elements=results)
