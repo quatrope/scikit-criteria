@@ -195,7 +195,7 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
 
     Where :math:`j` = the number of alternatives;
     :math:`i` = the number of objectives to be maximized;
-    :math:`n − i` = the number of objectives to be minimize; and
+    :math:`n - i` = the number of objectives to be minimize; and
     :math:`U'_j`: the utility of alternative j with objectives to be maximized
     and objectives to be minimized.
 

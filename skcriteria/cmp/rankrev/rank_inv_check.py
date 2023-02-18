@@ -25,7 +25,7 @@ from ...utils import Bunch, unique_names
 from .. import RanksComparator
 
 # =============================================================================
-# CLASS
+# CONSTANT
 # =============================================================================
 
 _LAST_DIFF_STRATEGIES = {
@@ -35,7 +35,69 @@ _LAST_DIFF_STRATEGIES = {
 }
 
 
-class RankReversalTest1:
+# =============================================================================
+# CLASS
+# =============================================================================
+
+
+class RankInvariantChecker:
+    r"""Test Criterion #1 for evaluating the effectiveness MCDA method.
+
+    According to this criterion, the best alternative identified by the method
+    should remain unchanged when a non-optimal alternative is replaced by a
+    worse alternative, provided that the relative importance of each decision
+    criterion remains the same.
+
+    To illustrate, suppose that the MCDA method has ranked a set of
+    alternatives, and one of the alternatives, :math:`A_j`, is replaced by
+    another alternative, :math:`A_j'`, which is less desirable than Ak. The
+    MCDA method should still identify the same best alternative when the
+    alternatives are re-ranked using the same method. Furthermore, the relative
+    rankings of the remaining alternatives that were not changed should also
+    remain the same.
+
+    The current implementation worsens each non-optimal alternative ``repeat``
+    times, and stores each resulting output in a collection for comparison with
+    the original  ranking. In essence, the test is run once for each suboptimal
+    alternative.
+
+    This class assumes that there is another suboptimal alternative :math:`A_j`
+    that is just the next worst alternative to :math:`A_k`, so that
+    :math:`A_k \succ A_j`. Then it generates a mutation :math:`A_k'` such that
+    :math:`A_k'` is worse than :math:`A_k` but still better than :math:`A_j`
+    (:math:`A_k \succ A_k' \succ A_j`). In the case that the worst alternative
+    is reached, its degradation is limited by default  with respect to the
+    median of all  limits of the previous alternatives mutations, in order not
+    to break he  distribution of each criterion.
+
+    Parameters
+    ----------
+    dmaker: Decision maker (must implement the 'evaluate()' method)
+        The MCDA method, or pipeline to evaluate.
+    repeat: int (default = 1)
+        How many times to mutate each suboptimal alternative.
+
+        The total number of rankings returned by this method is given by the
+        number of alternatives in the decision matrix minus one multiplied by
+        ``repeat``.
+    allow_missing_alternatives: bool (default = False)
+        ``dmaker`` can somehow return rankings with fewer alternatives than the
+        original ones (using a pipeline that implements a filter, for example).
+        By setting this parameter to ``True``, the invariance test allows for
+        missing alternatives in a ranking to be added with a value of the
+        maximum value of the ranking obtained + 1.
+
+        On the other hand, if the value is ``False``, when a ranking is missing
+        an alternative, the test will fail with a ``ValueError``.
+
+        If more than one alternative is removed, all of them are added
+        with the same value
+
+    last_diff_strategy="median",
+    seed=None,
+
+    """
+
     def __init__(
         self,
         dmaker,
@@ -72,6 +134,7 @@ class RankReversalTest1:
         self._random = np.random.default_rng(seed)
 
     def __repr__(self):
+        """x.__repr__() <==> repr(x)."""
         dm = repr(self._dmaker)
         repeats = self._repeat
         ama = self._allow_missing_alternatives
@@ -204,14 +267,86 @@ class RankReversalTest1:
 
         return mutated_dm, noise
 
+    def _generate_mutations(self, *, dm, orank, repeat, random):
+        """Generate all experiments data.
+
+        This method yields all the data needed to run the underlying
+        decision-maker with all possible worst suboptimal alternatives.
+
+        Parameters
+        ----------
+        dm : ``skcriteria.core.data.DecisionMatrix``
+            The decision matrix to mutate in every experiment.
+        orank : ``skcriteria.madm.Rank``
+            The original ranking without mutations.
+        repeat : int
+            How many times an suboptimal alternative must be mutated.
+        random: `numpy.random.default_rng`
+            Random number generator.
+
+        Yields
+        ------
+        iteration: int
+            Each suboptimal alternative is worsened `repeat` times. This value
+            keeps a count of which of those times the ``mutated`` alternative
+            is worsened.
+        mutates: str
+            The name of the worsened alternative.
+        mutated_dm: ``skcriteria.core.data.DecisionMatrix``
+            The decision matrix with the suboptimal alternative already
+            worsen.
+        noise: ``pandas.Series``
+            Noise used to worsen the 'mutated' alternative.
+
+        """
+        # check the maximum absolute difference between any alternative and
+        # the next one in the ranking to establish a worse-limit
+        maximum_abs_noises = self._maximum_abs_noises(dm=dm, rank=orank)
+
+        # we repeat the experiment _repeats time
+        for iteration in range(repeat):
+            # we iterate over every sub optimal alternative
+            for (mutated, _), alt_max_anoise in maximum_abs_noises.iterrows():
+                # create the new matrix with a worse alternative than mutate
+                mutated_dm, noise = self._mutate_dm(
+                    dm=dm,
+                    mutate=mutated,
+                    alternative_max_abs_noise=alt_max_anoise,
+                    random=random,
+                )
+                yield iteration, mutated, mutated_dm, noise
+
     def _add_mutation_info_to_rank(
-        self, *, rank, mutated, noise, iteration, full_alternatives
+        self, *, rank, iteration, mutated, noise, full_alternatives
     ):
         """Adds information on how an alternative was "worsened" in the \
         decision matrix with respect to the original.
 
         All aggregated information is included within the ``rrt1`` (Rank
         Reversal Test 1) key in the ``extra_`` attribute.
+
+        Parameters
+        ----------
+        rank: ``skcriteria.madm.Rank``
+            Ranking to which you want to add information about the executed
+            test.
+        iteration: int
+            Each suboptimal alternative is worsened `repeat` times. This value
+            keeps a count of which of those times the ``mutated`` alternative
+            is worsened.
+        mutated: str
+            The name of the worsened alternative.
+        noise: ``pandas.Series``
+            Noise used to worsen the 'mutated' alternative.
+        full_alternatives: array-like
+            The full of alternatives in the original decision matrix.
+
+        Returns
+        -------
+
+        patched_rank : ``skcriteria.madm.Rank``
+            Ranking with all the information about the worsened alternative and
+            the rank reversal test added to the `extra_` attribute.
 
         """
         # extract the original data
@@ -236,10 +371,10 @@ class RankReversalTest1:
         extra["rrt1"] = Bunch(
             "rrt1",
             {
+                "iteration": iteration,
                 "mutated": mutated,
                 "noise": noise.copy(),
                 "missing_alternatives": alts_diff,
-                "iteration": iteration,
             },
         )
 
@@ -251,51 +386,6 @@ class RankReversalTest1:
             extra=extra,
         )
         return patched_rank
-
-    def _make_mutations(self, *, dm, orank):
-        """Generate all experiments data.
-
-        This method yields all the data needed to run the underlying
-        decision-maker with all possible worst suboptimal alternatives.
-
-        Parameters
-        ----------
-        dm : ``skcriteria.core.data.DecisionMatrix``
-            The decision matrix to mutate in every experiment.
-        orank : ``skcriteria.madm.Rank``
-            The original ranking without mutations.
-
-        Yields
-        ------
-        iteration: int
-            Each suboptimal alternative is worsened `repeat` times. This value
-            keeps a count of which of those times the ``mutated`` alternative
-            is worsened.
-        mutate: str
-            The name of the worsened alternative.
-        mutated_dm: ``skcriteria.core.data.DecisionMatrix``
-            The decision matrix with the suboptimal alternative already
-            worsen.
-        noise: ``pandas.Series``
-            Noise used to worsen the 'mutate' alternative.
-
-        """
-        # check the maximum absolute difference between any alternative and
-        # the next one in the ranking to establish a worse-limit
-        maximum_abs_noises = self._maximum_abs_noises(dm=dm, rank=orank)
-
-        # we repeat the experiment _repeats time
-        for iteration in range(self._repeat):
-            # we iterate over every sub optimal alternative
-            for (mutate, _), alt_max_anoise in maximum_abs_noises.iterrows():
-                # create the new matrix with a worse alternative than mutate
-                mutated_dm, noise = self._mutate_dm(
-                    dm=dm,
-                    mutate=mutate,
-                    alternative_max_abs_noise=alt_max_anoise,
-                    random=self._random,
-                )
-                yield iteration, mutate, mutated_dm, noise
 
     def evaluate(self, dm):
         # FIRST THE DATA THAT WILL BE USED IN ALL THE ITERATIONS ==============
@@ -312,7 +402,9 @@ class RankReversalTest1:
 
         # START EXPERIMENTS ===================================================
 
-        for it, mutated, mdm, noise in self._make_mutations(dm=dm, orank=rank):
+        for it, mutated, mdm, noise in self._generate_mutations(
+            dm=dm, orank=rank, repeat=self._repeat, random=self._random
+        ):
             # calculate the new rank
             mrank = self._dmaker.evaluate(mdm)
 
@@ -326,7 +418,7 @@ class RankReversalTest1:
             )
 
             # check for missing alternatives
-            miss_alts = set(patched_mutated_rank.e_.rrt1.missing_alternatives)
+            miss_alts = bool(patched_mutated_rank.e_.rrt1.missing_alternatives)
             if self._allow_missing_alternatives is False and miss_alts:
                 raise ValueError(
                     f"Missing alternative/s {miss_alts!r} in mutation "

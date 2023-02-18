@@ -9,18 +9,32 @@
 # DOCS
 # =============================================================================
 
-"""Rank-reversal utilities"""
+"""Rank reversal is a change in the preferred order of alternatives that occurs
+when the selection method or available options change. It is a significant
+issue in decision-making, particularly in multi-criteria decision-making.
+
+One way to test the validity of decision-making methods is to construct special
+test problems and then study the solutions they derive. If the solutions
+exhibit some logic contradictions (in the form of undesirable rank reversals
+of the alternatives), then one may argue that something is wrong with the
+method that derived them.
+
+The module offers features for automating the execution and assessment of
+standard tests for rank reversal, primarily focusing on alterations in the
+available options.
+
+"""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from .rrtest1 import RankReversalTest1
+from .rank_inv_check import RankInvariantChecker
 
 # =============================================================================
 # ALL
 # =============================================================================
 
 __all__ = [
-    "RankReversalTest1",
+    "RankInvariantChecker",
 ]

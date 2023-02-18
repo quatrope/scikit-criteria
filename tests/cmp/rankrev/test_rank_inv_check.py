@@ -27,7 +27,7 @@ import pytest
 
 import skcriteria as skc
 from skcriteria.madm.similarity import TOPSIS
-from skcriteria.cmp.rankrev.rrtest1 import RankReversalTest1
+from skcriteria.cmp.rankrev.rank_inv_check import RankInvariantChecker
 from skcriteria.utils import rank
 
 # =============================================================================
@@ -41,7 +41,7 @@ def test_RankReversalTest1_decision_maker_no_evaluate_method():
 
     dmaker = NoEvaluateMethod()
     with pytest.raises(TypeError):
-        RankReversalTest1(dmaker)
+        RankInvariantChecker(dmaker)
 
 
 def test_RankReversalTest1_decision_maker_evaluate_no_callable():
@@ -50,7 +50,7 @@ def test_RankReversalTest1_decision_maker_evaluate_no_callable():
 
     dmaker = EvaluateNoCallable()
     with pytest.raises(TypeError):
-        RankReversalTest1(dmaker)
+        RankInvariantChecker(dmaker)
 
 
 def test_RankReversalTest1_invalid_last_diff_strategy():
@@ -60,7 +60,7 @@ def test_RankReversalTest1_invalid_last_diff_strategy():
 
     dmaker = FakeDM()
     with pytest.raises(TypeError):
-        RankReversalTest1(dmaker, last_diff_strategy=None)
+        RankInvariantChecker(dmaker, last_diff_strategy=None)
 
 
 # CHECK DOMINANCE =============================================================
@@ -78,7 +78,7 @@ def original_dominates_mutated(dm, result, alt_name):
 def test_RankReversalTest1_simple_stock_selection():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = TOPSIS()
-    rrt1 = RankReversalTest1(dmaker, seed=42)
+    rrt1 = RankInvariantChecker(dmaker, seed=42)
     result = rrt1.evaluate(dm)
 
     assert original_dominates_mutated(dm, result, "AA")
@@ -92,7 +92,7 @@ def test_RankReversalTest1_simple_stock_selection():
 def test_RankReversalTest1_van2021evaluation(windows_size):
     dm = skc.datasets.load_van2021evaluation(windows_size=windows_size)
     dmaker = TOPSIS()
-    rrt1 = RankReversalTest1(dmaker, seed=42)
+    rrt1 = RankInvariantChecker(dmaker, seed=42)
     result = rrt1.evaluate(dm)
 
     assert original_dominates_mutated(dm, result, "ETH")
@@ -139,7 +139,7 @@ def test_RankReversalTest1_remove_one_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA"], 1)
-    rrt1 = RankReversalTest1(dmaker, seed=42, allow_missing_alternatives=False)
+    rrt1 = RankInvariantChecker(dmaker, seed=42, allow_missing_alternatives=False)
 
     with pytest.raises(ValueError):
         rrt1.evaluate(dm)
@@ -149,7 +149,7 @@ def test_RankReversalTest1_remove_one_alternative():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA"], 1)
-    rrt1 = RankReversalTest1(dmaker, seed=42, allow_missing_alternatives=True)
+    rrt1 = RankInvariantChecker(dmaker, seed=42, allow_missing_alternatives=True)
 
     result = rrt1.evaluate(dm)
 
@@ -163,7 +163,7 @@ def test_RankReversalTest1_remove_two_alternatives():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA", "MM"], 1)
-    rrt1 = RankReversalTest1(dmaker, seed=42, allow_missing_alternatives=True)
+    rrt1 = RankInvariantChecker(dmaker, seed=42, allow_missing_alternatives=True)
 
     result = rrt1.evaluate(dm)
 
@@ -180,7 +180,7 @@ def test_RankReversalTest1_remove_two_alternatives():
 
 def test_RankReversalTest1_repr():
     dmaker = TOPSIS()
-    rrt1 = RankReversalTest1(dmaker, seed=42)
+    rrt1 = RankInvariantChecker(dmaker, seed=42)
 
     result = repr(rrt1)
     expected = (

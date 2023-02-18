@@ -16,7 +16,7 @@
 # =============================================================================
 
 from .ranks_cmp import RanksComparator, mkrank_cmp
-from .rankrev import RankReversalTest1
+from .rankrev import RankInvariantChecker
 
 # =============================================================================
 # ALL
@@ -24,6 +24,6 @@ from .rankrev import RankReversalTest1
 
 __all__ = [
     "RanksComparator",
-    "RankReversalTest1",
+    "RankInvariantChecker",
     "mkrank_cmp",
 ]
