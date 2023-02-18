@@ -139,7 +139,9 @@ def test_RankReversalTest1_remove_one_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA"], 1)
-    rrt1 = RankInvariantChecker(dmaker, seed=42, allow_missing_alternatives=False)
+    rrt1 = RankInvariantChecker(
+        dmaker, seed=42, allow_missing_alternatives=False
+    )
 
     with pytest.raises(ValueError):
         rrt1.evaluate(dm)
@@ -149,7 +151,9 @@ def test_RankReversalTest1_remove_one_alternative():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA"], 1)
-    rrt1 = RankInvariantChecker(dmaker, seed=42, allow_missing_alternatives=True)
+    rrt1 = RankInvariantChecker(
+        dmaker, seed=42, allow_missing_alternatives=True
+    )
 
     result = rrt1.evaluate(dm)
 
@@ -163,7 +167,9 @@ def test_RankReversalTest1_remove_two_alternatives():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA", "MM"], 1)
-    rrt1 = RankInvariantChecker(dmaker, seed=42, allow_missing_alternatives=True)
+    rrt1 = RankInvariantChecker(
+        dmaker, seed=42, allow_missing_alternatives=True
+    )
 
     result = rrt1.evaluate(dm)
 

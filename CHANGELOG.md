@@ -8,6 +8,10 @@
 - Removed Python 3.7. Google collab now work with 3.8.
 - Updated Scikit-Learn to 1.2.
 
+### PENDIENTES
+
+- Cambiar `copy()` por `mutate()` in mcdamethod
+
 ## Version 0.8.3
 
 - Fixed a bug detected on the EntropyWeighted, Now works as the literature

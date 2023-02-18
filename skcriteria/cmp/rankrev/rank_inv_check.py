@@ -317,7 +317,14 @@ class RankInvariantChecker:
                 yield iteration, mutated, mutated_dm, noise
 
     def _add_mutation_info_to_rank(
-        self, *, rank, iteration, mutated, noise, full_alternatives
+        self,
+        *,
+        rank,
+        iteration,
+        mutated,
+        noise,
+        full_alternatives,
+        allow_missing_alternatives,
     ):
         """Adds information on how an alternative was "worsened" in the \
         decision matrix with respect to the original.
@@ -350,22 +357,36 @@ class RankInvariantChecker:
 
         """
         # extract the original data
-        method = f"{rank.method}+RRT1+{mutated}_{iteration}"
-        alternatives = rank.alternatives
-        values = rank.values
+        method = str(rank.method)
+        alternatives = rank.alternatives.copy()
+        values = rank.values.copy()
         extra = dict(rank.extra_.items())
 
         # we check if the decision_maker did not eliminate any alternatives
         alts_diff = arrset.setxor1d(alternatives, full_alternatives)
+        has_missing_alternatives = len(alts_diff) > 0
 
-        # add the missing alternatives withe the worst ranking value
-        if len(alts_diff):
-            # All missing alternatives have the maximum ranking + 1
+        # check for the missing alternatives
+        if has_missing_alternatives:
+
+            # if a missing alternative are not allowed must raise an error
+            if not allow_missing_alternatives:
+                raise ValueError(
+                    f"Missing alternative/s {set(alts_diff)!r} in mutation "
+                    f"{mutated!r} of iteration {iteration}"
+                )
+
+            # add missing alternatives with the  worst ranking + 1
             fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
 
             # concatenate the missing alternatives and the new rankings
             alternatives = np.concatenate((alternatives, alts_diff))
             values = np.concatenate((values, fill_values))
+
+        # change the method name if this is part of a mutation
+        if mutated and iteration:
+            method = f"{method}+RRT1+{mutated}_{iteration}"
+            noise = noise.copy()
 
         # patch the new data
         extra["rrt1"] = Bunch(
@@ -373,7 +394,7 @@ class RankInvariantChecker:
             {
                 "iteration": iteration,
                 "mutated": mutated,
-                "noise": noise.copy(),
+                "noise": noise,
                 "missing_alternatives": alts_diff,
             },
         )
@@ -390,44 +411,54 @@ class RankInvariantChecker:
     def evaluate(self, dm):
         # FIRST THE DATA THAT WILL BE USED IN ALL THE ITERATIONS ==============
 
-        # we need a first reference ranking
-        rank = self._dmaker.evaluate(dm)
+        # the test configuration
+        dmaker = self._dmaker
+        allow_missing_alternatives = self._allow_missing_alternatives
+        repeat = self._repeat
+        random = self._random
 
         # all alternatives to be used to check consistency
         full_alternatives = dm.alternatives
 
+        # we need a first reference ranking
+        orank = dmaker.evaluate(dm)
+        patched_orank = self._add_mutation_info_to_rank(
+            rank=orank,
+            mutated=None,
+            noise=None,
+            iteration=None,
+            full_alternatives=full_alternatives,
+            allow_missing_alternatives=allow_missing_alternatives,
+        )
+
         # Here we create a containers for the rank comparator starting with
         # the original rank
-        names, results = ["Original"], [rank]
+        names, results = ["Original"], [patched_orank]
 
         # START EXPERIMENTS ===================================================
-
-        for it, mutated, mdm, noise in self._generate_mutations(
-            dm=dm, orank=rank, repeat=self._repeat, random=self._random
-        ):
+        mutants_generator = self._generate_mutations(
+            dm=dm,
+            orank=patched_orank,
+            repeat=repeat,
+            random=random,
+        )
+        for it, mutated, mdm, noise in mutants_generator:
             # calculate the new rank
-            mrank = self._dmaker.evaluate(mdm)
+            mrank = dmaker.evaluate(mdm)
 
             # add info about the mutation to rhe rank
-            patched_mutated_rank = self._add_mutation_info_to_rank(
+            patched_mrank = self._add_mutation_info_to_rank(
                 rank=mrank,
                 mutated=mutated,
                 noise=noise,
                 iteration=it,
                 full_alternatives=full_alternatives,
+                allow_missing_alternatives=allow_missing_alternatives,
             )
-
-            # check for missing alternatives
-            miss_alts = bool(patched_mutated_rank.e_.rrt1.missing_alternatives)
-            if self._allow_missing_alternatives is False and miss_alts:
-                raise ValueError(
-                    f"Missing alternative/s {miss_alts!r} in mutation "
-                    f"{mutated!r} of iteration {it}"
-                )
 
             # store the information
             names.append(f"M.{mutated}")
-            results.append(patched_mutated_rank)
+            results.append(patched_mrank)
 
         # manually creates a new RankComparator
         named_ranks = unique_names(names=names, elements=results)
