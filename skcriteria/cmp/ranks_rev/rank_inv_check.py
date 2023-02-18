@@ -9,7 +9,14 @@
 # DOCS
 # =============================================================================
 
-"""Rank reversal test 1"""
+"""Test Criterion #1 for evaluating the effectiveness MCDA method.
+
+According to this criterion, the best alternative identified by the method
+should remain unchanged when a non-optimal alternative is replaced by a
+worse alternative, provided that the relative importance of each decision
+criterion remains the same.
+
+"""
 
 # =============================================================================
 # IMPORTS
@@ -17,12 +24,13 @@
 
 import numpy as np
 import numpy.lib.arraysetops as arrset
+
 import pandas as pd
 
+from .. import RanksComparator
 from ...core import SKCMethodABC
 from ...madm import RankResult
 from ...utils import Bunch, unique_names
-from .. import RanksComparator
 
 # =============================================================================
 # CONSTANT
@@ -350,7 +358,6 @@ class RankInvariantChecker:
 
         Returns
         -------
-
         patched_rank : ``skcriteria.madm.Rank``
             Ranking with all the information about the worsened alternative and
             the rank reversal test added to the `extra_` attribute.
@@ -368,7 +375,6 @@ class RankInvariantChecker:
 
         # check for the missing alternatives
         if has_missing_alternatives:
-
             # if a missing alternative are not allowed must raise an error
             if not allow_missing_alternatives:
                 raise ValueError(
@@ -384,7 +390,7 @@ class RankInvariantChecker:
             values = np.concatenate((values, fill_values))
 
         # change the method name if this is part of a mutation
-        if mutated and iteration:
+        if (mutated, iteration) != (None, None):
             method = f"{method}+RRT1+{mutated}_{iteration}"
             noise = noise.copy()
 
@@ -409,6 +415,25 @@ class RankInvariantChecker:
         return patched_rank
 
     def evaluate(self, dm):
+        """Executes a the invariance test.
+
+        Parameters
+        ----------
+        dm : DecisionMatrix
+            The decision matrix to be evaluated.
+
+        Returns
+        -------
+        RanksComparator
+            An object containing multiple rankings of the alternatives, with
+            information on any changes made to the original decision matrix in
+            the `extra_` attribute. Specifically, the `extra_` attribute
+            contains a an object in the key `rrt1` that provides
+            information on any changes made to the original decision matrix,
+            including the the noise applied to worsen any sub-optimal
+            alternative.
+
+        """
         # FIRST THE DATA THAT WILL BE USED IN ALL THE ITERATIONS ==============
 
         # the test configuration

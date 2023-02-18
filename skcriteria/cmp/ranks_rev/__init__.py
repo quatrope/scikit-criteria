@@ -9,7 +9,9 @@
 # DOCS
 # =============================================================================
 
-"""Rank reversal is a change in the preferred order of alternatives that occurs
+"""Rank reversal tools.
+
+Rank reversal is a change in the preferred order of alternatives that occurs
 when the selection method or available options change. It is a significant
 issue in decision-making, particularly in multi-criteria decision-making.
 

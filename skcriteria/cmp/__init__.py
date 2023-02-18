@@ -16,7 +16,7 @@
 # =============================================================================
 
 from .ranks_cmp import RanksComparator, mkrank_cmp
-from .rankrev import RankInvariantChecker
+from .ranks_rev import RankInvariantChecker
 
 # =============================================================================
 # ALL
