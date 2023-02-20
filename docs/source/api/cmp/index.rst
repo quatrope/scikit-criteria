@@ -9,6 +9,12 @@
 
 .. toctree::
    :maxdepth: 2
+
+   ranks_rev/index
+
+
+.. toctree::
+   :maxdepth: 2
    :glob:
 
    *

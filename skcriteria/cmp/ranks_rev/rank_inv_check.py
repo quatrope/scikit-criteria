@@ -100,9 +100,10 @@ class RankInvariantChecker:
 
         If more than one alternative is removed, all of them are added
         with the same value
-
-    last_diff_strategy="median",
-    seed=None,
+    last_diff_strategy: str or callable (default: "median").
+        Xazzzzz
+    seed: int, numpy.random.default_rng or None (default: None)
+        Xazzzzz
 
     """
 
