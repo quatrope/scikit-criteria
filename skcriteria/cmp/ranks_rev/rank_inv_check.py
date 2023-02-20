@@ -80,15 +80,17 @@ class RankInvariantChecker:
 
     Parameters
     ----------
-    dmaker: Decision maker (must implement the 'evaluate()' method)
+    dmaker: Decision maker - must implement the ``evaluate()`` method
         The MCDA method, or pipeline to evaluate.
-    repeat: int (default = 1)
+
+    repeat: int, default = 1
         How many times to mutate each suboptimal alternative.
 
         The total number of rankings returned by this method is given by the
         number of alternatives in the decision matrix minus one multiplied by
         ``repeat``.
-    allow_missing_alternatives: bool (default = False)
+
+    allow_missing_alternatives: bool, default = False
         ``dmaker`` can somehow return rankings with fewer alternatives than the
         original ones (using a pipeline that implements a filter, for example).
         By setting this parameter to ``True``, the invariance test allows for
