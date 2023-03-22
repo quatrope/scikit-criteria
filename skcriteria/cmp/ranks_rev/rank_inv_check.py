@@ -39,7 +39,6 @@ from ...utils import Bunch, unique_names
 _LAST_DIFF_STRATEGIES = {
     "median": np.median,
     "mean": np.mean,
-    "average": np.mean,
 }
 
 
@@ -48,7 +47,7 @@ _LAST_DIFF_STRATEGIES = {
 # =============================================================================
 
 
-class RankInvariantChecker:
+class RankInvariantChecker(SKCMethodABC):
     r"""Test Criterion #1 for evaluating the effectiveness MCDA method.
 
     According to this criterion, the best alternative identified by the method
@@ -102,12 +101,25 @@ class RankInvariantChecker:
 
         If more than one alternative is removed, all of them are added
         with the same value
+
     last_diff_strategy: str or callable (default: "median").
-        Xazzzzz
-    seed: int, numpy.random.default_rng or None (default: None)
-        Xazzzzz
+        True if any mutation is allowed that does not possess all the
+        alternatives of the original decision matrix.
+
+    random_state: int, numpy.random.default_rng or None (default: None)
+        Controls the random state to generate variations in the sub-optimal
+        alternatives.
 
     """
+
+    _skcriteria_dm_type = "rank_reversal"
+    _skcriteria_parameters = [
+        "dmaker",
+        "repeat",
+        "allow_missing_alternatives",
+        "last_diff_strategy",
+        "random_state",
+    ]
 
     def __init__(
         self,
@@ -116,7 +128,7 @@ class RankInvariantChecker:
         repeat=1,
         allow_missing_alternatives=False,
         last_diff_strategy="median",
-        seed=None,
+        random_state=None,
     ):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
@@ -141,21 +153,53 @@ class RankInvariantChecker:
             raise TypeError(msg)
 
         # RANDOM
-        self._seed = seed
-        self._random = np.random.default_rng(seed)
+        self._random_state = np.random.default_rng(random_state)
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
+        cls_name = type(self).__name__
         dm = repr(self._dmaker)
         repeats = self._repeat
         ama = self._allow_missing_alternatives
         lds = self._last_diff_strategy
-        seed = self._seed
         return (
-            f"<RankReversalTest1 {dm} repeats={repeats}, "
-            f"allow_missing_alternatives={ama} last_diff_strategy={lds!r} "
-            f"seed={seed!r}>"
+            f"<{cls_name} {dm} repeats={repeats}, "
+            f"allow_missing_alternatives={ama} last_diff_strategy={lds!r}>"
         )
+
+    # PROPERTIES ==============================================================
+
+    @property
+    def dmaker(self):
+        """The MCDA method, or pipeline to evaluate."""
+        return self._dmaker
+
+    @property
+    def repeat(self):
+        """How many times to mutate each suboptimal alternative."""
+        return self._repeat
+
+    @property
+    def allow_missing_alternatives(self):
+        """True if any mutation is allowed that does not possess all the \
+        alternatives of the original decision matrix."""
+        return self._allow_missing_alternatives
+
+    @property
+    def last_diff_strategy(self):
+        """Since the least preferred alternative has no lower bound (since \
+        there is nothing immediately below it), this function calculates a \
+        limit ceiling based on the bounds of all the other suboptimal \
+        alternatives."""
+        return self._last_diff_strategy
+
+    @property
+    def random_state(self):
+        """Controls the random state to generate variations in the \
+        sub-optimal alternatives."""
+        return self._random_state
+
+    # LOGIC ===================================================================
 
     def _maximum_abs_noises(self, *, dm, rank):
         """Calculate the absolute difference between the alternatives in order.
@@ -357,13 +401,19 @@ class RankInvariantChecker:
         noise: ``pandas.Series``
             Noise used to worsen the 'mutated' alternative.
         full_alternatives: array-like
-            The full of alternatives in the original decision matrix.
+            The full list of alternatives in the original decision matrix.
+        allow_missing_alternatives: bool, default ``True``
+            If the value is ``False``, when a ranking is missing
+            an alternative, the test will fail with a ``ValueError``,
+            and if True the missing alternatives are added at the end of the
+            ranking all with a value $R_max$ + 1, where $R_max$ is the maximum
+            ranking obtained by the alternatives that were not eliminated.
 
         Returns
         -------
         patched_rank : ``skcriteria.madm.Rank``
             Ranking with all the information about the worsened alternative and
-            the rank reversal test added to the `extra_` attribute.
+            the rank reversal test added to the `extra_.rrt1` attribute.
 
         """
         # extract the original data
@@ -443,7 +493,7 @@ class RankInvariantChecker:
         dmaker = self._dmaker
         allow_missing_alternatives = self._allow_missing_alternatives
         repeat = self._repeat
-        random = self._random
+        random = self._random_state
 
         # all alternatives to be used to check consistency
         full_alternatives = dm.alternatives

@@ -33,7 +33,7 @@ from skcriteria.utils import rank
 # =============================================================================
 
 
-def test_RankReversalTest1_decision_maker_no_evaluate_method():
+def test_RankInvariantChecker_decision_maker_no_evaluate_method():
     class NoEvaluateMethod:
         ...
 
@@ -42,7 +42,7 @@ def test_RankReversalTest1_decision_maker_no_evaluate_method():
         RankInvariantChecker(dmaker)
 
 
-def test_RankReversalTest1_decision_maker_evaluate_no_callable():
+def test_RankInvariantChecker_decision_maker_evaluate_no_callable():
     class EvaluateNoCallable:
         evaluate = None
 
@@ -51,7 +51,7 @@ def test_RankReversalTest1_decision_maker_evaluate_no_callable():
         RankInvariantChecker(dmaker)
 
 
-def test_RankReversalTest1_invalid_last_diff_strategy():
+def test_RankInvariantChecker_invalid_last_diff_strategy():
     class FakeDM:
         def evaluate(self):
             ...
@@ -73,10 +73,10 @@ def original_dominates_mutated(dm, result, alt_name):
     return dom.aDb > dom.bDa
 
 
-def test_RankReversalTest1_simple_stock_selection():
+def test_RankInvariantChecker_simple_stock_selection():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = TOPSIS()
-    rrt1 = RankInvariantChecker(dmaker, seed=42)
+    rrt1 = RankInvariantChecker(dmaker, random_state=42)
     result = rrt1.evaluate(dm)
 
     assert original_dominates_mutated(dm, result, "AA")
@@ -87,10 +87,10 @@ def test_RankReversalTest1_simple_stock_selection():
 
 
 @pytest.mark.parametrize("windows_size", [7, 15])
-def test_RankReversalTest1_van2021evaluation(windows_size):
+def test_RankInvariantChecker_van2021evaluation(windows_size):
     dm = skc.datasets.load_van2021evaluation(windows_size=windows_size)
     dmaker = TOPSIS()
-    rrt1 = RankInvariantChecker(dmaker, seed=42)
+    rrt1 = RankInvariantChecker(dmaker, random_state=42)
     result = rrt1.evaluate(dm)
 
     assert original_dominates_mutated(dm, result, "ETH")
@@ -133,24 +133,24 @@ class RemoveAlternativeDMaker:
         return rank
 
 
-def test_RankReversalTest1_remove_one_alternative_forbidden():
+def test_RankInvariantChecker_remove_one_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA"], 1)
     rrt1 = RankInvariantChecker(
-        dmaker, seed=42, allow_missing_alternatives=False
+        dmaker, random_state=42, allow_missing_alternatives=False
     )
 
     with pytest.raises(ValueError):
         rrt1.evaluate(dm)
 
 
-def test_RankReversalTest1_remove_one_alternative():
+def test_RankInvariantChecker_remove_one_alternative():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA"], 1)
     rrt1 = RankInvariantChecker(
-        dmaker, seed=42, allow_missing_alternatives=True
+        dmaker, random_state=42, allow_missing_alternatives=True
     )
 
     result = rrt1.evaluate(dm)
@@ -161,12 +161,12 @@ def test_RankReversalTest1_remove_one_alternative():
     assert rank.to_series()["AA"] == 6
 
 
-def test_RankReversalTest1_remove_two_alternatives():
+def test_RankInvariantChecker_remove_two_alternatives():
     dm = skc.datasets.load_simple_stock_selection()
 
     dmaker = RemoveAlternativeDMaker(TOPSIS(), ["AA", "MM"], 1)
     rrt1 = RankInvariantChecker(
-        dmaker, seed=42, allow_missing_alternatives=True
+        dmaker, random_state=42, allow_missing_alternatives=True
     )
 
     result = rrt1.evaluate(dm)
@@ -182,15 +182,15 @@ def test_RankReversalTest1_remove_two_alternatives():
     assert rank.has_ties_
 
 
-def test_RankReversalTest1_repr():
+def test_RankInvariantChecker_repr():
     dmaker = TOPSIS()
-    rrt1 = RankInvariantChecker(dmaker, seed=42)
+    rrt1 = RankInvariantChecker(dmaker, random_state=42)
 
     result = repr(rrt1)
     expected = (
-        f"<RankReversalTest1 {dmaker!r} repeats={1}, "
+        f"<RankInvariantChecker {dmaker!r} repeats={1}, "
         f"allow_missing_alternatives={False} "
-        f"last_diff_strategy={np.median!r} seed={42}>"
+        f"last_diff_strategy={np.median!r}>"
     )
 
     assert result == expected

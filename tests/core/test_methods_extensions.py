@@ -18,10 +18,12 @@
 # IMPORTS
 # =============================================================================
 
+import numpy as np
+
 import pytest
 
 from skcriteria import madm
-from skcriteria.cmp import RanksComparator
+from skcriteria.cmp import RankInvariantChecker, RanksComparator
 from skcriteria.core import methods
 from skcriteria.pipeline import SKCPipeline
 from skcriteria.preprocessing import SKCMatrixAndWeightTransformerABC
@@ -46,6 +48,24 @@ def _get_subclasses(cls):
     for subc in cls.__subclasses__():
         for subsub in _get_subclasses(subc):
             yield subsub
+
+
+def _parameters_diff(original, copy):
+    diff = set()
+    for k in list(original) + list(copy):
+        if k not in original or k not in copy:
+            diff.add(k)
+        else:
+            ov, cv = original[k], copy[k]
+
+            # mayb we need to compare another thing
+            if isinstance(ov, np.random.Generator):
+                ov = ov.bit_generator.state
+                cv = cv.bit_generator.state
+
+            # te comparison!
+            if ov != cv:
+                diff.add(k)
 
 
 # =============================================================================
@@ -89,6 +109,7 @@ def test_SLCMethodABC_concrete_subclass_copy():
         Filter: {"criteria_filters": {"foo": lambda e: e}},
         SKCArithmeticFilterABC: {"criteria_filters": {"foo": 1}},
         SKCSetFilterABC: {"criteria_filters": {"foo": [1]}},
+        RankInvariantChecker: {"dmaker": _FakeDM()},
     }
 
     for scls in _get_subclasses(methods.SKCMethodABC):
@@ -100,6 +121,11 @@ def test_SLCMethodABC_concrete_subclass_copy():
         original = scls(**kwargs)
         copy = original.copy()
 
-        assert (
-            original.get_parameters() == copy.get_parameters()
-        ), f"'{scls.__qualname__}' instance not correctly copied."
+        poriginal = original.get_parameters()
+        pcopy = copy.get_parameters()
+
+        diff = _parameters_diff(poriginal, pcopy)
+        if diff:
+            pytest.fail(
+                f"'{scls.__qualname__}' instance incorrectly copied. {diff!r}"
+            )

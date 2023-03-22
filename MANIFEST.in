@@ -8,6 +8,7 @@ recursive-include skcriteria *.json
 
 exclude tox.ini
 exclude requirements_dev.txt
+exclude CODE_OF_CONDUCT.md
 exclude .header-template
 exclude .readthedocs.yml
 

@@ -371,7 +371,7 @@ class RanksComparatorPlotter(AccessorABC):
 
     """
 
-    _default_kind = "flow"
+    _default_kind = "box"
 
     def __init__(self, ranks_cmp):
         self._ranks_cmp = ranks_cmp
