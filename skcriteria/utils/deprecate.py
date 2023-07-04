@@ -15,6 +15,8 @@
 # IMPORTS
 # =============================================================================
 
+import warnings
+
 from deprecated import deprecated as _deprecated
 
 
@@ -49,9 +51,24 @@ DEPRECATION_DIRECTIVE = """
 """
 
 
-def _create_doc_with_deprecated_directive(text, *, reason, version):
+def add_sphinx_deprecated_directive(doc, *, reason, version):
+    """Add the Sphinx deprecation directive to a given doc.
+
+    Parameters
+    ----------
+    doc: str
+        The original documentation.
+    reason: str
+        Reason message which documents the deprecation in your library.
+    version: str
+        Version of your project which marks as  this feature.
+        If you follow the `Semantic Versioning <https://semver.org/>`_,
+        the version number has the format "MAJOR.MINOR.PATCH".
+
+    """
+
     # first let split the text in lines
-    lines = text.splitlines()
+    lines = doc.splitlines()
 
     # the location is where in between lines we must insert the
     # deprecation directive. By default "at the end"
@@ -91,6 +108,29 @@ def _create_doc_with_deprecated_directive(text, *, reason, version):
     return new_doc
 
 
+def warn(*, reason, version):
+    """Raises a deprecation warning.
+
+    It will result in a warning being emitted immediately
+
+    Parameters
+    ----------
+    reason: str
+        Reason message which documents the deprecation in your library.
+    version: str
+        Version of your project which marks as  this feature.
+        If you follow the `Semantic Versioning <https://semver.org/>`_,
+        the version number has the format "MAJOR.MINOR.PATCH".
+
+    """
+    action = "error" if version >= ERROR_GE else "once"
+    with warnings.catch_warnings():
+        warnings.simplefilter(action, category=SKCriteriaDeprecationWarning)
+        warnings.warn(
+            reason, category=SKCriteriaDeprecationWarning, stacklevel=2
+        )
+
+
 # =============================================================================
 # DECORATORS
 # =============================================================================
@@ -128,7 +168,7 @@ def deprecated(*, reason, version):
 
     def _dec(func):
         decorated_func = add_warning(func)
-        decorated_func.__doc__ = _create_doc_with_deprecated_directive(
+        decorated_func.__doc__ = add_sphinx_deprecated_directive(
             func.__doc__, reason=reason, version=version
         )
         return decorated_func
@@ -168,7 +208,7 @@ def will_change(*, reason, version):
 
     def _dec(func):
         decorated_func = add_warning(func)
-        decorated_func.__doc__ = _create_doc_with_deprecated_directive(
+        decorated_func.__doc__ = add_sphinx_deprecated_directive(
             func.__doc__, reason=reason, version=version
         )
         return decorated_func

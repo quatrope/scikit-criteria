@@ -9,27 +9,27 @@
 # DOCS
 # =============================================================================
 
-"""MCDA aggregation methods and internal machinery."""
+"""test for the deprecated module skcriteria.madm
+
+"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from ._agg_base import (
-    KernelResult,
-    RankResult,
-    ResultABC,
-    SKCDecisionMakerABC,
-)
+import sys
+
+import pytest
+
 
 # =============================================================================
-# ALL
+# TEST MADM
 # =============================================================================
 
-__all__ = [
-    "KernelResult",
-    "RankResult",
-    "ResultABC",
-    "SKCDecisionMakerABC",
-]
+
+@pytest.mark.run(order=-2)
+def test_deprecated_module_madm():
+    with pytest.deprecated_call():
+        from skcriteria import madm
+    del madm
