@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm.maut
+"""test for skcriteria.agg.maut
 
 """
 
@@ -23,8 +23,8 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm import RankResult
-from skcriteria.madm.simple import WeightedProductModel, WeightedSumModel
+from skcriteria.agg import RankResult
+from skcriteria.agg.simple import WeightedProductModel, WeightedSumModel
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler
 

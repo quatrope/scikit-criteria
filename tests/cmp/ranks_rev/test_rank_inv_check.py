@@ -24,8 +24,8 @@ import numpy as np
 import pytest
 
 import skcriteria as skc
+from skcriteria.agg.similarity import TOPSIS
 from skcriteria.cmp.ranks_rev.rank_inv_check import RankInvariantChecker
-from skcriteria.madm.similarity import TOPSIS
 from skcriteria.utils import rank
 
 # =============================================================================

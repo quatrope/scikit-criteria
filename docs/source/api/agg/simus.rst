@@ -1,7 +1,7 @@
-``skcriteria.madm.simus`` module
+``skcriteria.agg.simus`` module
 ================================
 
-.. automodule:: skcriteria.madm.simus
+.. automodule:: skcriteria.agg.simus
    :members:
    :undoc-members:
    :show-inheritance:

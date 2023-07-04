@@ -1,7 +1,7 @@
-``skcriteria.madm`` package
+``skcriteria.agg`` package
 ===========================
 
-.. automodule:: skcriteria.madm
+.. automodule:: skcriteria.agg
    :members:
    :undoc-members:
    :show-inheritance:

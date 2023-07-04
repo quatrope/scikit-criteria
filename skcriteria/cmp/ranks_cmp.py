@@ -29,8 +29,8 @@ import seaborn as sns
 
 from sklearn import metrics as _skl_metrics
 
+from ..agg import RankResult
 from ..core import SKCMethodABC
-from ..madm import RankResult
 from ..utils import AccessorABC, Bunch, unique_names
 
 
@@ -65,7 +65,7 @@ class RanksComparator(SKCMethodABC):
     Parameters
     ----------
     ranks : list
-        List of (name, ranking) tuples of ``skcriteria.madm.RankResult``
+        List of (name, ranking) tuples of ``skcriteria.agg.RankResult``
         with the same alternatives.
 
     See Also

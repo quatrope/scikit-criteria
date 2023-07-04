@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm.moora."""
+"""test for skcriteria.agg.moora."""
 
 # =============================================================================
 # IMPORTS
@@ -21,8 +21,8 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm import RankResult
-from skcriteria.madm.moora import (
+from skcriteria.agg import RankResult
+from skcriteria.agg.moora import (
     FullMultiplicativeForm,
     MultiMOORA,
     RatioMOORA,

@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm.simus."""
+"""test for skcriteria.agg.simus."""
 
 
 # =============================================================================
@@ -21,8 +21,8 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm import RankResult
-from skcriteria.madm.simus import SIMUS
+from skcriteria.agg import RankResult
+from skcriteria.agg.simus import SIMUS
 
 # =============================================================================
 # TEST CLASSES

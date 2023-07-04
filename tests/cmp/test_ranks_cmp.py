@@ -28,7 +28,7 @@ import pytest
 
 import seaborn as sns
 
-from skcriteria import madm
+from skcriteria import agg
 from skcriteria.cmp import ranks_cmp
 
 # =============================================================================
@@ -37,47 +37,47 @@ from skcriteria.cmp import ranks_cmp
 
 
 def test_RanksComparator_only_one_rank():
-    rank = madm.RankResult("test", ["a"], [1], {})
+    rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
         ranks_cmp.mkrank_cmp(rank)
 
 
 def test_RanksComparator_name_not_str():
-    rank = madm.RankResult("test", ["a"], [1], {})
+    rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
         ranks_cmp.RanksComparator([("a", rank), (1, rank)])
 
 
 def test_RanksComparator_not_rank_result():
-    rank = madm.RankResult("test", ["a"], [1], {})
+    rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(TypeError):
         ranks_cmp.RanksComparator([("a", rank), ("b", None)])
 
 
 def test_RanksComparator_duplicated_names():
-    rank = madm.RankResult("test", ["a"], [1], {})
+    rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
         ranks_cmp.RanksComparator([("a", rank), ("a", rank)])
 
 
 def test_RanksComparator_missing_alternatives():
-    rank0 = madm.RankResult("test", ["a"], [1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 2], {})
+    rank0 = agg.RankResult("test", ["a"], [1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 2], {})
     with pytest.raises(ValueError):
         ranks_cmp.mkrank_cmp(rank0, rank1)
 
 
 def test_RanksComparator_repr():
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
     assert repr(rcmp) == "<RanksComparator [ranks=['test_1', 'test_2']]>"
 
 
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparator_to_dataframe(untied):
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     df = ranks_cmp.mkrank_cmp(rank0, rank1).to_dataframe(untied=untied)
 
     expected = pd.DataFrame.from_dict(
@@ -95,8 +95,8 @@ def test_RanksComparator_to_dataframe(untied):
 
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparator_cov(untied):
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     cov = ranks_cmp.mkrank_cmp(rank0, rank1).cov(untied=untied)
 
     expected = pd.DataFrame.from_dict(
@@ -118,8 +118,8 @@ def test_RanksComparator_cov(untied):
 
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparator_corr(untied):
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     corr = ranks_cmp.mkrank_cmp(rank0, rank1).corr(untied=untied)
 
     expected = pd.DataFrame.from_dict(
@@ -141,8 +141,8 @@ def test_RanksComparator_corr(untied):
 
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparator_r2_score(untied):
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     r2 = ranks_cmp.mkrank_cmp(rank0, rank1).r2_score(untied=untied)
 
     expected = pd.DataFrame.from_dict(
@@ -160,8 +160,8 @@ def test_RanksComparator_r2_score(untied):
 
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparator_distance(untied):
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     dis = ranks_cmp.mkrank_cmp(rank0, rank1).distance(untied=untied)
 
     expected = pd.DataFrame.from_dict(
@@ -178,14 +178,14 @@ def test_RanksComparator_distance(untied):
 
 
 def test_RanksComparator_len():
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     assert len(ranks_cmp.mkrank_cmp(rank0, rank1)) == 2
 
 
 def test_RanksComparator_getitem():
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
     copy = rcmp[0:]
 
@@ -200,15 +200,15 @@ def test_RanksComparator_getitem():
 
 
 def test_RanksComparator_hash():
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
     assert id(rcmp) == hash(rcmp)
 
 
 def test_RanksComparator_plot():
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     assert isinstance(rcmp.plot, ranks_cmp.RanksComparatorPlotter)
@@ -226,8 +226,8 @@ def test_RanksComparator_plot():
 def test_RanksComparatorPlotter_flow(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.flow(ax=test_ax, untied=untied)
@@ -256,8 +256,8 @@ def test_RanksComparatorPlotter_flow(fig_test, fig_ref, untied):
 def test_RanksComparatorPlotter_reg(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.reg(ax=test_ax, untied=untied)
@@ -290,8 +290,8 @@ def test_RanksComparatorPlotter_reg(fig_test, fig_ref, untied):
 
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparatorPlotter_reg_unexpected_keyword_argument_color(untied):
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     with pytest.raises(TypeError):
@@ -304,8 +304,8 @@ def test_RanksComparatorPlotter_reg_unexpected_keyword_argument_color(untied):
 def test_RanksComparatorPlotter_heatmap(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.heatmap(ax=test_ax, untied=untied)
@@ -336,8 +336,8 @@ def test_RanksComparatorPlotter_heatmap(fig_test, fig_ref, untied):
 def test_RanksComparatorPlotter_corr(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.corr(ax=test_ax, untied=untied)
@@ -368,8 +368,8 @@ def test_RanksComparatorPlotter_corr(fig_test, fig_ref, untied):
 def test_RanksComparatorPlotter_cov(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.cov(ax=test_ax, untied=untied)
@@ -400,8 +400,8 @@ def test_RanksComparatorPlotter_cov(fig_test, fig_ref, untied):
 def test_RanksComparatorPlotter_r2_score(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.r2_score(ax=test_ax, untied=untied)
@@ -432,8 +432,8 @@ def test_RanksComparatorPlotter_r2_score(fig_test, fig_ref, untied):
 def test_RanksComparatorPlotter_distance(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.distance(ax=test_ax, untied=untied)
@@ -465,8 +465,8 @@ def test_RanksComparatorPlotter_distance(fig_test, fig_ref, untied):
 def test_RanksComparatorPlotter_box(fig_test, fig_ref, untied, orient):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.box(ax=test_ax, orient=orient, untied=untied)
@@ -498,8 +498,8 @@ def test_RanksComparatorPlotter_box(fig_test, fig_ref, untied, orient):
 def test_RanksComparatorPlotter_bar(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.bar(ax=test_ax, untied=untied)
@@ -527,8 +527,8 @@ def test_RanksComparatorPlotter_bar(fig_test, fig_ref, untied):
 def test_RanksComparatorPlotter_barh(fig_test, fig_ref, untied):
     test_ax = fig_test.subplots()
 
-    rank0 = madm.RankResult("test", ["a", "b"], [1, 1], {})
-    rank1 = madm.RankResult("test", ["a", "b"], [1, 1], {})
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
 
     rcmp.plot.barh(ax=test_ax, untied=untied)

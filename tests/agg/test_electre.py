@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm.electre.
+"""test for skcriteria.agg.electre.
 
 """
 
@@ -23,7 +23,7 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm.electre import (
+from skcriteria.agg.electre import (
     ELECTRE1,
     ELECTRE2,
     concordance,

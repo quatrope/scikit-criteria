@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm._base."""
+"""test for skcriteria.agg._base."""
 
 
 # =============================================================================
@@ -25,7 +25,7 @@ from pyquery import PyQuery
 
 import pytest
 
-from skcriteria.madm import (
+from skcriteria.agg import (
     KernelResult,
     RankResult,
     ResultABC,

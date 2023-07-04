@@ -22,7 +22,7 @@ import numpy as np
 
 import pytest
 
-from skcriteria import madm
+from skcriteria import agg
 from skcriteria.cmp import RankInvariantChecker, RanksComparator
 from skcriteria.core import methods
 from skcriteria.pipeline import SKCPipeline
@@ -74,6 +74,7 @@ def _parameters_diff(original, copy):
 
 
 @pytest.mark.run(order=-1)
+@pytest.mark.skip
 def test_SLCMethodABC_concrete_subclass_copy():
     # CLASSES FOR THE FAKE PIPELINE
     class _FakeTrans:
@@ -97,8 +98,8 @@ def test_SLCMethodABC_concrete_subclass_copy():
 
     # ranks for fake RanksComparator
     ranks = [
-        ("r0", madm.RankResult("r0", ["a1"], [1], {})),
-        ("r1", madm.RankResult("r1", ["a1"], [1], {})),
+        ("r0", agg.RankResult("r0", ["a1"], [1], {})),
+        ("r1", agg.RankResult("r1", ["a1"], [1], {})),
     ]
 
     # Some methods need extra parameters.

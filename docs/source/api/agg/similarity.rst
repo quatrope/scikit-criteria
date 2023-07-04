@@ -1,7 +1,7 @@
-``skcriteria.madm.similarity`` module
+``skcriteria.agg.similarity`` module
 =====================================
 
-.. automodule:: skcriteria.madm.similarity
+.. automodule:: skcriteria.agg.similarity
    :members:
    :undoc-members:
    :show-inheritance:

@@ -28,8 +28,8 @@ import numpy.lib.arraysetops as arrset
 import pandas as pd
 
 from .. import RanksComparator
+from ...agg import RankResult
 from ...core import SKCMethodABC
-from ...madm import RankResult
 from ...utils import Bunch, unique_names
 
 # =============================================================================
@@ -216,7 +216,7 @@ class RankInvariantChecker(SKCMethodABC):
         dm : ``skcriteria.core.data.DecisionMatrix``
             The decision matrix from which the maximum possible absolute noises
             of each alternative are to be extracted.
-        rank : ``skcriteria.madm.Rank``
+        rank : ``skcriteria.agg.Rank``
             Ranking of alternatives.
 
         Returns
@@ -332,7 +332,7 @@ class RankInvariantChecker(SKCMethodABC):
         ----------
         dm : ``skcriteria.core.data.DecisionMatrix``
             The decision matrix to mutate in every experiment.
-        orank : ``skcriteria.madm.Rank``
+        orank : ``skcriteria.agg.Rank``
             The original ranking without mutations.
         repeat : int
             How many times an suboptimal alternative must be mutated.
@@ -389,7 +389,7 @@ class RankInvariantChecker(SKCMethodABC):
 
         Parameters
         ----------
-        rank: ``skcriteria.madm.Rank``
+        rank: ``skcriteria.agg.Rank``
             Ranking to which you want to add information about the executed
             test.
         iteration: int
@@ -411,7 +411,7 @@ class RankInvariantChecker(SKCMethodABC):
 
         Returns
         -------
-        patched_rank : ``skcriteria.madm.Rank``
+        patched_rank : ``skcriteria.agg.Rank``
             Ranking with all the information about the worsened alternative and
             the rank reversal test added to the `extra_.rrt1` attribute.
 

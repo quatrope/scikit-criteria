@@ -21,7 +21,7 @@
 import pytest
 
 from skcriteria import pipeline
-from skcriteria.madm.similarity import TOPSIS
+from skcriteria.agg.similarity import TOPSIS
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import StandarScaler
 from skcriteria.preprocessing.weighters import CRITIC

@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.madm.similarity."""
+"""test for skcriteria.agg.similarity."""
 
 
 # =============================================================================
@@ -21,8 +21,8 @@ import numpy as np
 import pytest
 
 import skcriteria
-from skcriteria.madm import RankResult
-from skcriteria.madm.similarity import TOPSIS
+from skcriteria.agg import RankResult
+from skcriteria.agg.similarity import TOPSIS
 from skcriteria.preprocessing.scalers import VectorScaler
 
 # =============================================================================

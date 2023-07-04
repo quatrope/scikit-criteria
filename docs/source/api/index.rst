@@ -17,7 +17,7 @@
 .. toctree::
    :maxdepth: 2
 
-   madm/index
+   agg/index
 
 
 .. toctree::

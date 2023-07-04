@@ -1,7 +1,7 @@
-``skcriteria.madm.moora`` module
+``skcriteria.agg.moora`` module
 ================================
 
-.. automodule:: skcriteria.madm.moora
+.. automodule:: skcriteria.agg.moora
    :members:
    :undoc-members:
    :show-inheritance:

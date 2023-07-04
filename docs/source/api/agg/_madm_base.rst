@@ -1,7 +1,7 @@
-``skcriteria.madm._madm_base`` module
+``skcriteria.agg._madm_base`` module
 =====================================
 
-.. automodule:: skcriteria.madm._madm_base
+.. automodule:: skcriteria.agg._madm_base
    :members:
    :undoc-members:
    :show-inheritance:
