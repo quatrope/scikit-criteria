@@ -18,7 +18,7 @@
 
 import numpy as np
 
-from ._madm_base import RankResult, SKCDecisionMakerABC
+from ._agg_base import RankResult, SKCDecisionMakerABC
 from ..core import Objective
 from ..utils import doc_inherit, rank
 

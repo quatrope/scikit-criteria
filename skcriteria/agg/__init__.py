@@ -16,7 +16,7 @@
 # IMPORTS
 # =============================================================================
 
-from ._madm_base import (
+from ._agg_base import (
     KernelResult,
     RankResult,
     ResultABC,
