@@ -28,6 +28,54 @@ from skcriteria.utils import deprecate
 # =============================================================================
 
 
+def test_add_sphinx_deprecated_directive_whitout_titles():
+    original = "foo"
+    with_directive = deprecate.add_sphinx_deprecated_directive(
+        original, reason="yes", version=0.9
+    )
+    expected = "foo\n\n.. deprecated:: 0.9\n    yes\n"
+    assert expected == with_directive
+
+
+def test_add_sphinx_deprecated_directive_whit_titles():
+    original = (
+        "foo\n"
+        "\n"
+        " Introduction\n"
+        " ------------\n"
+        "\n"
+        " something foo del baz ham eggs"
+    )
+
+    with_directive = deprecate.add_sphinx_deprecated_directive(
+        original, reason="yes", version=0.9
+    )
+    expected = (
+        "foo\n"
+        "\n"
+        " .. deprecated:: 0.9\n"
+        "     yes\n"
+        "\n"
+        "\n"
+        " Introduction\n"
+        " ------------\n"
+        "\n"
+        " something foo del baz ham eggs"
+    )
+
+    assert expected == with_directive
+
+
+def test_warn_once():
+    with pytest.deprecated_call():
+        deprecate.warn(reason="foo", version=deprecate.ERROR_GE - 0.5)
+
+
+def test_warn_error():
+    with pytest.raises(deprecate.SKCriteriaDeprecationWarning):
+        deprecate.warn(reason="foo", version=deprecate.ERROR_GE)
+
+
 def test_deprecated():
     def func():
         """Zaraza.

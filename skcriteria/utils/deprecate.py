@@ -66,7 +66,6 @@ def add_sphinx_deprecated_directive(doc, *, reason, version):
         the version number has the format "MAJOR.MINOR.PATCH".
 
     """
-
     # first let split the text in lines
     lines = doc.splitlines()
 
@@ -108,7 +107,7 @@ def add_sphinx_deprecated_directive(doc, *, reason, version):
     return new_doc
 
 
-def warn(*, reason, version):
+def warn(reason, version, *, category=SKCriteriaDeprecationWarning):
     """Raises a deprecation warning.
 
     It will result in a warning being emitted immediately
@@ -121,14 +120,14 @@ def warn(*, reason, version):
         Version of your project which marks as  this feature.
         If you follow the `Semantic Versioning <https://semver.org/>`_,
         the version number has the format "MAJOR.MINOR.PATCH".
+    category: default='SKCriteriaDeprecationWarning'
+        Class of the warning.
 
     """
     action = "error" if version >= ERROR_GE else "once"
     with warnings.catch_warnings():
-        warnings.simplefilter(action, category=SKCriteriaDeprecationWarning)
-        warnings.warn(
-            reason, category=SKCriteriaDeprecationWarning, stacklevel=2
-        )
+        warnings.simplefilter(action, category=category)
+        warnings.warn(reason, category=category, stacklevel=2)
 
 
 # =============================================================================

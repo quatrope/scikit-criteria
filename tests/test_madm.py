@@ -18,8 +18,6 @@
 # IMPORTS
 # =============================================================================
 
-import sys
-
 import pytest
 
 
@@ -28,7 +26,6 @@ import pytest
 # =============================================================================
 
 
-@pytest.mark.run(order=-2)
 def test_deprecated_module_madm():
     with pytest.deprecated_call():
         from skcriteria import madm
