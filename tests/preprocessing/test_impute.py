@@ -53,6 +53,7 @@ def test_SimpleImputer(decision_matrix):
     assert imputer.missing_values is np.nan
     assert imputer.strategy == "mean"
     assert imputer.fill_value is None
+    assert imputer.keep_empty_criteria is False
 
     result = imputer.transform(dm)
 
@@ -66,7 +67,7 @@ def test_SimpleImputer_params_vs_sklearn():
     result = sorted(impute.SimpleImputer._skcriteria_parameters)
 
     ignore = ["verbose", "add_indicator", "copy"]
-    alias = {}
+    alias = {"keep_empty_features": "keep_empty_criteria"}
     expected = sorted(
         [
             alias.get(p, p)
@@ -97,6 +98,8 @@ def test_IterativeImputer(decision_matrix):
     assert imputer.missing_values is np.nan
     assert imputer.sample_posterior is False
     assert imputer.estimator is None
+    assert imputer.fill_value is None
+    assert imputer.keep_empty_criteria is False
 
     result = imputer.transform(dm)
     expected_mtx = sklimpute.IterativeImputer().fit_transform(dm.matrix)
@@ -111,7 +114,10 @@ def test_IterativeImputer_params_vs_sklearn():
     result = sorted(impute.IterativeImputer._skcriteria_parameters)
 
     ignore = ["add_indicator", "skip_complete"]
-    alias = {"n_nearest_features": "n_nearest_criteria"}
+    alias = {
+        "n_nearest_features": "n_nearest_criteria",
+        "keep_empty_features": "keep_empty_criteria",
+    }
 
     expected = sorted(
         [
@@ -120,7 +126,6 @@ def test_IterativeImputer_params_vs_sklearn():
             if p not in ignore
         ]
     )
-
     assert result == expected
 
 
@@ -133,6 +138,7 @@ def test_KNNImputer(decision_matrix):
     assert imputer.n_neighbors == 5
     assert imputer.weights == "uniform"
     assert imputer.metric == "nan_euclidean"
+    assert imputer.keep_empty_criteria is False
 
     result = imputer.transform(dm)
     expected_mtx = sklimpute.KNNImputer().fit_transform(dm.matrix)
@@ -145,7 +151,7 @@ def test_KNNImputer_params_vs_sklearn():
     result = sorted(impute.KNNImputer._skcriteria_parameters)
 
     ignore = ["add_indicator", "copy"]
-    alias = {}
+    alias = {"keep_empty_features": "keep_empty_criteria"}
     expected = sorted(
         [
             alias.get(p, p)
