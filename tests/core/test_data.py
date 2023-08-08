@@ -28,8 +28,9 @@ import pyquery
 
 import pytest
 
-from skcriteria.core import data, dominance, plot, stats
+from skcriteria.core import data, dominance, stats
 
+from skcriteria.plot import plot
 
 # =============================================================================
 # HELPER

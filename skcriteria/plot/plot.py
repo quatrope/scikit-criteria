@@ -19,7 +19,7 @@ import pandas as pd
 
 import seaborn as sns
 
-from .objectives import Objective
+from ..core.objectives import Objective
 from ..utils import AccessorABC
 
 
