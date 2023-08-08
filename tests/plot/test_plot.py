@@ -30,7 +30,9 @@ import pytest
 
 import seaborn as sns
 
-from skcriteria.core import mkdm, plot
+from skcriteria.core import mkdm
+
+from skcriteria.plot import plot
 
 
 # =============================================================================
