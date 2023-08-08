@@ -31,7 +31,6 @@ from pandas.io.formats import format as pd_fmt
 
 from .dominance import DecisionMatrixDominanceAccessor
 from .objectives import Objective
-from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
 from ..utils import deprecated, df_temporal_header, doc_inherit
 
@@ -442,6 +441,8 @@ class DecisionMatrix:
     @functools.lru_cache(maxsize=None)
     def plot(self):
         """Plot accessor."""
+        from ..plot import DecisionMatrixPlotter
+
         return DecisionMatrixPlotter(self)
 
     @property
