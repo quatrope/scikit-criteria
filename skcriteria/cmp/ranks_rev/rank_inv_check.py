@@ -158,10 +158,10 @@ class RankInvariantChecker(SKCMethodABC):
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
         cls_name = type(self).__name__
-        dm = repr(self._dmaker)
-        repeats = self._repeat
+        dm = repr(self.dmaker)
+        repeats = self.repeat
         ama = self._allow_missing_alternatives
-        lds = self._last_diff_strategy
+        lds = self.last_diff_strategy
         return (
             f"<{cls_name} {dm} repeats={repeats}, "
             f"allow_missing_alternatives={ama} last_diff_strategy={lds!r}>"
@@ -255,7 +255,7 @@ class RankInvariantChecker(SKCMethodABC):
 
         # we apply the median as last
         maximum_abs_noises.iloc[-1] = maximum_abs_noises.iloc[:-1].apply(
-            self._last_diff_strategy
+            self.last_diff_strategy
         )
 
         return maximum_abs_noises
@@ -490,10 +490,10 @@ class RankInvariantChecker(SKCMethodABC):
         # FIRST THE DATA THAT WILL BE USED IN ALL THE ITERATIONS ==============
 
         # the test configuration
-        dmaker = self._dmaker
-        allow_missing_alternatives = self._allow_missing_alternatives
-        repeat = self._repeat
-        random = self._random_state
+        dmaker = self.dmaker
+        allow_missing_alternatives = self.allow_missing_alternatives
+        repeat = self.repeat
+        random = self.random_state
 
         # all alternatives to be used to check consistency
         full_alternatives = dm.alternatives
