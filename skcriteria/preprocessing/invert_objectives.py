@@ -138,7 +138,7 @@ class InvertMinimize(SKCObjectivesInverterABC):
         "Use ``skcriteria.preprocessing.invert_objectives.InvertMinimize`` "
         "instead"
     ),
-    version=0.7,
+    version="0.7",
 )
 class MinimizeToMaximize(InvertMinimize):
     r"""Transform all minimization criteria  into maximization ones.

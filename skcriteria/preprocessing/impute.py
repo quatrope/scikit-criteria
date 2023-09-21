@@ -110,7 +110,7 @@ class SimpleImputer(SKCImputerABC):
         The imputed value is always `0` except when `strategy="constant"`
         in which case `fill_value` will be used instead.
 
-        .. versionadded:: 0.9
+        .. versionadded:: 0.8.5
 
     """
 
@@ -274,7 +274,7 @@ class IterativeImputer(SKCImputerABC):
         The imputed value is always `0` except when `strategy="constant"`
         in which case `fill_value` will be used instead.
 
-        .. versionadded:: 0.9
+        .. versionadded:: 0.8.5
 
     fill_value : str or numerical value, default=None
 
@@ -283,7 +283,7 @@ class IterativeImputer(SKCImputerABC):
         a string. If None, fill_value will be 0 when imputing numerical data
         and “missing_value” for strings or  object data types.
 
-        .. versionadded:: 0.9
+        .. versionadded:: 0.8.5
 
     """
 
@@ -491,7 +491,7 @@ class KNNImputer(SKCImputerABC):
         The imputed value is always `0` except when `strategy="constant"`
         in which case `fill_value` will be used instead.
 
-        .. versionadded:: 0.9
+        .. versionadded:: 0.8.5
 
     """
 

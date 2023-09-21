@@ -15,9 +15,10 @@
 # IMPORTS
 # =============================================================================
 
-import functools
 import itertools as it
 from collections import OrderedDict
+
+import methodtools
 
 import numpy as np
 
@@ -38,8 +39,8 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
     def __init__(self, dm):
         self._dm = dm
 
+    @methodtools.lru_cache(maxsize=None)
     @property
-    @functools.lru_cache(maxsize=None)
     def _dominance_cache(self):
         """Cache of dominance.
 
@@ -280,7 +281,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
         dom.index.name = "Alternatives"
         return dom
 
-    @functools.lru_cache(maxsize=None)
+    @methodtools.lru_cache(maxsize=None)
     def dominators_of(self, a, *, strict=False):
         """Array of alternatives that dominate or strictly-dominate the \
         alternative provided by parameters.

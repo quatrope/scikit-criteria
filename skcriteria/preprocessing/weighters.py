@@ -262,7 +262,7 @@ class EntropyWeighter(SKCWeighterABC):
 
 @deprecated(
     reason="Please use ``pd.DataFrame(arr.T).correlation('pearson')``",
-    version=0.8,
+    version="0.8",
 )
 def pearson_correlation(arr):
     """Return Pearson product-moment correlation coefficients.
@@ -292,7 +292,7 @@ def pearson_correlation(arr):
 
 @deprecated(
     reason="Please use ``pd.DataFrame(arr.T).correlation('spearman')``",
-    version=0.8,
+    version="0.8",
 )
 def spearman_correlation(arr):
     """Calculate a Spearman correlation coefficient.
@@ -417,7 +417,7 @@ class CRITIC(SKCWeighterABC):
 
 @deprecated(
     reason="Use ``skcriteria.preprocessing.weighters.CRITIC`` instead",
-    version=0.8,
+    version="0.8",
 )
 @doc_inherit(CRITIC, warn_class=False)
 class Critic(CRITIC):

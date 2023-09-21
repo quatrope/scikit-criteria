@@ -105,12 +105,14 @@ class Objective(enum.Enum):
     # DEPRECATED ==============================================================
 
     @classmethod
-    @deprecated(reason="Use ``Objective.from_alias()`` instead.", version=0.8)
+    @deprecated(
+        reason="Use ``Objective.from_alias()`` instead.", version="0.8"
+    )
     def construct_from_alias(cls, alias):
         """Return an objective instance based on some given alias."""
         return cls.from_alias(alias)
 
-    @deprecated(reason="Use ``MAX/MIN.to_symbol()`` instead.", version=0.8)
+    @deprecated(reason="Use ``MAX/MIN.to_symbol()`` instead.", version="0.8")
     def to_string(self):
         """Return the printable representation of the objective."""
         return self.to_symbol()

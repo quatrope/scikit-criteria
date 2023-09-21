@@ -35,7 +35,7 @@ _skc_prep_scalers = "skcriteria.preprocessing.scalers"
     reason=(
         f"Use ``{_skc_prep_scalers}.matrix_scale_by_cenit_distance`` instead"
     ),
-    version=0.8,
+    version="0.8",
 )
 @doc_inherit(scalers.matrix_scale_by_cenit_distance)
 def cenit_distance(matrix, objectives):
@@ -44,7 +44,7 @@ def cenit_distance(matrix, objectives):
 
 @deprecated(
     reason=f"Use ``{_skc_prep_scalers}.CenitDistanceMatrixScaler`` instead",
-    version=0.8,
+    version="0.8",
 )
 @doc_inherit(scalers.CenitDistanceMatrixScaler, warn_class=False)
 class CenitDistance(scalers.CenitDistanceMatrixScaler):

@@ -2,18 +2,36 @@
 
 <!-- BODY -->
 
-## Version 0.9
+## Version 0.8.5
 
-- **New** Rank reversal tests implementhed.
-- Add support for Python 3.11
+- **New** Rank reversal 1 implementhed in the `RankInvariantChecker` class
+
+    ```python
+
+    >>> import skcriteria as skc
+    >>> from skcriteria.cmp import RankInvariantChecker
+    >>> from skcriteria.agg.similarity import TOPSIS
+
+    >>> dm = skc.datasets.load_van2021evaluation()
+    >>> rrt1 = RankInvariantChecker(TOPSIS())
+    >>> rrt1.evaluate(dm)
+    <RanksComparator [ranks=['Original', 'M.ETH', 'M.LTC', 'M.XLM', 'M.BNB', 'M.ADA', 'M.LINK', 'M.XRP', 'M.DOGE']]>
+    ``````
+
+- **New** The module `skcriteria.madm` was deprecated in favor
+  of `skcriteria.agg`
+- Add support for Python 3.11.
 - Removed Python 3.7. Google collab now work with 3.8.
-- Updated Scikit-Learn to 1.2.x.
+- Updated Scikit-Learn to 1.3.x.
+- Now all cached methods and properties are stored inside the instance.
+  Previously this was stored inside the class generating a memoryleak.
 
 
 ## Version 0.8.3
 
 - Fixed a bug detected on the EntropyWeighted, Now works as the literature
   specifies
+
 
 ## Version 0.8.2
 

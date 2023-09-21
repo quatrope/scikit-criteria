@@ -19,6 +19,8 @@ import warnings
 
 from deprecated import deprecated as _deprecated
 
+from packaging.version import parse as _vparse
+
 
 # =============================================================================
 # CONSTANTS
@@ -27,6 +29,8 @@ from deprecated import deprecated as _deprecated
 # _ If the version of the warning is >= ERROR_GE the action is setted to
 # 'error', otherwise is 'once'.
 ERROR_GE = 1.0
+
+_ERROR_GE_VERSION = _vparse(str(ERROR_GE))
 
 # =============================================================================
 # WARNINGS
@@ -124,7 +128,8 @@ def warn(reason, version, *, category=SKCriteriaDeprecationWarning):
         Class of the warning.
 
     """
-    action = "error" if version >= ERROR_GE else "once"
+    version = _vparse(str(version))
+    action = "error" if version >= _ERROR_GE_VERSION else "once"
     with warnings.catch_warnings():
         warnings.simplefilter(action, category=category)
         warnings.warn(reason, category=category, stacklevel=2)
@@ -158,11 +163,13 @@ def deprecated(*, reason, version):
     Check: <github `https://pypi.org/project/Deprecated/`>__
 
     """
+    version = _vparse(str(version))
+
     add_warning = _deprecated(
         reason=reason,
         version=version,
         category=SKCriteriaDeprecationWarning,
-        action=("error" if version >= ERROR_GE else "once"),
+        action=("error" if _ERROR_GE_VERSION <= version else "once"),
     )
 
     def _dec(func):

@@ -28,7 +28,7 @@ __deprecation_conf = {
         "'skcriteria.madm' module is deprecated, "
         "use 'skcriteria.agg' instead"
     ),
-    "version": 0.9,
+    "version": "0.8.5",
 }
 
 

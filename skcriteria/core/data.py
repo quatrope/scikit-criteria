@@ -538,7 +538,7 @@ class DecisionMatrix:
             "``DecisionMatrix.stats('describe)`` or "
             "``DecisionMatrix.stats.describe()`` instead."
         ),
-        version=0.6,
+        version="0.6",
     )
     def describe(self, **kwargs):
         """Generate descriptive statistics.
