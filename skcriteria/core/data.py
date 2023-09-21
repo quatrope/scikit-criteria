@@ -24,6 +24,8 @@ the alternative matrix, weights and objectives (MIN, MAX) of the criteria.
 import functools
 from collections import abc
 
+import methodtools
+
 import numpy as np
 
 import pandas as pd
@@ -206,8 +208,8 @@ class DecisionMatrix:
             else pd.DataFrame(data_df, copy=True)
         )
 
-        self._objectives = np.asarray(objectives, dtype=object)
-        self._weights = np.asanyarray(weights, dtype=float)
+        self._objectives = np.array(objectives, dtype=object, copy=True)
+        self._weights = np.array(weights, dtype=float, copy=True)
 
         if not (
             len(self._data_df.columns)
@@ -437,20 +439,20 @@ class DecisionMatrix:
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 
+    @methodtools.lru_cache(maxsize=None)
     @property
-    @functools.lru_cache(maxsize=None)
     def plot(self):
         """Plot accessor."""
         return DecisionMatrixPlotter(self)
 
+    @methodtools.lru_cache(maxsize=None)
     @property
-    @functools.lru_cache(maxsize=None)
     def stats(self):
         """Descriptive statistics accessor."""
         return DecisionMatrixStatsAccessor(self)
 
+    @methodtools.lru_cache(maxsize=None)
     @property
-    @functools.lru_cache(maxsize=None)
     def dominance(self):
         """Dominance information accessor."""
         return DecisionMatrixDominanceAccessor(self)
@@ -522,12 +524,12 @@ class DecisionMatrix:
         All the values are represented as numpy array.
         """
         return {
-            "matrix": self.matrix.to_numpy(),
-            "objectives": self.iobjectives.to_numpy(),
-            "weights": self.weights.to_numpy(),
-            "dtypes": self.dtypes.to_numpy(),
-            "alternatives": np.asarray(self.alternatives),
-            "criteria": np.asarray(self.criteria),
+            "matrix": self.matrix.to_numpy(copy=True),
+            "objectives": self.iobjectives.to_numpy(copy=True),
+            "weights": self.weights.to_numpy(copy=True),
+            "dtypes": self.dtypes.to_numpy(copy=True),
+            "alternatives": np.array(self.alternatives, copy=True),
+            "criteria": np.array(self.criteria, copy=True),
         }
 
     @deprecated(
@@ -683,10 +685,12 @@ class DecisionMatrix:
             df = df.astype(dtypes)
 
         objectives = self.objectives
-        objectives = objectives[objectives.index.isin(df.columns)].to_numpy()
+        objectives = objectives[objectives.index.isin(df.columns)].to_numpy(
+            copy=True
+        )
 
         weights = self.weights
-        weights = weights[weights.index.isin(df.columns)].to_numpy()
+        weights = weights[weights.index.isin(df.columns)].to_numpy(copy=True)
 
         return DecisionMatrix(df, objectives, weights)
 

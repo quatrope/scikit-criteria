@@ -285,7 +285,7 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+intersphinx_mapping = {"python": ("https://docs.python.org/3", None)}
 
 
 # =============================================================================
@@ -318,10 +318,10 @@ for md_name, rst_name in DYNAMIC_RST.items():
 
 EXPORT_CONFIG = ["GIT_HASH"]
 
+
 def setup(app):
     app.add_css_file("css/skcriteria.css")
     app.add_js_file("js/skcriteria.js")
     for k, v in globals().items():
         if k in EXPORT_CONFIG:
             app.config[k] = v
-

@@ -479,8 +479,8 @@ class DecisionMatrixPlotter(AccessorABC):
         import numpy as np
 
         dom = dm.dominance.dominance(strict=strict)
-        bt = dm.dominance.bt().to_numpy().astype(str)
-        eq = dm.dominance.eq().to_numpy().astype(str)
+        bt = dm.dominance.bt().to_numpy(copy=True).astype(str)
+        eq = dm.dominance.eq().to_numpy(copy=True).astype(str)
 
         annot = kwargs.pop("annot", True)
         if annot:

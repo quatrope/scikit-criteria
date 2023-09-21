@@ -71,7 +71,6 @@ class AHPTest(tcore.SKCriteriaTestCase):
             ahp.saaty_closest_intensity(0)
 
     def test_validate_ahp_matrix(self):
-
         # test if the matrix type is incorrect
         mtxtype = str(random.random())
         rx = "'mtxtype must be 'None', '{}' or '{}'. Found '{}'".format(

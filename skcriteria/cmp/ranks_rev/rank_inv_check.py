@@ -230,7 +230,7 @@ class RankInvariantChecker(SKCMethodABC):
         # TODO: room for improvement: pandas to numpy
 
         # Here we generate a pandas Series of alternatives in order of ranking
-        alts = rank.to_series().sort_values().index.to_numpy()
+        alts = rank.to_series().sort_values().index.to_numpy(copy=True)
 
         # We only need all but the best one.
         not_best = alts[1:]
@@ -318,7 +318,7 @@ class RankInvariantChecker(SKCMethodABC):
         df.loc[mutate] += noise
 
         # transform the noised matrix into a dm
-        mutated_dm = dm.copy(matrix=df.to_numpy(), dtypes=None)
+        mutated_dm = dm.copy(matrix=df.to_numpy(copy=True), dtypes=None)
 
         return mutated_dm, noise
 

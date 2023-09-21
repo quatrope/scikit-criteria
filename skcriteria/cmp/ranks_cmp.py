@@ -15,11 +15,12 @@
 # IMPORTS
 # =============================================================================
 
-import functools
 import itertools as it
 from collections import defaultdict
 
 import matplotlib.pyplot as plt
+
+import methodtools
 
 import pandas as pd
 
@@ -338,8 +339,8 @@ class RanksComparator(SKCMethodABC):
 
     # ACCESSORS (YES, WE USE CACHED PROPERTIES IS THE EASIEST WAY) ============
 
+    @methodtools.lru_cache(maxsize=None)
     @property
-    @functools.lru_cache(maxsize=None)
     def plot(self):
         """Plot accessor."""
         return RanksComparatorPlotter(self)

@@ -679,7 +679,9 @@ class FilterNonDominated(SKCTransformerABC):
     @doc_inherit(SKCTransformerABC.transform)
     def transform(self, dm):
         data = dm.to_dict()
-        dominated_mask = dm.dominance.dominated(strict=self._strict).to_numpy()
+        dominated_mask = dm.dominance.dominated(strict=self._strict).to_numpy(
+            copy=True
+        )
 
         transformed_data = self._transform_data(
             dominated_mask=dominated_mask, **data
