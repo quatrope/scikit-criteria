@@ -2,7 +2,7 @@
 
 <!-- BODY -->
 
-## Version 0.8.5
+## Version 0.8.6
 
 - **New** Rank reversal 1 implementhed in the `RankInvariantChecker` class
 
