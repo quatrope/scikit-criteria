@@ -16,7 +16,7 @@
     >>> rrt1 = RankInvariantChecker(TOPSIS())
     >>> rrt1.evaluate(dm)
     <RanksComparator [ranks=['Original', 'M.ETH', 'M.LTC', 'M.XLM', 'M.BNB', 'M.ADA', 'M.LINK', 'M.XRP', 'M.DOGE']]>
-    ``````
+    ```
 
 - **New** The module `skcriteria.madm` was deprecated in favor
   of `skcriteria.agg`
