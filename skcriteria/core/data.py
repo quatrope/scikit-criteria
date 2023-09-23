@@ -62,7 +62,7 @@ class _ACArray(np.ndarray, abc.Mapping):
     def __getitem__(self, k):
         try:
             if k in self:
-                return self._skc_slicer(k)
+                return self._skc_slicer(k).copy()
             return super().__getitem__(k)
         except IndexError:
             raise IndexError(k)
