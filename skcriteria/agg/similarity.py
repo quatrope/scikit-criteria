@@ -143,3 +143,125 @@ class TOPSIS(SKCDecisionMakerABC):
         return RankResult(
             "TOPSIS", alternatives=alternatives, values=values, extra=extra
         )
+
+
+# =============================================================================
+# VIKOR
+# =============================================================================
+
+
+class VIKOR(SKCDecisionMakerABC):
+    _skcriteria_parameters = ["v"]
+
+    def __init__(self, *, v=0.5):
+        self._v = float(v)
+        if not (self._v >= 0 and self._v <= 1):
+            raise ValueError(f"'v' must be 0 <= v <= 1. Found {self._v}")
+
+    @property
+    def v(self):
+        return self._v
+
+    def _make_result(self, alternatives, values, extra):
+        return RankResult(
+            method="VIKOR",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
+        )
+
+    def _check_stability_condition(self, rank0, rank1):
+        r0_fpos = np.argwhere(rank0 == 1).squeeze()
+        r1_fpos = np.argwhere(rank1 == 1).squeeze()
+
+        if len(r1_fpos)
+
+
+        return r0_fpos == r1_fpos
+
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+        # STEP 1
+
+        maxs = np.amax(matrix, axis=0)
+        mins = np.amin(matrix, axis=0)
+
+        f_star = np.where(objectives == 1, maxs, mins)
+        f_minus = np.where(objectives == 1, mins, maxs)
+
+        # STEP 2
+
+        num = f_star - matrix
+        den = f_star - f_minus
+
+        scaled = num / den
+        s_k = np.dot(scaled, weights)
+        r_k = np.max((weights * num) / den, axis=1)
+
+        # STEP 3
+
+        s_star = np.min(s_k)
+        s_minus = np.max(s_k)
+        r_star = np.min(r_k)
+        r_minus = np.max(r_k)
+
+        term_1 = self.v * (s_k - s_star) / (s_minus - s_star)
+        term_2 = (1 - self.v) * (r_k - r_star) / (r_minus - r_star)
+        q_k = term_1 + term_2
+
+        # STEP 4
+        rank_q_k = rank.rank_values(q_k, reverse=False)
+        rank_s_k = rank.rank_values(s_k, reverse=False)
+        rank_r_k = rank.rank_values(r_k, reverse=False)
+
+        # STEP 5
+        dq = 1 / (len(matrix) - 1)
+
+        advantage_condition = (
+            q_k[np.where(rank_q_k == 2)] - q_k[np.where(rank_q_k == 1)] >= dq
+        )
+        aceptable_advantage = np.where(advantage_condition, True, False)
+
+
+        stability_condition_1 = self._check_stability_condition(rank_q_k, rank_s_k)
+        stability_condition_2 = self._check_stability_condition(rank_q_k, rank_r_k)
+        aceptable_stability = stability_condition_1 or stability_condition_2
+
+        empty_array = np.array([0, 0])
+
+        stability_result = np.where(
+            aceptable_stability == False,
+            [rank_q_k[0], rank_q_k[1]],
+            empty_array,
+        )
+        stability_result = stability_result[stability_result != 0]
+
+        empty_array = np.array([0])
+
+        advantage_result_1 = np.where(
+            aceptable_advantage == False, (rank_q_k[0]), empty_array
+        )
+        advantage_result_1 = advantage_result_1[advantage_result_1 != 0]
+
+        advantage_result_2 = np.where(q_k - q_k[np.where(rank_q_k == 1)] < dq)[
+            0
+        ]
+
+        compromise_set = np.concatenate(
+            (stability_result, advantage_result_1, advantage_result_2)
+        )
+
+        extra = {
+            "f_star": f_star,
+            "f_minus": f_minus,
+            "r_k": r_k,
+            "s_k": s_k,
+            "q_k": q_k,
+            "aceptable_advantage": aceptable_advantage,
+            "aceptable_stability": aceptable_stability,
+            "compromise_set": compromise_set,
+        }
+
+        # return
+        return rank_q_k, extra
+
+

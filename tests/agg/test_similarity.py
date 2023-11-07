@@ -22,11 +22,11 @@ import pytest
 
 import skcriteria
 from skcriteria.agg import RankResult
-from skcriteria.agg.similarity import TOPSIS
+from skcriteria.agg.similarity import TOPSIS, VIKOR
 from skcriteria.preprocessing.scalers import VectorScaler
 
 # =============================================================================
-# TEST CLASSES
+# TOPSIS
 # =============================================================================
 
 
@@ -111,3 +111,42 @@ def test_TOPSIS_tzeng2011multiple():
     assert np.allclose(
         result.e_.similarity, expected.e_.similarity, atol=1.0e-4
     )
+
+
+# =============================================================================
+#
+# =============================================================================
+
+
+def test_VIKOR():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[max, max, max],
+    )
+
+    expected = RankResult(
+        "VIKOR",
+        ["A0", "A1"],
+        [2, 1],
+        {
+            "ideal": [1, 5, 6],
+            "anti_ideal": [0, 0, 3],
+            "similarity": [0.14639248, 0.85360752],
+        },
+    )
+
+    ranker = VIKOR()
+    result = ranker.evaluate(dm)
+
+    assert result.values_equals(expected)
+    assert result.method == expected.method
+    assert np.all(result.e_.ideal == expected.e_.ideal)
+    assert np.allclose(result.e_.anti_ideal, expected.e_.anti_ideal)
+    assert np.allclose(result.e_.similarity, expected.e_.similarity)
+
+
+def test_VIKOR_invalid_v():
+    with pytest.raises(ValueError):
+        VIKOR(v=1.1)
+    with pytest.raises(ValueError):
+        VIKOR(v=-0.1)
