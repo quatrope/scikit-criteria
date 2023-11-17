@@ -217,7 +217,7 @@ def mktransformer(maybe_func=None, **hparams):
         'hparams', or **kwargs.
 
         Additionally, it should return a dictionary whose keys are exactly the
-        same as the received parameters (including the keys in '**kwargs'),
+        same as the received parameters (including the keys in '**kwargs') without 'hparams',
         altering the ones that need transformation.
 
         If you want the transformer to infer the types again, return
