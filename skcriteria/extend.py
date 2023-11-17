@@ -57,6 +57,7 @@ class NonStandardNameWarning(UserWarning):
 
     This warning is raised when a given name does not adhere to the specified
     naming convention.
+
     """
 
 
@@ -128,7 +129,7 @@ def mkagg(maybe_func=None, **hparams):
 
         Additionally, it should return an array with rankings for each
         alternative and an optional dictionary with calculations that you wish
-        to store in the 'extra_' attribute of the ranking."
+        to store in the 'extra' attribute of the ranking."
 
     **hparams : keyword arguments
         Hyperparameters specific to the aggregation function.
@@ -221,8 +222,9 @@ def mktransformer(maybe_func=None, **hparams):
         'hparams', or **kwargs.
 
         Additionally, it should return a dictionary whose keys are exactly the
-        same as the received parameters (including the keys in '**kwargs') without 'hparams',
-        altering the ones that need transformation.
+        same as the received parameters (including the keys in '**kwargs')
+        except 'hparams' (If you return 'hparams,' the transformer will still
+        remove it anyway.), altering the ones that need transformation.
 
         If you want the transformer to infer the types again, return
         `dtypes=None`.

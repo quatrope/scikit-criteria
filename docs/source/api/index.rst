@@ -43,6 +43,11 @@
 
    pipeline
 
+.. toctree::
+   :maxdepth: 2
+
+   extend
+
 
 .. toctree::
    :maxdepth: 2
