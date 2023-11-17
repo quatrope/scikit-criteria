@@ -13,7 +13,7 @@
 
 # =============================================================================
 # IMPORTS
-# =============================================================================ç
+# =============================================================================
 
 import abc
 import copy
@@ -76,7 +76,7 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__name__
+        cls_name = type(self).__qualname__
 
         parameters = []
         if self._skcriteria_parameters:

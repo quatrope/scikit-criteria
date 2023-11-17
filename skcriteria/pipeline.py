@@ -110,7 +110,7 @@ class SKCPipeline(SKCMethodABC):
         """
         if isinstance(ind, slice):
             if ind.step not in (1, None):
-                cname = type(self).__name__
+                cname = type(self).__qualname__
                 raise ValueError(f"{cname} slicing only supports a step of 1")
             return self.__class__(self.steps[ind])
         elif isinstance(ind, int):

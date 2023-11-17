@@ -157,7 +157,7 @@ class RankInvariantChecker(SKCMethodABC):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__name__
+        cls_name = type(self).__qualname__
         dm = repr(self.dmaker)
         repeats = self.repeat
         ama = self._allow_missing_alternatives

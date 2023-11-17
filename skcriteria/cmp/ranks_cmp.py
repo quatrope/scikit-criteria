@@ -129,7 +129,7 @@ class RanksComparator(SKCMethodABC):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__name__
+        cls_name = type(self).__qualname__
         ranks_names = [rn for rn, _ in self._ranks]
         return f"<{cls_name} [ranks={ranks_names!r}]>"
 
@@ -149,7 +149,7 @@ class RanksComparator(SKCMethodABC):
         """
         if isinstance(ind, slice):
             if ind.step not in (1, None):
-                cname = type(self).__name__
+                cname = type(self).__qualname__
                 raise ValueError(f"{cname} slicing only supports a step of 1")
             return self.__class__(self.ranks[ind])
         elif isinstance(ind, int):
@@ -461,7 +461,7 @@ class RanksComparatorPlotter(AccessorABC):
 
         # Just to ensure that no manual color reaches regplot
         if "color" in kwargs:
-            cls_name = type(self).__name__
+            cls_name = type(self).__qualname__
             raise TypeError(
                 f"{cls_name}.reg() got an unexpected keyword argument 'color'"
             )
