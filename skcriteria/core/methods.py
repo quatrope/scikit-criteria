@@ -76,7 +76,7 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__qualname__
+        method_name = self.get_method_name()
 
         parameters = []
         if self._skcriteria_parameters:
@@ -85,7 +85,11 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
                 parameters.append(f"{pname}={repr(pvalue)}")
 
         str_parameters = ", ".join(parameters)
-        return f"<{cls_name} [{str_parameters}]>"
+        return f"<{method_name} [{str_parameters}]>"
+
+    def get_method_name(self):
+        """Return the name of the method as string."""
+        return type(self).__name__
 
     def get_parameters(self):
         """Return the parameters of the method as dictionary."""

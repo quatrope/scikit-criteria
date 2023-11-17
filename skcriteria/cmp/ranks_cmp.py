@@ -129,9 +129,9 @@ class RanksComparator(SKCMethodABC):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__qualname__
+        name = self.get_method_name()
         ranks_names = [rn for rn, _ in self._ranks]
-        return f"<{cls_name} [ranks={ranks_names!r}]>"
+        return f"<{name} [ranks={ranks_names!r}]>"
 
     def __len__(self):
         """Return the number of rankings to compare."""
