@@ -1,6 +1,24 @@
 # Changelog of Scikit-Criteria
 
 <!-- BODY -->
+## Version 0.8.7
+
+- **New** Simplyfied how to extend the Scikit-Criteria methods with the `skcriteria.extend` decorators.
+
+Now the user can extend the aggregation and transformers capabilities by decorating a
+
+  ```python
+  >>> from skcriteria import extend as ext
+
+
+
+
+  ```
+
+- All methods (agg and transformers) has a new `get_method_name` instance method.
+
+
+
 
 ## Version 0.8.5
 

@@ -179,12 +179,12 @@ class _LPBase:
 
     def __repr__(self):
         """model.__repr__() <==> repr(model)."""
-        cls_name = type(self).__name__
+        name = type(self).__name__
         objective = self._problem.objective
         constraints = ",\n  ".join(
             map(str, self._problem.constraints.values())
         )
-        return f"{cls_name}({objective}).subject_to(\n  {constraints}\n)"
+        return f"{name}({objective}).subject_to(\n  {constraints}\n)"
 
     @property
     def v(self):

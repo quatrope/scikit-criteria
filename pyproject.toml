@@ -21,7 +21,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scikit-criteria"
-version = "0.8.5.dev0"
+version = "0.8.7.dev0"
 authors = [{name = "Juan B Cabral & QuatroPe", email = "jbcabral@unc.edu.ar"}]
 readme = "README.md"
 license = {file = "LICENSE.txt"}

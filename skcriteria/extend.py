@@ -164,7 +164,7 @@ def mkagg(maybe_func=None, **hparams):
     """
 
     def _agg_maker(agg_func):
-        agg_name = agg_func.__qualname__
+        agg_name = agg_func.__name__
         _check_model_CapWords_convention_name(agg_name)
         _check_function_parameters(agg_func)
 
@@ -264,7 +264,7 @@ def mktransformer(maybe_func=None, **hparams):
     """
 
     def _transformer_maker(transformer_func):
-        transformer_name = transformer_func.__qualname__
+        transformer_name = transformer_func.__name__
         _check_model_CapWords_convention_name(transformer_name)
         _check_function_parameters(transformer_func)
 
@@ -290,8 +290,9 @@ def mktransformer(maybe_func=None, **hparams):
             @doc_inherit(SKCTransformerABC._transform_data)
             def _transform_data(self, **kwargs):
                 kwargs["hparams"] = self
-                rank, extra = transformer_func(**kwargs)
-                return rank, extra
+                tdata = transformer_func(**kwargs)
+                kwargs.pop("hparams", None)
+                return tdata
 
         return type(
             transformer_name,

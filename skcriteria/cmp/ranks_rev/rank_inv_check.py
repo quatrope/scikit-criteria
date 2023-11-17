@@ -157,13 +157,13 @@ class RankInvariantChecker(SKCMethodABC):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        method_name = self.get_method_name()
+        name = self.get_method_name()
         dm = repr(self.dmaker)
         repeats = self.repeat
         ama = self._allow_missing_alternatives
         lds = self.last_diff_strategy
         return (
-            f"<{method_name} {dm} repeats={repeats}, "
+            f"<{name} {dm} repeats={repeats}, "
             f"allow_missing_alternatives={ama} last_diff_strategy={lds!r}>"
         )
 
