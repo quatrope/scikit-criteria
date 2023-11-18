@@ -1,23 +1,42 @@
 # Changelog of Scikit-Criteria
 
 <!-- BODY -->
+
 ## Version 0.8.7
 
-- **New** Simplyfied how to extend the Scikit-Criteria methods with the `skcriteria.extend` decorators.
+- **New** Added functionality for user extension of scikit-criteria with
+  decorators for creating aggregation and transformation models using
+  functions.
 
-Now the user can extend the aggregation and transformers capabilities by decorating a
+    ```python
+    >>> from skcriteria.extend import mkagg, mktransformer
+    >>>
+    >>> @mkagg
+    >>> def MyAgg(**kwargs):
+    >>>     # Implementation of the aggregation function
+    >>>
+    >>> @mkagg(foo=1)
+    >>> def MyAggWithHyperparam(**kwargs):
+    >>>     # Implementation of the aggregation function with
+    >>>     # hyperparameter 'foo'
+    >>>
+    >>> @mktransformer
+    >>> def MyTrans(**kwargs):
+    >>>     # Implementation of the transformation function
+    >>>
+    >>> @mktransformer(bar=2)
+    >>> def MyTransWithHyperparam(**kwargs):
+    >>>     # Implementation of the transformation function with
+    >>>     # hyperparameter 'bar'
+    ```
 
-  ```python
-  >>> from skcriteria import extend as ext
+    These decorators enable the creation of aggregation and transformation
+    classes based on provided functions, allowing users to
+    define decision-making models with less flexibility than traditional
+    inheritance-based models.
 
-
-
-
-  ```
-
-- All methods (agg and transformers) has a new `get_method_name` instance method.
-
-
+- **New** All methods (agg and transformers) has a new `get_method_name`
+  instance method.
 
 
 ## Version 0.8.5

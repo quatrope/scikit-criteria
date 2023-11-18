@@ -184,6 +184,8 @@ def mkagg(maybe_func=None, **hparams):
                 bound.apply_defaults()
                 self.__dict__.update(bound.kwargs)
 
+            __init__.__signature__ = _skcriteria_init_signature
+
             @doc_inherit(SKCDecisionMakerABC.get_method_name)
             def get_method_name(self):
                 return agg_name
@@ -284,6 +286,8 @@ def mktransformer(maybe_func=None, **hparams):
 
                 bound.apply_defaults()
                 self.__dict__.update(bound.kwargs)
+
+            __init__.__signature__ = _skcriteria_init_signature
 
             @doc_inherit(SKCTransformerABC.get_method_name)
             def get_method_name(self):
