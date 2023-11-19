@@ -192,8 +192,7 @@ def mkagg(maybe_func=None, **hparams):
 
             @doc_inherit(SKCDecisionMakerABC._evaluate_data)
             def _evaluate_data(self, **kwargs):
-                kwargs["hparams"] = self
-                rank, extra = agg_func(**kwargs)
+                rank, extra = agg_func(hparams=self, **kwargs)
                 return rank, extra
 
             @doc_inherit(SKCDecisionMakerABC._make_result)
@@ -223,13 +222,13 @@ def mktransformer(maybe_func=None, **hparams):
         'objectives', 'weights', 'dtypes', 'alternatives', 'criteria',
         'hparams', or **kwargs.
 
-        Additionally, it should return a dictionary whose keys are exactly the
-        same as the received parameters (including the keys in '**kwargs')
-        except 'hparams' (If you return 'hparams,' the transformer will still
-        remove it anyway.), altering the ones that need transformation.
+        In addition, it must return a dictionary whose keys are some
+        as the received parameters (including the keys in '**kwargs').
+        These values replace those of the original array.
+        If you return 'hparams,' the transformer will ignore it.
 
         If you want the transformer to infer the types again, return
-        `dtypes=None`.
+        `dtypes` with value `None`.
 
         It is the function's responsibility to maintain compatibility.
 
@@ -295,10 +294,15 @@ def mktransformer(maybe_func=None, **hparams):
 
             @doc_inherit(SKCTransformerABC._transform_data)
             def _transform_data(self, **kwargs):
-                kwargs["hparams"] = self
-                tdata = transformer_func(**kwargs)
-                kwargs.pop("hparams", None)
-                return tdata
+                tdata = transformer_func(hparams=self, **kwargs)
+
+                # if the function return tdata we will remove it
+                tdata.pop("hparams", None)
+
+                # replace the old values with the new ones
+                kwargs.update(tdata)
+
+                return kwargs
 
         return type(
             transformer_name,

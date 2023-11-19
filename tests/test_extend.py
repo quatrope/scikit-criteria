@@ -56,8 +56,7 @@ def test_mktransformer(decision_matrix):
 
     @ext.mktransformer
     def MyTransformer(matrix, weights, hparams, **kwargs):
-        kwargs.update(matrix=matrix + 1, weights=weights + 1)
-        return kwargs
+        return {"matrix": matrix + 1, "weights": weights + 1}
 
     dec = MyTransformer()
 
@@ -142,8 +141,7 @@ def test_mkagg_in_pipeline(decision_matrix):
 
     @ext.mktransformer
     def MyTransformer(matrix, weights, hparams, **kwargs):
-        kwargs.update(matrix=matrix + 1, weights=weights + 1)
-        return kwargs
+        return {"matrix": matrix + 1, "weights": weights + 1}
 
     # AGG =====================================================================
     values = np.arange(len(dm)) + 1
