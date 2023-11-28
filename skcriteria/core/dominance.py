@@ -251,8 +251,8 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             ]
         )
 
-        df = df.assign(
-            Performance=[performance_a0, performance_a1, eq],
+        df["Performance"] = pd.Series(
+            [performance_a0, performance_a1, eq], index=df.index
         )
 
         return df

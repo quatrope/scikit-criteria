@@ -125,7 +125,7 @@ def mkagg(maybe_func=None, **hparams):
 
         The decorated function should receive the parameters 'matrix',
         'objectives', 'weights', 'dtypes', 'alternatives', 'criteria',
-        'hparams', or **kwargs.
+        'hparams', or kwargs.
 
         Additionally, it should return an array with rankings for each
         alternative and an optional dictionary with calculations that you wish
@@ -220,10 +220,10 @@ def mktransformer(maybe_func=None, **hparams):
 
         The decorated function should receive the parameters 'matrix',
         'objectives', 'weights', 'dtypes', 'alternatives', 'criteria',
-        'hparams', or **kwargs.
+        'hparams', or kwargs.
 
         In addition, it must return a dictionary whose keys are some
-        as the received parameters (including the keys in '**kwargs').
+        as the received parameters (including the keys in 'kwargs').
         These values replace those of the original array.
         If you return 'hparams,' the transformer will ignore it.
 
