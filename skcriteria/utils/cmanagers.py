@@ -90,7 +90,7 @@ class _DirWithHidden:
 
 
 @contextlib.contextmanager
-def hidden(*, hide_this=True):
+def hidden(*, hide_this=True, dry=False):
     """A context manager for hiding objects in the global scope.
 
     Parameters
@@ -98,6 +98,9 @@ def hidden(*, hide_this=True):
     hide_this : bool, optional
         Whether to hide the 'hidden' context manager itself and/or the hidden
         module. Defaults to True.
+    dry : bool, optional, default False
+        If is True, the objects are not hide. Useful for testing.
+
 
     Raises
     ------
@@ -130,6 +133,7 @@ def hidden(*, hide_this=True):
       logic to hide the objects introduced within the context.
 
     """
+
     self = hidden  # this function
 
     # two levels for the decorator contextmanager
@@ -162,4 +166,5 @@ def hidden(*, hide_this=True):
 
     custom_dir = _DirWithHidden(frame=frame, hidden_objects=hidden_objects)
 
-    frame.f_globals["__dir__"] = custom_dir
+    if not dry:
+        frame.f_globals["__dir__"] = custom_dir

@@ -35,6 +35,12 @@
     define decision-making models with less flexibility than traditional
     inheritance-based models.
 
+- **New** The API of the agg, pipeline, preprocessing, and extend modules has
+  been cleaned up to prevent autocompletion with imports from other modules.
+  The imported modules are still present, but they are excluded when attempting
+  to autocomplete. This functionality is achieved thanks to the context manager
+  `skcriteria.utils.cmanagers.hidden()`.
+
 - **New** All methods (agg and transformers) has a new `get_method_name`
   instance method.
 

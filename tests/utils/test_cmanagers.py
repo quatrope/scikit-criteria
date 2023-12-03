@@ -100,6 +100,28 @@ with hidden(hide_this=False):
     assert "hidden" in ns["__dir__"]()
 
 
+def test_hidden_dry_True():
+    code = """
+from  skcriteria.utils import hidden
+with hidden(dry=True):
+    import os
+    import pandas as pd
+
+
+"""
+
+    co_obj = compile(code, "test.py", "exec")
+    ns = {}
+
+    eval(co_obj, ns, ns)
+
+    assert ns["os"] == os
+    assert ns["pd"] is pd
+    assert ns["hidden"] is cmanagers.hidden
+
+    assert "__dir__" not in ns
+
+
 def test_hidden_two_times_fails():
     code = """
 from  skcriteria.utils import hidden
