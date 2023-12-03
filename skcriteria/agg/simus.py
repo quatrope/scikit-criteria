@@ -16,14 +16,17 @@
 # IMPORTS
 # =============================================================================
 
-import warnings
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import warnings
 
-from ._agg_base import RankResult, SKCDecisionMakerABC
-from ..core import Objective
-from ..preprocessing.scalers import scale_by_sum
-from ..utils import doc_inherit, lp, rank
+    import numpy as np
+
+    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ..core import Objective
+    from ..preprocessing.scalers import scale_by_sum
+    from ..utils import doc_inherit, lp, rank
 
 
 # =============================================================================

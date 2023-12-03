@@ -19,9 +19,11 @@ This entire module is deprecated.
 # =============================================================================
 # IMPORTS
 # =============================================================================
+from ..utils import hidden
 
-from . import scalers
-from ..utils import deprecated, doc_inherit
+with hidden():
+    from . import scalers
+    from ..utils import deprecated, doc_inherit
 
 
 # =============================================================================

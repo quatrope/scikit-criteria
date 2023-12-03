@@ -19,11 +19,13 @@ to push negatives values on an array along an arbitrary axis.
 # =============================================================================
 # IMPORTS
 # =============================================================================
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import numpy as np
 
-from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
-from ..utils import doc_inherit
+    from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
+    from ..utils import doc_inherit
 
 # =============================================================================
 # FUNCTIONS

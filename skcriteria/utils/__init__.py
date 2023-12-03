@@ -18,7 +18,7 @@
 from . import lp, rank
 from .accabc import AccessorABC
 from .bunch import Bunch
-from .cmanagers import df_temporal_header
+from .cmanagers import df_temporal_header, hidden
 from .deprecate import deprecated, will_change
 from .doctools import doc_inherit
 from .unames import unique_names
@@ -33,6 +33,7 @@ __all__ = [
     "doc_inherit",
     "deprecated",
     "df_temporal_header",
+    "hidden",
     "rank",
     "Bunch",
     "lp",

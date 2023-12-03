@@ -15,12 +15,14 @@
 # IMPORTS
 # =============================================================================
 
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import numpy as np
 
-from ._agg_base import RankResult, SKCDecisionMakerABC
-from ..core import Objective
-from ..utils import doc_inherit, rank
+    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ..core import Objective
+    from ..utils import doc_inherit, rank
 
 
 # =============================================================================

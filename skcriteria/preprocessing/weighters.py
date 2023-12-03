@@ -21,17 +21,20 @@ to calculate weights to a matrix along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
-import abc
-import warnings
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import abc
+    import warnings
 
-import scipy.stats
+    import numpy as np
 
-from ._preprocessing_base import SKCTransformerABC
-from .scalers import matrix_scale_by_cenit_distance
-from ..core import Objective
-from ..utils import deprecated, doc_inherit
+    import scipy.stats
+
+    from ._preprocessing_base import SKCTransformerABC
+    from .scalers import matrix_scale_by_cenit_distance
+    from ..core import Objective
+    from ..utils import deprecated, doc_inherit
 
 # =============================================================================
 # BASE CLASS

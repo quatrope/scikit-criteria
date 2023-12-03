@@ -16,12 +16,14 @@ maximization ones."""
 # IMPORTS
 # =============================================================================
 
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import numpy as np
 
-from ._preprocessing_base import SKCTransformerABC
-from ..core import Objective
-from ..utils import deprecated, doc_inherit
+    from ._preprocessing_base import SKCTransformerABC
+    from ..core import Objective
+    from ..utils import deprecated, doc_inherit
 
 
 # =============================================================================

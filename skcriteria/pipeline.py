@@ -15,8 +15,11 @@
 # IMPORTS
 # =============================================================================
 
-from .core import SKCMethodABC
-from .utils import Bunch, unique_names
+from .utils import hidden
+
+with hidden():
+    from .core import SKCMethodABC
+    from .utils import Bunch, unique_names
 
 
 # =============================================================================

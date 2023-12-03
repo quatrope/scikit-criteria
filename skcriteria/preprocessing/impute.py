@@ -21,15 +21,17 @@ module classes.
 # IMPORTS
 # =============================================================================
 
+from ..utils import hidden
 
-import abc
+with hidden():
+    import abc
 
-import numpy as np
+    import numpy as np
 
-import sklearn.impute as _sklimpute
+    import sklearn.impute as _sklimpute
 
-from ._preprocessing_base import SKCTransformerABC
-from ..utils import doc_inherit
+    from ._preprocessing_base import SKCTransformerABC
+    from ..utils import doc_inherit
 
 # =============================================================================
 # BASE CLASS

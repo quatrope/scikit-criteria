@@ -21,18 +21,20 @@ are offered to scale an array along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
+from ..utils import hidden
 
-import numpy as np
-from numpy import linalg
+with hidden():
+    import numpy as np
+    from numpy import linalg
 
-from sklearn import preprocessing as _sklpreproc
+    from sklearn import preprocessing as _sklpreproc
 
-from ._preprocessing_base import (
-    SKCMatrixAndWeightTransformerABC,
-    SKCTransformerABC,
-)
-from ..core import Objective
-from ..utils import deprecated, doc_inherit
+    from ._preprocessing_base import (
+        SKCMatrixAndWeightTransformerABC,
+        SKCTransformerABC,
+    )
+    from ..core import Objective
+    from ..utils import deprecated, doc_inherit
 
 
 # =============================================================================

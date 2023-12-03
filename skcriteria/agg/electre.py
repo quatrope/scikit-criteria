@@ -27,15 +27,18 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 # IMPORTS
 # =============================================================================
 
-import itertools as it
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import itertools as it
 
-from scipy import stats
+    import numpy as np
 
-from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
-from ..core import Objective
-from ..utils import doc_inherit, will_change
+    from scipy import stats
+
+    from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
+    from ..core import Objective
+    from ..utils import doc_inherit, will_change
 
 
 # =============================================================================

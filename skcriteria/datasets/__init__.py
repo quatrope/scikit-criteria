@@ -16,14 +16,16 @@ datasets."""
 # =============================================================================
 # IMPORRTS
 # =============================================================================
+from ..utils import hidden
 
-import json
-import os
-import pathlib
+with hidden():
+    import json
+    import os
+    import pathlib
 
-from skcriteria.core.data import mkdm
+    from skcriteria.core.data import mkdm
 
-from .. import core
+    from .. import core
 
 # =============================================================================
 # CONSTANTS

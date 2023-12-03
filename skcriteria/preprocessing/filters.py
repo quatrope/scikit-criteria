@@ -16,14 +16,17 @@
 # IMPORTS
 # =============================================================================
 
-import abc
-from collections.abc import Collection
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import abc
+    from collections.abc import Collection
 
-from ._preprocessing_base import SKCTransformerABC
-from ..core import DecisionMatrix
-from ..utils import doc_inherit
+    import numpy as np
+
+    from ._preprocessing_base import SKCTransformerABC
+    from ..core import DecisionMatrix
+    from ..utils import doc_inherit
 
 # =============================================================================
 # BASE CLASS

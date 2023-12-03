@@ -16,13 +16,17 @@ ratio analysis (MOORA) methods."""
 # =============================================================================
 # IMPORTS
 # =============================================================================
-import itertools as it
 
-import numpy as np
+from ..utils import hidden
 
-from ._agg_base import RankResult, SKCDecisionMakerABC
-from ..core import Objective
-from ..utils import doc_inherit, rank
+with hidden():
+    import itertools as it
+
+    import numpy as np
+
+    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ..core import Objective
+    from ..utils import doc_inherit, rank
 
 
 # =============================================================================

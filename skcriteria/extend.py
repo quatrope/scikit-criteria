@@ -23,13 +23,15 @@ real objects.
 # =============================================================================
 # IMPORTS
 # =============================================================================ç
+from .utils import hidden
 
-import inspect
-import warnings
+with hidden():
+    import inspect
+    import warnings
 
-from .agg import RankResult, SKCDecisionMakerABC
-from .preprocessing import SKCTransformerABC
-from .utils import doc_inherit
+    from .agg import RankResult, SKCDecisionMakerABC
+    from .preprocessing import SKCTransformerABC
+    from .utils import doc_inherit
 
 # =============================================================================
 # CONSTANTS
