@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -75,11 +75,41 @@ class NonGlobalHidden(RuntimeError):
 
 
 class _DirWithHidden:
+    """Custom directory function with hidden objects filtering.
+
+    Parameters
+    ----------
+    frame : frame
+        The frame whose global variables will be considered.
+    hidden_objects : dict
+        A dictionary containing names of objects to be hidden and their
+        corresponding objects.
+
+    Examples
+    --------
+    >>> frame = inspect.currentframe()
+    >>> hidden = {'obj_to_hide': object()}
+    >>> dir_with_hidden = _DirWithHidden(frame, hidden)
+    >>> visible_attrs = dir_with_hidden()
+    >>> print(visible_attrs)
+    ['visible_obj1', 'visible_obj2']
+
+    """
+
     def __init__(self, frame, hidden_objects):
         self.frame = frame
         self.hidden_objects = hidden_objects
 
     def __call__(self):
+        """Call method to retrieve visible attributes in the frame.
+
+        Returns
+        -------
+        list
+            A list of visible attribute names in the frame, considering
+            the hidden_objects.
+
+        """
         attrs = []
         for obj_name, obj in self.frame.f_globals.items():
             if obj_name not in self.hidden_objects:
@@ -133,12 +163,12 @@ def hidden(*, hide_this=True, dry=False):
       logic to hide the objects introduced within the context.
 
     """
-
     self = hidden  # this function
 
-    # two levels for the decorator contextmanager
+    # two levels because of the decorator @contextmanager
     frame = inspect.currentframe().f_back.f_back
 
+    # if co_name != <module> we are inside a function or class
     if frame.f_code.co_name != "<module>":
         check_here = (
             f"{frame.f_code.co_filename}:"
@@ -152,11 +182,13 @@ def hidden(*, hide_this=True, dry=False):
     # get the current state
     pre_f_globals = dict(frame.f_globals)
 
+    # if he current state alreade replace the __dir__ hidden is used two times
     if isinstance(pre_f_globals.get("__dir__"), _DirWithHidden):
         raise HiddenAlreadyUsedInThisContext(frame.f_code.co_filename)
 
-    yield
+    yield  # execute the decorator
 
+    # check whatever the code declared inside the context
     hidden_objects = {}
     for obj_name, obj in frame.f_globals.items():
         if obj_name not in pre_f_globals:
@@ -164,7 +196,10 @@ def hidden(*, hide_this=True, dry=False):
         elif obj is self and hide_this:
             hidden_objects[obj_name] = obj
 
+    # create the new dir object
     custom_dir = _DirWithHidden(frame=frame, hidden_objects=hidden_objects)
 
+    # if dry, don't do anything simply stop now
+    # otherwise replace the global __dir__
     if not dry:
         frame.f_globals["__dir__"] = custom_dir

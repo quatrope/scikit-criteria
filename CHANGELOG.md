@@ -21,11 +21,11 @@
     >>>     # hyperparameter 'foo'
     >>>
     >>> @mktransformer
-    >>> def MyTrans(**kwargs):
+    >>> def MyTransformer(**kwargs):
     >>>     # Implementation of the transformation function
     >>>
     >>> @mktransformer(bar=2)
-    >>> def MyTransWithHyperparam(**kwargs):
+    >>> def MyTransformerWithHyperparam(**kwargs):
     >>>     # Implementation of the transformation function with
     >>>     # hyperparameter 'bar'
     ```
@@ -34,6 +34,10 @@
     classes based on provided functions, allowing users to
     define decision-making models with less flexibility than traditional
     inheritance-based models.
+
+- **New Module:** Introduced the `skcriteria.testing` module, exposing utility functions for for comparing objects created in Scikit-Criteria in a testing environment. These functions facilitate the comparison of instances of the `DecisionMatrix`, `ResultABC`, and `RanksComparator` classes.
+
+  The assertion functions utilize pandas and numpy testing utilities for comparing matrices, series, and other attributes.
 
 - **New** The API of the agg, pipeline, preprocessing, and extend modules has
   been cleaned up to prevent autocompletion with imports from other modules.
@@ -44,6 +48,7 @@
 - **New** All methods (agg and transformers) has a new `get_method_name`
   instance method.
 
+---
 
 ## Version 0.8.5
 
@@ -69,18 +74,21 @@
 - Now all cached methods and properties are stored inside the instance.
   Previously this was stored inside the class generating a memoryleak.
 
+---
 
 ## Version 0.8.3
 
 - Fixed a bug detected on the EntropyWeighted, Now works as the literature
   specifies
 
+---
 
 ## Version 0.8.2
 
 - We bring back Python 3.7 because is the version used in google.colab.
 - Bugfixes in `plot.frontier` and `dominance.eq`.
 
+---
 
 ## Version 0.8
 
@@ -142,6 +150,8 @@
   - `skcriteria.core.methods.SKCMatrixAndWeightTransformerABC` `->`
     `skcriteria.preprocessing.SKCMatrixAndWeightTransformerABC`
 
+---
+
 ## Version 0.7
 
 - **New method**: `ELECTRE2`.
@@ -163,6 +173,7 @@
   - `kernel_size_` to know the number of alternatives in the kernel.
   - `kernel_where_` was replaced by `kernelwhere_` to standardize the api.
 
+---
 
 ## Version 0.6
 
@@ -183,6 +194,8 @@
 - New deprecation mechanism through the
 - `skcriteria.utils.decorators.deprecated` decorator.
 
+---
+
 ## Version 0.5
 
 In this version scikit-criteria was rewritten from scratch. Among other things:
@@ -196,9 +209,13 @@ In this version scikit-criteria was rewritten from scratch. Among other things:
 
 **Full Changelog**: https://github.com/quatrope/scikit-criteria/commits/0.5
 
+---
+
 ## Version 0.2
 
 First OO stable version.
+
+---
 
 ## Version 0.1
 

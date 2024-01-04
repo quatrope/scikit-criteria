@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -17,6 +17,7 @@
 
 import itertools as it
 from collections import defaultdict
+from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 
@@ -50,7 +51,7 @@ RANKS_LABELS = {
 # =============================================================================
 
 
-class RanksComparator(SKCMethodABC):
+class RanksComparator(SKCMethodABC, Sequence):
     """Rankings comparator object.
 
     This class is intended to contain a collection of rankings on which you
