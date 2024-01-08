@@ -40,7 +40,6 @@ with hidden():
 # CONSTANTS
 # =============================================================================
 
-
 def assert_dmatrix_equals(
     left,
     right,
@@ -95,6 +94,10 @@ def assert_dmatrix_equals(
     ...     weights_kws={'check_exact': True})
 
     """
+    # if the objects are the same, no need to run the test
+    if left is right:
+        return
+
     assert isinstance(
         left, DecisionMatrix
     ), f"'left' is not a DecisionMatrix instance. Found {type(left)!r}"
@@ -168,6 +171,10 @@ def assert_result_equals(left, right):
     -------
     >>> assert_result_equals(result1, result2)
     """
+    # if the objects are the same, no need to run the test
+    if left is right:
+        return
+
     assert isinstance(
         left, ResultABC
     ), f"'left' is not a ResultABC instance. Found {type(left)!r}"
@@ -200,7 +207,9 @@ def assert_result_equals(left, right):
     )
 
     # Check equality of extra attribute (Bunch comparison)
-    npt.assert_equal(left.extra_, right.extra_, err_msg="Extras are not equal")
+    npt.assert_equal(
+        dict(left.e_), dict(right.e_), err_msg="Extras are not equal"
+    )
 
 
 def assert_rcmp_equals(left, right):
@@ -228,6 +237,10 @@ def assert_rcmp_equals(left, right):
     -------
     >>> assert_rcmp_equals(rcmp1, rcmp2)
     """
+    # if the objects are the same, no need to run the test
+    if left is right:
+        return
+
     assert isinstance(
         left, RanksComparator
     ), f"'left' is not a RanksComparator instance. Found {type(left)!r}"

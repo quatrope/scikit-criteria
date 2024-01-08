@@ -28,6 +28,11 @@ def test_assert_dmatrix_equals(decision_matrix):
     testing.assert_dmatrix_equals(left, right)
 
 
+def test_assert_dmatrix_equals_same_object(decision_matrix):
+    dm = decision_matrix(seed=42)
+    testing.assert_dmatrix_equals(dm, dm)
+
+
 def test_assert_dmatrix_equals_not_dmatrix(decision_matrix):
     dm = decision_matrix(seed=42)
     with pytest.raises(
@@ -122,6 +127,14 @@ def test_assert_result_equals():
     kresult_right = agg.KernelResult("test", ["a", "b"], [True, False], {})
 
     testing.assert_result_equals(kresult_left, kresult_right)
+
+
+def test_assert_result_equals_same_object():
+    rresult = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    testing.assert_result_equals(rresult, rresult)
+
+    kresult = agg.KernelResult("test", ["a", "b"], [True, False], {})
+    testing.assert_result_equals(kresult, kresult)
 
 
 def test_assert_result_equals_not_result():
@@ -231,6 +244,14 @@ def test_assert_rcmp_equals():
     )
 
     testing.assert_rcmp_equals(left, right)
+
+
+def test_assert_rcmp_equals_same_object():
+    rcmp = cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+    )
+    testing.assert_rcmp_equals(rcmp, rcmp)
 
 
 def test_assert_rcmp_equals_not_RankComparator():
