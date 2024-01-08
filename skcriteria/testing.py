@@ -94,16 +94,16 @@ def assert_dmatrix_equals(
     ...     weights_kws={'check_exact': True})
 
     """
-    # if the objects are the same, no need to run the test
-    if left is right:
-        return
-
     assert isinstance(
         left, DecisionMatrix
     ), f"'left' is not a DecisionMatrix instance. Found {type(left)!r}"
     assert isinstance(
         right, DecisionMatrix
     ), f"'right' is not a DecisionMatrix instance. Found {type(right)!r}"
+
+    # if the objects are the same, no need to run the test
+    if left is right:
+        return
 
     # Check equality of alternatives and criteria arrays
     npt.assert_array_equal(
@@ -171,16 +171,16 @@ def assert_result_equals(left, right):
     -------
     >>> assert_result_equals(result1, result2)
     """
-    # if the objects are the same, no need to run the test
-    if left is right:
-        return
-
     assert isinstance(
         left, ResultABC
     ), f"'left' is not a ResultABC instance. Found {type(left)!r}"
     assert isinstance(
         right, ResultABC
     ), f"'right' is not a ResultABC instance. Found {type(right)!r}"
+
+    # if the objects are the same, no need to run the test
+    if left is right:
+        return
 
     t_left, t_right = type(left), type(right)
     assert (
@@ -237,16 +237,16 @@ def assert_rcmp_equals(left, right):
     -------
     >>> assert_rcmp_equals(rcmp1, rcmp2)
     """
-    # if the objects are the same, no need to run the test
-    if left is right:
-        return
-
     assert isinstance(
         left, RanksComparator
     ), f"'left' is not a RanksComparator instance. Found {type(left)!r}"
     assert isinstance(
         right, RanksComparator
     ), f"'right' is not a RanksComparator instance. Found {type(right)!r}"
+
+    # if the objects are the same, no need to run the test
+    if left is right:
+        return
 
     llen, rlen = len(left), len(right)
     assert len(left) == len(
