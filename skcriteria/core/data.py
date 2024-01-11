@@ -228,6 +228,7 @@ class DecisionMatrix:
         cls,
         matrix,
         objectives,
+        *,
         weights=None,
         alternatives=None,
         criteria=None,
@@ -578,32 +579,16 @@ class DecisionMatrix:
         """
         return len(self._data_df)
 
-    def equals(self, other):
-        """Return True if the decision matrix are equal.
-
-        This method calls `DecisionMatrix.aquals` without tolerance.
-
-        Parameters
-        ----------
-        other : :py:class:`skcriteria.DecisionMatrix`
-            Other instance to compare.
-
-        Returns
-        -------
-        equals : :py:class:`bool:py:class:`
-            Returns True if the two dm are equals.
-
-        See Also
-        --------
-        aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
-        :py:func:`numpy.any`, :py:func:`numpy.equal`,
-        :py:func:`numpy.allclose`.
-
-        """
-        return self.aequals(other, 0, 0, False, True)
+    # def diff(self, other,  rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False)
 
     def aequals(
-        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False
+        self,
+        other,
+        *,
+        rtol=1e-05,
+        atol=1e-08,
+        equal_nan=True,
+        check_dtype=False,
     ):
         """Return True if the decision matrix are equal within a tolerance.
 
@@ -685,6 +670,32 @@ class DecisionMatrix:
             )
 
         return is_aequals
+
+    def equals(self, other):
+        """Return True if the decision matrix are equal.
+
+        This method calls `DecisionMatrix.aquals` without tolerance.
+
+        Parameters
+        ----------
+        other : :py:class:`skcriteria.DecisionMatrix`
+            Other instance to compare.
+
+        Returns
+        -------
+        equals : :py:class:`bool:py:class:`
+            Returns True if the two dm are equals.
+
+        See Also
+        --------
+        aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
+
+        """
+        return self.aequals(
+            other, rtol=0, atol=0, equal_nan=False, check_dtype=True
+        )
 
     # SLICES ==================================================================
 
