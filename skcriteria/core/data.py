@@ -737,34 +737,6 @@ class DecisionMatrix:
         :py:func:`numpy.allclose`.
 
         """
-
-        is_aequals = (self is other) or (
-            isinstance(other, DecisionMatrix)
-            and np.shape(self) == np.shape(other)
-            and np.array_equal(self.criteria, other.criteria)
-            and np.array_equal(self.alternatives, other.alternatives)
-            and np.array_equal(self.objectives, other.objectives)
-            and np.allclose(
-                self.weights,
-                other.weights,
-                rtol=rtol,
-                atol=atol,
-                equal_nan=equal_nan,
-            )
-            and np.allclose(
-                self.matrix,
-                other.matrix,
-                rtol=rtol,
-                atol=atol,
-                equal_nan=equal_nan,
-            )
-        )
-
-        if check_dtype:
-            is_aequals = is_aequals and np.array_equal(
-                self.dtypes, other.dtypes
-            )
-
         the_diff = self.diff(
             other,
             rtol=rtol,
