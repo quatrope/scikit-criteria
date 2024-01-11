@@ -21,6 +21,7 @@ from .bunch import Bunch
 from .cmanagers import df_temporal_header, hidden
 from .deprecate import deprecated, will_change
 from .doctools import doc_inherit
+from .object_diff import diff
 from .unames import unique_names
 
 
@@ -39,4 +40,5 @@ __all__ = [
     "lp",
     "unique_names",
     "will_change",
+    "diff",
 ]
