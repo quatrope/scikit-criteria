@@ -35,7 +35,7 @@ from .dominance import DecisionMatrixDominanceAccessor
 from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, df_temporal_header, doc_inherit
+from ..utils import deprecated, df_temporal_header, diff, doc_inherit
 
 
 # =============================================================================
@@ -579,7 +579,60 @@ class DecisionMatrix:
         """
         return len(self._data_df)
 
-    # def diff(self, other,  rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False)
+    def diff(
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False
+    ):
+        """Finds the difference between the current and another DecisionMatrix.
+
+        Parameters
+        ----------
+        other : skcriteria.DecisionMatrix
+            The other DecisionMatrix object to compare with.
+        rtol : float, optional
+            The relative tolerance parameter for numpy.allclose. Defaults
+            to 1e-05.
+        atol : float, optional
+            The absolute tolerance parameter for numpy.allclose.
+            Defaults to 1e-08.
+        equal_nan : bool, optional
+            Whether to consider NaN values as equal. Defaults to True.
+        check_dtype : bool, optional
+            Whether to check the data types of the criteria. Defaults to False.
+
+        Returns
+        -------
+        the_diff :
+            The difference between the current and the other DecisionMatrix.
+
+        """
+
+        # Check if have the same shape and if all elements are equal.
+        def same_shape_array_equal(left, right):
+            return np.shape(left) == np.shape(right) and np.array_equal(
+                left, right, equal_nan=equal_nan
+            )
+
+        # Check if have the same shape and if all elements are close.
+        def same_shape_array_allclose(left, right):
+            return np.shape(left) == np.shape(right) and np.allclose(
+                left, r, rtol=rtol, atol=atol, equal_nan=equal_nan
+            )
+
+        members = {
+            "shape": np.array_equal,  # the shape must be equal
+            "criteria": same_shape_array_equal,
+            "alternatives": same_shape_array_equal,
+            "objectives": same_shape_array_equal,
+            "weights": same_shape_array_allclose,
+            "matrix": same_shape_array_allclose,
+        }
+
+        if check_dtype:
+            members["dtypes"] = same_shape_array_equal
+
+        the_diff = diff(self, other, **members)
+
+        return the_diff
 
     def aequals(
         self,

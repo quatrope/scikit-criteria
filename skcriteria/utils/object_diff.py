@@ -97,7 +97,6 @@ def diff(left, right, **members):
         A `Difference` object representing the differences between the two
         objects.
 
-
     Notes
     -----
     This function compares the values of corresponding members in the `left`
@@ -113,9 +112,7 @@ def diff(left, right, **members):
     >>> diff(obj_a, obj_b, a=np.equal, b=np.equal)
     <Difference different_types=False members_diff=('b', 'c')>
 
-
     """
-
     # the difference container
     the_diff = _Difference(left_type=type(left), right_type=type(right))
 
