@@ -181,7 +181,7 @@ class ResultABC(metaclass=abc.ABCMeta):
         return len(self._result_series)
 
     def values_equals(self, other):
-        """Check if the alternatives and ranking are the same.
+        """Check if the alternatives and values are the same.
 
         The method doesn't check the method or the extra parameters.
 
