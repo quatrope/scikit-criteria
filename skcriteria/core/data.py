@@ -600,9 +600,11 @@ class DecisionMatrix:
         :py:func:`numpy.allclose`.
 
         """
-        return self.aequals(other, 0, 0, False)
+        return self.aequals(other, 0, 0, False, True)
 
-    def aequals(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
+    def aequals(
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False
+    ):
         """Return True if the decision matrix are equal within a tolerance.
 
         The tolerance values are positive, typically very small numbers.  The
@@ -613,6 +615,9 @@ class DecisionMatrix:
         NaNs are treated as equal if they are in the same place and if
         ``equal_nan=True``.  Infs are treated as equal if they are in the same
         place and of the same sign in both arrays.
+
+        If ``check_dtype`` is False, the dtype of the decision matrix
+        is not checked.
 
         The proceeds as follows:
 
@@ -635,6 +640,9 @@ class DecisionMatrix:
         equal_nan : bool
             Whether to compare NaN's as equal.  If True, NaN's in dm will be
             considered equal to NaN's in `other` in the output array.
+        check_dtype : bool
+            Whether to check the dtype of the decision matrix. If False
+            (default), the dtype of the decision matrix is not checked.
 
         Returns
         -------
@@ -649,7 +657,7 @@ class DecisionMatrix:
         :py:func:`numpy.allclose`.
 
         """
-        return (self is other) or (
+        is_aequals = (self is other) or (
             isinstance(other, DecisionMatrix)
             and np.shape(self) == np.shape(other)
             and np.array_equal(self.criteria, other.criteria)
@@ -670,6 +678,13 @@ class DecisionMatrix:
                 equal_nan=equal_nan,
             )
         )
+
+        if check_dtype:
+            is_aequals = is_aequals and np.array_equal(
+                self.dtypes, other.dtypes
+            )
+
+        return is_aequals
 
     # SLICES ==================================================================
 
