@@ -35,7 +35,7 @@ from .dominance import DecisionMatrixDominanceAccessor
 from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, df_temporal_header, diff, doc_inherit
+from ..utils import deprecated, df_temporal_header, diff, doc_inherit, WithDiff
 
 
 # =============================================================================
@@ -128,7 +128,7 @@ class _Loc:
 # =============================================================================
 
 
-class DecisionMatrix:
+class DecisionMatrix(object):
     """Representation of all data needed in the MCDA analysis.
 
     This object gathers everything necessary to represent a data set used
@@ -772,6 +772,14 @@ class DecisionMatrix:
         return self.aequals(
             other, rtol=0, atol=0, equal_nan=False, check_dtype=True
         )
+
+    def __eq__(self, other):
+        """x.__eq__(y) <==> x == y <==> x.equals(y)."""
+        return self.equals(other)
+
+    def __ne__(self, other):
+        """x.__ne__(y) <==> x != y. <==> not x.equals(y)"""
+        return not self == other
 
     # SLICES ==================================================================
 

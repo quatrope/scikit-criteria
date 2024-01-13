@@ -24,7 +24,14 @@ import numpy as np
 import pandas as pd
 
 from ..core import SKCMethodABC
-from ..utils import Bunch, deprecated, doc_inherit
+from ..utils import (
+    Bunch,
+    deprecated,
+    doc_inherit,
+    diff,
+    npdict_all_equals,
+    WithDiff,
+)
 
 # =============================================================================
 # DM BASE
@@ -76,7 +83,7 @@ class SKCDecisionMakerABC(SKCMethodABC):
 # =============================================================================
 
 
-class ResultABC(metaclass=abc.ABCMeta):
+class ResultABC(object, metaclass=abc.ABCMeta):
     """Base class to implement different types of results.
 
     Any evaluation of the DecisionMatrix is expected to result in an object
@@ -180,6 +187,26 @@ class ResultABC(metaclass=abc.ABCMeta):
         """
         return len(self._result_series)
 
+    def diff(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
+        def array_allclose(left_value, right_value):
+            return np.allclose(
+                left_value,
+                right_value,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+            )
+
+        members = {
+            "method": np.array_equal,
+            "alternatives": np.array_equal,
+            "values": array_allclose,
+            "extra_": dict_equal,
+        }
+
+        the_diff = diff(self, other, **members)
+        return the_diff
+
     def values_equals(self, other):
         """Check if the alternatives and values are the same.
 
@@ -240,24 +267,13 @@ class ResultABC(metaclass=abc.ABCMeta):
         """
         if self is other:
             return True
-        is_veq = self.values_equals(other) and set(self._extra) == set(
-            other._extra
+        is_veq = self.values_equals(other) and npdict_all_equals(
+            self.extra_,
+            other.extra_,
+            rtol=rtol,
+            atol=atol,
+            equal_nan=equal_nan,
         )
-        keys = set(self._extra)
-        while is_veq and keys:
-            k = keys.pop()
-            sv = self._extra[k]
-            ov = other._extra[k]
-            if isinstance(ov, np.ndarray):
-                is_veq = is_veq and np.allclose(
-                    sv,
-                    ov,
-                    rtol=rtol,
-                    atol=atol,
-                    equal_nan=equal_nan,
-                )
-            else:
-                is_veq = is_veq and sv == ov
         return is_veq
 
     def equals(self, other):
@@ -285,11 +301,11 @@ class ResultABC(metaclass=abc.ABCMeta):
         return self.aequals(other, 0, 0, False)
 
     def __eq__(self, other):
-        """x.__eq__(y) <==> x == y."""
+        """x.__eq__(y) <==> x == y <==> x.equals(y)."""
         return self.equals(other)
 
     def __ne__(self, other):
-        """x.__eq__(y) <==> x == y."""
+        """x.__ne__(y) <==> x != y. <==> not x.equals(y)"""
         return not self == other
 
     # REPR ====================================================================

@@ -15,11 +15,21 @@
 # IMPORTS
 # =============================================================================
 
+import abc
 from dataclasses import dataclass, field
 
 # =============================================================================
 # CLASSES
 # =============================================================================
+
+
+class WithDiff(abc.ABC):
+    """Mixin to add a difference attribute."""
+
+    @abc.abstractmethod
+    def diff(self, other):
+        """Returns the difference between two objects."""
+        raise NotImplementedError()
 
 
 class _Missing(object):

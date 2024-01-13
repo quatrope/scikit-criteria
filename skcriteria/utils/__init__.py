@@ -21,7 +21,8 @@ from .bunch import Bunch
 from .cmanagers import df_temporal_header, hidden
 from .deprecate import deprecated, will_change
 from .doctools import doc_inherit
-from .object_diff import diff
+from .npdict_cmp import npdict_all_equals
+from .object_diff import diff, WithDiff
 from .unames import unique_names
 
 
@@ -41,4 +42,6 @@ __all__ = [
     "unique_names",
     "will_change",
     "diff",
+    "WithDiff",
+    "npdict_all_equals",
 ]
