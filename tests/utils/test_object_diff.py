@@ -50,10 +50,13 @@ def test_diff():
     assert result.members_diff["b"] == (2, 3)
     assert result.members_diff["c"] == (object_diff.MISSING, 4)
 
-    assert (
-        repr(result)
-        == "<Difference different_types=False members_diff=('b', 'c')>"
+    expected_repr = (
+        "<Difference "
+        "has_differences=True "
+        "different_types=False "
+        "members_diff=('b', 'c')>"
     )
+    assert repr(result) == expected_repr
 
 
 def test_diff_different_types():

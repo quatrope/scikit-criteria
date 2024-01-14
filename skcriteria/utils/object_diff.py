@@ -78,10 +78,12 @@ class _Difference:
 
     def __repr__(self):
         """Return a string representation of the object."""
+        has_differences = self.has_differences
         diff_types = self.different_types
         members_diff = tuple(sorted(self.members_diff))
         return (
-            f"<Difference different_types={diff_types!r} "
+            f"<Difference has_differences={has_differences!r} "
+            f"different_types={diff_types!r} "
             f"members_diff={members_diff!r}>"
         )
 

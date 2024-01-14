@@ -61,7 +61,25 @@ def _assert(cond, err_msg):
 
 
 def assert_dmatrix_equals(left, right, **diff_kws):
-    """Asserts that two instances of the DecisionMatrix class are equal."""
+    """Asserts that two DecisionMatrix objects are equal by comparing \
+    their attributes with some tolerance.
+
+    Parameters
+    ----------
+    left : DecisionMatrix
+        The first DecisionMatrix object to compare.
+    right : DecisionMatrix
+        The second DecisionMatrix object to compare.
+    **diff_kws : dict
+        Additional keyword arguments to pass to the `DecisionMatrix.diff`
+        method.
+
+    Raises
+    ------
+    AssertionError
+        If the two DecisionMatrix objects are not equal.
+
+    """
     _assert(
         isinstance(left, DecisionMatrix),
         f"'left' is not a DecisionMatrix instance. Found {type(left)!r}",
@@ -77,7 +95,7 @@ def assert_dmatrix_equals(left, right, **diff_kws):
         f"'right' is not a DecisionMatrix instance. Found {type(right)!r}",
     )
 
-    assert ("shape" not in diff.members_diff, "'shape' are not equal")
+    _assert("shape" not in diff.members_diff, "'shape' are not equal")
     _assert("criteria" not in diff.members_diff, "'criteria' are not equal")
     _assert(
         "alternatives" not in diff.members_diff, "'alternatives' are not equal"
@@ -90,70 +108,53 @@ def assert_dmatrix_equals(left, right, **diff_kws):
     _assert("dtypes" not in diff.members_diff, "'dtypes' are not equal")
 
 
-def assert_result_equals(left, right):
-    """Asserts that two instances of the Result class are equals.
+def assert_result_equals(left, right, **diff_kws):
+    """Asserts that two results objects are equal by comparing their \
+    attributes with some tolerance.
 
     Parameters
     ----------
-    left : Result
-        The first Result instance for comparison.
-    right : Result
-        The second Result instance for comparison.
+    left : ResultABC
+        The left result to compare.
+    right : ResultABC
+        The right result to compare.
+    **diff_kws : dict
+        Optional keyword arguments to pass to the result `diff` method.
+
+    Returns
+    -------
+    None
 
     Raises
     ------
-    AssertionError
-        If any of the specified attributes of the two Result instances are
-        not equal.
+    AssertionError if the two results are not equal.
 
-    Notes
-    -----
-    This function uses NumPy testing utilities for array and string
-    comparisons.
-
-    Example
-    -------
-    >>> assert_result_equals(result1, result2)
     """
-    assert isinstance(
-        left, ResultABC
-    ), f"'left' is not a ResultABC instance. Found {type(left)!r}"
-    assert isinstance(
-        right, ResultABC
-    ), f"'right' is not a ResultABC instance. Found {type(right)!r}"
+    _assert(
+        isinstance(left, ResultABC),
+        f"'left' is not a ResultABC instance. Found {type(left)!r}",
+    )
 
-    # if the objects are the same, no need to run the test
-    if left is right:
+    diff = left.diff(right, **diff_kws)
+
+    if not diff.has_differences:
         return
 
-    t_left, t_right = type(left), type(right)
-    assert (
-        t_left is t_right
-    ), f"Type mismatch: Expected instances of {t_left!r}, but got {t_right!r}."
-
-    # Check equality of alternatives and criteria arrays
-    npt.assert_array_equal(
-        np.asarray(left.alternatives),
-        np.asarray(right.alternatives),
-        err_msg="Alternatives are not equal",
+    _assert(
+        diff.different_types is False,
+        f"'right' is not a ResultABC instance. Found {diff.right_type!r}",
+    )
+    _assert(
+        "alternatives" not in diff.members_diff, "'alternatives' are not equal"
+    )
+    _assert(
+        "method" not in diff.members_diff,
+        f"'method' mismatch: Expected {left.method!r}, "
+        f"but got {right.method!r}.",
     )
 
-    # Check equality of method attribute (string comparison)
-    assert (
-        left.method == right.method
-    ), f"Method mismatch: Expected {left.method!r}, but got {right.method!r}."
-
-    # Check equality of the alternatives arrays
-    npt.assert_array_equal(
-        np.asarray(left.values),
-        np.asarray(right.values),
-        err_msg="Values are not equal",
-    )
-
-    # Check equality of extra attribute (Bunch comparison)
-    npt.assert_equal(
-        dict(left.e_), dict(right.e_), err_msg="Extras are not equal"
-    )
+    _assert("values" not in diff.members_diff, "'values' are not equal")
+    _assert("extra_" not in diff.members_diff, "'extra_' are not equal")
 
 
 def assert_rcmp_equals(left, right):
