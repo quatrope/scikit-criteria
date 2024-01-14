@@ -77,7 +77,7 @@ def assert_dmatrix_equals(left, right, **diff_kws):
         f"'right' is not a DecisionMatrix instance. Found {type(right)!r}",
     )
 
-    assert("shape" not in diff.members_diff, "'shape' are not equal")
+    assert ("shape" not in diff.members_diff, "'shape' are not equal")
     _assert("criteria" not in diff.members_diff, "'criteria' are not equal")
     _assert(
         "alternatives" not in diff.members_diff, "'alternatives' are not equal"

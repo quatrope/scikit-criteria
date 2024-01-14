@@ -201,7 +201,7 @@ class ResultABC(object, metaclass=abc.ABCMeta):
             "method": np.array_equal,
             "alternatives": np.array_equal,
             "values": array_allclose,
-            "extra_": dict_equal,
+            "extra_": npdict_all_equals,
         }
 
         the_diff = diff(self, other, **members)
@@ -213,9 +213,10 @@ class ResultABC(object, metaclass=abc.ABCMeta):
         The method doesn't check the method or the extra parameters.
 
         """
-        return (self is other) or (
-            isinstance(other, type(self))
-            and self._result_series.equals(other._result_series)
+        the_diff = self.diff(other)
+        return (
+            "alternatives" not in the_diff.members_diff
+            and "values" not in the_diff.members_diff
         )
 
     def aequals(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
@@ -265,16 +266,8 @@ class ResultABC(object, metaclass=abc.ABCMeta):
         :py:func:`numpy.allclose`.
 
         """
-        if self is other:
-            return True
-        is_veq = self.values_equals(other) and npdict_all_equals(
-            self.extra_,
-            other.extra_,
-            rtol=rtol,
-            atol=atol,
-            equal_nan=equal_nan,
-        )
-        return is_veq
+        the_diff = self.diff(other, rtol=rtol, atol=atol, equal_nan=equal_nan)
+        return not the_diff.has_differences
 
     def equals(self, other):
         """Return True if the results are equal.

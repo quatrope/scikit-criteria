@@ -25,6 +25,9 @@ import numpy as np
 def npdict_all_equals(left, right, rtol=1e-05, atol=1e-08, equal_nan=False):
     """Return True if the two dictionaries are equal within a tolerance."""
 
+    if left is right:  # if they are the same object return True
+        return True
+
     # extra keys
     keys = set(left).union(right)
 
