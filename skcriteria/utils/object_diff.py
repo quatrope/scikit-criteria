@@ -16,23 +16,17 @@
 # =============================================================================
 
 import abc
+import inspect
 from dataclasses import dataclass, field
 
 # =============================================================================
-# CLASSES
+# The utilities classes
 # =============================================================================
 
 
-class WithDiff(abc.ABC):
-    """Mixin to add a difference attribute."""
-
-    @abc.abstractmethod
-    def diff(self, other):
-        """Returns the difference between two objects."""
-        raise NotImplementedError()
-
-
 class _Missing(object):
+    """A singleton object used to represent missing values."""
+
     def __new__(cls, *args, **kwargs):
         """Creates a new instance of the class if it does not already exist, \
         or returns the existing instance.
@@ -148,3 +142,171 @@ def diff(left, right, **members):
             the_diff.members_diff[member] = (lvalue, rvalue)
 
     return the_diff
+
+
+# =============================================================================
+# The mixin classes to implement diff basses equalities
+# =============================================================================
+
+
+class DiffEqualityMixin(abc.ABC):
+    """Abstract base class for classes with a diff method.
+
+    This class provides methods for comparing objects with a tolerance,
+    allowing for differences within specified limits. It is designed to be
+    used with numpy and pandas equality functions.
+
+    Extra methods:
+
+    - ``aequals``
+        almost-equals, Check if the two objects are equal within a tolerance.
+    - ``equals(other)``
+        Return True if the objects are equal.
+    - ``__eq__(other)``
+        Implement equality comparison.
+    - ``__ne__(other)``
+        Implement inequality comparison.
+
+    """
+
+    def __init_subclass__(cls):
+        """Validate the creation of a subclass."""
+        o_params = set(inspect.signature(DiffEqualityMixin.diff).parameters)
+        params = set(inspect.signature(cls.diff).parameters)
+        if o_params != params:
+            o_params.remove("self")
+            diff_method_name = cls.diff.__qualname__
+            raise TypeError(
+                f"{diff_method_name!r} must redefine {o_params!r} parameters"
+            )
+
+    @abc.abstractmethod
+    def diff(
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False
+    ):
+        """Return the difference between two objects within a tolerance.
+
+        This method should be implemented by subclasses to define how
+        differences between objects are calculated.
+
+        The tolerance parameters rtol and atol, equal_nan, and check_dtype are
+        provided to be used by the numpy and pandas equality functions.
+        These parameters allow you to customize the behavior of the equality
+        comparison, such as setting the relative and absolute tolerance for
+        numeric comparisons, considering NaN values as equal, and checking
+        for the data type of the objects being compared.
+
+        Notes
+        -----
+
+        The tolerance values are positive, typically very small numbers.  The
+        relative difference (`rtol` * abs(`b`)) and the absolute difference
+        `atol` are added together to compare against the absolute difference
+        between `a` and `b`.
+
+        NaNs are treated as equal if they are in the same place and if
+        ``equal_nan=True``.  Infs are treated as equal if they are in the same
+        place and of the same sign in both arrays.
+
+        Parameters
+        ----------
+        other : object
+            The object to compare to.
+        rtol : float, optional
+            The relative tolerance parameter. Default is 1e-05.
+        atol : float, optional
+            The absolute tolerance parameter. Default is 1e-08.
+        equal_nan : bool, optional
+            Whether to consider NaN values as equal. Default is True.
+        check_dtype : bool, optional
+            Whether to check the data type of the objects. Default is False.
+
+        Returns
+        -------
+        the_diff :
+            The difference between the current and the other object.
+
+        See Also
+        --------
+        equals, aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
+        :py:func:`numpy.any`, :py:func:`numpy.equal`,
+        :py:func:`numpy.allclose`.
+
+        """
+        raise NotImplementedError()
+
+    def aequals(
+        self,
+        other,
+        *,
+        rtol=1e-05,
+        atol=1e-08,
+        equal_nan=True,
+        check_dtype=False,
+    ):
+        """Check if the two objects are equal within a tolerance.
+
+        All the parameters ara passed to the `diff` method.
+
+
+        Parameters
+        ----------
+        other : object
+            The object to compare to.
+        rtol : float, optional
+            The relative tolerance parameter. Default is 1e-05.
+        atol : float, optional
+            The absolute tolerance parameter. Default is 1e-08.
+        equal_nan : bool, optional
+            Whether to consider NaN values as equal. Default is True.
+        check_dtype : bool, optional
+            Whether to check the data type of the objects. Default is False.
+
+        Returns
+        -------
+        bool
+            True if the objects are equal within the specified tolerance,
+            False otherwise.
+
+        """
+        the_diff = self.diff(
+            other,
+            rtol=rtol,
+            atol=atol,
+            equal_nan=equal_nan,
+            check_dtype=check_dtype,
+        )
+        is_aequals = not the_diff.has_differences
+        return is_aequals
+
+    def equals(self, other):
+        """Return True if the objects are equal.
+
+        This method calls `aquals()` without tolerance.
+
+        Parameters
+        ----------
+        other : :py:class:`object`
+            Other instance to compare.
+
+        Returns
+        -------
+        equals : :py:class:`bool:py:class:`
+            Returns True if the two objects are equals.
+
+        See Also
+        --------
+        aequals, diff.
+
+        """
+        return self.aequals(
+            other, rtol=0, atol=0, equal_nan=False, check_dtype=True
+        )
+
+    def __eq__(self, other):
+        """x.__eq__(y) <==> x == y <==> x.equals(y)."""
+        return self.equals(other)
+
+    def __ne__(self, other):
+        """x.__ne__(y) <==> x != y. <==> not x.equals(y)"""
+        return not self == other

@@ -35,7 +35,7 @@ from .dominance import DecisionMatrixDominanceAccessor
 from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, df_temporal_header, diff, doc_inherit, WithDiff
+from ..utils import deprecated, df_temporal_header, diff, doc_inherit, DiffEqualityMixin
 
 
 # =============================================================================
@@ -128,7 +128,7 @@ class _Loc:
 # =============================================================================
 
 
-class DecisionMatrix(object):
+class DecisionMatrix(DiffEqualityMixin):
     """Representation of all data needed in the MCDA analysis.
 
     This object gathers everything necessary to represent a data set used
@@ -579,64 +579,10 @@ class DecisionMatrix(object):
         """
         return len(self._data_df)
 
+    @doc_inherit(DiffEqualityMixin.diff)
     def diff(
         self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False
     ):
-        """Return the difference between this and another DecisionMatrix \
-        within a tolerance.
-
-        The tolerance values are positive, typically very small numbers.  The
-        relative difference (`rtol` * abs(`b`)) and the absolute difference
-        `atol` are added together to compare against the absolute difference
-        between `a` and `b`.
-
-        NaNs are treated as equal if they are in the same place and if
-        ``equal_nan=True``.  Infs are treated as equal if they are in the same
-        place and of the same sign in both arrays.
-
-        If ``check_dtype`` is False, the dtype of the decision matrix
-        is not checked.
-
-        The proceeds as follows:
-
-        - If ``other`` is the same object return ``True``.
-        - If ``other`` is not instance of 'DecisionMatrix', has different shape
-          'criteria', 'alternatives' or 'objectives' returns ``False``.
-        - Next check the 'weights' and the matrix itself using the provided
-          tolerance.
-
-        Parameters
-        ----------
-        other : :py:class:`skcriteria.DecisionMatrix`
-            Other instance to compare.
-        rtol : float
-            The relative tolerance parameter
-            (see Notes in :py:func:`numpy.allclose`).
-        atol : float
-            The absolute tolerance parameter
-            (see Notes in :py:func:`numpy.allclose`).
-        equal_nan : bool
-            Whether to compare NaN's as equal.  If True, NaN's in dm will be
-            considered equal to NaN's in `other` in the output array.
-        check_dtype : bool
-            Whether to check the dtype of the decision matrix. If False
-            (default), the dtype of the decision matrix is not checked.
-
-        Returns
-        -------
-        the_diff :
-            The difference between the current and the other DecisionMatrix.
-
-        See Also
-        --------
-        equals, aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
-        :py:func:`numpy.any`, :py:func:`numpy.equal`,
-        :py:func:`numpy.allclose`.
-
-
-
-        """
-
         # all the validations only works if we have the same shape
         same_shape = (
             (np.shape(self) == np.shape(other))
@@ -675,111 +621,6 @@ class DecisionMatrix(object):
         the_diff = diff(self, other, **members)
 
         return the_diff
-
-    def aequals(
-        self,
-        other,
-        *,
-        rtol=1e-05,
-        atol=1e-08,
-        equal_nan=True,
-        check_dtype=False,
-    ):
-        """Return True if the decision matrix are equal within a tolerance.
-
-        The tolerance values are positive, typically very small numbers.  The
-        relative difference (`rtol` * abs(`b`)) and the absolute difference
-        `atol` are added together to compare against the absolute difference
-        between `a` and `b`.
-
-        NaNs are treated as equal if they are in the same place and if
-        ``equal_nan=True``.  Infs are treated as equal if they are in the same
-        place and of the same sign in both arrays.
-
-        If ``check_dtype`` is False, the dtype of the decision matrix
-        is not checked.
-
-        The proceeds as follows:
-
-        - If ``other`` is the same object return ``True``.
-        - If ``other`` is not instance of 'DecisionMatrix', has different shape
-          'criteria', 'alternatives' or 'objectives' returns ``False``.
-        - Next check the 'weights' and the matrix itself using the provided
-          tolerance.
-
-        Parameters
-        ----------
-        other : :py:class:`skcriteria.DecisionMatrix`
-            Other instance to compare.
-        rtol : float
-            The relative tolerance parameter
-            (see Notes in :py:func:`numpy.allclose`).
-        atol : float
-            The absolute tolerance parameter
-            (see Notes in :py:func:`numpy.allclose`).
-        equal_nan : bool
-            Whether to compare NaN's as equal.  If True, NaN's in dm will be
-            considered equal to NaN's in `other` in the output array.
-        check_dtype : bool
-            Whether to check the dtype of the decision matrix. If False
-            (default), the dtype of the decision matrix is not checked.
-
-        Returns
-        -------
-        aequals : :py:class:`bool:py:class:`
-            Returns True if the two dm are equal within the given
-            tolerance; False otherwise.
-
-        See Also
-        --------
-        equals, diff, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
-        :py:func:`numpy.any`, :py:func:`numpy.equal`,
-        :py:func:`numpy.allclose`.
-
-        """
-        the_diff = self.diff(
-            other,
-            rtol=rtol,
-            atol=atol,
-            equal_nan=equal_nan,
-            check_dtype=check_dtype,
-        )
-        is_aequals = not the_diff.has_differences
-        return is_aequals
-
-    def equals(self, other):
-        """Return True if the decision matrix are equal.
-
-        This method calls `DecisionMatrix.aquals` without tolerance.
-
-        Parameters
-        ----------
-        other : :py:class:`skcriteria.DecisionMatrix`
-            Other instance to compare.
-
-        Returns
-        -------
-        equals : :py:class:`bool:py:class:`
-            Returns True if the two dm are equals.
-
-        See Also
-        --------
-        aequals, diff, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
-        :py:func:`numpy.any`, :py:func:`numpy.equal`,
-        :py:func:`numpy.allclose`.
-
-        """
-        return self.aequals(
-            other, rtol=0, atol=0, equal_nan=False, check_dtype=True
-        )
-
-    def __eq__(self, other):
-        """x.__eq__(y) <==> x == y <==> x.equals(y)."""
-        return self.equals(other)
-
-    def __ne__(self, other):
-        """x.__ne__(y) <==> x != y. <==> not x.equals(y)"""
-        return not self == other
 
     # SLICES ==================================================================
 

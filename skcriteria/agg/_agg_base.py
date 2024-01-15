@@ -30,7 +30,7 @@ from ..utils import (
     doc_inherit,
     diff,
     npdict_all_equals,
-    WithDiff,
+    DiffEqualityMixin,
 )
 
 # =============================================================================
