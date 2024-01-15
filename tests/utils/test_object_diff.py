@@ -20,6 +20,7 @@
 
 import numpy as np
 
+import pytest
 
 from skcriteria.utils import object_diff
 
@@ -49,6 +50,30 @@ def test_diff():
     assert tuple(sorted(result.members_diff)) == ("b", "c")
     assert result.members_diff["b"] == (2, 3)
     assert result.members_diff["c"] == (object_diff.MISSING, 4)
+
+    expected_repr = (
+        "<Difference "
+        "has_differences=True "
+        "different_types=False "
+        "members_diff=('b', 'c')>"
+    )
+    assert repr(result) == expected_repr
+
+    # reverting the order of the arguments ====================================
+
+    result = object_diff.diff(
+        obj_b, obj_a, a=np.equal, b=np.equal, c=np.equal, d=np.equal
+    )
+
+    assert result.left_type is SomeClass
+    assert result.right_type is SomeClass
+    assert result.different_types is False
+
+    assert result.has_differences
+
+    assert tuple(sorted(result.members_diff)) == ("b", "c")
+    assert result.members_diff["b"] == (3, 2)
+    assert result.members_diff["c"] == (4, object_diff.MISSING)
 
     expected_repr = (
         "<Difference "
@@ -95,3 +120,86 @@ def test_diff_equal_object():
 
     assert result.different_types is False
     assert result.has_differences is False
+
+
+def test_DiffEqualityMixin():
+    class SomeClass(object_diff.DiffEqualityMixin):
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+        def diff(
+            self,
+            other,
+            rtol=1e-05,
+            atol=1e-08,
+            equal_nan=True,
+            check_dtype=False,
+        ):
+            return object_diff.diff(
+                self, other, a=np.equal, b=np.equal, c=np.equal
+            )
+
+    obj_a = SomeClass(a=1, b=2, d=5)
+    obj_b = SomeClass(a=1, b=3, c=4, d=6)
+
+    result = obj_a.diff(obj_b)
+
+    assert result.left_type is SomeClass
+    assert result.right_type is SomeClass
+    assert result.different_types is False
+
+    assert result.has_differences
+
+    assert tuple(sorted(result.members_diff)) == ("b", "c")
+    assert result.members_diff["b"] == (2, 3)
+    assert result.members_diff["c"] == (object_diff.MISSING, 4)
+
+    expected_repr = (
+        "<Difference "
+        "has_differences=True "
+        "different_types=False "
+        "members_diff=('b', 'c')>"
+    )
+    assert repr(result) == expected_repr
+
+    # check the aequals method
+    assert (obj_a == obj_b) is False
+    assert obj_a != obj_b
+    assert obj_a.equals(obj_b) is False
+    assert obj_a.aequals(obj_b) is False
+
+    # reverting the order of the arguments ====================================
+
+    result = obj_b.diff(obj_a)
+
+    assert result.left_type is SomeClass
+    assert result.right_type is SomeClass
+    assert result.different_types is False
+
+    assert result.has_differences
+
+    assert tuple(sorted(result.members_diff)) == ("b", "c")
+    assert result.members_diff["b"] == (3, 2)
+    assert result.members_diff["c"] == (4, object_diff.MISSING)
+
+    expected_repr = (
+        "<Difference "
+        "has_differences=True "
+        "different_types=False "
+        "members_diff=('b', 'c')>"
+    )
+    assert repr(result) == expected_repr
+
+    # check the aequals method
+    assert (obj_a == obj_b) is False
+    assert obj_a != obj_b
+    assert obj_a.equals(obj_b) is False
+    assert obj_a.aequals(obj_b) is False
+
+
+def test_DiffEqualityMixin_invalid_diff_parameters():
+    with pytest.raises(TypeError):
+
+        class SomeClass(object_diff.DiffEqualityMixin):
+            def diff(self, other):
+                pass

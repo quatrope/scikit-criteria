@@ -26,11 +26,6 @@ The functionalities are extensions of those present in "pandas.testing" and
 from .utils import hidden
 
 with hidden():
-    import numpy as np
-    import numpy.testing as npt
-
-    import pandas.testing as pdt
-
     from .agg import ResultABC
     from .core import DecisionMatrix
     from .cmp import RanksComparator

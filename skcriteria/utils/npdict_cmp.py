@@ -40,7 +40,7 @@ def npdict_all_equals(left, right, rtol=1e-05, atol=1e-08, equal_nan=False):
         key = keys.pop()
         left_value, right_value = left[key], right[key]
 
-        if type(left_value) != type(right_value):
+        if type(left_value) is not type(right_value):
             is_equal = False
 
         elif isinstance(left_value, np.ndarray):

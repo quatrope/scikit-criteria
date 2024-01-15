@@ -171,13 +171,14 @@ class DiffEqualityMixin(abc.ABC):
 
     def __init_subclass__(cls):
         """Validate the creation of a subclass."""
-        o_params = set(inspect.signature(DiffEqualityMixin.diff).parameters)
-        params = set(inspect.signature(cls.diff).parameters)
+        o_params = list(inspect.signature(DiffEqualityMixin.diff).parameters)
+        params = list(inspect.signature(cls.diff).parameters)
         if o_params != params:
             o_params.remove("self")
             diff_method_name = cls.diff.__qualname__
             raise TypeError(
-                f"{diff_method_name!r} must redefine {o_params!r} parameters"
+                f"{diff_method_name!r} must redefine exactly "
+                f"the parameters {o_params!r}"
             )
 
     @abc.abstractmethod

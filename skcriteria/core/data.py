@@ -35,7 +35,13 @@ from .dominance import DecisionMatrixDominanceAccessor
 from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, df_temporal_header, diff, doc_inherit, DiffEqualityMixin
+from ..utils import (
+    DiffEqualityMixin,
+    deprecated,
+    df_temporal_header,
+    diff,
+    doc_inherit,
+)
 
 
 # =============================================================================
