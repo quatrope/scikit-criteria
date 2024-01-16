@@ -1,7 +1,7 @@
-``skcriteria.utils.npdict_cmp`` module
+``skcriteria.utils.dict_cmp`` module
 ========================================
 
-.. automodule:: skcriteria.utils.npdict_cmp
+.. automodule:: skcriteria.utils.dict_cmp
    :members:
    :undoc-members:
    :show-inheritance:

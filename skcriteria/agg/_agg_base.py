@@ -30,7 +30,7 @@ from ..utils import (
     deprecated,
     diff,
     doc_inherit,
-    npdict_all_equals,
+    dict_allclose,
 )
 
 # =============================================================================
@@ -204,7 +204,7 @@ class ResultABC(DiffEqualityMixin, metaclass=abc.ABCMeta):
             "method": np.array_equal,
             "alternatives": np.array_equal,
             "values": array_allclose,
-            "extra_": npdict_all_equals,
+            "extra_": dict_allclose,
         }
 
         the_diff = diff(self, other, **members)
