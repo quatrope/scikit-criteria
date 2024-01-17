@@ -10,7 +10,8 @@ on:
 
 env:
   default-python: 3.9
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   testing:
-    uses: quatrope/scikit-criteria/.github/workflows/tests.yml
+    uses: quatrope/scikit-criteria/.github/workflows/tests.yml${{ BRANCH_NAME }}
