@@ -9,9 +9,8 @@ on:
   - pull_request
 
 env:
-  default-python: 3.9
-  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
+  default-python: 3.10
 
 jobs:
   testing:
-    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@${{ BRANCH_NAME }}
+    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@69689d8c79ed1a9faa9056cb4e90e29a72a6c5c4
