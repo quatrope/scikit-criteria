@@ -9,7 +9,7 @@ on:
 
 jobs:
   testing:
-    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@627598d02678656aa5ef82a63b1f468e62456e56
+    uses: quatrope/scikit-criteria/.github/workflows/tests.yml@4d46586
 
   deploy:
     needs: testing
