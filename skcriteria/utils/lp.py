@@ -36,7 +36,7 @@ from .doctools import doc_inherit
 
 def is_solver_available(solver):
     """Return True if the solver is available."""
-    return solver is None or solver.upper() in ["PULP"] + pulp.list_solvers(
+    return solver is None or solver.upper() in ["PULP"] + pulp.listSolvers(
         onlyAvailable=True
     )
 

@@ -57,13 +57,13 @@ classifiers = [
 ]
 urls = { Homepage = "https://scikit-criteria.quatrope.org/", Repository = "https://github.com/quatrope/scikit-criteria" }
 dependencies = [
-    "numpy",
+    "numpy<2.0",
     "pandas",
     "scipy",
     "jinja2",
     "custom_inherit",
     "seaborn",
-    "pulp",
+    "pulp>=2.8,<2.9",
     "Deprecated",
     "scikit-learn>=1.3,<1.4",
     "matplotlib!=3.6.1",
