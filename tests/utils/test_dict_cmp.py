@@ -30,8 +30,8 @@ from skcriteria.utils import dict_cmp
 
 
 def test_dict_allclose():
-    left = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": 1}
-    right = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": 1}
+    left = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": {}}
+    right = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": {}}
     assert dict_cmp.dict_allclose(left, right)
 
 

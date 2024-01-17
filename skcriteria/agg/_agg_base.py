@@ -189,7 +189,12 @@ class ResultABC(DiffEqualityMixin, metaclass=abc.ABCMeta):
 
     @doc_inherit(DiffEqualityMixin.diff)
     def diff(
-        self, other, rtol=1e-05, atol=1e-08, equal_nan=False, check_dtypes=False
+        self,
+        other,
+        rtol=1e-05,
+        atol=1e-08,
+        equal_nan=False,
+        check_dtypes=False,
     ):
         def array_allclose(left_value, right_value):
             return np.allclose(

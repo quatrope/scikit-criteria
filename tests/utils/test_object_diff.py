@@ -30,6 +30,11 @@ from skcriteria.utils import object_diff
 # =============================================================================
 
 
+def test_MISSING():
+    assert object_diff.MISSING is object_diff._Missing()
+    assert repr(object_diff.MISSING) == "<MISSING>"
+
+
 def test_diff():
     class SomeClass:
         def __init__(self, **kws):
@@ -195,6 +200,33 @@ def test_DiffEqualityMixin():
     assert obj_a != obj_b
     assert obj_a.equals(obj_b) is False
     assert obj_a.aequals(obj_b) is False
+
+
+def test_DiffEqualityMixin_diff_not_implemented():
+    class SomeClass(object_diff.DiffEqualityMixin):
+        def __init__(self, **kwargs):
+            self.__dict__.update(kwargs)
+
+        def diff(
+            self,
+            other,
+            rtol=1e-05,
+            atol=1e-08,
+            equal_nan=True,
+            check_dtypes=False,
+        ):
+            return super().diff(
+                other,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+                check_dtypes=check_dtypes,
+            )
+
+    obj_a = SomeClass(a=1, b=2, d=5)
+
+    with pytest.raises(NotImplementedError):
+        obj_a.diff(1)
 
 
 def test_DiffEqualityMixin_invalid_diff_parameters():

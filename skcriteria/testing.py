@@ -128,7 +128,6 @@ def assert_result_equals(left, right, **diff_kws):
     AssertionError if the two results are not equal.
 
     """
-
     # Check if left is a ResultABC
     _assert(
         isinstance(left, ResultABC),
@@ -199,7 +198,8 @@ def assert_rcmp_equals(left, right, **diff_kws):
     # check if right is a RanksComparator
     _assert(
         diff.different_types is False,
-        f"'right' is not a RanksComparator instance. Found {diff.right_type!r}",
+        "'right' is not a RanksComparator instance. "
+        f"Found {diff.right_type!r}",
     )
 
     # check if left and right have the same length

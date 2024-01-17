@@ -32,7 +32,6 @@ import seaborn as sns
 from sklearn import metrics as _skl_metrics
 
 from ..agg import RankResult
-from ..core import SKCMethodABC
 from ..utils import (
     AccessorABC,
     Bunch,
