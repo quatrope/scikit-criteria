@@ -885,7 +885,6 @@ def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
     assert not dmt.equals(expected) and dm is not expected
 
 
-
 def test_CenitDistanceMatrixScaler_simple_matrix():
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
