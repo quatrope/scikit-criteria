@@ -93,6 +93,63 @@ def test_RanksComparator_to_dataframe(untied):
     pd.testing.assert_frame_equal(df, expected)
 
 
+def test_RanksComparator_diff():
+    rcmp = ranks_cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+    )
+    rcmp_equal = ranks_cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+    )
+    diff = rcmp.diff(rcmp_equal)
+    assert diff.has_differences is False
+
+
+def test_RanksComparator_diff_different_ranks_names():
+    rcmp = ranks_cmp.RanksComparator(
+        [
+            ("r0", agg.RankResult("test", ["a", "b"], [1, 1], {})),
+            ("r1", agg.RankResult("test", ["a", "b"], [1, 1], {})),
+        ]
+    )
+    rcmp_different_rank = ranks_cmp.RanksComparator(
+        [
+            ("r0", agg.RankResult("test", ["a", "b"], [1, 1], {})),
+            ("r2", agg.RankResult("test", ["a", "b"], [1, 1], {})),
+        ]
+    )
+    diff = rcmp.diff(rcmp_different_rank)
+    assert diff.has_differences
+
+
+def test_RanksComparator_diff_different_ranks():
+    rcmp = ranks_cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+    )
+    rcmp_different_rank = ranks_cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 2], {}),
+    )
+    diff = rcmp.diff(rcmp_different_rank)
+    assert diff.has_differences
+
+
+def test_RanksComparator_diff_different_length():
+    rcmp = ranks_cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+    )
+    rcmp_three_ranks = ranks_cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 2], {}),
+    )
+    diff = rcmp.diff(rcmp_three_ranks)
+    assert diff.has_differences
+
+
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparator_cov(untied):
     rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})

@@ -50,4 +50,3 @@ def test_dict_allclose_different_types():
     left = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": 1}
     right = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": 1.0}
     assert dict_cmp.dict_allclose(left, right) is False
-

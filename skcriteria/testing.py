@@ -75,21 +75,24 @@ def assert_dmatrix_equals(left, right, **diff_kws):
         If the two DecisionMatrix objects are not equal.
 
     """
+    # Check if left is a DecisionMatrix
     _assert(
         isinstance(left, DecisionMatrix),
         f"'left' is not a DecisionMatrix instance. Found {type(left)!r}",
     )
 
+    # Check if left and right are equal
     diff = left.diff(right, **diff_kws)
-
-    if not diff.has_differences:
+    if not diff.has_differences:  # if there are no differences end the test
         return
 
+    # Check if right is a DecisionMatrix
     _assert(
         diff.right_type is DecisionMatrix,
         f"'right' is not a DecisionMatrix instance. Found {type(right)!r}",
     )
 
+    # Check wich member are different
     _assert("shape" not in diff.members_diff, "'shape' are not equal")
     _assert("criteria" not in diff.members_diff, "'criteria' are not equal")
     _assert(
@@ -125,20 +128,25 @@ def assert_result_equals(left, right, **diff_kws):
     AssertionError if the two results are not equal.
 
     """
+
+    # Check if left is a ResultABC
     _assert(
         isinstance(left, ResultABC),
         f"'left' is not a ResultABC instance. Found {type(left)!r}",
     )
 
+    # check if left and right are equal
     diff = left.diff(right, **diff_kws)
-
-    if not diff.has_differences:
+    if not diff.has_differences:  # if there are no differences end the test
         return
 
+    # check if right is a ResultABC
     _assert(
         diff.different_types is False,
         f"'right' is not a ResultABC instance. Found {diff.right_type!r}",
     )
+
+    # Check wich member are different
     _assert(
         "alternatives" not in diff.members_diff, "'alternatives' are not equal"
     )
@@ -147,54 +155,65 @@ def assert_result_equals(left, right, **diff_kws):
         f"'method' mismatch: Expected {left.method!r}, "
         f"but got {right.method!r}.",
     )
-
     _assert("values" not in diff.members_diff, "'values' are not equal")
     _assert("extra_" not in diff.members_diff, "'extra_' are not equal")
 
 
-def assert_rcmp_equals(left, right):
-    """Asserts that two instances of the RanksComparator class are equal.
+def assert_rcmp_equals(left, right, **diff_kws):
+    """Asserts that the left and right RankComparator objects are equal \
+    according to the RanksComparator.
 
     Parameters
     ----------
     left : RanksComparator
-        The first RanksComparator instance for comparison.
-    right : RanksComparator
-        The second RanksComparator instance for comparison.
+        The left object to compare.
+    right : Any
+        The right object to compare.
+    **diff_kws : keyword arguments
+        Additional keyword arguments to pass to the `diff` method.
 
     Raises
     ------
     AssertionError
-        If any of the specified attributes of the two RanksComparator instances
-        are not equal.
+        If the left object is not an instance of RanksComparator.
+    AssertionError
+        If the right object is not an instance of RanksComparator.
+    AssertionError
+        If the left and right objects have different lengths.
+    AssertionError
+        If the ranks at any index of the left and right objects are not
+        equal.
 
-    Notes
-    -----
-    This function relies on the assert_result_equals function for comparing
-    individual Result instances.
-
-    Example
-    -------
-    >>> assert_rcmp_equals(rcmp1, rcmp2)
     """
-    assert isinstance(
-        left, RanksComparator
-    ), f"'left' is not a RanksComparator instance. Found {type(left)!r}"
-    assert isinstance(
-        right, RanksComparator
-    ), f"'right' is not a RanksComparator instance. Found {type(right)!r}"
+    # check if left is a RanksComparator
+    _assert(
+        isinstance(left, RanksComparator),
+        f"'left' is not a RanksComparator instance. Found {type(left)!r}",
+    )
 
-    # if the objects are the same, no need to run the test
-    if left is right:
+    # check if left and right has some difference
+    diff = left.diff(right, **diff_kws)
+    if not diff.has_differences:  # if there are no differences end the test
         return
 
-    llen, rlen = len(left), len(right)
-    assert len(left) == len(
-        right
-    ), f"RanksComparator instances have different lengths: {llen} != {rlen}"
+    # check if right is a RanksComparator
+    _assert(
+        diff.different_types is False,
+        f"'right' is not a RanksComparator instance. Found {diff.right_type!r}",
+    )
 
-    for idx, (lrank, rrank) in enumerate(zip(left, right)):
+    # check if left and right have the same length
+    llen, rlen = len(left), len(right)
+    _assert(
+        llen == rlen,
+        f"RanksComparator instances have different lengths: {llen} != {rlen}",
+    )
+
+    # check if left and right have the same ranks
+    enum_zip_ranks = enumerate(zip(left.ranks, right.ranks))
+    for idx, ((lrank_name, lrank), (rrank_name, rrank)) in enum_zip_ranks:
         try:
+            _assert(lrank_name == rrank_name, "Name missmatch")
             assert_result_equals(lrank, rrank)
         except AssertionError as err:
             raise AssertionError(f"Mismatch at index {idx}") from err

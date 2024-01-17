@@ -33,7 +33,14 @@ from sklearn import metrics as _skl_metrics
 
 from ..agg import RankResult
 from ..core import SKCMethodABC
-from ..utils import AccessorABC, Bunch, unique_names
+from ..utils import (
+    AccessorABC,
+    Bunch,
+    DiffEqualityMixin,
+    diff,
+    doc_inherit,
+    unique_names,
+)
 
 
 # =============================================================================
@@ -51,7 +58,7 @@ RANKS_LABELS = {
 # =============================================================================
 
 
-class RanksComparator(SKCMethodABC, Sequence):
+class RanksComparator(Sequence, DiffEqualityMixin):
     """Rankings comparator object.
 
     This class is intended to contain a collection of rankings on which you
@@ -126,11 +133,38 @@ class RanksComparator(SKCMethodABC, Sequence):
         """
         return Bunch("ranks", dict(self.ranks))
 
+    # DIFF! ===================================================================
+
+    @doc_inherit(DiffEqualityMixin.diff)
+    def diff(
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtypes=False
+    ):
+        def rank_allclose(ranks_a, ranks_b):
+            if len(ranks_a) != len(ranks_b):
+                return False
+            for (ra_name, ra), (rb_name, rb) in zip(ranks_a, ranks_b):
+                if ra_name != rb_name:
+                    return False
+                radiff = ra.diff(
+                    rb,
+                    rtol=rtol,
+                    atol=atol,
+                    equal_nan=equal_nan,
+                    check_dtypes=check_dtypes,
+                )
+                if radiff.has_differences:
+                    return False
+            return True
+
+        members = {"ranks": rank_allclose}
+        the_diff = diff(self, other, **members)
+        return the_diff
+
     # MAGIC! ==================================================================
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        name = self.get_method_name()
+        name = type(self).__name__
         ranks_names = [rn for rn, _ in self._ranks]
         return f"<{name} [ranks={ranks_names!r}]>"
 

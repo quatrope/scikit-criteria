@@ -133,7 +133,7 @@ def test_DiffEqualityMixin():
             rtol=1e-05,
             atol=1e-08,
             equal_nan=True,
-            check_dtype=False,
+            check_dtypes=False,
         ):
             return object_diff.diff(
                 self, other, a=np.equal, b=np.equal, c=np.equal

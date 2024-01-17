@@ -29,8 +29,7 @@ class _Missing(object):
 
     def __new__(cls, *args, **kwargs):
         """Creates a new instance of the class if it does not already exist, \
-        or returns the existing instance.
-        """
+        or returns the existing instance."""
         if not hasattr(cls, "__instance"):
             instance = super().__new__(cls, *args, **kwargs)
             setattr(cls, "__instance", instance)
@@ -56,9 +55,7 @@ class _Difference:
     @property
     def different_types(self):
         """Returns True if the left_type and right_type are different, and \
-        False otherwise.
-
-        """
+        False otherwise."""
         return self.left_type is not self.right_type
 
     @property
@@ -83,7 +80,7 @@ class _Difference:
 
 
 def diff(left, right, **members):
-    """Calculates the difference between two objects, `left` and `right`,
+    """Calculates the difference between two objects, `left` and `right`, \
     and returns a `Difference` object.
 
     Parameters
@@ -183,14 +180,14 @@ class DiffEqualityMixin(abc.ABC):
 
     @abc.abstractmethod
     def diff(
-        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtypes=False
     ):
         """Return the difference between two objects within a tolerance.
 
         This method should be implemented by subclasses to define how
         differences between objects are calculated.
 
-        The tolerance parameters rtol and atol, equal_nan, and check_dtype are
+        The tolerance parameters rtol and atol, equal_nan, and check_dtypes are
         provided to be used by the numpy and pandas equality functions.
         These parameters allow you to customize the behavior of the equality
         comparison, such as setting the relative and absolute tolerance for
@@ -199,7 +196,6 @@ class DiffEqualityMixin(abc.ABC):
 
         Notes
         -----
-
         The tolerance values are positive, typically very small numbers.  The
         relative difference (`rtol` * abs(`b`)) and the absolute difference
         `atol` are added together to compare against the absolute difference
@@ -219,7 +215,7 @@ class DiffEqualityMixin(abc.ABC):
             The absolute tolerance parameter. Default is 1e-08.
         equal_nan : bool, optional
             Whether to consider NaN values as equal. Default is True.
-        check_dtype : bool, optional
+        check_dtypes : bool, optional
             Whether to check the data type of the objects. Default is False.
 
         Returns
@@ -243,7 +239,7 @@ class DiffEqualityMixin(abc.ABC):
         rtol=1e-05,
         atol=1e-08,
         equal_nan=True,
-        check_dtype=False,
+        check_dtypes=False,
     ):
         """Check if the two objects are equal within a tolerance.
 
@@ -260,7 +256,7 @@ class DiffEqualityMixin(abc.ABC):
             The absolute tolerance parameter. Default is 1e-08.
         equal_nan : bool, optional
             Whether to consider NaN values as equal. Default is True.
-        check_dtype : bool, optional
+        check_dtypes : bool, optional
             Whether to check the data type of the objects. Default is False.
 
         Returns
@@ -275,7 +271,7 @@ class DiffEqualityMixin(abc.ABC):
             rtol=rtol,
             atol=atol,
             equal_nan=equal_nan,
-            check_dtype=check_dtype,
+            check_dtypes=check_dtypes,
         )
         is_aequals = not the_diff.has_differences
         return is_aequals
@@ -301,13 +297,13 @@ class DiffEqualityMixin(abc.ABC):
 
         """
         return self.aequals(
-            other, rtol=0, atol=0, equal_nan=False, check_dtype=True
+            other, rtol=0, atol=0, equal_nan=False, check_dtypes=True
         )
 
     def __eq__(self, other):
-        """x.__eq__(y) <==> x == y <==> x.equals(y)."""
+        """x.__eq__(y) <==> (x == y) <==> x.equals(y)."""
         return self.equals(other)
 
     def __ne__(self, other):
-        """x.__ne__(y) <==> x != y. <==> not x.equals(y)"""
+        """x.__ne__(y) <==> (x != y) <==> not x.equals(y)."""
         return not self == other

@@ -587,7 +587,7 @@ class DecisionMatrix(DiffEqualityMixin):
 
     @doc_inherit(DiffEqualityMixin.diff)
     def diff(
-        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtype=False
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtypes=False
     ):
         # all the validations only works if we have the same shape
         same_shape = (
@@ -621,7 +621,7 @@ class DecisionMatrix(DiffEqualityMixin):
             "matrix": same_shape_array_allclose,
         }
 
-        if check_dtype:
+        if check_dtypes:
             members["dtypes"] = same_shape_array_equal
 
         the_diff = diff(self, other, **members)

@@ -20,8 +20,8 @@ from .accabc import AccessorABC
 from .bunch import Bunch
 from .cmanagers import df_temporal_header, hidden
 from .deprecate import deprecated, will_change
-from .doctools import doc_inherit
 from .dict_cmp import dict_allclose
+from .doctools import doc_inherit
 from .object_diff import DiffEqualityMixin, diff
 from .unames import unique_names
 
@@ -43,5 +43,5 @@ __all__ = [
     "will_change",
     "diff",
     "DiffEqualityMixin",
-    "npdict_all_equals",
+    "dict_allclose",
 ]

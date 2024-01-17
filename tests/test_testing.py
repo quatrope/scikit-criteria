@@ -11,6 +11,8 @@
 # IMPORTS
 # =============================================================================
 
+import numpy as np
+
 import pytest
 
 from skcriteria import agg, cmp, testing
@@ -110,6 +112,14 @@ def test_assert_dmatrix_equals_not_same_weights(decision_matrix):
 
     with pytest.raises(AssertionError):
         testing.assert_dmatrix_equals(left, right)
+
+
+def test_assert_dmatrix_equals_not_same_dtypes(decision_matrix):
+    left = decision_matrix(seed=42)
+    right = left.copy(dtypes=[np.float32] * len(left.criteria))
+
+    with pytest.raises(AssertionError):
+        testing.assert_dmatrix_equals(left, right, check_dtypes=True)
 
 
 # =============================================================================

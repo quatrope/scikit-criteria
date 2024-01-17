@@ -15,13 +15,20 @@
 # IMPORTS
 # =============================================================================
 
+from collections.abc import Mapping
+
 import numpy as np
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+_INEXACT_TYPES = (int, float, complex, np.inexact)
 
 # =============================================================================
 # CLASSES
 # =============================================================================
 
-import numpy as np
 
 def dict_allclose(left, right, rtol=1e-05, atol=1e-08, equal_nan=False):
     """Compares two dictionaries. If values of type "numpy.array" are \
@@ -75,7 +82,18 @@ def dict_allclose(left, right, rtol=1e-05, atol=1e-08, equal_nan=False):
         if type(left_value) is not type(right_value):
             is_equal = False
 
-        elif isinstance(left_value, np.ndarray):
+        elif isinstance(left_value, Mapping):
+            is_equal = dict_allclose(
+                left_value,
+                right_value,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+            )
+
+        elif isinstance(left_value, np.ndarray) and issubclass(
+            left_value.dtype.type, _INEXACT_TYPES
+        ):
             is_equal = np.allclose(
                 left_value,
                 right_value,
@@ -85,6 +103,6 @@ def dict_allclose(left, right, rtol=1e-05, atol=1e-08, equal_nan=False):
             )
 
         else:
-            is_equal = left_value == right_value
+            is_equal = np.array_equal(left_value, right_value)
 
     return is_equal
