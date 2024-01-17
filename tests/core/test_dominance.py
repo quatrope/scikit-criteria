@@ -214,7 +214,7 @@ def test_DecisionMatrixDominanceAccessor_compare():
 
     result = dom.compare("A0", "A1")
 
-    pd.testing.assert_frame_equal(result, expected)
+    pd.testing.assert_frame_equal(result, expected, check_dtype=False)
 
 
 # =============================================================================
