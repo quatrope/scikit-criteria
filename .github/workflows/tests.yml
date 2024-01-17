@@ -8,7 +8,7 @@ on:
   workflow_call:
 
 env:
-  default-python: 3.9
+  default-python: 3.10
 
 jobs:
   build:
@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        tox_env: [py38, py39, py310, py311]
+        tox_env: [py38, py39, py310, py311, py312]
         include:
           - tox_env: style
           - tox_env: docstyle
