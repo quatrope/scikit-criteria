@@ -48,6 +48,8 @@
 - **New** All methods (agg and transformers) has a new `get_method_name`
   instance method.
 
+- **Drop** Drop support for Python 3.8
+
 ---
 
 ## Version 0.8.5

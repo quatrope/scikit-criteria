@@ -112,16 +112,12 @@ def assert_result_equals(left, right, **diff_kws):
 
     Parameters
     ----------
-    left : ResultABC
+    left : skcriteria.agg.ResultABC
         The left result to compare.
-    right : ResultABC
+    right : skcriteria.agg.ResultABC
         The right result to compare.
     **diff_kws : dict
         Optional keyword arguments to pass to the result `diff` method.
-
-    Returns
-    -------
-    None
 
     Raises
     ------
