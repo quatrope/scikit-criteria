@@ -158,7 +158,7 @@ class ResultABC(DiffEqualityMixin, metaclass=abc.ABCMeta):
         """
         return self._extra
 
-    e_ = extra_
+    e_ = extra_  # shortcut to extra_
 
     # UTILS ===================================================================
 
@@ -276,10 +276,23 @@ class RankResult(ResultABC):
 
     @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
-        cleaned_values = np.unique(values)
 
+        # the sorted unique values of the rank!
+        # [1, 1, 1, 2, 3] >>> [1, 2, 3] <<< OK! this is consecutive
+        # [1, 1, 4, 4, 3] >>> [1, 3, 4]  <<< BAD this is not consecutive
+        cleaned_values = np.sort(np.unique(values))
+
+        # the size of the sorted unique values
+        # len([1, 2, 3]) => 3
+        # len([1, 3, 4]) => 3
         length = len(cleaned_values)
+
+        # this create the expected rank of this length (must start in 1)
+        # [1, 2, 3] -> [1, 2, 3]
+        # [1, 3, 4] -> [1, 2, 3]
         expected = np.arange(length) + 1
+
+        # if the sorted unique values are not the expected, this is not a rank
         if not np.array_equal(np.sort(cleaned_values), expected):
             raise ValueError(f"The data {values} doesn't look like a ranking")
 
