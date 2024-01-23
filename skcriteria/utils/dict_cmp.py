@@ -23,7 +23,7 @@ import numpy as np
 # CONSTANTS
 # =============================================================================
 
-_INEXACT_TYPES = (int, float, complex, np.inexact)
+_INEXACT_TYPES = (float, complex, np.inexact)
 
 # =============================================================================
 # CLASSES
