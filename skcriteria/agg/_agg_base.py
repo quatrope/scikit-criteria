@@ -276,7 +276,6 @@ class RankResult(ResultABC):
 
     @doc_inherit(ResultABC._validate_result)
     def _validate_result(self, values):
-
         # the sorted unique values of the rank!
         # [1, 1, 1, 2, 3] >>> [1, 2, 3] <<< OK! this is consecutive
         # [1, 1, 4, 4, 3] >>> [1, 3, 4]  <<< BAD this is not consecutive

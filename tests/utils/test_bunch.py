@@ -86,3 +86,8 @@ def test_Bunch_copy():
     assert md is not md_c
     assert md._name == md_c._name
     assert md._data == md_c._data and md._data is md_c._data
+
+
+def test_Bunch_data_is_not_a_mapping():
+    with pytest.raises(TypeError, match="Data must be some kind of mapping"):
+        bunch.Bunch("foo", None)

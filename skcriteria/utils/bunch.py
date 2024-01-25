@@ -54,7 +54,7 @@ class Bunch(Mapping):
 
     def __init__(self, name, data):
         if not isinstance(data, Mapping):
-            raise TypeError(f"Data must be some kind of mapping")
+            raise TypeError("Data must be some kind of mapping")
         self._name = str(name)
         self._data = data
 

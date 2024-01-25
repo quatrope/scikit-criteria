@@ -67,4 +67,5 @@ to different scientific areas.
     Python quickly, we recommend `Dive Into Python <http://www.diveintopython3.net/>`_. If that's not quite your
     style, there are many other `books about Python <https://wiki.python.org/moin/PythonBooks>`_.
 
-    At last if you already know Python but check the `Scipy Lecture Notes <http://www.scipy-lectures.org/>`_
+    At last, if you're already familiar with Python and eager to explore the scientific stack further, be sure to check out 
+    the `Scipy Lecture Notes <http://www.scipy-lectures.org/>`_
