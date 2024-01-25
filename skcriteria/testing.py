@@ -156,7 +156,7 @@ def assert_result_equals(left, right, **diff_kws):
 
 def assert_rcmp_equals(left, right, **diff_kws):
     """Asserts that the left and right RankComparator objects are equal \
-    according to the RanksComparator.
+    by comparing their attributes with some tolerance.
 
     Parameters
     ----------

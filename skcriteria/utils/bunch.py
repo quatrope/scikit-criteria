@@ -53,6 +53,8 @@ class Bunch(Mapping):
     """
 
     def __init__(self, name, data):
+        if not isinstance(data, Mapping):
+            raise TypeError(f"Data must be some kind of mapping")
         self._name = str(name)
         self._data = data
 
@@ -78,7 +80,7 @@ class Bunch(Mapping):
         cls = type(self)
 
         # make the copy but without the data
-        clone = cls(name=str(self._name), data=None)
+        clone = cls(name=str(self._name), data={})
 
         # store in the memo that clone is copy of self
         # https://docs.python.org/3/library/copy.html
