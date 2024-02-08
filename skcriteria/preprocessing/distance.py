@@ -50,4 +50,4 @@ def cenit_distance(matrix, objectives):
 )
 @doc_inherit(scalers.CenitDistanceMatrixScaler, warn_class=False)
 class CenitDistance(scalers.CenitDistanceMatrixScaler):
-    ...
+    pass

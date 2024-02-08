@@ -158,12 +158,16 @@ def test_RanksComparator_cov(untied):
 
     expected = pd.DataFrame.from_dict(
         {
-            "test_1": {"test_1": 0.5, "test_2": 0.5}
-            if untied
-            else {"test_1": 0.0, "test_2": 0.0},
-            "test_2": {"test_1": 0.5, "test_2": 0.5}
-            if untied
-            else {"test_1": 0.0, "test_2": 0.0},
+            "test_1": (
+                {"test_1": 0.5, "test_2": 0.5}
+                if untied
+                else {"test_1": 0.0, "test_2": 0.0}
+            ),
+            "test_2": (
+                {"test_1": 0.5, "test_2": 0.5}
+                if untied
+                else {"test_1": 0.0, "test_2": 0.0}
+            ),
         },
     )
 
@@ -181,12 +185,16 @@ def test_RanksComparator_corr(untied):
 
     expected = pd.DataFrame.from_dict(
         {
-            "test_1": {"test_1": 1.0, "test_2": 1.0}
-            if untied
-            else {"test_1": np.nan, "test_2": np.nan},
-            "test_2": {"test_1": 1.0, "test_2": 1.0}
-            if untied
-            else {"test_1": np.nan, "test_2": np.nan},
+            "test_1": (
+                {"test_1": 1.0, "test_2": 1.0}
+                if untied
+                else {"test_1": np.nan, "test_2": np.nan}
+            ),
+            "test_2": (
+                {"test_1": 1.0, "test_2": 1.0}
+                if untied
+                else {"test_1": np.nan, "test_2": np.nan}
+            ),
         },
     )
 

@@ -424,4 +424,4 @@ class CRITIC(SKCWeighterABC):
 )
 @doc_inherit(CRITIC, warn_class=False)
 class Critic(CRITIC):
-    ...
+    pass

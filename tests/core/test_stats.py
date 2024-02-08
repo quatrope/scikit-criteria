@@ -67,11 +67,12 @@ def test_DecisionMatrixStatsAccessor_df_whitelist_by_kind(
 
     result_call = stats(kind=kind)
 
-    cmp = (
-        lambda r, e: r.equals(e)
-        if isinstance(result_call, (pd.DataFrame, pd.Series))
-        else np.equal
-    )
+    def cmp(r, e):
+        return (
+            r.equals(e)
+            if isinstance(result_call, (pd.DataFrame, pd.Series))
+            else np.equal
+        )
 
     result_method = getattr(stats, kind)()
 

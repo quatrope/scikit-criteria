@@ -35,7 +35,7 @@ from skcriteria.utils import rank
 
 def test_RankInvariantChecker_decision_maker_no_evaluate_method():
     class NoEvaluateMethod:
-        ...
+        pass
 
     dmaker = NoEvaluateMethod()
     with pytest.raises(TypeError):
@@ -53,8 +53,7 @@ def test_RankInvariantChecker_decision_maker_evaluate_no_callable():
 
 def test_RankInvariantChecker_invalid_last_diff_strategy():
     class FakeDM:
-        def evaluate(self):
-            ...
+        def evaluate(self): ...
 
     dmaker = FakeDM()
     with pytest.raises(TypeError):

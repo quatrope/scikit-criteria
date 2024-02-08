@@ -76,11 +76,9 @@ def test_SKCMatrixAndWeightTransformerABC_not_redefined_abc_methods():
 
 def test_SKCMatrixAndWeightTransformerABC_bad_normalize_for():
     class Foo(SKCMatrixAndWeightTransformerABC):
-        def _transform_matrix(self, matrix):
-            ...
+        def _transform_matrix(self, matrix): ...
 
-        def _transform_weights(self, weights):
-            ...
+        def _transform_weights(self, weights): ...
 
     with pytest.raises(ValueError):
         Foo("mtx")
@@ -122,11 +120,9 @@ def test_SKCMatrixAndWeightTransformerABC_transform_weight_not_implemented(
 
 def test_SKCMatrixAndWeightTransformerABC_target():
     class Foo(SKCMatrixAndWeightTransformerABC):
-        def _transform_matrix(self, matrix):
-            ...
+        def _transform_matrix(self, matrix): ...
 
-        def _transform_weights(self, weights):
-            ...
+        def _transform_weights(self, weights): ...
 
     foo = Foo("matrix")
     assert foo.target == Foo._TARGET_MATRIX
