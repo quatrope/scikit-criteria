@@ -35,9 +35,13 @@
     define decision-making models with less flexibility than traditional
     inheritance-based models.
 
+    For more information check the tutorial [Extending Aggregation and Transformation Functions](https://scikit-criteria.quatrope.org/en/latest/tutorial/extend.html)
+
 - **New Module:** Introduced the `skcriteria.testing` module, exposing utility functions for for comparing objects created in Scikit-Criteria in a testing environment. These functions facilitate the comparison of instances of the `DecisionMatrix`, `ResultABC`, and `RanksComparator` classes.
 
   The assertion functions utilize pandas and numpy testing utilities for comparing matrices, series, and other attributes.
+
+  Check the [Reference](https://scikit-criteria.quatrope.org/en/latest/api/testing.html) for more information.
 
 - **New** The API of the agg, pipeline, preprocessing, and extend modules has
   been cleaned up to prevent autocompletion with imports from other modules.
