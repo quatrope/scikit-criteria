@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -15,15 +15,18 @@
 # IMPORTS
 # =============================================================================
 
-import warnings
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import warnings
 
-from scipy.spatial import distance
+    import numpy as np
 
-from ._agg_base import RankResult, SKCDecisionMakerABC
-from ..core import Objective
-from ..utils import doc_inherit, rank
+    from scipy.spatial import distance
+
+    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ..core import Objective
+    from ..utils import doc_inherit, rank
 
 
 # =============================================================================

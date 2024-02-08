@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -35,7 +35,13 @@ from .dominance import DecisionMatrixDominanceAccessor
 from .objectives import Objective
 from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
-from ..utils import deprecated, df_temporal_header, doc_inherit
+from ..utils import (
+    DiffEqualityMixin,
+    deprecated,
+    df_temporal_header,
+    diff,
+    doc_inherit,
+)
 
 
 # =============================================================================
@@ -62,7 +68,7 @@ class _ACArray(np.ndarray, abc.Mapping):
     def __getitem__(self, k):
         try:
             if k in self:
-                return self._skc_slicer(k)
+                return self._skc_slicer(k).copy()
             return super().__getitem__(k)
         except IndexError:
             raise IndexError(k)
@@ -128,7 +134,7 @@ class _Loc:
 # =============================================================================
 
 
-class DecisionMatrix:
+class DecisionMatrix(DiffEqualityMixin):
     """Representation of all data needed in the MCDA analysis.
 
     This object gathers everything necessary to represent a data set used
@@ -228,6 +234,7 @@ class DecisionMatrix:
         cls,
         matrix,
         objectives,
+        *,
         weights=None,
         alternatives=None,
         criteria=None,
@@ -578,98 +585,48 @@ class DecisionMatrix:
         """
         return len(self._data_df)
 
-    def equals(self, other):
-        """Return True if the decision matrix are equal.
-
-        This method calls `DecisionMatrix.aquals` without tolerance.
-
-        Parameters
-        ----------
-        other : :py:class:`skcriteria.DecisionMatrix`
-            Other instance to compare.
-
-        Returns
-        -------
-        equals : :py:class:`bool:py:class:`
-            Returns True if the two dm are equals.
-
-        See Also
-        --------
-        aequals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
-        :py:func:`numpy.any`, :py:func:`numpy.equal`,
-        :py:func:`numpy.allclose`.
-
-        """
-        return self.aequals(other, 0, 0, False)
-
-    def aequals(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
-        """Return True if the decision matrix are equal within a tolerance.
-
-        The tolerance values are positive, typically very small numbers.  The
-        relative difference (`rtol` * abs(`b`)) and the absolute difference
-        `atol` are added together to compare against the absolute difference
-        between `a` and `b`.
-
-        NaNs are treated as equal if they are in the same place and if
-        ``equal_nan=True``.  Infs are treated as equal if they are in the same
-        place and of the same sign in both arrays.
-
-        The proceeds as follows:
-
-        - If ``other`` is the same object return ``True``.
-        - If ``other`` is not instance of 'DecisionMatrix', has different shape
-          'criteria', 'alternatives' or 'objectives' returns ``False``.
-        - Next check the 'weights' and the matrix itself using the provided
-          tolerance.
-
-        Parameters
-        ----------
-        other : :py:class:`skcriteria.DecisionMatrix`
-            Other instance to compare.
-        rtol : float
-            The relative tolerance parameter
-            (see Notes in :py:func:`numpy.allclose`).
-        atol : float
-            The absolute tolerance parameter
-            (see Notes in :py:func:`numpy.allclose`).
-        equal_nan : bool
-            Whether to compare NaN's as equal.  If True, NaN's in dm will be
-            considered equal to NaN's in `other` in the output array.
-
-        Returns
-        -------
-        aequals : :py:class:`bool:py:class:`
-            Returns True if the two dm are equal within the given
-            tolerance; False otherwise.
-
-        See Also
-        --------
-        equals, :py:func:`numpy.isclose`, :py:func:`numpy.all`,
-        :py:func:`numpy.any`, :py:func:`numpy.equal`,
-        :py:func:`numpy.allclose`.
-
-        """
-        return (self is other) or (
-            isinstance(other, DecisionMatrix)
-            and np.shape(self) == np.shape(other)
-            and np.array_equal(self.criteria, other.criteria)
-            and np.array_equal(self.alternatives, other.alternatives)
-            and np.array_equal(self.objectives, other.objectives)
-            and np.allclose(
-                self.weights,
-                other.weights,
-                rtol=rtol,
-                atol=atol,
-                equal_nan=equal_nan,
-            )
-            and np.allclose(
-                self.matrix,
-                other.matrix,
-                rtol=rtol,
-                atol=atol,
-                equal_nan=equal_nan,
-            )
+    @doc_inherit(DiffEqualityMixin.diff)
+    def diff(
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtypes=False
+    ):
+        # all the validations only works if we have the same shape
+        same_shape = (
+            (np.shape(self) == np.shape(other))
+            if isinstance(other, DecisionMatrix)
+            else False
         )
+
+        # Check if have the same shape and if all elements are equal.
+        def same_shape_array_equal(left_value, right_value):
+            return same_shape and np.array_equal(
+                left_value, right_value, equal_nan=False
+            )
+
+        # Check if have the same shape and if all elements are close.
+        def same_shape_array_allclose(left_value, right_value):
+            return same_shape and np.allclose(
+                left_value,
+                right_value,
+                rtol=rtol,
+                atol=atol,
+                equal_nan=equal_nan,
+            )
+
+        members = {
+            "shape": np.array_equal,  # the shape must be equal
+            "criteria": same_shape_array_equal,
+            "alternatives": same_shape_array_equal,
+            "objectives": same_shape_array_equal,
+            "weights": same_shape_array_allclose,
+            "matrix": same_shape_array_allclose,
+        }
+
+        if check_dtypes:
+            members["dtypes"] = same_shape_array_equal
+
+        the_diff = diff(self, other, **members)
+
+        return the_diff
 
     # SLICES ==================================================================
 

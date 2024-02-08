@@ -43,12 +43,21 @@
 
    pipeline
 
+.. toctree::
+   :maxdepth: 2
+
+   extend
+
+.. toctree::
+   :maxdepth: 2
+
+   testing
+
 
 .. toctree::
    :maxdepth: 2
 
    utils/index
-
 
 .. toctree::
    :maxdepth: 2

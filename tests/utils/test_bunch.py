@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -86,3 +86,8 @@ def test_Bunch_copy():
     assert md is not md_c
     assert md._name == md_c._name
     assert md._data == md_c._data and md._data is md_c._data
+
+
+def test_Bunch_data_is_not_a_mapping():
+    with pytest.raises(TypeError, match="Data must be some kind of mapping"):
+        bunch.Bunch("foo", None)

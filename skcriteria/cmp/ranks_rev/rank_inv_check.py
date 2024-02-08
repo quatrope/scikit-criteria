@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -157,13 +157,13 @@ class RankInvariantChecker(SKCMethodABC):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__name__
+        name = self.get_method_name()
         dm = repr(self.dmaker)
         repeats = self.repeat
         ama = self._allow_missing_alternatives
         lds = self.last_diff_strategy
         return (
-            f"<{cls_name} {dm} repeats={repeats}, "
+            f"<{name} {dm} repeats={repeats}, "
             f"allow_missing_alternatives={ama} last_diff_strategy={lds!r}>"
         )
 

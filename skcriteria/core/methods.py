@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -13,7 +13,7 @@
 
 # =============================================================================
 # IMPORTS
-# =============================================================================ç
+# =============================================================================
 
 import abc
 import copy
@@ -76,7 +76,7 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__name__
+        method_name = self.get_method_name()
 
         parameters = []
         if self._skcriteria_parameters:
@@ -85,7 +85,11 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
                 parameters.append(f"{pname}={repr(pvalue)}")
 
         str_parameters = ", ".join(parameters)
-        return f"<{cls_name} [{str_parameters}]>"
+        return f"<{method_name} [{str_parameters}]>"
+
+    def get_method_name(self):
+        """Return the name of the method as string."""
+        return type(self).__name__
 
     def get_parameters(self):
         """Return the parameters of the method as dictionary."""

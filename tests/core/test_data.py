@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -485,6 +485,53 @@ def test_DecisionMatrix_self_ne(data_values):
         criteria=ocnames,
     )
     assert not dm.equals(other)
+
+
+def test_DecisionMatrix_diff(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+
+    result = dm.diff(dm)
+
+    assert result.has_differences is False
+    assert result.left_type is data.DecisionMatrix
+    assert result.right_type is data.DecisionMatrix
+    assert result.different_types is False
+    assert result.members_diff == {}
+
+    # compare with another dm
+
+    omtx, oobjectives, oweights, oanames, ocnames = data_values(seed=43)
+
+    other = data.mkdm(
+        matrix=omtx,
+        objectives=oobjectives,
+        weights=oweights,
+        alternatives=oanames,
+        criteria=ocnames,
+    )
+
+    result = dm.diff(other)
+
+    assert result.has_differences
+    assert result.left_type is data.DecisionMatrix
+    assert result.right_type is data.DecisionMatrix
+    assert result.different_types is False
+    assert set(result.members_diff) == {
+        "shape",
+        "alternatives",
+        "weights",
+        "objectives",
+        "matrix",
+        "criteria",
+    }
 
 
 # =============================================================================

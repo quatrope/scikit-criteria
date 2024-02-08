@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -251,8 +251,8 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
             ]
         )
 
-        df = df.assign(
-            Performance=[performance_a0, performance_a1, eq],
+        df["Performance"] = pd.Series(
+            [performance_a0, performance_a1, eq], index=df.index
         )
 
         return df

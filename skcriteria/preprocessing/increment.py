@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -21,11 +21,13 @@ to add value to zero on an array along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import numpy as np
 
-from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
-from ..utils import doc_inherit
+    from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
+    from ..utils import doc_inherit
 
 # =============================================================================
 # FUNCTIONS

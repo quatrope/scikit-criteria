@@ -147,7 +147,7 @@ master_doc = "index"
 
 # General information about the project.
 project = skcriteria.NAME
-copyright = "2016-2021, Juan B. Cabral - Nadia A. Luczywo - Copyright (c) 2022, QuatroPe"
+copyright = "2016-2021, Juan B. Cabral - Nadia A. Luczywo - Copyright (c) 2022-2024, QuatroPe"
 
 
 author = "Juan BC"
@@ -302,7 +302,7 @@ DYNAMIC_RST = {
 for md_name, rst_name in DYNAMIC_RST.items():
     md_path = SKCRITERIA_PATH / md_name
     with open(md_path) as fp:
-        readme_md = fp.read().split("<!-- BODY -->")[-1]
+        readme_md = fp.read().split("<!-- BODY -->", 1)[-1]
 
     rst_path = CURRENT_PATH / "_dynamic" / rst_name
 

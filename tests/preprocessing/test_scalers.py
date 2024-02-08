@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -21,6 +21,7 @@
 import numpy as np
 
 import skcriteria
+import skcriteria.testing as skct
 from skcriteria.preprocessing.scalers import (
     CenitDistanceMatrixScaler,
     MaxAbsScaler,
@@ -56,7 +57,7 @@ def test_MinMaxScaler_simple_matrix():
 
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MinMaxScaler_matrix(decision_matrix):
@@ -85,7 +86,7 @@ def test_MinMaxScaler_matrix(decision_matrix):
     scaler = MinMaxScaler(target="matrix")
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MinMaxScaler_simple_weights():
@@ -106,7 +107,7 @@ def test_MinMaxScaler_simple_weights():
 
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MinMaxScaler_weights(decision_matrix):
@@ -132,7 +133,7 @@ def test_MinMaxScaler_weights(decision_matrix):
     scaler = MinMaxScaler(target="weights")
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MinMaxScaler_simple_both():
@@ -156,7 +157,7 @@ def test_MinMaxScaler_simple_both():
 
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MinMaxScaler_both(decision_matrix):
@@ -186,7 +187,7 @@ def test_MinMaxScaler_both(decision_matrix):
     scaler = MinMaxScaler(target="both")
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MinMaxScaler_no_change_original_dm(decision_matrix):
@@ -204,9 +205,8 @@ def test_MinMaxScaler_no_change_original_dm(decision_matrix):
     scaler = MinMaxScaler(target="both")
     dmt = scaler.transform(dm)
 
-    assert (
-        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
-    )
+    skct.assert_dmatrix_equals(dm, expected)
+    assert not dmt.equals(expected) and dm is not expected
 
 
 # =============================================================================
@@ -235,7 +235,7 @@ def test_StandarScaler_simple_matrix():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_StandarScaler_matrix(decision_matrix):
@@ -262,7 +262,7 @@ def test_StandarScaler_matrix(decision_matrix):
     scaler = StandarScaler(target="matrix")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_StandarScaler_simple_weights():
@@ -287,7 +287,7 @@ def test_StandarScaler_simple_weights():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_StandarScaler_weights(decision_matrix):
@@ -312,7 +312,7 @@ def test_StandarScaler_weights(decision_matrix):
     scaler = StandarScaler(target="weights")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_StandarScaler_simple_both():
@@ -340,7 +340,7 @@ def test_StandarScaler_simple_both():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_StandarScaler_both(decision_matrix):
@@ -367,7 +367,7 @@ def test_StandarScaler_both(decision_matrix):
     scaler = StandarScaler(target="both")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_StandarScaler_no_change_original_dm(decision_matrix):
@@ -385,9 +385,8 @@ def test_StandarScaler_no_change_original_dm(decision_matrix):
     scaler = StandarScaler(target="both")
     dmt = scaler.transform(dm)
 
-    assert (
-        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
-    )
+    skct.assert_dmatrix_equals(dm, expected)
+    assert not dmt.equals(expected) and dm is not expected
 
 
 # =============================================================================
@@ -416,7 +415,7 @@ def test_VectorScaler_simple_matrix():
 
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_VectorScaler_matrix(decision_matrix):
@@ -441,7 +440,7 @@ def test_VectorScaler_matrix(decision_matrix):
     scaler = VectorScaler(target="matrix")
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_VectorScaler_simple_weights():
@@ -462,7 +461,7 @@ def test_VectorScaler_simple_weights():
 
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_VectorScaler_weights(decision_matrix):
@@ -487,7 +486,7 @@ def test_VectorScaler_weights(decision_matrix):
     scaler = VectorScaler(target="weights")
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_VectorScaler_simple_both():
@@ -511,7 +510,7 @@ def test_VectorScaler_simple_both():
 
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_VectorScaler_both(decision_matrix):
@@ -536,7 +535,7 @@ def test_VectorScaler_both(decision_matrix):
     scaler = VectorScaler(target="both")
     result = scaler.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_VectorScaler_no_change_original_dm(decision_matrix):
@@ -554,9 +553,8 @@ def test_VectorScaler_no_change_original_dm(decision_matrix):
     scaler = VectorScaler(target="both")
     dmt = scaler.transform(dm)
 
-    assert (
-        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
-    )
+    skct.assert_dmatrix_equals(dm, expected)
+    assert not dmt.equals(expected) and dm is not expected
 
 
 # =============================================================================
@@ -582,7 +580,7 @@ def test_SumScaler_simple_matrix():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_SumScaler_matrix(decision_matrix):
@@ -608,7 +606,7 @@ def test_SumScaler_matrix(decision_matrix):
     scaler = SumScaler(target="matrix")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_SumScaler_simple_weights():
@@ -629,7 +627,7 @@ def test_SumScaler_simple_weights():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_SumScaler_weights(decision_matrix):
@@ -654,7 +652,7 @@ def test_SumScaler_weights(decision_matrix):
     scaler = SumScaler(target="weights")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_SumScaler_simple_both():
@@ -675,7 +673,7 @@ def test_SumScaler_simple_both():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_SumScaler_both(decision_matrix):
@@ -701,7 +699,7 @@ def test_SumScaler_both(decision_matrix):
     scaler = SumScaler(target="both")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_SumScaler_no_change_original_dm(decision_matrix):
@@ -719,9 +717,8 @@ def test_SumScaler_no_change_original_dm(decision_matrix):
     scaler = SumScaler(target="both")
     dmt = scaler.transform(dm)
 
-    assert (
-        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
-    )
+    skct.assert_dmatrix_equals(dm, expected)
+    assert not dmt.equals(expected) and dm is not expected
 
 
 # =============================================================================
@@ -747,7 +744,7 @@ def test_MaxAbsScaler_simple_matrix():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MaxAbsScaler_matrix(decision_matrix):
@@ -773,7 +770,7 @@ def test_MaxAbsScaler_matrix(decision_matrix):
     scaler = MaxAbsScaler(target="matrix")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MaxAbsScaler_simple_weights():
@@ -794,7 +791,7 @@ def test_MaxAbsScaler_simple_weights():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MaxAbsScaler_weights(decision_matrix):
@@ -819,7 +816,7 @@ def test_MaxAbsScaler_weights(decision_matrix):
     scaler = MaxAbsScaler(target="weights")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MaxAbsScaler_simple_both():
@@ -840,7 +837,7 @@ def test_MaxAbsScaler_simple_both():
 
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MaxAbsScaler_both(decision_matrix):
@@ -866,7 +863,7 @@ def test_MaxAbsScaler_both(decision_matrix):
     scaler = MaxAbsScaler(target="both")
     result = scaler.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
@@ -884,9 +881,8 @@ def test_MaxAbsScaler_no_change_original_dm(decision_matrix):
     scaler = MaxAbsScaler(target="both")
     dmt = scaler.transform(dm)
 
-    assert (
-        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
-    )
+    skct.assert_dmatrix_equals(dm, expected)
+    assert not dmt.equals(expected) and dm is not expected
 
 
 def test_CenitDistanceMatrixScaler_simple_matrix():
@@ -906,7 +902,7 @@ def test_CenitDistanceMatrixScaler_simple_matrix():
 
     result = tfm.transform(dm)
 
-    assert result.equals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_CenitDistanceMatrixScaler_diakoulaki1995determining():
@@ -950,7 +946,7 @@ def test_CenitDistanceMatrixScaler_diakoulaki1995determining():
     tfm = CenitDistanceMatrixScaler()
     result = tfm.transform(dm)
 
-    assert result.aequals(expected)
+    skct.assert_dmatrix_equals(result, expected)
 
 
 def test_CenitDistanceMatrixScaler_no_change_original_dm():
@@ -965,6 +961,5 @@ def test_CenitDistanceMatrixScaler_no_change_original_dm():
     tfm = CenitDistanceMatrixScaler()
     dmt = tfm.transform(dm)
 
-    assert (
-        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
-    )
+    skct.assert_dmatrix_equals(dm, expected)
+    assert not dmt.equals(expected) and dm is not expected

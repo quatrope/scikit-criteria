@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -17,6 +17,7 @@
 
 import itertools as it
 from collections import defaultdict
+from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 
@@ -31,8 +32,14 @@ import seaborn as sns
 from sklearn import metrics as _skl_metrics
 
 from ..agg import RankResult
-from ..core import SKCMethodABC
-from ..utils import AccessorABC, Bunch, unique_names
+from ..utils import (
+    AccessorABC,
+    Bunch,
+    DiffEqualityMixin,
+    diff,
+    doc_inherit,
+    unique_names,
+)
 
 
 # =============================================================================
@@ -50,7 +57,7 @@ RANKS_LABELS = {
 # =============================================================================
 
 
-class RanksComparator(SKCMethodABC):
+class RanksComparator(Sequence, DiffEqualityMixin):
     """Rankings comparator object.
 
     This class is intended to contain a collection of rankings on which you
@@ -125,13 +132,40 @@ class RanksComparator(SKCMethodABC):
         """
         return Bunch("ranks", dict(self.ranks))
 
+    # DIFF! ===================================================================
+
+    @doc_inherit(DiffEqualityMixin.diff)
+    def diff(
+        self, other, rtol=1e-05, atol=1e-08, equal_nan=True, check_dtypes=False
+    ):
+        def rank_allclose(ranks_a, ranks_b):
+            if len(ranks_a) != len(ranks_b):
+                return False
+            for (ra_name, ra), (rb_name, rb) in zip(ranks_a, ranks_b):
+                if ra_name != rb_name:
+                    return False
+                radiff = ra.diff(
+                    rb,
+                    rtol=rtol,
+                    atol=atol,
+                    equal_nan=equal_nan,
+                    check_dtypes=check_dtypes,
+                )
+                if radiff.has_differences:
+                    return False
+            return True
+
+        members = {"ranks": rank_allclose}
+        the_diff = diff(self, other, **members)
+        return the_diff
+
     # MAGIC! ==================================================================
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
-        cls_name = type(self).__name__
+        name = type(self).__name__
         ranks_names = [rn for rn, _ in self._ranks]
-        return f"<{cls_name} [ranks={ranks_names!r}]>"
+        return f"<{name} [ranks={ranks_names!r}]>"
 
     def __len__(self):
         """Return the number of rankings to compare."""
@@ -149,7 +183,7 @@ class RanksComparator(SKCMethodABC):
         """
         if isinstance(ind, slice):
             if ind.step not in (1, None):
-                cname = type(self).__name__
+                cname = type(self).__qualname__
                 raise ValueError(f"{cname} slicing only supports a step of 1")
             return self.__class__(self.ranks[ind])
         elif isinstance(ind, int):
@@ -461,7 +495,7 @@ class RanksComparatorPlotter(AccessorABC):
 
         # Just to ensure that no manual color reaches regplot
         if "color" in kwargs:
-            cls_name = type(self).__name__
+            cls_name = type(self).__qualname__
             raise TypeError(
                 f"{cls_name}.reg() got an unexpected keyword argument 'color'"
             )

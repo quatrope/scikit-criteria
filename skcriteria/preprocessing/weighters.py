@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022, 2023, 2024 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -21,17 +21,20 @@ to calculate weights to a matrix along an arbitrary axis.
 # IMPORTS
 # =============================================================================
 
-import abc
-import warnings
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import abc
+    import warnings
 
-import scipy.stats
+    import numpy as np
 
-from ._preprocessing_base import SKCTransformerABC
-from .scalers import matrix_scale_by_cenit_distance
-from ..core import Objective
-from ..utils import deprecated, doc_inherit
+    import scipy.stats
+
+    from ._preprocessing_base import SKCTransformerABC
+    from .scalers import matrix_scale_by_cenit_distance
+    from ..core import Objective
+    from ..utils import deprecated, doc_inherit
 
 # =============================================================================
 # BASE CLASS
