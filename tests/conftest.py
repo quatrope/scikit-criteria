@@ -21,6 +21,8 @@
 import functools
 
 
+import matplotlib as mpl
+
 import numpy as np
 
 import pytest
@@ -141,3 +143,50 @@ def decision_matrix(data_values):
         return dm
 
     return make
+
+
+# =============================================================================
+# MARKERS
+# =============================================================================
+
+
+MARKERS = [
+    ("posix", "os.name != 'posix'", "Requires a POSIX os"),
+    ("not_posix", "os.name == 'posix'", "Skipped on POSIX"),
+    ("windows", "os.name != 'nt'", "Requires Windows"),
+    ("not_windows", "os.name == 'nt'", "Skipped on Windows"),
+    ("linux", "not sys.platform.startswith('linux')", "Requires Linux"),
+    ("not_linux", "sys.platform.startswith('linux')", "Skipped on Linux"),
+    ("osx", "sys.platform != 'darwin'", "Requires OS X"),
+    ("not_osx", "sys.platform == 'darwin'", "Skipped on OS X"),
+]
+
+
+def pytest_configure(config):
+    for marker, _, reason in MARKERS:
+        config.addinivalue_line("markers", "{}: {}".format(marker, reason))
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        for searched_marker, condition, default_reason in MARKERS:
+            marker = item.get_closest_marker(searched_marker)
+            if not marker:
+                continue
+
+            if "reason" in marker.kwargs:
+                reason = "{}: {}".format(
+                    default_reason, marker.kwargs["reason"]
+                )
+            else:
+                reason = default_reason + "."
+            skipif_marker = pytest.mark.skipif(condition, reason=reason)
+            item.add_marker(skipif_marker)
+
+
+# =============================================================================
+# CI
+# =============================================================================
+
+
+mpl.use("Agg")
