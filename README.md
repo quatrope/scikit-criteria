@@ -31,7 +31,7 @@ question, try the mailing list first)
 
 ## Support
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)]([https://www.buymeacoffee.com/gbraad](https://www.buymeacoffee.com/leliel12))
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/leliel12)
 
 
 
