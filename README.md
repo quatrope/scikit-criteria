@@ -29,6 +29,12 @@ Our Google Groups mailing list is [here](https://groups.google.com/forum/#!forum
 **You can contact me at:** <jbcabral@unc.edu.ar> (if you have a support
 question, try the mailing list first)
 
+## Support
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)]([https://www.buymeacoffee.com/gbraad](https://www.buymeacoffee.com/leliel12))
+
+
+
 ## Code Repository & Issues
 
 <https://github.com/quatrope/scikit-criteria>
