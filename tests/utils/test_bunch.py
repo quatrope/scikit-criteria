@@ -19,6 +19,7 @@
 # =============================================================================
 
 import copy
+import pickle
 
 import pytest
 
@@ -97,3 +98,19 @@ def test_Bunch_assign_fails():
     foo_bunch = bunch.Bunch("foo", {})
     with pytest.raises(AttributeError, match="Bunch 'foo' is read-only"):
         foo_bunch.some_key = 1
+
+
+def test_Bunch_setstate():
+    md = bunch.Bunch("foo", {"alfa": 1})
+    md_c = pickle.loads(pickle.dumps(md))
+
+    assert md is not md_c
+    assert md._name == md_c._name  # string are inmutable never deep copy
+    assert md._data == md_c._data and md._data is not md_c._data
+
+
+def test_Bunch_get():
+    md = bunch.Bunch("foo", {"alfa": 1})
+    assert md.get("alfa") == 1
+    assert md.get("bravo") is None
+    assert md.get("bravo", 2) == 2

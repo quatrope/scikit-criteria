@@ -108,3 +108,11 @@ class Bunch(Mapping):
     def __dir__(self):
         """x.__dir__() <==> dir(x)."""
         return super().__dir__() + list(self._data)
+
+    def __setstate__(self, state):
+        """Needed for multiprocessing environment."""
+        self.__dict__.update(state)
+
+    def get(self, key, default=None):
+        """Get item from bunch."""
+        return self._data.get(key, default)

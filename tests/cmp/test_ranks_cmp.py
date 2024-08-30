@@ -271,6 +271,24 @@ def test_RanksComparator_hash():
     assert id(rcmp) == hash(rcmp)
 
 
+def test_RanksComparator_extra_get():
+    rank0 = agg.RankResult(
+        "test", ["a", "b"], [1, 1], {"alpha": 1, "bravo": 2}
+    )
+    rank1 = agg.RankResult(
+        "test", ["a", "b"], [1, 1], {"alpha": 1, "delta": 3}
+    )
+    rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
+
+    assert rcmp.extra_get("alpha") == {"test_1": 1, "test_2": 1}
+    assert rcmp.extra_get("bravo") == {"test_1": 2, "test_2": None}
+    assert rcmp.extra_get("delta", "foo") == {"test_1": "foo", "test_2": 3}
+    assert rcmp.extra_get("charly", "foo") == {
+        "test_1": "foo",
+        "test_2": "foo",
+    }
+
+
 def test_RanksComparator_plot():
     rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
