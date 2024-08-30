@@ -91,3 +91,9 @@ def test_Bunch_copy():
 def test_Bunch_data_is_not_a_mapping():
     with pytest.raises(TypeError, match="Data must be some kind of mapping"):
         bunch.Bunch("foo", None)
+
+
+def test_Bunch_assign_fails():
+    foo_bunch = bunch.Bunch("foo", {})
+    with pytest.raises(AttributeError, match="Bunch 'foo' is read-only"):
+        foo_bunch.some_key = 1

@@ -46,17 +46,14 @@ class Bunch(Mapping):
     >>> b.a = 3
     >>> b['a']
     3
-    >>> b.c = 6
-    >>> b['c']
-    6
 
     """
 
     def __init__(self, name, data):
         if not isinstance(data, Mapping):
             raise TypeError("Data must be some kind of mapping")
-        self._name = str(name)
-        self._data = data
+        super().__setattr__("_name", str(name))
+        super().__setattr__("_data", data)
 
     def __getitem__(self, k):
         """x.__getitem__(y) <==> x[y]."""
@@ -68,6 +65,10 @@ class Bunch(Mapping):
             return self._data[a]
         except KeyError:
             raise AttributeError(a)
+
+    def __setattr__(self, a, v):
+        """x.__setattr__(a, v) <==> x.a = v."""
+        raise AttributeError(f"Bunch {self._name!r} is read-only")
 
     def __copy__(self):
         """x.__copy__() <==> copy.copy(x)."""
@@ -87,7 +88,7 @@ class Bunch(Mapping):
         memo[id(self)] = clone
 
         # now we copy the data
-        clone._data = copy.deepcopy(self._data, memo)
+        super(cls, clone).__setattr__("_data", copy.deepcopy(self._data, memo))
 
         return clone
 
