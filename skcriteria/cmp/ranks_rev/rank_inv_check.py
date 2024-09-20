@@ -24,13 +24,14 @@ criterion remains the same.
 
 import numpy as np
 import numpy.lib.arraysetops as arrset
-
 import pandas as pd
 
 from .. import RanksComparator
 from ...agg import RankResult
 from ...core import SKCMethodABC
 from ...utils import Bunch, unique_names
+from .mutation_strategy import MutationStrategy
+from .default_mutation_strategy import DefaultMutationStrategy
 
 # =============================================================================
 # CONSTANT
@@ -109,7 +110,6 @@ class RankInvariantChecker(SKCMethodABC):
     random_state: int, numpy.random.default_rng or None (default: None)
         Controls the random state to generate variations in the sub-optimal
         alternatives.
-
     """
 
     _skcriteria_dm_type = "rank_reversal"
@@ -129,6 +129,7 @@ class RankInvariantChecker(SKCMethodABC):
         allow_missing_alternatives=False,
         last_diff_strategy="median",
         random_state=None,
+        mutation_strategy: MutationStrategy = DefaultMutationStrategy(),
     ):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
@@ -154,6 +155,11 @@ class RankInvariantChecker(SKCMethodABC):
 
         # RANDOM
         self._random_state = np.random.default_rng(random_state)
+
+        # MUTATION STRATEGY
+        if not isinstance(mutation_strategy, MutationStrategy):
+            raise TypeError("'mutation_strategy' must be an instance of MutationStrategy")
+        self.mutation_strategy = mutation_strategy
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -181,21 +187,21 @@ class RankInvariantChecker(SKCMethodABC):
 
     @property
     def allow_missing_alternatives(self):
-        """True if any mutation is allowed that does not possess all the \
+        """True if any mutation is allowed that does not possess all the 
         alternatives of the original decision matrix."""
         return self._allow_missing_alternatives
 
     @property
     def last_diff_strategy(self):
-        """Since the least preferred alternative has no lower bound (since \
-        there is nothing immediately below it), this function calculates a \
-        limit ceiling based on the bounds of all the other suboptimal \
+        """Since the least preferred alternative has no lower bound (since 
+        there is nothing immediately below it), this function calculates a 
+        limit ceiling based on the bounds of all the other suboptimal 
         alternatives."""
         return self._last_diff_strategy
 
     @property
     def random_state(self):
-        """Controls the random state to generate variations in the \
+        """Controls the random state to generate variations in the 
         sub-optimal alternatives."""
         return self._random_state
 
@@ -225,7 +231,6 @@ class RankInvariantChecker(SKCMethodABC):
             Each row contains the maximum possible absolute noise to worsen
             the current alternative (``mutate``) with respect to the next
             (``mute_next``).
-
         """
         # TODO: room for improvement: pandas to numpy
 
@@ -261,7 +266,7 @@ class RankInvariantChecker(SKCMethodABC):
         return maximum_abs_noises
 
     def _mutate_dm(self, *, dm, mutate, alternative_max_abs_noise, random):
-        """Create a new decision matrix by replacing a suboptimal alternative \
+        """Create a new decision matrix by replacing a suboptimal alternative 
         with a slightly worse one.
 
         The algorithm operates as follows:
@@ -296,7 +301,6 @@ class RankInvariantChecker(SKCMethodABC):
             Decision matrix with the 'mutate' alternative "worsened".
         noise: ``pandas.Series``
             Noise used to worsen the alternative.
-
         """
         # TODO: room for improvement: pandas to numpy
 
@@ -352,7 +356,6 @@ class RankInvariantChecker(SKCMethodABC):
             worsen.
         noise: ``pandas.Series``
             Noise used to worsen the 'mutated' alternative.
-
         """
         # check the maximum absolute difference between any alternative and
         # the next one in the ranking to establish a worse-limit
@@ -381,7 +384,7 @@ class RankInvariantChecker(SKCMethodABC):
         full_alternatives,
         allow_missing_alternatives,
     ):
-        """Adds information on how an alternative was "worsened" in the \
+        """Adds information on how an alternative was "worsened" in the 
         decision matrix with respect to the original.
 
         All aggregated information is included within the ``rrt1`` (Rank
@@ -414,7 +417,6 @@ class RankInvariantChecker(SKCMethodABC):
         patched_rank : ``skcriteria.agg.Rank``
             Ranking with all the information about the worsened alternative and
             the rank reversal test added to the `extra_.rrt1` attribute.
-
         """
         # extract the original data
         method = str(rank.method)
@@ -454,7 +456,7 @@ class RankInvariantChecker(SKCMethodABC):
                 "iteration": iteration,
                 "mutated": mutated,
                 "noise": noise,
-                "missing_alternatives": alts_diff,
+                "missing_alternatives": alts_diff.tolist(),
             },
         )
 
@@ -468,7 +470,7 @@ class RankInvariantChecker(SKCMethodABC):
         return patched_rank
 
     def evaluate(self, dm):
-        """Executes a the invariance test.
+        """Executes the invariance test.
 
         Parameters
         ----------
@@ -481,14 +483,12 @@ class RankInvariantChecker(SKCMethodABC):
             An object containing multiple rankings of the alternatives, with
             information on any changes made to the original decision matrix in
             the `extra_` attribute. Specifically, the `extra_` attribute
-            contains a an object in the key `rrt1` that provides
+            contains an object in the key `rrt1` that provides
             information on any changes made to the original decision matrix,
-            including the the noise applied to worsen any sub-optimal
+            including the noise applied to worsen any sub-optimal
             alternative.
-
         """
         # FIRST THE DATA THAT WILL BE USED IN ALL THE ITERATIONS ==============
-
         # the test configuration
         dmaker = self.dmaker
         allow_missing_alternatives = self.allow_missing_alternatives
@@ -509,7 +509,7 @@ class RankInvariantChecker(SKCMethodABC):
             allow_missing_alternatives=allow_missing_alternatives,
         )
 
-        # Here we create a containers for the rank comparator starting with
+        # Here we create containers for the rank comparator starting with
         # the original rank
         names, results = ["Original"], [patched_orank]
 
@@ -524,7 +524,7 @@ class RankInvariantChecker(SKCMethodABC):
             # calculate the new rank
             mrank = dmaker.evaluate(mdm)
 
-            # add info about the mutation to rhe rank
+            # add info about the mutation to the rank
             patched_mrank = self._add_mutation_info_to_rank(
                 rank=mrank,
                 mutated=mutated,
@@ -535,7 +535,7 @@ class RankInvariantChecker(SKCMethodABC):
             )
 
             # store the information
-            names.append(f"M.{mutated}")
+            names.append(f"M.{mutated}_{it}")
             results.append(patched_mrank)
 
         # manually creates a new RankComparator

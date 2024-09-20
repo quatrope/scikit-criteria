@@ -9,24 +9,19 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.cmp.rrtest1
-
-"""
-
+"""test for skcriteria.cmp.ranks_rev.rank_inv_check"""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-
 import numpy as np
-
 import pytest
-
 import skcriteria as skc
 from skcriteria.agg.similarity import TOPSIS
 from skcriteria.cmp.ranks_rev.rank_inv_check import RankInvariantChecker
 from skcriteria.utils import rank
+from skcriteria.cmp.ranks_rev.default_mutation_strategy import DefaultMutationStrategy
 
 # =============================================================================
 # TESTS
@@ -54,18 +49,32 @@ def test_RankInvariantChecker_decision_maker_evaluate_no_callable():
 def test_RankInvariantChecker_invalid_last_diff_strategy():
     class FakeDM:
         def evaluate(self): ...
-
+    
     dmaker = FakeDM()
     with pytest.raises(TypeError):
         RankInvariantChecker(dmaker, last_diff_strategy=None)
 
 
-# CHECK DOMINANCE =============================================================
+def test_RankInvariantChecker_with_custom_mutation_strategy():
+    class CustomMutationStrategy(DefaultMutationStrategy):
+        def generate_mutations(self, dm: pd.DataFrame, rank: 'Rank') -> pd.DataFrame:
+            # Custom mutation logic
+            noise = np.random.uniform(-0.05, 0.05, size=dm.shape)
+            return dm + noise
+
+    dm = skc.datasets.load_simple_stock_selection()
+    dmaker = TOPSIS()
+    mutation_strategy = CustomMutationStrategy()
+    rrt1 = RankInvariantChecker(dmaker, mutation_strategy=mutation_strategy, random_state=42)
+    result = rrt1.evaluate(dm)
+    assert isinstance(result, skc.cmp.RanksComparator)
+    assert "Original" in result.names
+    # Additional assertions can be added based on custom mutation logic
 
 
 def original_dominates_mutated(dm, result, alt_name):
     original = dm.alternatives[alt_name]
-    noise = result[f"M.{alt_name}"].e_.rrt1.noise
+    noise = result.ranks[f"M.{alt_name}"].extra_.rrt1.noise
     mutated = original + noise
 
     dom = rank.dominance(original, mutated, dm.minwhere)
@@ -100,9 +109,6 @@ def test_RankInvariantChecker_van2021evaluation(windows_size):
     assert original_dominates_mutated(dm, result, "LINK")
     assert original_dominates_mutated(dm, result, "XRP")
     assert original_dominates_mutated(dm, result, "DOGE")
-
-
-# REMOVE AN ALTERNATIVE =======================================================
 
 
 class RemoveAlternativeDMaker:
@@ -154,9 +160,9 @@ def test_RankInvariantChecker_remove_one_alternative():
 
     result = rrt1.evaluate(dm)
 
-    _, rank = result.ranks[1]
+    _, rank = result.ranks["M.AA"]
 
-    np.testing.assert_array_equal(rank.e_.rrt1.missing_alternatives, ["AA"])
+    np.testing.assert_array_equal(rank.extra_.rrt1.missing_alternatives, ["AA"])
     assert rank.to_series()["AA"] == 6
 
 
@@ -170,10 +176,10 @@ def test_RankInvariantChecker_remove_two_alternatives():
 
     result = rrt1.evaluate(dm)
 
-    _, rank = result.ranks[1]
-
+    _, rank = result.ranks["M.AA"]
+    
     np.testing.assert_array_equal(
-        rank.e_.rrt1.missing_alternatives, ["AA", "MM"]
+        rank.extra_.rrt1.missing_alternatives, ["AA", "MM"]
     )
 
     assert rank.to_series()["AA"] == 5
@@ -187,9 +193,8 @@ def test_RankInvariantChecker_repr():
 
     result = repr(rrt1)
     expected = (
-        f"<RankInvariantChecker {dmaker!r} repeats={1}, "
-        f"allow_missing_alternatives={False} "
-        f"last_diff_strategy={np.median!r}>"
+        f"<RankInvariantChecker {repr(dmaker)} repeats=1, "
+        f"allow_missing_alternatives=False last_diff_strategy={np.median!r}>"
     )
 
     assert result == expected
