@@ -37,7 +37,7 @@ from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
 from ..utils import (
     DiffEqualityMixin,
-    deprecated,
+    deprecate,
     df_temporal_header,
     diff,
     doc_inherit,
@@ -467,21 +467,57 @@ class DecisionMatrix(DiffEqualityMixin):
     # UTILITIES ===============================================================
 
     def copy(self, **kwargs):
-        """Return a deep copy of the current DecisionMatrix.
+        """Create a copy of the current DecisionMatrix instance.
 
-        This method is also useful for manually modifying the values of the
-        DecisionMatrix object.
+        .. deprecated:: 0.9
+            Using kwargs with copy() is deprecated. Use
+            DecisionMatrix.replace() instead.
 
         Parameters
         ----------
-        kwargs :
-            The same parameters supported by ``from_mcda_data()``. The values
-            provided replace the existing ones in the object to be copied.
+        **kwargs : dict, optional (deprecated)
+            Keyword arguments to modify attributes in the copied instance.
+            This parameter is deprecated.
 
         Returns
         -------
-        :py:class:`DecisionMatrix`
-            A new decision matrix.
+        DecisionMatrix
+            A new DecisionMatrix instance with the same data as the original.
+
+        See Also
+        --------
+        replace : Preferred method to create a copy with modifications.
+
+        """
+        if kwargs:
+            cls_name = type(self).__name__
+            deprecate.warn(
+                "Passing kwargs to 'copy()' is deprecated, plese use "
+                f"'{cls_name}.replace()' instead."
+            )
+        return self.replace(**kwargs)
+
+    def replace(self, **kwargs):
+        """Create a new DecisionMatrix instance with updated attributes.
+
+        Creates a copy of the current DecisionMatrix and updates it with the
+        provided keyword arguments.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Keyword arguments specifying attributes to modify in the new
+            instance. Any valid DecisionMatrix attribute can be updated.
+
+        Returns
+        -------
+        DecisionMatrix
+            A new DecisionMatrix instance with the updated attributes.
+
+        Examples
+        --------
+        >>> dm = DecisionMatrix(...)
+        >>> new_dm = dm.replace(weights=[0.3, 0.7])
 
         """
         dmdict = self.to_dict()
@@ -539,7 +575,7 @@ class DecisionMatrix(DiffEqualityMixin):
             "criteria": np.array(self.criteria, copy=True),
         }
 
-    @deprecated(
+    @deprecate.deprecated(
         reason=(
             "Use ``DecisionMatrix.stats()``, "
             "``DecisionMatrix.stats('describe)`` or "

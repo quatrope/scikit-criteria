@@ -318,7 +318,7 @@ class RankInvariantChecker(SKCMethodABC):
         df.loc[mutate] += noise
 
         # transform the noised matrix into a dm
-        mutated_dm = dm.copy(matrix=df.to_numpy(copy=True), dtypes=None)
+        mutated_dm = dm.replace(matrix=df.to_numpy(copy=True), dtypes=None)
 
         return mutated_dm, noise
 

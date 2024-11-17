@@ -74,7 +74,6 @@ def _parameters_diff(original, copy):
 
 
 @pytest.mark.run(order=-1)
-@pytest.mark.skip
 def test_SLCMethodABC_concrete_subclass_copy():
     # CLASSES FOR THE FAKE PIPELINE
     class _FakeTrans:

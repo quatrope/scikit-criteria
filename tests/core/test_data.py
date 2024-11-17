@@ -300,6 +300,26 @@ def test_DecisionMatrix_copy(data_values):
     assert dm is not copy
     assert dm.equals(copy)
 
+    with pytest.deprecated_call():
+        dm.copy(**dm.to_dict())
+
+
+def test_DecisionMatrix_replace(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+    copy = dm.replace(weights=dm.weights + 1)
+
+    assert dm is not copy
+    assert not dm.equals(copy)
+    pd.testing.assert_series_equal(dm.weights, copy.weights - 1)
+
 
 def test_DecisionMatrix_to_dataframe(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)

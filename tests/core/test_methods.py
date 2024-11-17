@@ -130,7 +130,26 @@ def test_SKCMethodABC_copy():
             self.foo = foo
             self.faa = faa
 
-    foo = Foo(foo=2, faa=1)
-    copy = foo.copy()
+    original = Foo(foo=2, faa=1)
+    copy = original.copy()
 
-    assert foo.get_parameters() == copy.get_parameters()
+    assert original.get_parameters() == copy.get_parameters()
+
+    with pytest.deprecated_call():
+        original.copy(foo=100)
+
+
+def test_SKCMethodABC_replace():
+    class Foo(methods.SKCMethodABC):
+        _skcriteria_dm_type = "foo"
+        _skcriteria_parameters = ["foo", "faa"]
+
+        def __init__(self, foo, faa):
+            self.foo = foo
+            self.faa = faa
+
+    original = Foo(foo=2, faa=1)
+    copy = original.replace(foo=100)
+
+    assert original.get_parameters() != copy.get_parameters()
+    assert copy.get_parameters() == {"faa": 1, "foo": 100}

@@ -1,6 +1,26 @@
-# Changelog of Scikit-Criteria
+# Whats new?
 
 <!-- BODY -->
+
+## Version 0.9
+
+- **Changed Behaviour**: The `copy()` method with `kwargs` in `DecisionMatrix` and all `SKCMethodABC` derived classes is now deprecated. Instead, use the new `replace()` method which provides a clearer and more maintainable way to create copies with modified parameters:
+
+    ```python
+    # Old way (deprecated)
+    dm_copy = decision_matrix.copy(weights=[0.5, 0.5])
+    method_copy = method.copy(parameter=new_value)
+
+    # New way
+    dm_copy = decision_matrix.replace(weights=[0.5, 0.5])
+    method_copy = method.replace(parameter=new_value)
+    ```
+
+  The `copy()` method will continue to work for creating exact copies, but passing
+  parameters through `kwargs` will raise a deprecation warning.
+
+- The `utils.deprecate` module has been streamlined for better usability. The warning system now uses a simpler implementation that emits warnings only once per call location. The raising functionality has been moved to module level configuration.
+
 
 ## Version 0.8.7
 

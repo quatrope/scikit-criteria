@@ -115,7 +115,7 @@ class RemoveAlternativeDMaker:
     def filter_dm(self, dm, remove):
         mtx = dm.matrix
         filtered = mtx.loc[~mtx.index.isin(remove)]
-        filtered_dm = dm.copy(
+        filtered_dm = dm.replace(
             matrix=filtered.to_numpy(),
             alternatives=filtered.index.to_numpy(),
         )

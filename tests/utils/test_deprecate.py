@@ -68,12 +68,7 @@ def test_add_sphinx_deprecated_directive_whit_titles():
 
 def test_warn_once():
     with pytest.deprecated_call():
-        deprecate.warn(reason="foo", version=deprecate.ERROR_GE - 0.5)
-
-
-def test_warn_error():
-    with pytest.raises(deprecate.SKCriteriaDeprecationWarning):
-        deprecate.warn(reason="foo", version=deprecate.ERROR_GE)
+        deprecate.warn(reason="foo")
 
 
 def test_deprecated():

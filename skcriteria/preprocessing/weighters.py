@@ -327,7 +327,6 @@ def spearman_correlation(arr):
 
 def critic_weights(matrix, objectives, correlation="pearson", scale=True):
     """Execute the CRITIC method without any validation."""
-
     # The paper:
     #   Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
     #   Determining objective weights in multiple criteria problems:
