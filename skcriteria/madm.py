@@ -23,22 +23,18 @@ This Deprecated backward compatibility layer around skcriteria.agg.
 from . import agg, utils
 
 # this will be used in two places
-__deprecation_conf = {
-    "reason": (
-        "'skcriteria.madm' module is deprecated, "
-        "use 'skcriteria.agg' instead"
-    ),
-    "version": "0.8.5",
-}
+deprecation_reason = (
+    "'skcriteria.madm' module is deprecated, use 'skcriteria.agg' instead"
+)
 
 
-utils.deprecate.warn(**__deprecation_conf)
+utils.deprecate.warn(deprecation_reason)
 
 # store the metadata to preserve
 __preserve = {
     "__name__": __name__,
     "__doc__": utils.deprecate.add_sphinx_deprecated_directive(
-        __doc__, **__deprecation_conf
+        __doc__, version="0.8.5", reason=deprecation_reason
     ),
 }
 
@@ -49,4 +45,4 @@ globals().update(__preserve)
 
 
 # delete the unused modules and variables
-del agg, __preserve, __deprecation_conf
+del agg, __preserve, deprecation_reason
