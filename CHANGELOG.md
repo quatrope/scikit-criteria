@@ -4,6 +4,8 @@
 
 ## Version 0.9
 
+- **Changed Behavior**: Corrected the functionality of the PushNegatives transformation. The transformer now appropriately manages negative values by identifying the lowest negative value in the matrix and adding its absolute value to all matrix elements.
+
 - **Changed Behaviour**: The `copy()` method with `kwargs` in `DecisionMatrix` and all `SKCMethodABC` derived classes is now deprecated. Instead, use the new `replace()` method which provides a clearer and more maintainable way to create copies with modified parameters:
 
     ```python
