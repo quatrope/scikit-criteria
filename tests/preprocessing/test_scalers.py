@@ -9,9 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.minmax_scaler
-
-"""
+"""test for skcriteria.preprocessing.minmax_scaler"""
 
 
 # =============================================================================

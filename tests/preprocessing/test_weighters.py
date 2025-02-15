@@ -9,9 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.weighters
-
-"""
+"""test for skcriteria.preprocessing.weighters"""
 
 
 # =============================================================================
@@ -327,7 +325,7 @@ def test_CRITIC_minimize_warning():
         weighter.transform(dm)
 
 
-def test_Critic_bad_correlation():
+def test_CRITIC_bad_correlation():
     with pytest.raises(ValueError):
         CRITIC(correlation="foo")
     with pytest.raises(ValueError):

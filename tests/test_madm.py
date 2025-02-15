@@ -9,9 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for the deprecated module skcriteria.madm
-
-"""
+"""test for the deprecated module skcriteria.madm"""
 
 
 # =============================================================================

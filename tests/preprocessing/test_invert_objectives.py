@@ -9,9 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.invert_objectives
-
-"""
+"""test for skcriteria.preprocessing.invert_objectives"""
 
 
 # =============================================================================

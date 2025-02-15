@@ -9,9 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.add_value_to_zero
-
-"""
+"""test for skcriteria.preprocessing.add_value_to_zero"""
 
 
 # =============================================================================

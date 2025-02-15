@@ -9,9 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.impute
-
-"""
+"""test for skcriteria.preprocessing.impute"""
 
 # =============================================================================
 # IMPORTS

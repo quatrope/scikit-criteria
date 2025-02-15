@@ -9,9 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.distance
-
-"""
+"""test for skcriteria.preprocessing.distance"""
 
 # =============================================================================
 # IMPORTS
