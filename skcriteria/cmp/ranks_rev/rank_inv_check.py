@@ -23,7 +23,6 @@ criterion remains the same.
 # =============================================================================
 
 import numpy as np
-import numpy.lib.arraysetops as arrset
 
 import pandas as pd
 
@@ -423,7 +422,7 @@ class RankInvariantChecker(SKCMethodABC):
         extra = dict(rank.extra_.items())
 
         # we check if the decision_maker did not eliminate any alternatives
-        alts_diff = arrset.setxor1d(alternatives, full_alternatives)
+        alts_diff = np.setxor1d(alternatives, full_alternatives)
         has_missing_alternatives = len(alts_diff) > 0
 
         # check for the missing alternatives

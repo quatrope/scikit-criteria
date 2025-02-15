@@ -23,6 +23,8 @@
 
 - The `utils.deprecate` module has been streamlined for better usability. The warning system now uses a simpler implementation that emits warnings only once per call location. The raising functionality has been moved to module level configuration.
 
+- ***Dependencies:** Added requirements for NumPy 2.0 and scikit-learn 1.6
+
 
 ## Version 0.8.7
 
