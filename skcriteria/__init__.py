@@ -16,7 +16,7 @@ techniques for multiple-criteria decision analysis."""
 # IMPORTS
 # =============================================================================
 
-import importlib_metadata
+import importlib.metadata
 
 from . import datasets
 from .core import DecisionMatrix, Objective, mkdm
@@ -33,9 +33,9 @@ NAME = "scikit-criteria"
 
 DOC = __doc__
 
-VERSION = importlib_metadata.version(NAME)
+VERSION = importlib.metadata.version(NAME)
 
 __version__ = tuple(VERSION.split("."))
 
 
-del importlib_metadata
+del importlib.metadata
