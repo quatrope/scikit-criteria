@@ -16,11 +16,13 @@ should remain unchanged when a non-optimal alternative is replaced by a
 worse alternative, provided that the relative importance of each decision
 criterion remains the same.
 
+
+
 """
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-
-from ...ranksrev.rank_invariant_check import RankInvariantChecker
+# import the real agg package
+from ...ranksrev.rank_invariant_check import RankInvariantChecker  # noqa

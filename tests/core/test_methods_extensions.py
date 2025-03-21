@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 
 from skcriteria import agg
-from skcriteria.cmp import RankInvariantChecker, RanksComparator
+from skcriteria.cmp import RanksComparator
 from skcriteria.core import methods
 from skcriteria.pipeline import SKCPipeline
 from skcriteria.preprocessing import SKCMatrixAndWeightTransformerABC
@@ -30,7 +30,7 @@ from skcriteria.preprocessing.filters import (
     SKCArithmeticFilterABC,
     SKCSetFilterABC,
 )
-
+from skcriteria.ranksrev import RankInvariantChecker
 
 # =============================================================================
 # TEST UTILITES

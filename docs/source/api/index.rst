@@ -35,6 +35,12 @@
 .. toctree::
    :maxdepth: 2
 
+   ranksrev/index
+
+
+.. toctree::
+   :maxdepth: 2
+
    datasets/index
 
 

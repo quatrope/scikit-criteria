@@ -25,17 +25,13 @@ The module offers features for automating the execution and assessment of
 standard tests for rank reversal, primarily focusing on alterations in the
 available options.
 
-This Deprecated backward compatibility layer around
-skcriteria.ranksrev.
-
 """
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from .rank_inv_check import RankInvariantChecker
-from ...utils import deprecate
+from .rank_invariant_check import RankInvariantChecker
 
 # =============================================================================
 # ALL
@@ -44,21 +40,3 @@ from ...utils import deprecate
 __all__ = [
     "RankInvariantChecker",
 ]
-
-
-# this will be used in two places
-deprecation_reason = (
-    "'skcriteria.cmp.ranks_rev' package is deprecated, "
-    "use 'skcriteria.ranksrev' instead"
-)
-
-
-deprecate.warn(deprecation_reason)
-
-__doc__ = deprecate.add_sphinx_deprecated_directive(
-    __doc__, version="0.9", reason=deprecation_reason
-)
-
-
-# delete the unused modules and variables
-del deprecation_reason
