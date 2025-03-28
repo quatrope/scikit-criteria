@@ -14,6 +14,13 @@
 The on-demand importer is a function that returns a callable object that
 imports the module when the object is called.
 
+
+Notes
+-----
+
+This ondemand importer is based on the one from scikit-learn, but adds a
+more power to introspection.
+
 """
 
 # =============================================================================
