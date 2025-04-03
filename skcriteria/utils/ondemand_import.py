@@ -131,39 +131,70 @@ class _OnDemandImporter:
         return self.package.__path__
 
     def import_module(self, name):
-        """
-        Import a module and add it to the package context.
+        """Dynamically imports a submodule and adds it to the parent package \
+        context.
 
-        If the imported module is a package, its __getattr__ method is replaced
-        with this importer's import_module method, and its __dir__ method is
-        replaced with this importer's list_available_modules method to enable
-        both recursive lazy loading and directory listing.
+        Core of the lazy-loading mechanism that handles imports when attributes
+        are requested but not yet loaded. Configures imported packages for
+        recursive lazy-loading by replacing their __getattr__ methods.
 
         Parameters
         ----------
         name : str
-            Name of the module to import, without the package prefix.
+            Module name to import (without parent package prefix)
 
         Returns
         -------
         module
-            The imported module or package.
+            The imported module or subpackage
+
+        Raises
+        ------
+        AttributeError
+            If module doesn't exist or can't be imported
+
+        Notes
+        -----
+        - Uses ImportError/AttributeError specifically for Jedi compatibility
+        - Jedi's autocompletion engine ignores only these exceptions during
+          namespace exploration
+        - Caches imported modules in package_context dictionary
+        - Sets up recursive importers for subpackages
+        - Provides standard attribute error messages
+
+        Implementation handles Jedi's aggressive autocompletion which uses
+        __getattr__ to discover available attributes, ignoring only ImportError
+        and AttributeError when exploring namespaces.
+
+        The Jupyter ecosystem, which has become the most important interactive
+        environment in the scientific domain, uses Jedi as its autocompletion
+        engine.
 
         """
+
         # Name of the module to import
         to_import_name = f"{self.package_name}.{name}"
 
         # If the module is already in the context, return it
-        mod_or_pkg = importlib.import_module(to_import_name)
+        try:
+            mod_or_pkg = importlib.import_module(to_import_name)
+            # Add the module to the context
+            self.package_context[name] = mod_or_pkg
 
-        # Add the module to the context
-        self.package_context[name] = mod_or_pkg
-
-        # If the imported module is a package, replace its __getattr__ method
-        if is_package(mod_or_pkg):
-            ondemand_importer = _OnDemandImporter(to_import_name, mod_or_pkg)
-            mod_or_pkg.__getattr__ = ondemand_importer.import_module
-            mod_or_pkg.__dir__ = ondemand_importer.list_available_modules
+            # If the imported module is a package, replace its __getattr__ method
+            if is_package(mod_or_pkg):
+                ondemand_importer = _OnDemandImporter(
+                    to_import_name, mod_or_pkg
+                )
+                mod_or_pkg.__getattr__ = ondemand_importer.import_module
+        except ImportError:
+            try:
+                mod_or_pkg = self.package_context[name]
+            except KeyError:
+                # If the module is not in the context, raise an error
+                raise AttributeError(
+                    f"Module '{self.package_name}' has no attribute '{name}'"
+                )
 
         return mod_or_pkg
 
