@@ -17,8 +17,7 @@ imports the module when the object is called.
 
 Notes
 -----
-
-This ondemand importer is based on the one from scikit-learn, but adds a
+This ondemand importer is inspired on the one from scikit-learn, but adds a
 more power to introspection.
 
 """
@@ -61,9 +60,8 @@ def is_package(obj):
 
 
 @dc.dataclass(frozen=True)
-class _OnDemandImporter:
-    """
-    Enhanced on-demand importer for lazy loading of package modules.
+class OnDemandImporter:
+    """Enhanced on-demand importer for lazy loading of package modules.
 
     This class implements a mechanism for lazy loading of modules within a
     package. It postpones the import of a module until it is explicitly
@@ -92,7 +90,7 @@ class _OnDemandImporter:
     package_name: str
     package: types.ModuleType
 
-    def __dataclass_post_init__(self):
+    def __post_init__(self):
         """
         Post-initialization validation.
 
@@ -104,7 +102,7 @@ class _OnDemandImporter:
             If the provided package object is not actually a package.
         """
         if not is_package(self.package):
-            raise ValueError(f"Object {self.package_name} is not a package")
+            raise ValueError(f"Object '{self.package_name}' is not a package")
 
     @property
     def package_context(self):
@@ -130,48 +128,43 @@ class _OnDemandImporter:
         """
         return self.package.__path__
 
-    def import_module(self, name):
-        """Dynamically imports a submodule and adds it to the parent package \
-        context.
+    def import_or_get_attribute(self, name):
+        """Dynamically imports or retrieves a module as an attribute.
 
-        Core of the lazy-loading mechanism that handles imports when attributes
-        are requested but not yet loaded. Configures imported packages for
-        recursive lazy-loading by replacing their __getattr__ methods.
+        This function is the core of the lazy-loading mechanism. It either
+        returns an  already loaded module from cache or imports it when first
+        requested, then adds  it to the parent package namespace.
 
         Parameters
         ----------
         name : str
-            Module name to import (without parent package prefix)
+            Module name to import or retrieve (without parent package prefix)
 
         Returns
         -------
         module
-            The imported module or subpackage
+            The cached or newly imported module or subpackage
 
         Raises
         ------
         AttributeError
-            If module doesn't exist or can't be imported
+            If the module doesn't exist or cannot be imported
 
         Notes
         -----
-        - Uses ImportError/AttributeError specifically for Jedi compatibility
-        - Jedi's autocompletion engine ignores only these exceptions during
-          namespace exploration
-        - Caches imported modules in package_context dictionary
-        - Sets up recursive importers for subpackages
-        - Provides standard attribute error messages
+        The implementation:
+        - First checks if the module exists in the package_context
+          dictionary cache
+        - Imports the module if not found in cache
+        - Sets up recursive lazy-loading for any imported subpackages
+        - Raises AttributeError specifically for Jedi compatibility
 
-        Implementation handles Jedi's aggressive autocompletion which uses
-        __getattr__ to discover available attributes, ignoring only ImportError
-        and AttributeError when exploring namespaces.
-
-        The Jupyter ecosystem, which has become the most important interactive
-        environment in the scientific domain, uses Jedi as its autocompletion
-        engine.
+        Jedi, the autocompletion engine used in Jupyter and other scientific
+        environments, explores namespaces by calling __getattr__ and only
+        ignores  ImportError and AttributeError exceptions during this process.
+        This implementation ensures compatibility with Jedi's behavior.
 
         """
-
         # Name of the module to import
         to_import_name = f"{self.package_name}.{name}"
 
@@ -181,12 +174,16 @@ class _OnDemandImporter:
             # Add the module to the context
             self.package_context[name] = mod_or_pkg
 
-            # If the imported module is a package, replace its __getattr__ method
+            # If the imported module is a package, replace its __getattr__
+            # method
             if is_package(mod_or_pkg):
-                ondemand_importer = _OnDemandImporter(
+                ondemand_importer = OnDemandImporter(
                     to_import_name, mod_or_pkg
                 )
-                mod_or_pkg.__getattr__ = ondemand_importer.import_module
+                mod_or_pkg.__getattr__ = (
+                    ondemand_importer.import_or_get_attribute
+                )
+                mod_or_pkg.__dir__ = ondemand_importer.list_available_modules
         except ImportError:
             try:
                 mod_or_pkg = self.package_context[name]
@@ -244,5 +241,5 @@ def mk_ondemand_importer_for(package_name):
 
     """
     package = sys.modules[package_name]
-    ondemand_importer = _OnDemandImporter(package_name, package)
+    ondemand_importer = OnDemandImporter(package_name, package)
     return ondemand_importer

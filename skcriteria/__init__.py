@@ -42,7 +42,7 @@ __version__ = tuple(VERSION.split("."))
 # Patch __getattr__ and __dir__ to use ondemand_importer
 # This enable the laxy loading of submodules without importing them
 ondemand_importer = mk_ondemand_importer_for("skcriteria")
-__getattr__ = ondemand_importer.import_module
+__getattr__ = ondemand_importer.import_or_get_attribute
 __dir__ = ondemand_importer.list_available_modules
 
 
