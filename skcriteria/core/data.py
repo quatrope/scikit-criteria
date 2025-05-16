@@ -575,6 +575,73 @@ class DecisionMatrix(DiffEqualityMixin):
             "criteria": np.array(self.criteria, copy=True),
         }
 
+    def to_latex(self, bold_columns=True, **kwargs):
+        """Generate LaTeX table.
+
+        Parameters
+        ----------
+        bold_columns : bool, default=True
+            If True, bold the columns.
+
+        Same parameters as ``pandas.DataFrame.to_latex()``.
+
+        Returns
+        -------
+        str
+            LaTeX table.
+
+        Notes
+        -----
+        By default, this method uses ``bold_rows=True``.
+
+        """
+        # set default parameter for pandas.DataFrame.to_latex()
+        kwargs.setdefault("bold_rows", True)
+
+        # create a DataFrame version of the DecisionMatrix
+        df = self.to_dataframe()
+
+        # generate the column names
+        columns = (
+            [rf"\textbf{{{col}}}" for col in df.columns]
+            if bold_columns
+            else list(df.columns)
+        )
+
+        # change the column names of the DataFrame
+        # this is a context manager, so it will be reverted automatically
+        with df_temporal_header(df, columns) as df:
+            # generate the latex
+            original_latex = df.to_latex(**kwargs)
+
+        # split the latex in lines
+        latex_lines = original_latex.splitlines()
+
+        # generate the string to search the weights line
+        # this is used to add a line break before the weights row
+        weights_line_starts_with = (
+            r"\textbf{weights} & " if kwargs["bold_rows"] else "weights & "
+        )
+
+        # search the line number of the weights
+        weights_line_number = None
+        for lineno, line in enumerate(latex_lines):
+            if line.startswith(weights_line_starts_with):
+                weights_line_number = lineno
+                break
+
+        # add a line break after the weights row
+        # TODO: this might only work if the pandas stylers are
+        #       configured with the default settings
+        if weights_line_number:  # pragma: no cover
+            latex_lines.insert(weights_line_number + 1, r"\midrule")
+
+        # join the lines again
+        latex = "\n".join(latex_lines)
+
+        # return the final latex
+        return latex
+
     @deprecate.deprecated(
         reason=(
             "Use ``DecisionMatrix.stats()``, "

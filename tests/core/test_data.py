@@ -366,6 +366,32 @@ def test_DecisionMatrix_to_dict(data_values):
     assert np.all(cmp.values())
 
 
+def test_DecisionMatrix_to_latex(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+
+    latex = dm.to_latex()
+
+    # create the expected table
+    df = dm.to_dataframe()
+    df.columns = [rf"\textbf{{{col}}}" for col in df.columns]
+
+    expected = df.to_latex(bold_rows=True)
+
+    expected_lines = expected.splitlines()
+    expected_lines.insert(6, r"\midrule")
+    expected = "\n".join(expected_lines)
+
+    assert latex == expected
+
+
 def test_DecisionMatrix_describe(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 
