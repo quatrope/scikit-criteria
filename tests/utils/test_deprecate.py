@@ -16,6 +16,8 @@
 # IMPORTS
 # =============================================================================
 
+from inspect import cleandoc, getdoc
+
 import pytest
 
 from skcriteria.utils import deprecate
@@ -88,7 +90,8 @@ def test_deprecated():
         """
         pass
 
-    expected_doc = """Zaraza.
+    expected_doc = cleandoc(
+        """Zaraza.
 
         Foo
 
@@ -107,6 +110,7 @@ def test_deprecated():
             Nothing to return.
 
         """
+    )
 
     decorator = deprecate.deprecated(reason="because foo", version=0.66)
     func = decorator(func)
@@ -114,11 +118,11 @@ def test_deprecated():
     with pytest.deprecated_call():
         func()
 
-    assert func.__doc__ == expected_doc
+    assert getdoc(func) == expected_doc
 
     # this can be useful to catch bugs
     # print("-" * 100)
-    # print(repr(func.__doc__))
+    # print(repr(getdoc(func)))
     # print(repr(expected_doc))
     # print("-" * 100)
 
@@ -142,7 +146,8 @@ def test_will_change():
         """
         pass
 
-    expected_doc = """Zaraza.
+    expected_doc = cleandoc(
+        """Zaraza.
 
         Foo
 
@@ -161,6 +166,7 @@ def test_will_change():
             Nothing to return.
 
         """
+    )
 
     decorator = deprecate.will_change(reason="because foo", version=0.66)
     func = decorator(func)
@@ -168,10 +174,10 @@ def test_will_change():
     with pytest.warns(deprecate.SKCriteriaFutureWarning):
         func()
 
-    assert func.__doc__ == expected_doc
+    assert getdoc(func) == expected_doc
 
     # this can be useful to catch bugs
     # print("-" * 100)
-    # print(repr(func.__doc__))
+    # print(repr(getdoc(func)))
     # print(repr(expected_doc))
     # print("-" * 100)
