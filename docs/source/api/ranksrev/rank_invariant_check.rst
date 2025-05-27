@@ -1,5 +1,5 @@
-``skcriteria.cmp.ranks_rev.ranks_inv_check`` module
-===================================================
+``skcriteria.ranksrev.ranks_inv_check`` module
+==============================================
 
 .. automodule:: skcriteria.ranksrev.rank_invariant_check
    :members:
