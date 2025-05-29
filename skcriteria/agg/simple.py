@@ -193,3 +193,90 @@ class WeightedProductModel(SKCDecisionMakerABC):
             values=values,
             extra=extra,
         )
+
+
+# =============================================================================
+# WASPAS
+# =============================================================================
+
+
+def waspas(matrix, weights, l=0.5):
+    """Execute Weighted Aggregated Sum Product ASsessment without any validation."""
+
+    _, q_sum = wsm(matrix, weights)
+
+    _, log10_score_wpm = wpm(matrix, weights)
+    q_prod = 10**log10_score_wpm
+
+    score = l * q_sum + (1 - l) * q_prod
+
+    return rank.rank_values(score, reverse=True), score
+
+
+class WASPASModel(SKCDecisionMakerABC):
+    r"""The Weighted Aggregated Sum Product ASsessment method.
+
+    WASPAS is a multicriteria decision analysis method that combines the
+    Weighted Sum Model (WSM) and the Weighted Product Model (WPM) using
+    an aggregation parameter :math:`\lambda \in [0, 1]`.
+
+    It is very important to state here that it is applicable only
+    when all the data are expressed in exactly the same unit. If this is not
+    the case, then the final result is equivalent to "adding apples and
+    oranges". To avoid this problem a previous normalization step is necessary.
+
+    In general, suppose that a given MCDA problem is defined on :math:`m`
+    alternatives and :math:`n` decision criteria. Let :math:`w_j` denote
+    the weight of criterion :math:`C_j`, and :math:`a_{ij}` be the
+    performance value of alternative :math:`A_i` with respect to
+    criterion :math:`C_j`.
+
+    The WASPAS score of alternative :math:`A_i` is defined as:
+
+    .. math::
+
+        A_i^{WASPAS} = \lambda \cdot \sum_{j=1}^{n} w_j a_{ij} +
+                    (1 - \lambda) \cdot \prod_{j=1}^{n} a_{ij}^{w_j}
+
+    By default, :math:`\lambda = 0.5`.
+
+    Raises
+    ------
+    ValueError:
+        If some objective is for minimization,
+        or some value in the matrix is <= 0,
+        or if the parameter `l` is not in the range [0, 1].
+
+    References
+    ----------
+    :cite:p:`zavadskas2012waspas`
+    """
+
+    _skcriteria_parameters = ["l"]
+
+    def __init__(self, l=0.5):
+        l = float(l)
+        if not (1 >= l >= 0):
+            raise ValueError(f"l must be a value between 0 and 1. Found {l}")
+        self._l = l
+
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, weights, objectives, **kwargs):
+        if Objective.MIN.value in objectives:
+            raise ValueError(
+                "WASPASModel can't operate with minimize objective"
+            )
+        if np.any(matrix <= 0):
+            raise ValueError("WASPASModel can't operate with values <= 0")
+
+        rank, score = waspas(matrix, weights, self._l)
+        return rank, {"score": score}
+
+    @doc_inherit(SKCDecisionMakerABC._make_result)
+    def _make_result(self, alternatives, values, extra):
+        return RankResult(
+            "WASPASModel",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
+        )
