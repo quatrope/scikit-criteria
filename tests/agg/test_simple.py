@@ -413,40 +413,35 @@ def test_paper_expected_results_waspas_lambda_one_behaves_like_wsm():
     )
 
 
-def test_waspas_lambda_zero_behaves_like_wpm():
-    """
-    Test WASPAS with l=0 behaves like WeightedProductModel.
-    """
+@pytest.mark.parametrize(
+    "ranker_cls, lambda_value",
+    [
+        (WeightedProductModel, 0),
+        (WeightedSumModel, 1),
+    ],
+)
+def test_waspas_model_extreme_lambdas_behave_like_known_models(
+    ranker_cls, lambda_value
+):
     seed = 42
     dm = _random_waspas_inputs(seed)
 
-    ranker_wpm = WeightedProductModel()
-    result_wpm = ranker_wpm.evaluate(dm)
+    expected_ranker = ranker_cls()
+    expected_result = expected_ranker.evaluate(dm)
 
-    ranker_waspas = WASPASModel(l=0)
-    result_waspas = ranker_waspas.evaluate(dm)
+    waspas_ranker = WASPASModel(l=lambda_value)
+    waspas_result = waspas_ranker.evaluate(dm)
 
-    assert result_waspas.values_equals(result_wpm)
+    assert waspas_result.values_equals(expected_result)
     assert np.allclose(
-        result_waspas.e_.score, 10**result_wpm.e_.score, atol=1e-4
+        waspas_result.e_.score,
+        (
+            10**expected_result.e_.score
+            if lambda_value == 0
+            else expected_result.e_.score
+        ),
+        atol=1e-4,
     )
-
-
-def test_waspas_lambda_one_behaves_like_wsm():
-    """
-    Test WASPAS with l=1 behaves like WeightedSumModel.
-    """
-    seed = 42
-    dm = _random_waspas_inputs(seed)
-
-    ranker_wsm = WeightedSumModel()
-    result_wsm = ranker_wsm.evaluate(dm)
-
-    ranker_waspas = WASPASModel(l=1)
-    result_waspas = ranker_waspas.evaluate(dm)
-
-    assert result_waspas.values_equals(result_wsm)
-    assert np.allclose(result_waspas.e_.score, result_wsm.e_.score, atol=1e-4)
 
 
 def _random_waspas_inputs(n_alt=4, n_crit=5, cost_ratio=0.3, seed=None):
@@ -563,18 +558,14 @@ def test_WASPASModel_with_zero_fails():
         ranker.evaluate(dm)
 
 
-def test_WASPASModel_invalid_l_values():
+@pytest.mark.parametrize("invalid_l", [-0.1, 1.1, 2, -5])
+def test_WASPASModel_invalid_l_values(invalid_l):
     """WASPAS should raise ValueError if l is not in [0, 1]"""
-    invalid_l_values = [-0.1, 1.1, 2, -5]
-
     dm = skcriteria.mkdm(
         matrix=[[1, 2], [3, 4]],
         objectives=[max, max],
     )
 
-    for invalid_l in invalid_l_values:
-        with pytest.raises(
-            ValueError, match="l must be a value between 0 and 1"
-        ):
-            ranker = WASPASModel(l=invalid_l)
-            ranker.evaluate(dm)
+    with pytest.raises(ValueError, match="l must be a value between 0 and 1"):
+        ranker = WASPASModel(l=invalid_l)
+        ranker.evaluate(dm)
