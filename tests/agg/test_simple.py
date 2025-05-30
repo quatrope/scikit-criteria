@@ -25,7 +25,7 @@ from skcriteria.agg import RankResult
 from skcriteria.agg.simple import (
     WeightedProductModel,
     WeightedSumModel,
-    WASPASModel,
+    WeightedAggregatedSumProductAssessment,
 )
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler
@@ -429,7 +429,7 @@ def test_waspas_model_extreme_lambdas_behave_like_known_models(
     expected_ranker = ranker_cls()
     expected_result = expected_ranker.evaluate(dm)
 
-    waspas_ranker = WASPASModel(l=lambda_value)
+    waspas_ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
     waspas_result = waspas_ranker.evaluate(dm)
 
     assert waspas_result.values_equals(expected_result)
@@ -530,42 +530,45 @@ def test_WASPASModel_example():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
 
 
-def test_WASPASModel_with_minimize_fails():
+def test_WASPAS_with_minimize_fails():
     """WASPAS should raise ValueError if input matrix contains min objectives."""
     dm = skcriteria.mkdm(
         matrix=[[1, 7, 3], [3, 5, 6]],
         objectives=[max, min, max],
     )
-    ranker = WASPASModel()
+    ranker = WeightedAggregatedSumProductAssessment()
 
     with pytest.raises(
-        ValueError, match="WASPASModel can't operate with minimize objective"
+        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with minimize objective"
     ):
         ranker.evaluate(dm)
 
 
-def test_WASPASModel_with_zero_fails():
+def test_WASPAS_with_zero_fails():
     """WASPAS should raise ValueError if matrix contains 0s (division/log problems)."""
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 0, 6]],
         objectives=[max, max, max],
     )
-    ranker = WASPASModel()
+    ranker = WeightedAggregatedSumProductAssessment()
 
     with pytest.raises(
-        ValueError, match="WASPASModel can't operate with values <= 0"
+        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with values <= 0"
     ):
         ranker.evaluate(dm)
 
 
 @pytest.mark.parametrize("invalid_l", [-0.1, 1.1, 2, -5])
-def test_WASPASModel_invalid_l_values(invalid_l):
+def test_WASPAS_invalid_l_values(invalid_l):
     """WASPAS should raise ValueError if l is not in [0, 1]"""
     dm = skcriteria.mkdm(
         matrix=[[1, 2], [3, 4]],
         objectives=[max, max],
     )
 
-    with pytest.raises(ValueError, match="l must be a value between 0 and 1"):
-        ranker = WASPASModel(l=invalid_l)
+    with pytest.raises(
+            ValueError,
+            match=f"WeightedAggregatedSumProductAssessment requires 'l' to be between 0 and 1, but found {invalid_l}."
+    ):
+        ranker = WeightedAggregatedSumProductAssessment(l=invalid_l)
         ranker.evaluate(dm)
