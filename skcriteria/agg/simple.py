@@ -206,7 +206,7 @@ def waspas(matrix, weights, l=0.5):
     _, q_sum = wsm(matrix, weights)
 
     _, log10_score_wpm = wpm(matrix, weights)
-    q_prod = 10**log10_score_wpm
+    q_prod = np.power(10, log10_score_wpm)
 
     score = l * q_sum + (1 - l) * q_prod
 
