@@ -276,63 +276,129 @@ def _random_waspas_inputs(n_alt=4, n_crit=5, cost_ratio=0.3, seed=None):
     return dm
 
 
-def test_WASPASModel_example():
-    """
-    Test WASPAS with normalized matrix and known result.
-
-    Reference: Zavadskas, E. K. et al. (2012). Optimization of weighted aggregated sum product assessment.
-    Elektronika ir elektrotechnika, 122(6), 3–6.
-    """
-    matrix = [
-        [30, 23, 5, 0.745, 0.745, 1500, 5000],
-        [18, 13, 15, 0.745, 0.745, 1300, 6000],
-        [15, 12, 10, 0.500, 0.500, 950, 7000],
-        [25, 20, 13, 0.745, 0.745, 1200, 4000],
-        [14, 18, 14, 0.255, 0.745, 950, 3500],
-        [17, 15, 9, 0.745, 0.500, 1250, 5250],
-        [23, 18, 20, 0.500, 0.745, 1100, 3000],
-        [16, 8, 14, 0.255, 0.500, 1500, 3000],
-    ]
-    objectives = [max, max, max, max, max, min, min]
-    weights = [0.1181, 0.1181, 0.0445, 0.1181, 0.2861, 0.2861, 0.0445]
-
-    def _linear_normalization(x, cost=False):
-        if cost:
-            return np.min(x) / x
-        return x / np.max(x)
-
-    norm_matrix = np.asarray(matrix, dtype=float)
-    for i, obj in enumerate(objectives):
-        is_cost = obj is min
-        norm_matrix[:, i] = _linear_normalization(
-            norm_matrix[:, i], cost=is_cost
+@pytest.mark.parametrize(
+    "l, expected_rank, expected_scores",
+    [
+        (
+            0,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8578, 0.8144, 0.8408, 0.9413, 0.8632,
+                0.8241, 0.8454, 0.8915, 0.8987, 0.8697]
+        ),
+        (
+            0.1,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8580, 0.8149, 0.8410, 0.9414, 0.8633,
+                0.8249, 0.8464, 0.8922, 0.8995, 0.8706]
+        ),
+        (
+            0.2,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8581, 0.8154, 0.8412, 0.9415, 0.8634,
+                0.8256, 0.8474, 0.8929, 0.9003, 0.8714]
+        ),
+        (
+            0.3,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8582, 0.8159, 0.8414, 0.9415, 0.8636,
+                0.8263, 0.8484, 0.8936, 0.9011, 0.8723]
+        ),
+        (
+            0.4,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8583, 0.8164, 0.8417, 0.9416, 0.8637,
+                0.8271, 0.8493, 0.8942, 0.9019, 0.8732]
+        ),
+        (
+            0.5,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8584, 0.8169, 0.8419, 0.9417, 0.8638,
+                0.8278, 0.8503, 0.8949, 0.9027, 0.8740]
+        ),
+        (
+            0.6,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8585, 0.8174, 0.8421, 0.9417, 0.8640,
+                0.8286, 0.8513, 0.8956, 0.9035, 0.8749]
+        ),
+        (
+            0.7,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8586, 0.8179, 0.8423, 0.9418, 0.8641,
+                0.8293, 0.8523, 0.8963, 0.9043, 0.8758]
+        ),
+        (
+            0.8,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8588, 0.8184, 0.8425, 0.9419, 0.8643,
+                0.8300, 0.8532, 0.8969, 0.9051, 0.8766]
+        ),
+        (
+            0.9,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8589, 0.8189, 0.8427, 0.9419, 0.8644,
+                0.8308, 0.8542, 0.8976, 0.9059, 0.8775]
+        ),
+        (
+            1,
+            [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
+            [0.8590, 0.8194, 0.8430, 0.9420, 0.8645,
+                0.8315, 0.8552, 0.8983, 0.9067, 0.8784]
         )
+    ],
+)
+def test_WASPAS_chakraborty2015applications(
+        l,
+        expected_rank,
+        expected_scores):
+    """
+    Data from:
+
+        Chakraborty, S., Zavadskas, E. K., & Antucheviciene, J. (2015).
+        Applications of WASPAS method as a multi-criteria decision-making tool.
+        Economic Computation and Economic Cybernetics Studies and Research, 49(1), 5-22.
+        Example 2.
+
+        This data corresponds to Example 2 from the paper.
+    """
+
+    matrix = [
+        [581818, 54.49, 3, 5500],
+        [595454, 49.73, 3, 4500],
+        [586060, 51.24, 3, 5000],
+        [522727, 45.71, 3, 5800],
+        [561818, 52.66, 3, 5200],
+        [543030, 74.46, 4, 5600],
+        [522727, 75.42, 4, 5800],
+        [486970, 62.62, 4, 5600],
+        [509394, 65.87, 4, 6400],
+        [513333, 70.67, 4, 6000]
+    ]
+
+    # Normalize the matrix
+    objectives = [min, min, min, max]
+    norm_matrix = np.asarray(matrix, dtype=np.float64)
+    for i, obj in enumerate(objectives):
+        if obj is min:
+            norm_matrix[:, i] = np.min(norm_matrix[:, i]) / norm_matrix[:, i]
+        else:
+            norm_matrix[:, i] = norm_matrix[:, i] / np.max(norm_matrix[:, i])
 
     dm = skcriteria.mkdm(
         matrix=norm_matrix,
-        objectives=[max] * 7,
-        weights=weights,
+        objectives=[max] * 4,
+        weights=[0.467, 0.160, 0.095, 0.278],
+        criteria=["PC", "FS", "MN", "P"],
     )
 
     expected = RankResult(
-        "WASPASModel",
-        ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7"],
-        [3, 5, 7, 1, 4, 6, 2, 8],
-        {
-            "score": [
-                0.8329,
-                0.7884,
-                0.6987,
-                0.8831,
-                0.7971,
-                0.7036,
-                0.8728,
-                0.5749,
-            ]
-        },
+        "WeightedAggregatedSumProductAssessment",
+        ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"],
+        expected_rank,
+        {"score": expected_scores},
     )
 
-    ranker = WASPASModel(l=0.5)
+    ranker = WeightedAggregatedSumProductAssessment(l=l)
     result = ranker.evaluate(dm)
 
     assert result.values_equals(expected)
