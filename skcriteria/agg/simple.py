@@ -259,6 +259,11 @@ class WASPASModel(SKCDecisionMakerABC):
         if not (1 >= l >= 0):
             raise ValueError(f"l must be a value between 0 and 1. Found {l}")
         self._l = l
+    
+    @property
+    def l(self):
+        """Aggregation parameter λ ∈ [0, 1] that balances WSM and WPM."""
+        return self._l
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
