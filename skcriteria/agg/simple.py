@@ -249,7 +249,7 @@ class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
 
     References
     ----------
-    :cite:p:`zavadskas2012waspas`
+    :cite:p:`zavadskas2012optimization`
     """
 
     _skcriteria_parameters = ["l"]
