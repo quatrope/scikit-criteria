@@ -20,6 +20,8 @@ from collections import OrderedDict
 
 import methodtools
 
+import networkx as nx
+
 import numpy as np
 
 import pandas as pd
@@ -312,7 +314,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
         return dominators
 
     def has_loops(self, *, strict=False):
-        """Retorna True si la matriz contiene loops de dominacia.
+        """Returns True if there is a loop in the dominance graph.
 
         A loop is defined as if there are alternatives `a0`, `a1` and 'a2' such
         that "a0 ≻ a1 ≻ a2 ≻ a0" if ``strict=True``, or "a0 ≽ a1 ≽ a2 ≽ a0"
@@ -330,27 +332,16 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
 
         Notes
         -----
-        If the result of this method is True, the ``dominators_of()`` method
-        raises a ``RecursionError`` for at least one alternative.
+        This method uses the networkx library to compute the dominance graph
+        and check if it is a DAG.
 
         """
-        # lets put the dominated alternatives last so our while loop will
-        # be shorter by extracting from the tail
+        adjacency_matrix = self.dominance(strict=strict)
 
-        alternatives = list(self.dominated(strict=strict).sort_values().index)
+        dg = nx.from_pandas_adjacency(
+            adjacency_matrix, create_using=nx.DiGraph
+        )
 
-        try:
-            while alternatives:
-                # dame la ultima alternativa (al final quedan las dominadas)
-                alt = alternatives.pop()
+        is_dag = nx.is_directed_acyclic_graph(dg)
 
-                # ahora dame todas las alternatives las cuales dominan
-                dominators = self.dominators_of(alt, strict=strict)
-
-                # las alternativas dominadoras ya pasaron por "dominated_by"
-                # por lo cual hay que sacarlas a todas de alternatives
-                alternatives = [a for a in alternatives if a not in dominators]
-
-        except RecursionError:
-            return True
-        return False
+        return not is_dag
