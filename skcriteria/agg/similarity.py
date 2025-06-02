@@ -146,3 +146,65 @@ class TOPSIS(SKCDecisionMakerABC):
         return RankResult(
             "TOPSIS", alternatives=alternatives, values=values, extra=extra
         )
+
+# =============================================================================
+# ARAS
+# =============================================================================
+
+
+def aras(matrix, objectives, weights):
+    # apply weights
+    wmtx = np.multiply(matrix, weights)
+
+    # extract mins and maxes
+    mins = np.min(wmtx, axis=0)
+    maxs = np.max(wmtx, axis=0)
+
+    # create the ideal and the anti ideal arrays
+    where_max = np.equal(objectives, Objective.MAX.value)
+    ideal = np.where(where_max, maxs, mins)
+
+    # calculate optimality function
+    score = np.sum(wmtx, axis=1)
+    ideal_score = np.sum(ideal)
+
+    # compare variation with the ideal
+    utility = score / ideal_score
+
+    return (
+        rank.rank_values(utility, reverse=True),
+        score,
+        ideal_score,
+        utility
+    )
+
+
+class ARAS(SKCDecisionMakerABC):
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+        if Objective.MIN.value in objectives:
+            warnings.warn(
+                "Although ARAS can operate with minimization objectives, "
+                "this is not recommended. Consider reversing the weights "
+                "for these cases."
+            )
+        ranking, scores, ideal_score, utility = aras(
+            matrix,
+            objectives,
+            weights,
+            **kwargs
+        )
+        return ranking, {
+            "score": scores,
+            "utility": utility,
+            "ideal_score": ideal_score
+        }
+
+    @doc_inherit(SKCDecisionMakerABC._make_result)
+    def _make_result(self, alternatives, values, extra):
+        return RankResult(
+            "ARAS", alternatives=alternatives, values=values, extra=extra
+        )
