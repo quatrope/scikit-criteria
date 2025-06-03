@@ -24,6 +24,8 @@ import itertools as it
 
 import joblib
 
+import networkx as nx
+
 import numpy as np
 
 import pandas as pd
@@ -31,7 +33,7 @@ import pandas as pd
 from ..agg import RankResult
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
-from ..utils import Bunch, unique_names
+from ..utils import Bunch, break_cycles_greedy, unique_names
 
 
 # =============================================================================
@@ -41,6 +43,13 @@ from ..utils import Bunch, unique_names
 
 class TransitivityChecker(SKCMethodABC):
     r""""""
+
+    _skcriteria_dm_type = "rank_reversal"
+    _skcriteria_parameters = [
+        "dmaker",
+        "parallel_backend",
+        "random_state",
+    ]
 
     def __init__(self, dmaker, *, parallel_backend=None, random_state=None):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
@@ -85,7 +94,7 @@ class TransitivityChecker(SKCMethodABC):
     # LOGIC ===================================================================
 
     def _evaluate_pairwise_submatrix(
-        decision_matrix, alternative_pair, pipeline
+        self, decision_matrix, alternative_pair, pipeline
     ):
         """
         Apply the MCDM pipeline to a sub-problem of two alternatives
@@ -113,40 +122,62 @@ class TransitivityChecker(SKCMethodABC):
             alternative.
 
         """
-        # FIRST THE DATA THAT WILL BE USED IN ALL THE ITERATIONS ==============
+        dmaker = self._dmaker
 
-        # the test configuration
-        dmaker = self.dmaker
-        parallel_backend = self._parallel_backend
-        random = self.random_state
-
-        # all alternatives to be used to check consistency
-        full_alternatives = dm.alternatives
-
-        # Pipeline to apply to all pairwise sub-problems
-        ws_pipe = mkpipe(
-            InvertMinimize(),
-            FilterNonDominated(),
-            SumScaler(target="weights"),
-            VectorScaler(target="matrix"),
-            WeightedSumModel(),
-        )
-
-        # Load Van 2021 Evaluation Dataset of cryptocurrencies
-        dm = skc.datasets.load_van2021evaluation(windows_size=7)
-
-        # Get original ranking
-        original_rank = ws_pipe.evaluate(dm)
+        # we need a first reference ranking
+        original_rank = dmaker.evaluate(dm)
 
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
         pairwise_combinations = map(list, it.combinations(dm.alternatives, 2))
-
+        
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
-        with joblib.Parallel(prefer="processes") as P:
-            delayed_evaluation = joblib.delayed(_evaluate_pairwise_submatrix)
+        with joblib.Parallel(prefer=self._parallel_backend) as P:
+            delayed_evaluation = joblib.delayed(self._evaluate_pairwise_submatrix)
             results = P(
-                delayed_evaluation(dm, pair, ws_pipe)
-                for pair in pairwise_combinations
+                delayed_evaluation(dm, pair, dmaker) for pair in pairwise_combinations
             )
+
+        edges = []
+
+        for rr in results:
+            # Access the names of the compared alternatives
+            alt_names = rr.alternatives
+
+            # Access the ranking assigned by the model
+            ranks = rr.rank_
+
+            # Identify which one is ranked better (lower number is better)
+            if ranks[0] < ranks[1]:
+                edges.append((alt_names[0], alt_names[1]))
+            elif ranks[1] < ranks[0]:
+                edges.append((alt_names[1], alt_names[0]))
+            else: 
+                # Nontrivial case. Insert heuristics. 
+                # 1-2. Insert both (different order).
+                # 3-4. Insert only one.
+                # 5. Do not insert (could be disjointed) MAYBE IT WOULDN'T WORK
+                edges.append((alt_names[0], alt_names[1]))
+                edges.append((alt_names[1], alt_names[0]))
+
+        # TODO: Untie between ranking. Heuristics to break cycles. KEEP THE ORIGINAL GRAPH!!!!!!!!!!!!!!!!!!!!
+
+        # Create directed graph
+        G = nx.DiGraph()
+        G.add_edges_from(edges)
+
+        cycles = nx.recursive_simple_cycles(G)
+        acyclic_graph = break_cycles_greedy(G)
+
+        sorted_rank = list(nx.topological_sort(acyclic_graph))
+
+        untied_rank = RankResult(
+            method=original_rank.method,
+            alternatives=sorted_rank,
+            values=[i for i in range(1, len(sorted_rank) + 1)],
+            extra=extra,
+        )
+
+        named_ranks = unique_names(names=["Original", "Untied"], elements=[original_rank, untied_rank])
+        return RanksComparator(named_ranks)

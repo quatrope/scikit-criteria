@@ -9,21 +9,30 @@
 # DOCS
 # =============================================================================
 
-"""Utilities for a-posteriori analysis of experiments."""
+"""Utility to remove cycles from Networkx graphs."""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from .ranks_cmp import RanksComparator, mkrank_cmp
-#from .ranks_rev import RankInvariantChecker
+import warnings
+
+import networkx as nx
 
 # =============================================================================
-# ALL
+# FUNCTIONS
 # =============================================================================
 
-__all__ = [
-    "RanksComparator",
-    "RankInvariantChecker",
-    "mkrank_cmp",
-]
+
+def break_cycles_greedy(G):
+    """Removes cycles from a directed Networkx graph using a greedy algorithm.
+    Creates a copy."""
+    G = G.copy()
+    while True:
+        try:
+            cycle = nx.find_cycle(G, orientation="original")
+            G.remove_edge(*cycle[-1][:2])
+        except nx.exception.NetworkXNoCycle:
+            warnings.warn("No cycles found on graph")
+            break
+    return G
