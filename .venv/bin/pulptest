@@ -1,4 +1,4 @@
-#!/home/divasco/Documents/scikit-criteria/.venv/bin/python3.12
+#!/home/divasco/Documents/scikit-criteria/.venv/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys
