@@ -64,3 +64,4 @@ setuptools-*.zip
 result_images/
 docs/source/_dynamic/*.rst
 **/.ipynb_checkpoints
+.venv
