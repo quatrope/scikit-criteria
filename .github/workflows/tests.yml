@@ -6,6 +6,7 @@ name: Testing
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
   default-python: '3.11'
@@ -23,10 +24,10 @@ jobs:
           - tox_env: check-manifest
           - tox_env: check-testdir
           - tox_env: check-headers
-          - tox_end: check-apidocsdir
-          - tox_env: coverage
+          - tox_env: check-apidocsdir
           - tox_env: mkdocs
             pandoc: true
+            os: ubuntu-22.04
 
     # The operative sistem
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
@@ -59,3 +60,8 @@ jobs:
 
       - name: tox -re ${{ matrix.tox_env }}
         run: tox -re ${{ matrix.tox_env }}
+
+      # post optionals
+      - name: Coverage
+        if: ${{ startsWith( matrix.tox_env, 'py3' ) }}
+        run: tox -e coverage

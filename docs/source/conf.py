@@ -96,7 +96,7 @@ nbsphinx_allow_errors = True
 nbsphinx_prompt_width = "0pt"
 
 nbsphinx_prolog = """
-{% set docname = "docs/source/" + env.doc2path(env.docname, base=False) %}
+{% set docname = "docs/source/" + (env.doc2path(env.docname, base=False) | string) %}
 {% set release = "master" %}
 
 .. |nbsp| unicode:: 0xA0
