@@ -1,7 +1,7 @@
-``skcriteria.cmp.ranks_rev`` package
-====================================
+``skcriteria.ranksrev`` package
+===============================
 
-.. automodule:: skcriteria.cmp.ranks_rev
+.. automodule:: skcriteria.ranksrev
    :members:
    :undoc-members:
    :show-inheritance:
