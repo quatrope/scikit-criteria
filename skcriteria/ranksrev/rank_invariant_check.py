@@ -48,7 +48,7 @@ _LAST_DIFF_STRATEGIES = {
 
 class RankInvariantChecker(SKCMethodABC):
     r"""Stability evaluator of MCDA method's best alternative.
-
+    
     According to this criterion, the best alternative identified by the method
     should remain unchanged when a non-optimal alternative is replaced by a
     worse alternative, provided that the relative importance of each decision
