@@ -425,3 +425,36 @@ class CRITIC(SKCWeighterABC):
 @doc_inherit(CRITIC, warn_class=False)
 class Critic(CRITIC):
     pass
+
+
+# =============================================================================
+#
+# =============================================================================
+
+
+def rancom_weights(matrix):
+    # something np or pd or scipy related
+    pass
+
+class RANCOM(SKCWeighterABC):
+    _skcriteria_parameters = [] # list[str] each element should match the parameters
+                                # of the helper function
+
+    # if helper function has parameter:
+    def __init__(self, params="default value"):
+        self._param_n = params
+
+    @property
+    def param_n(self):
+        """Nice docstrings that explains param"""
+        return self._param_n
+    
+    @doc_inherit(SKCWeighterABC._weight_matrix) # always this
+    def _weight_matrix(self, matrix, objectives, weights):
+        # return helper function with necessary args
+        pass
+
+
+# =============================================================================
+#
+# =============================================================================
