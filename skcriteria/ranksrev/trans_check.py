@@ -161,7 +161,9 @@ class TransitivityChecker(SKCMethodABC):
                 edges.append((alt_names[0], alt_names[1]))
                 edges.append((alt_names[1], alt_names[0]))
 
-        # TODO: Untie between ranking. Heuristics to break cycles. KEEP THE ORIGINAL GRAPH!!!!!!!!!!!!!!!!!!!!
+        # TODO: Untie between ranking (topological sort).
+        # Heuristics to break cycles.
+        # KEEP THE ORIGINAL GRAPH!!!!!!!!!!!!!!!!!!!!
 
         # Create directed graph
         G = nx.DiGraph()
@@ -172,10 +174,21 @@ class TransitivityChecker(SKCMethodABC):
 
         sorted_rank = list(nx.topological_sort(acyclic_graph))
 
+        extra = {}
+        extra["rrt2"] = Bunch(
+            "rrt2",
+            {
+                "original_graph": G,
+                "cycles": cycles,
+                "acyclic_graph": acyclic_graph,
+                "sorted_rank": sorted_rank
+            }
+        )
+
         untied_rank = RankResult(
             method=original_rank.method,
             alternatives=sorted_rank,
-            values=[i for i in range(1, len(sorted_rank) + 1)],
+            values=np.arange(1, len(sorted_rank)+1),
             extra=extra,
         )
 

@@ -31,7 +31,7 @@ def break_cycles_greedy(G):
     while True:
         try:
             cycle = nx.find_cycle(G, orientation="original")
-            G.remove_edge(*cycle[-1][:2])
+            G.remove_edge(*cycle[0][:2])
         except nx.exception.NetworkXNoCycle:
             warnings.warn("No cycles found on graph")
             break
