@@ -34,12 +34,6 @@ from skcriteria.cmp import ranks_cmp
 # =============================================================================
 
 
-def test_RanksComparator_only_one_rank():
-    rank = agg.RankResult("test", ["a"], [1], {})
-    with pytest.raises(ValueError):
-        ranks_cmp.mkrank_cmp(rank)
-
-
 def test_RanksComparator_name_not_str():
     rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):

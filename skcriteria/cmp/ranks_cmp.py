@@ -86,17 +86,15 @@ class RanksComparator(Sequence, DiffEqualityMixin):
     _skcriteria_dm_type = "ranks_comparator"
     _skcriteria_parameters = ["ranks"]
 
-    def __init__(self, ranks):
+    def __init__(self, ranks, extra = {}):
         ranks = list(ranks)
         self._ranks = ranks
+        self.extra_ = extra
         self._validate_ranks()
 
     # INTERNALS ===============================================================
     def _validate_ranks(self):
         ranks = self._ranks
-
-        if len(ranks) <= 1:
-            raise ValueError("Please provide more than one ranking")
 
         used_names = set()
         first_alternatives = set(ranks[0][1].alternatives)

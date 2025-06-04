@@ -214,11 +214,6 @@ class DecisionMatrix(DiffEqualityMixin):
             else pd.DataFrame(data_df, copy=True)
         )
 
-        if callable(objectives):
-            objectives = [
-                objectives for i in range(len(self._data_df.columns))
-            ]
-
         self._objectives = np.array(objectives, dtype=object, copy=True)
         self._weights = np.array(weights, dtype=float, copy=True)
 
