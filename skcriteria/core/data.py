@@ -251,7 +251,7 @@ class DecisionMatrix(DiffEqualityMixin):
             The matrix of alternatives. Where every row is an alternative
             and every column is a criteria.
 
-        objectives: Iterable, Callable
+        objectives: Iterable
             The array with the sense of optimality of every
             criteria. You can use any alias provided by the objective class.
 
