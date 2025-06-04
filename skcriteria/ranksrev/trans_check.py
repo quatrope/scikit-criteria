@@ -174,7 +174,7 @@ class TransitivityChecker(SKCMethodABC):
 
         sorted_rank = list(nx.topological_sort(acyclic_graph))
 
-        extra = {}
+        extra = dict(original_rank.extra_.items())
         extra["rrt2"] = Bunch(
             "rrt2",
             {
