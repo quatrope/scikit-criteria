@@ -23,8 +23,7 @@ jobs:
           - tox_env: check-manifest
           - tox_env: check-testdir
           - tox_env: check-headers
-          - tox_end: check-apidocsdir
-          - tox_env: coverage
+          - tox_env: check-apidocsdir
           - tox_env: mkdocs
             pandoc: true
 
@@ -59,3 +58,8 @@ jobs:
 
       - name: tox -re ${{ matrix.tox_env }}
         run: tox -re ${{ matrix.tox_env }}
+
+      # post optionals
+      - name: Coverage
+        if: ${{ startsWith( matrix.tox_env, 'py3' ) }}
+        run: tox -e coverage
