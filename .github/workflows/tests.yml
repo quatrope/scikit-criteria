@@ -26,6 +26,7 @@ jobs:
           - tox_env: check-apidocsdir
           - tox_env: mkdocs
             pandoc: true
+            os: ubuntu-22.04
 
     # The operative sistem
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
