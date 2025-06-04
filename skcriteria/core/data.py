@@ -214,11 +214,6 @@ class DecisionMatrix(DiffEqualityMixin):
             else pd.DataFrame(data_df, copy=True)
         )
 
-        if callable(objectives):
-            objectives = [
-                objectives for i in range(len(self._data_df.columns))
-            ]
-
         self._objectives = np.array(objectives, dtype=object, copy=True)
         self._weights = np.array(weights, dtype=float, copy=True)
 
@@ -256,7 +251,7 @@ class DecisionMatrix(DiffEqualityMixin):
             The matrix of alternatives. Where every row is an alternative
             and every column is a criteria.
 
-        objectives: Iterable, Callable
+        objectives: Iterable
             The array with the sense of optimality of every
             criteria. You can use any alias provided by the objective class.
 
