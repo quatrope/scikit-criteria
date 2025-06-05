@@ -37,6 +37,22 @@ from ..utils import Bunch, break_cycles_greedy, unique_names
 
 
 # =============================================================================
+# INTERNAL FUNCTIONS
+# =============================================================================
+
+# TODO: discuss if this should move into a sepparate module
+
+def _untie_equivalent_ranks(r1, r2):
+    # The untie criteria is non-trivial and greatly affects the resulting graph.
+    # This default criteria inserts them with arbitrary order, but other
+    # heuristics could work.
+    # 1.   Inserting both ranks with a different order.
+    # 2-3. Insert only one rank.
+    # 4.   Insert both ranks in different orders (causing a cycle).
+    # 5.   Insert none (causing a disjount graph).
+    return ((r1, r2), (r2, r1))
+
+# =============================================================================
 # CLASS
 # =============================================================================
 
@@ -51,10 +67,15 @@ class TransitivityChecker(SKCMethodABC):
         "random_state",
     ]
 
-    def __init__(self, dmaker, *, parallel_backend=None, random_state=None):
+    def __init__(self, dmaker, *, parallel_backend=None, random_state=None, pair_rank_untier=None):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
+
+        # UNTIE EQUIVALENT RANKS
+        if pair_rank_untier and not callable(pair_rank_untier):
+            raise TypeError("'pair_rank_untier' must be callable")
+        self._pair_rank_untier = pair_rank_untier or _untie_equivalent_ranks
 
         # PARALLEL BACKEND
         self._parallel_backend = parallel_backend
@@ -130,7 +151,7 @@ class TransitivityChecker(SKCMethodABC):
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
         pairwise_combinations = map(list, it.combinations(dm.alternatives, 2))
-        
+
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
         with joblib.Parallel(prefer=self._parallel_backend) as P:
@@ -141,6 +162,7 @@ class TransitivityChecker(SKCMethodABC):
 
         edges = []
 
+        # TODO: move this to a different function
         for rr in results:
             # Access the names of the compared alternatives
             alt_names = rr.alternatives
@@ -153,13 +175,10 @@ class TransitivityChecker(SKCMethodABC):
                 edges.append((alt_names[0], alt_names[1]))
             elif ranks[1] < ranks[0]:
                 edges.append((alt_names[1], alt_names[0]))
-            else: 
-                # Nontrivial case. Insert heuristics. 
-                # 1-2. Insert both (different order).
-                # 3-4. Insert only one.
-                # 5. Do not insert (could be disjointed) MAYBE IT WOULDN'T WORK
-                edges.append((alt_names[0], alt_names[1]))
-                edges.append((alt_names[1], alt_names[0]))
+            else:
+                untied_ranks = self._pair_rank_untier(alt_names[0], alt_names[1])
+                if untied_ranks:
+                    edges.extend(untied_ranks)
 
         # TODO: Untie between ranking (topological sort).
         # Heuristics to break cycles.
