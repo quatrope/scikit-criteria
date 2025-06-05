@@ -58,7 +58,24 @@ def _untie_equivalent_ranks(r1, r2):
 
 
 class TransitivityChecker(SKCMethodABC):
-    r""""""
+    r"""
+    Parameters
+    ----------
+    dmaker: Decision maker - must implement the ``evaluate()`` method
+        The MCDA method, or pipeline to evaluate.
+
+    parallel_backend: str or None (default: None)
+        Evaluate alternatives using multithreading, multiprocessing, or
+        sequential computation
+
+    random_state: int, numpy.random.default_rng or None (default: None)
+        Controls the random state to generate variations in the sub-optimal
+        alternatives.
+
+    pair_rank_untier: callable or None (default: None)
+        Function that determines the order of 2 equivalent rankings.
+        Must return a sequence of pairs.
+    """
 
     _skcriteria_dm_type = "rank_reversal"
     _skcriteria_parameters = [
