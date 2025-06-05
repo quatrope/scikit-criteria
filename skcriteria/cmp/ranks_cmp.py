@@ -86,10 +86,10 @@ class RanksComparator(Sequence, DiffEqualityMixin):
     _skcriteria_dm_type = "ranks_comparator"
     _skcriteria_parameters = ["ranks"]
 
-    def __init__(self, ranks, extra = {}):
+    def __init__(self, ranks, extra={}):
         ranks = list(ranks)
         self._ranks = ranks
-        self.extra_ = extra
+        self._extra = Bunch("extra", extra)
         self._validate_ranks()
 
     # INTERNALS ===============================================================
@@ -131,6 +131,19 @@ class RanksComparator(Sequence, DiffEqualityMixin):
 
         """
         return Bunch("ranks", dict(self.ranks))
+    
+    @property
+    def extra_(self):
+        """Additional information about the comparison.
+
+        Note
+        ----
+        ``e_`` is an alias for this property.
+        
+        """
+        return self._extra
+    
+    e_ = extra_  # shortcut to extra_
 
     # DIFF! ===================================================================
 
