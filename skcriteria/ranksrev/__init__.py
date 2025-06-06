@@ -32,7 +32,7 @@ available options.
 # =============================================================================
 
 from .rank_invariant_check import RankInvariantChecker
-from .trans_check import TransitivityChecker
+from .transitivity_check import TransitivityChecker
 
 # =============================================================================
 # ALL

@@ -90,10 +90,11 @@ class TransitivityChecker(SKCMethodABC):
         dmaker,
         *,
         pair_rank_untier=None,
-        parallel_backend=None,
         random_state=None,
         cycle_removal_strategy="random",
         max_acyclic_graphs=10000,
+        parallel_backend=None,
+        n_jobs=None,
     ):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
@@ -106,6 +107,7 @@ class TransitivityChecker(SKCMethodABC):
 
         # PARALLEL BACKEND
         self._parallel_backend = parallel_backend
+        self._n_jobs = n_jobs
 
         # RANDOM
         self._random_state = np.random.default_rng(random_state)
@@ -154,6 +156,10 @@ class TransitivityChecker(SKCMethodABC):
     @property
     def max_acyclic_graphs(self):
         return self._max_acyclic_graphs
+
+    @property
+    def n_jobs(self):
+        return self._n_jobs
 
     # LOGIC ===================================================================
 
@@ -273,6 +279,38 @@ class TransitivityChecker(SKCMethodABC):
 
         return list(untied_ranks)
 
+    def _test_criterion_2(self, dm):
+        # Generate all pairwise combinations of alternatives
+        # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
+        pairwise_combinations = map(list, it.combinations(dm.alternatives, 2))
+
+        # Parallel processing of all pairwise sub-matrices
+        # Each resulting sub-matrix has 2 alternatives × k original criteria
+        with joblib.Parallel(
+            prefer=self._parallel_backend, n_jobs=self._n_jobs
+        ) as P:
+            delayed_evaluation = joblib.delayed(
+                self._evaluate_pairwise_submatrix
+            )
+            results = P(
+                delayed_evaluation(dm, pair, dmaker)
+                for pair in pairwise_combinations
+            )
+
+        edges = self._get_graph_edges(results)
+
+        # Create directed graph
+        graph = nx.DiGraph(edges)
+
+        trans_break = nx.chordal_cycle_graph(
+            graph
+        )  # TODO mejorar interpretabilidad
+        trans_break_rate = (
+            len(trans_break) / 49
+        )  # TODO total de 3ciclos, cambiar el 49
+
+        return graph, trans_break, trans_break_rate
+
     def evaluate(self, *, dm):
         """Executes a the transitivity test.
 
@@ -301,39 +339,10 @@ class TransitivityChecker(SKCMethodABC):
 
         extra = dict(orank.extra_.items())  # TODO MMMMMMMM VER
 
-        # Generate all pairwise combinations of alternatives
-        # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
-        pairwise_combinations = map(list, it.combinations(dm.alternatives, 2))
-
-        # Parallel processing of all pairwise sub-matrices
-        # Each resulting sub-matrix has 2 alternatives × k original criteria
-        # TODO: Agregar njobs (en __init__ tambien)
-        with joblib.Parallel(prefer=self._parallel_backend) as P:
-            delayed_evaluation = joblib.delayed(
-                self._evaluate_pairwise_submatrix
-            )
-            results = P(
-                delayed_evaluation(dm, pair, dmaker)
-                for pair in pairwise_combinations
-            )
-
-        edges = self._get_graph_edges(results)
-
-        # TODO: Separar funcionalidad grafos de rankings
-
-        # Create directed graph
-        g = nx.DiGraph()
-        g.add_edges_from(edges)
-
-        trans_break = nx.chordal_cycle_graph(
-            g
-        )  # TODO mejorar interpretabilidad
-        trans_break_rate = (
-            len(trans_break) / 49
-        )  # TODO total de 3ciclos, cambiar el 49
+        graph, trans_break, trans_break_rate = self._test_criterion_2(dm)
 
         # TODO: Configurar si devolver tied/untied
-        untied_ranks = self._get_ranks(g, orank, extra)
+        untied_ranks = self._get_ranks(graph, orank, extra)
 
         names = ["Original"] + [
             f"Untied{i+1}" for i in range(len(untied_ranks))
