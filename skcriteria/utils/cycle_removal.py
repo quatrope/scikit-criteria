@@ -76,7 +76,7 @@ def filter_minimal_removals(acyclic_graphs):
 
 
 # Strategy dictionary
-STRATEGIES = {
+_STRATEGIES = {
     "random": {"selector": _select_edge_random, "needs_freq": False},
     "weighted": {"selector": _select_edge_weighted, "needs_freq": True},
 }
@@ -120,7 +120,7 @@ def generate_acyclic_graphs(
     acyclic_graphs = []
 
     # Validate strategy
-    if strategy not in STRATEGIES:
+    if strategy not in _STRATEGIES:
         available_strategies = list(STRATEGIES.keys())
         raise ValueError(
             f"Unknown strategy: {strategy}. Available strategies: {available_strategies}"
