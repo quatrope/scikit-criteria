@@ -19,7 +19,7 @@ from . import lp, rank
 from .accabc import AccessorABC
 from .bunch import Bunch
 from .cmanagers import df_temporal_header, hidden
-from .cycle_removal import break_cycles_greedy
+from .cycle_removal import generate_acyclic_graphs
 from .deprecate import deprecated, will_change
 from .dict_cmp import dict_allclose
 from .doctools import doc_inherit
@@ -33,7 +33,7 @@ from .unames import unique_names
 
 __all__ = [
     "AccessorABC",
-    "break_cycles_greedy",
+    "generate_acyclic_graphs",
     "doc_inherit",
     "deprecated",
     "df_temporal_header",
