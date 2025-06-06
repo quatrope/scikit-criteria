@@ -98,7 +98,7 @@ def generate_acyclic_graphs(graph, strategy="random", max_attempts=1000, max_gra
     rng = random.Random(seed)
     seen_removals = set()
     acyclic_graphs = []
-    
+
     # Select strategy function and precalculate frequencies if needed
     if strategy == "random":
         select_edge = _select_edge_random
@@ -112,16 +112,16 @@ def generate_acyclic_graphs(graph, strategy="random", max_attempts=1000, max_gra
             edge_freq.update(edges)
     else:
         raise ValueError(f"Unknown strategy: {strategy}. Use 'random' or 'weighted'.")
-    
+
     attempts = 0
     while attempts < max_attempts and len(acyclic_graphs) < max_graphs:
         attempts += 1
         to_remove = set()
-        
+
         cycles = list(nx.simple_cycles(graph))
-        if not cycles:
+        if not cycles: # TODO: Corregir
             break
-        
+
         # Select edges to remove from each cycle
         for cycle in cycles:
             edge_to_remove = select_edge(cycle, edge_freq, rng)

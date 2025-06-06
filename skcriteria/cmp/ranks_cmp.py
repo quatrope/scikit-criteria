@@ -96,6 +96,8 @@ class RanksComparator(Sequence, DiffEqualityMixin):
     def _validate_ranks(self):
         ranks = self._ranks
 
+        
+
         used_names = set()
         first_alternatives = set(ranks[0][1].alternatives)
         for name, part in ranks:
@@ -142,7 +144,7 @@ class RanksComparator(Sequence, DiffEqualityMixin):
         
         """
         return self._extra
-    
+
     e_ = extra_  # shortcut to extra_
 
     # DIFF! ===================================================================
