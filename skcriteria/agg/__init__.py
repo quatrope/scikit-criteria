@@ -22,6 +22,7 @@ from ._agg_base import (
     ResultABC,
     SKCDecisionMakerABC,
 )
+from .mabac import MABAC
 
 # =============================================================================
 # ALL
@@ -32,4 +33,5 @@ __all__ = [
     "RankResult",
     "ResultABC",
     "SKCDecisionMakerABC",
-]
+    "MABAC"
+    ]
