@@ -33,8 +33,7 @@ import pandas as pd
 from ..agg import RankResult
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
-from ..utils import Bunch, break_cycles_greedy, unique_names
-
+from ..utils import Bunch, generate_acyclic_graphs, unique_names
 
 # =============================================================================
 # INTERNAL FUNCTIONS
@@ -84,7 +83,16 @@ class TransitivityChecker(SKCMethodABC):
         "random_state",
     ]
 
-    def __init__(self, dmaker, *, parallel_backend=None, random_state=None, pair_rank_untier=None):
+    def __init__(
+        self, 
+        dmaker,
+        *, 
+        pair_rank_untier=None,
+        parallel_backend=None, 
+        random_state=None, 
+        cycle_removal_strategy="random",
+        max_acyclic_graphs=10000
+    ):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
@@ -99,6 +107,12 @@ class TransitivityChecker(SKCMethodABC):
 
         # RANDOM
         self._random_state = np.random.default_rng(random_state)
+
+        # STRATEGY FOR REMOVAL OF CYCLES
+        self._cycle_removal_strategy = cycle_removal_strategy # TODO VERR CONDICION
+
+        # MAXIMIMUM PERMITED ACYCLIC GRAPHS TO BE GENERATED
+        self._max_acyclic_graphs = max_acyclic_graphs # TODO VER CONDICIONN
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -128,6 +142,14 @@ class TransitivityChecker(SKCMethodABC):
         """Controls the random state to generate variations in the \
         sub-optimal alternatives."""
         return self._random_state
+    
+    @property
+    def cycle_removal_strategy(self):
+        return self._cycle_removal_strategy
+    
+    @property
+    def max_acyclic_graphs(self):
+        return self._max_acyclic_graphs
 
     # LOGIC ===================================================================
 
@@ -140,7 +162,106 @@ class TransitivityChecker(SKCMethodABC):
         sub_dm = decision_matrix.loc[alternative_pair]
         return pipeline.evaluate(sub_dm)
 
-    def evaluate(self, dm):
+    def _get_graph_edges(self, *, results):            
+        """
+        Generate directed graph edges from pairwise comparison results.
+        
+        Parameters
+        ----------
+        results : iterable
+            Collection of comparison result objects. Each result must contain:
+            - alternatives : list or tuple
+                Names/identifiers of the two compared alternatives
+            - rank_ : list or array-like
+                Ranking values for each alternative (lower values indicate better ranking)
+        
+        Returns
+        -------
+        list
+            List of tuples (winner, loser) representing directed edges in the preference graph.
+            Each tuple indicates that the first alternative is preferred over the second.
+            For tied rankings, applies tie-breaking logic via _pair_rank_untier() method.
+        
+        Notes
+        -----
+        - Uses lower-is-better ranking system (rank 1 > rank 2 > rank 3)
+        - Automatically handles tied rankings through internal tie-breaking mechanism
+        - Output format is suitable for constructing tournament or preference graphs
+        """
+        edges = []
+
+        for rr in results:
+            # Access the names of the compared alternatives
+            alt_names = rr.alternatives
+
+            # Access the ranking assigned by the model
+            ranks = rr.rank_
+
+            # Identify which one is ranked better (lower number is better)
+            if ranks[0] < ranks[1]:
+                edges.append((alt_names[0], alt_names[1]))
+            elif ranks[1] < ranks[0]:
+                edges.append((alt_names[1], alt_names[0]))
+            else:
+                untied_ranks = self._pair_rank_untier(alt_names[0], alt_names[1])
+                if untied_ranks:
+                    edges.extend(untied_ranks)
+
+        return edges
+
+    def _create_rank_with_info(self, *, orank, extra, dag, edges):
+        
+        sorted_rank = list(nx.topological_sort(dag))
+
+        # TODO create a sort with ties
+
+        extra["rrt23"] = Bunch(
+            "rrt23",
+            {
+                "acyclic_graph": dag,  # TODO guardar aristas removidas, hacer en cycle_removal
+                "nose que edges" : edges
+            }
+        )
+
+        # TODO MAKE RIGHT ALTERNATIVE RANKING
+        
+        untied_rank = RankResult(
+            method=orank.method,
+            alternatives=sorted_rank,
+            values=np.arange(len(sorted_rank), 0, -1),
+            extra=extra,
+        )
+        
+        return untied_rank
+
+    def _get_ranks(self, *, g, orank, extra):
+
+        cycles = list(nx.simple_cycles(g))
+        untied_ranks = []
+        
+        if cycles:
+            # Generate acyclic graphs using the new cycle removal module
+            acyclic_graphs = generate_acyclic_graphs(
+                g, 
+                strategy=self._cycle_removal_strategy,
+                max_attempts=self._max_acyclic_graphs*10,     # TODO (agregamos parametro?) PAU, NI IDEA, VER
+                max_graphs=self._max_acyclic_graphs,
+                seed=self._random_state
+            )
+            # Generate sorted ranks for all acyclic graphs
+            # all_sorted_ranks = []
+            for dag, edges in acyclic_graphs:                 # TODO agregar if en el generate?
+                untied_rank = self._create_rank_with_info(orank,extra,dag,edges)
+                untied_ranks.append(untied_rank)
+        else:
+            # No cycles found, graph is already acyclic
+            dag = g.copy()
+            untied_rank = self._create_rank_with_info(orank,extra,dag)
+            untied_ranks.append(untied_rank)
+        
+        return list(untied_ranks)
+
+    def evaluate(self, *, dm):
         """Executes a the transitivity test.
 
         Parameters
@@ -160,10 +281,13 @@ class TransitivityChecker(SKCMethodABC):
             alternative.
 
         """
+        
         dmaker = self._dmaker
 
         # we need a first reference ranking
-        original_rank = dmaker.evaluate(dm)
+        orank = dmaker.evaluate(dm)
+        
+        extra = dict(orank.extra_.items())  # TODO MMMMMMMM VER
 
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
@@ -177,56 +301,27 @@ class TransitivityChecker(SKCMethodABC):
                 delayed_evaluation(dm, pair, dmaker) for pair in pairwise_combinations
             )
 
-        edges = []
-
-        # TODO: move this to a different function
-        for rr in results:
-            # Access the names of the compared alternatives
-            alt_names = rr.alternatives
-
-            # Access the ranking assigned by the model
-            ranks = rr.rank_
-
-            # Identify which one is ranked better (lower number is better)
-            if ranks[0] < ranks[1]:
-                edges.append((alt_names[0], alt_names[1]))
-            elif ranks[1] < ranks[0]:
-                edges.append((alt_names[1], alt_names[0]))
-            else:
-                untied_ranks = self._pair_rank_untier(alt_names[0], alt_names[1])
-                if untied_ranks:
-                    edges.extend(untied_ranks)
+        edges = self._get_graph_edges(results)
 
         # TODO: Untie between ranking (topological sort).
         # Heuristics to break cycles.
         # KEEP THE ORIGINAL GRAPH!!!!!!!!!!!!!!!!!!!!
 
         # Create directed graph
-        G = nx.DiGraph()
-        G.add_edges_from(edges)
+        g = nx.DiGraph()
+        g.add_edges_from(edges) 
 
-        cycles = nx.recursive_simple_cycles(G)
-        acyclic_graph = break_cycles_greedy(G)
+        trans_break = nx.chordal_cycle_graph(g) # TODO mejorar interpretabilidad
+        trans_break_rate = len(trans_break)/ 49 # TODO total de 3ciclos
 
-        sorted_rank = list(nx.topological_sort(acyclic_graph))
+        untied_ranks = self._get_ranks(g, orank, extra)
 
-        extra = dict(original_rank.extra_.items())
-        extra["rrt2"] = Bunch(
-            "rrt2",
-            {
-                "original_graph": G,
-                "cycles": cycles,
-                "acyclic_graph": acyclic_graph,
-                "sorted_rank": sorted_rank
-            }
-        )
-
-        untied_rank = RankResult(
-            method=original_rank.method,
-            alternatives=sorted_rank,
-            values=np.arange(1, len(sorted_rank)+1),
-            extra=extra,
-        )
-
-        named_ranks = unique_names(names=["Original", "Untied"], elements=[original_rank, untied_rank])
-        return RanksComparator(named_ranks)
+        names = ["Original"] + [f"Untied{i+1}" for i in range(len(untied_ranks))]
+        named_ranks = unique_names(names=names, elements=[orank] + untied_ranks)
+        
+        return RanksComparator(named_ranks, extra={
+                                                    "Pairwaise Dominance Graph": g,
+                                                    "Transivity Breaks": trans_break, 
+                                                    "Transivity Break Rate": trans_break_rate,
+                                                  }
+        ) 
