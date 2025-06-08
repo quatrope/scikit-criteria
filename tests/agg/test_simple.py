@@ -223,6 +223,68 @@ def test_WeightedProductModel_enwiki_1015567716():
 # =============================================================================
 
 
+@pytest.mark.parametrize(
+    "ranker_cls, lambda_value",
+    [
+        (WeightedSumModel, 1),
+        (WeightedProductModel, 0),
+    ],
+)
+def test_WASPAS_compared_to_known_models(
+    ranker_cls, lambda_value
+):
+    dm = skcriteria.mkdm(
+        matrix=[
+            [0.5099, 0.0465,  0.2427, 0.3246, 0.1166],
+            [0.2123, 0.7622,  0.2051, 0.3259, 0.5295],
+            [0.0280, 0.0456,  0.2134, 0.1151, 0.1359],
+            [0.2496, 0.1455,  0.3386, 0.2342, 0.2177],
+        ],
+        objectives=[max, max, max, max, max],
+        weights=[0.3672, 0.0933, 0.2405, 0.2770, 0.0217],
+    )
+
+    expected_ranker = ranker_cls()
+    expected_result = expected_ranker.evaluate(dm)
+
+    waspas_ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
+    waspas_result = waspas_ranker.evaluate(dm)
+
+    assert waspas_result.values_equals(expected_result)
+    assert np.allclose(
+        waspas_result.e_.score,
+        (
+            10**expected_result.e_.score
+            if lambda_value == 0
+            else expected_result.e_.score
+        ),
+        atol=1e-4,
+    )
+
+
+@pytest.mark.parametrize("lambda_value", [0, 0.25, 0.5, 0.75, 1])
+def test_WASPAS_verify_intermediate_calculations(lambda_value):
+    dm = skcriteria.mkdm(
+        matrix=[
+            [0.5099, 0.0465,  0.2427, 0.3246, 0.1166],
+            [0.2123, 0.7622,  0.2051, 0.3259, 0.5295],
+            [0.0280, 0.0456,  0.2134, 0.1151, 0.1359],
+            [0.2496, 0.1455,  0.3386, 0.2342, 0.2177],
+        ],
+        objectives=[max, max, max, max, max],
+        weights=[0.3672, 0.0933, 0.2405, 0.2770, 0.0217],
+    )
+
+    wsm_result = WeightedSumModel().evaluate(dm)
+    wpm_result = WeightedProductModel().evaluate(dm)
+
+    waspas_ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
+    waspas_result = waspas_ranker.evaluate(dm)
+
+    assert np.allclose(waspas_result.e_.wsm_scores, wsm_result.e_.score)
+    assert np.allclose(waspas_result.e_.log10_wpm_scores, wpm_result.e_.score)
+
+
 def test_WASPAS_with_minimize_fails():
     """WASPAS should raise ValueError if input matrix contains min objectives."""
     dm = skcriteria.mkdm(
