@@ -151,22 +151,15 @@ class TOPSIS(SKCDecisionMakerABC):
 # ARAS
 # =============================================================================
 
-
-def aras(matrix, objectives, weights):
+def aras(matrix, weights, ideal):
+    """Execute ARAS without any validation"""
     # apply weights
     wmtx = np.multiply(matrix, weights)
-
-    # extract mins and maxes
-    mins = np.min(wmtx, axis=0)
-    maxs = np.max(wmtx, axis=0)
-
-    # create the ideal and the anti ideal arrays
-    where_max = np.equal(objectives, Objective.MAX.value)
-    ideal = np.where(where_max, maxs, mins)
+    wideal = np.multiply(ideal, weights)
 
     # calculate optimality function
     score = np.sum(wmtx, axis=1)
-    ideal_score = np.sum(ideal)
+    ideal_score = np.sum(wideal)
 
     # compare variation with the ideal
     utility = score / ideal_score
@@ -174,14 +167,74 @@ def aras(matrix, objectives, weights):
     return (
         rank.rank_values(utility, reverse=True),
         score,
+        utility,
         ideal_score,
-        utility
+        wideal
     )
 
 
 class ARAS(SKCDecisionMakerABC):
+    """Additive Ratio Assessment (ARAS).
 
-    _skcriteria_parameters = []
+    ARAS (Additive Ratio Assessment) is a multi-criteria decision-making method
+    based on the principle that the optimal alternative has the greatest
+    utility degree compared to the ideal solution. The performance of each
+    alternative is calculated as the sum of its weighted criteria values,
+    and compared against an aggregated ideal score.
+
+    This implementation allows specifying a custom ideal vector. The ideal
+    should be a 1D array containing one ideal value per criterion. If not
+    provided (see future support), it should be computed based on the matrix
+    and the objective for each criterion.
+
+    Parameters
+    ----------
+    ideal : array_like
+        A 1D array containing the ideal values for each criterion, with the
+        same length as the number of columns in the decision matrix. For
+        maximization criteria, the ideal should be greater than or equal to
+        the maximum observed value. For minimization, it should be less than
+        or equal to the minimum observed value.
+
+    Notes
+    -----
+    Unlike methods based on distance metrics (like TOPSIS), ARAS directly
+    compares weighted aggregated values against a reference ideal score.
+    This makes it suitable for additive, linear comparisons across criteria.
+
+    The ideal vector is expected to match the dimensionality of the decision
+    matrix (i.e., one value per criterion) and to be coherent with the data.
+
+    Warnings
+    --------
+    UserWarning:
+        If some objective is to minimize.
+
+    References
+    ----------
+    :cite:p:`zavadskas2010new`
+    """
+
+    _skcriteria_parameters = ["ideal"]
+
+    def __init__(self, *, ideal): # To do: valor por defecto de ideal
+        self._ideal = ideal
+
+    @property
+    def ideal(self):
+        """Ideal array used to calculate ARAS."""
+        return self._ideal
+
+    def _check_ideal(self, matrix, objectives, ideal):
+        # Limit values per criterion (max or min depending on the objective)
+        bounds = np.where(
+            np.equal(objectives, Objective.MAX.value), # To do: max and min como variables distintas
+            np.max(matrix, axis=0),
+            np.min(matrix, axis=0)
+        )
+
+        # Return True if calculated ideal is the first row of the matrix
+        return bounds == ideal # To do: ideal no está en la matriz mas
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
@@ -191,16 +244,17 @@ class ARAS(SKCDecisionMakerABC):
                 "this is not recommended. Consider reversing the weights "
                 "for these cases."
             )
-        ranking, scores, ideal_score, utility = aras(
+
+        ranking, scores, utility, ideal_score, wideal = aras(
             matrix,
-            objectives,
             weights,
-            **kwargs
+            ideal=self._ideal
         )
         return ranking, {
             "score": scores,
             "utility": utility,
-            "ideal_score": ideal_score
+            "ideal_score": ideal_score,
+            "weighted ideal": wideal,
         }
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
