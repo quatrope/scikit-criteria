@@ -172,7 +172,7 @@ class TransitivityChecker(SKCMethodABC):
         sub_dm = decision_matrix.loc[alternative_pair]
         return pipeline.evaluate(sub_dm)
 
-    def _get_graph_edges(self, *, results):
+    def _get_graph_edges(self, results):
         """
         Generate directed graph edges from pairwise comparison results.
 
@@ -221,7 +221,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return edges
 
-    def _create_rank_with_info(self, *, orank, extra, dag, edges):
+    def _create_rank_with_info(self, orank, extra, dag, edges):
 
         sorted_rank = list(nx.topological_sort(dag))
 
@@ -246,7 +246,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return untied_rank
 
-    def _get_ranks(self, *, g, orank, extra):
+    def _get_ranks(self, g, orank, extra):
 
         cycles = list(nx.simple_cycles(g))  # TODO: Usar recursive
         untied_ranks = []
