@@ -231,7 +231,7 @@ class TransitivityChecker(SKCMethodABC):
             "rrt23",
             {
                 "acyclic_graph": dag,  # TODO guardar aristas removidas, hacer en cycle_removal
-                "nose que edges": edges,
+                "removed_edges": edges,
             },
         )
 
@@ -251,6 +251,9 @@ class TransitivityChecker(SKCMethodABC):
         cycles = list(nx.simple_cycles(g))  # TODO: Usar recursive
         untied_ranks = []
 
+        # TODO: generate_acyclic_graphs maneja el caso sin ciclos,
+        # podríamos unificar los 2 criterios al costo de un ciclo de for
+        # que quizas es mejor que buscar ciclos 2 veces
         if cycles:
             # Generate acyclic graphs using the new cycle removal module
             acyclic_graphs = generate_acyclic_graphs(
@@ -274,7 +277,8 @@ class TransitivityChecker(SKCMethodABC):
         else:
             # No cycles found, graph is already acyclic
             dag = g.copy()
-            untied_rank = self._create_rank_with_info(orank, extra, dag)
+            edges = set()
+            untied_rank = self._create_rank_with_info(orank, extra, dag, edges)
             untied_ranks.append(untied_rank)
 
         return list(untied_ranks)
@@ -283,6 +287,8 @@ class TransitivityChecker(SKCMethodABC):
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
         pairwise_combinations = map(list, it.combinations(dm.alternatives, 2))
+
+        dmaker = self._dmaker
 
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
@@ -354,8 +360,8 @@ class TransitivityChecker(SKCMethodABC):
         return RanksComparator(
             named_ranks,
             extra={
-                "Pairwaise Dominance Graph": g,
-                "Transivity Breaks": trans_break,
-                "Transivity Break Rate": trans_break_rate,
+                "pairwise_dominance_graph": graph,
+                "transitivity_breaks": trans_break,
+                "transitivity_break_rate": trans_break_rate,
             },
         )
