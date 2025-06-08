@@ -55,7 +55,9 @@ def mabac(matrix, objectives, weights):
     normalized_matrix = np.concatenate([normalized_benefit, normalized_cost], axis=1)
     
     # weighted normalized decision matrix
-    weighted_matrix = (normalized_matrix+1) * weights
+    # inverse order of weights
+    weights_inverse = weights[::-1]
+    weighted_matrix = (normalized_matrix+1) * weights_inverse
     
     # border approximation area (BAA)
     border_approximation_area = np.prod(weighted_matrix, axis=0) ** (1/len(matrix))
