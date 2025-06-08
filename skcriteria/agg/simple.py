@@ -203,14 +203,20 @@ class WeightedProductModel(SKCDecisionMakerABC):
 def waspas(matrix, weights, l=0.5):
     """Execute Weighted Aggregated Sum Product ASsessment without any validation."""
 
-    _, q_sum = wsm(matrix, weights)
+    _, wsm_scores = wsm(matrix, weights)
 
-    _, log10_score_wpm = wpm(matrix, weights)
-    q_prod = np.power(10, log10_score_wpm)
+    _, log10_wpm_scores = wpm(matrix, weights)
+    wpm_scores = np.power(10, log10_wpm_scores)
 
-    score = l * q_sum + (1 - l) * q_prod
+    score = l * wsm_scores + (1 - l) * wpm_scores
+    ranking = rank.rank_values(score, reverse=True)
 
-    return rank.rank_values(score, reverse=True), score
+    return (
+        ranking,
+        wsm_scores,
+        log10_wpm_scores,
+        score,
+    )
 
 
 class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
@@ -276,8 +282,17 @@ class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
             raise ValueError(
                 "WeightedAggregatedSumProductAssessment can't operate with values <= 0")
 
-        rank, score = waspas(matrix, weights, self._l)
-        return rank, {"score": score}
+        (
+            rank,
+            wsm_scores,
+            log10_wpm_scores,
+            score
+        ) = waspas(matrix, weights, self._l)
+        return rank, {
+            "wsm_scores": wsm_scores,
+            "log10_wpm_scores": log10_wpm_scores,
+            "score": score,
+        }
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
