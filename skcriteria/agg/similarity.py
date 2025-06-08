@@ -177,7 +177,7 @@ class VIKOR(SKCDecisionMakerABC):
         r0_fpos = np.argwhere(rank0 == 1).squeeze()
         r1_fpos = np.argwhere(rank1 == 1).squeeze()
 
-        if len(r1_fpos)
+        if len(r1_fpos): pass
 
 
         return r0_fpos == r1_fpos
@@ -216,18 +216,19 @@ class VIKOR(SKCDecisionMakerABC):
         rank_s_k = rank.rank_values(s_k, reverse=False)
         rank_r_k = rank.rank_values(r_k, reverse=False)
 
+        def best(rank): return np.where(rank == 1)
+        def second_best(rank): return np.where(rank == 2)
+
         # STEP 5
         dq = 1 / (len(matrix) - 1)
 
         advantage_condition = (
-            q_k[np.where(rank_q_k == 2)] - q_k[np.where(rank_q_k == 1)] >= dq
+            q_k[second_best(rank_q_k)] - q_k[best(rank_q_k)] >= dq
         )
         aceptable_advantage = np.where(advantage_condition, True, False)
 
 
-        stability_condition_1 = self._check_stability_condition(rank_q_k, rank_s_k)
-        stability_condition_2 = self._check_stability_condition(rank_q_k, rank_r_k)
-        aceptable_stability = stability_condition_1 or stability_condition_2
+        aceptable_stability = best(rank_q_k) in (best(rank_s_k), best(rank_r_k))
 
         empty_array = np.array([0, 0])
 
@@ -266,5 +267,3 @@ class VIKOR(SKCDecisionMakerABC):
 
         # return
         return rank_q_k, extra
-
-
