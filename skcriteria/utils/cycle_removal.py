@@ -23,7 +23,7 @@ from itertools import combinations
 import networkx as nx
 
 # =============================================================================
-# FUNCTIONS
+# CYCLE REMOVAL
 # =============================================================================
 
 
@@ -45,7 +45,18 @@ def _select_edge_weighted(cycle, edge_freq, rng):
     return rng.choices(edges, weights=weights, k=1)[0]
 
 
-def filter_minimal_removals(acyclic_graphs):
+_CYCLE_REMOVAL_STRATEGIES = {
+    "random": {"selector": _select_edge_random, "needs_freq": False},
+    "weighted": {"selector": _select_edge_weighted, "needs_freq": True},
+}
+
+
+# =============================================================================
+# MAIN FUNCTIONALITY
+# =============================================================================
+
+
+def _filter_minimal_removals(acyclic_graphs):
     """
     Filter acyclic graphs to keep only those with minimal edge removals.
 
@@ -73,13 +84,6 @@ def filter_minimal_removals(acyclic_graphs):
             to_discard.add(i1)
 
     return [gr for i, gr in enumerate(acyclic_graphs) if i not in to_discard]
-
-
-# Strategy dictionary
-_STRATEGIES = {
-    "random": {"selector": _select_edge_random, "needs_freq": False},
-    "weighted": {"selector": _select_edge_weighted, "needs_freq": True},
-}
 
 
 def _calculate_edge_frequencies(graph):
@@ -120,19 +124,21 @@ def generate_acyclic_graphs(
     acyclic_graphs = []
 
     # Validate strategy
-    if strategy not in _STRATEGIES:
-        available_strategies = list(STRATEGIES.keys())
+    if strategy not in _CYCLE_REMOVAL_STRATEGIES:
+        available_strategies = list(_CYCLE_REMOVAL_STRATEGIES.keys())
         raise ValueError(
             f"Unknown strategy: {strategy}. Available strategies: {available_strategies}"
         )
 
     # Check if graph is already acyclic
+    # TODO: simple_cycles_recursive() ?
+    # TODO: maybe move this at the top
     cycles = list(nx.simple_cycles(graph))
     if not cycles:
         return [(graph.copy(), set())]
 
     # Get strategy configuration
-    strategy_config = STRATEGIES[strategy]
+    strategy_config = _CYCLE_REMOVAL_STRATEGIES[strategy]
     select_edge = strategy_config["selector"]
 
     # Calculate edge frequencies if needed
@@ -165,6 +171,6 @@ def generate_acyclic_graphs(
         if nx.is_directed_acyclic_graph(modified_graph):
             acyclic_graphs.append((modified_graph, to_remove))
             # Filter to keep only minimal removals
-            acyclic_graphs = filter_minimal_removals(acyclic_graphs)
+            acyclic_graphs = _filter_minimal_removals(acyclic_graphs)
 
     return acyclic_graphs
