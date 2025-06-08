@@ -63,3 +63,4 @@ setuptools-*.zip
 .vscode/
 result_images/
 docs/source/_dynamic/*.rst
+**/.ipynb_checkpoints

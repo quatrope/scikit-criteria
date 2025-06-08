@@ -3,6 +3,7 @@ sphinx_rtd_theme
 
 nbsphinx
 sphinx_copybutton
+lxml_html_clean
 
 ipykernel
 ipython

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -36,7 +36,7 @@ from .doctools import doc_inherit
 
 def is_solver_available(solver):
     """Return True if the solver is available."""
-    return solver is None or solver.upper() in ["PULP"] + pulp.list_solvers(
+    return solver is None or solver.upper() in ["PULP"] + pulp.listSolvers(
         onlyAvailable=True
     )
 
@@ -179,12 +179,12 @@ class _LPBase:
 
     def __repr__(self):
         """model.__repr__() <==> repr(model)."""
-        cls_name = type(self).__name__
+        name = type(self).__name__
         objective = self._problem.objective
         constraints = ",\n  ".join(
             map(str, self._problem.constraints.values())
         )
-        return f"{cls_name}({objective}).subject_to(\n  {constraints}\n)"
+        return f"{name}({objective}).subject_to(\n  {constraints}\n)"
 
     @property
     def v(self):

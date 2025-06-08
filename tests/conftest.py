@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.data
-
-"""
+"""test for skcriteria.data"""
 
 
 # =============================================================================
@@ -20,6 +18,8 @@
 
 import functools
 
+
+import matplotlib as mpl
 
 import numpy as np
 
@@ -141,3 +141,50 @@ def decision_matrix(data_values):
         return dm
 
     return make
+
+
+# =============================================================================
+# MARKERS
+# =============================================================================
+
+
+MARKERS = [
+    ("posix", "os.name != 'posix'", "Requires a POSIX os"),
+    ("not_posix", "os.name == 'posix'", "Skipped on POSIX"),
+    ("windows", "os.name != 'nt'", "Requires Windows"),
+    ("not_windows", "os.name == 'nt'", "Skipped on Windows"),
+    ("linux", "not sys.platform.startswith('linux')", "Requires Linux"),
+    ("not_linux", "sys.platform.startswith('linux')", "Skipped on Linux"),
+    ("osx", "sys.platform != 'darwin'", "Requires OS X"),
+    ("not_osx", "sys.platform == 'darwin'", "Skipped on OS X"),
+]
+
+
+def pytest_configure(config):
+    for marker, _, reason in MARKERS:
+        config.addinivalue_line("markers", "{}: {}".format(marker, reason))
+
+
+def pytest_collection_modifyitems(items):
+    for item in items:
+        for searched_marker, condition, default_reason in MARKERS:
+            marker = item.get_closest_marker(searched_marker)
+            if not marker:
+                continue
+
+            if "reason" in marker.kwargs:
+                reason = "{}: {}".format(
+                    default_reason, marker.kwargs["reason"]
+                )
+            else:
+                reason = default_reason + "."
+            skipif_marker = pytest.mark.skipif(condition, reason=reason)
+            item.add_marker(skipif_marker)
+
+
+# =============================================================================
+# CI
+# =============================================================================
+
+
+mpl.use("Agg")

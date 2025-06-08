@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.add_value_to_zero
-
-"""
+"""test for skcriteria.preprocessing.add_value_to_zero"""
 
 
 # =============================================================================
@@ -29,13 +27,13 @@ from skcriteria.preprocessing.increment import AddValueToZero
 
 def test_AddValueToZero_simple_matrix():
     dm = skcriteria.mkdm(
-        matrix=[[1, 0, 3], [0, 5, 6]],
+        matrix=[[1.0, 0.0, 3], [0.0, 5.0, 6]],
         objectives=[min, max, min],
         weights=[1, 2, 0],
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1.5, 0.5, 3], [0.5, 5.5, 6]],
+        matrix=[[1.5, 0.5, 3.0], [0.5, 5.5, 6.0]],
         objectives=[min, max, min],
         weights=[1, 2, 0],
     )
@@ -55,7 +53,7 @@ def test_AddValueToZero_simple_matrix_gt0():
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1, 2, 3], [4, 5, 6]],
+        matrix=[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         objectives=[min, max, min],
         weights=[1, 2, 3],
     )
@@ -115,7 +113,7 @@ def test_AddValueToZero_simple_both():
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1.5, 0.5, 3], [0.5, 5.5, 6]],
+        matrix=[[1.5, 0.5, 3.0], [0.5, 5.5, 6.0]],
         objectives=[min, max, min],
         weights=[1.5, 2.5, 0.5],
     )
@@ -135,7 +133,7 @@ def test_AddValueToZero_simple_both_gt0():
     )
 
     expected = skcriteria.mkdm(
-        matrix=[[1, 2, 3], [4, 5, 6]],
+        matrix=[[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]],
         objectives=[min, max, min],
         weights=[1, 2, 3],
     )

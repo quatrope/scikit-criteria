@@ -14,7 +14,7 @@
 [![Conda Forge](https://anaconda.org/conda-forge/scikit-criteria/badges/version.svg)](https://anaconda.org/conda-forge/scikit-criteria)
 ![Conda](https://img.shields.io/conda/dn/conda-forge/scikit-criteria?label=Conda-Forge%20downloads)
 [![License](https://img.shields.io/pypi/l/uttrs?color=blue)](https://www.tldrlegal.com/l/bsd3)
-[![Python 3.8+](https://img.shields.io/badge/python-3.7+-blue.svg)](https://badge.fury.io/py/scikit-criteria)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://badge.fury.io/py/scikit-criteria)
 
 
 
@@ -28,6 +28,12 @@ Our Google Groups mailing list is [here](https://groups.google.com/forum/#!forum
 
 **You can contact me at:** <jbcabral@unc.edu.ar> (if you have a support
 question, try the mailing list first)
+
+## Support
+
+[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/leliel12)
+
+
 
 ## Code Repository & Issues
 

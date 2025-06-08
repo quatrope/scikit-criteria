@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.methods
-
-"""
+"""test for skcriteria.methods"""
 
 
 # =============================================================================
@@ -76,11 +74,9 @@ def test_SKCMatrixAndWeightTransformerABC_not_redefined_abc_methods():
 
 def test_SKCMatrixAndWeightTransformerABC_bad_normalize_for():
     class Foo(SKCMatrixAndWeightTransformerABC):
-        def _transform_matrix(self, matrix):
-            ...
+        def _transform_matrix(self, matrix): ...
 
-        def _transform_weights(self, weights):
-            ...
+        def _transform_weights(self, weights): ...
 
     with pytest.raises(ValueError):
         Foo("mtx")
@@ -122,11 +118,9 @@ def test_SKCMatrixAndWeightTransformerABC_transform_weight_not_implemented(
 
 def test_SKCMatrixAndWeightTransformerABC_target():
     class Foo(SKCMatrixAndWeightTransformerABC):
-        def _transform_matrix(self, matrix):
-            ...
+        def _transform_matrix(self, matrix): ...
 
-        def _transform_weights(self, weights):
-            ...
+        def _transform_weights(self, weights): ...
 
     foo = Foo("matrix")
     assert foo.target == Foo._TARGET_MATRIX

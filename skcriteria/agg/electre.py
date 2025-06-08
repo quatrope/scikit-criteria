@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -27,15 +27,18 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 # IMPORTS
 # =============================================================================
 
-import itertools as it
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import itertools as it
 
-from scipy import stats
+    import numpy as np
 
-from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
-from ..core import Objective
-from ..utils import doc_inherit, will_change
+    from scipy import stats
+
+    from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
+    from ..core import Objective
+    from ..utils import doc_inherit, will_change
 
 
 # =============================================================================

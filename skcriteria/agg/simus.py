@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -16,14 +16,17 @@
 # IMPORTS
 # =============================================================================
 
-import warnings
+from ..utils import hidden
 
-import numpy as np
+with hidden():
+    import warnings
 
-from ._agg_base import RankResult, SKCDecisionMakerABC
-from ..core import Objective
-from ..preprocessing.scalers import scale_by_sum
-from ..utils import doc_inherit, lp, rank
+    import numpy as np
+
+    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ..core import Objective
+    from ..preprocessing.scalers import scale_by_sum
+    from ..utils import doc_inherit, lp, rank
 
 
 # =============================================================================

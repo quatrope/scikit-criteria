@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.core.data
-
-"""
+"""test for skcriteria.core.data"""
 
 
 # =============================================================================
@@ -300,6 +298,26 @@ def test_DecisionMatrix_copy(data_values):
     assert dm is not copy
     assert dm.equals(copy)
 
+    with pytest.deprecated_call():
+        dm.copy(**dm.to_dict())
+
+
+def test_DecisionMatrix_replace(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+    copy = dm.replace(weights=dm.weights + 1)
+
+    assert dm is not copy
+    assert not dm.equals(copy)
+    pd.testing.assert_series_equal(dm.weights, copy.weights - 1)
+
 
 def test_DecisionMatrix_to_dataframe(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
@@ -346,6 +364,32 @@ def test_DecisionMatrix_to_dict(data_values):
 
     cmp = {k: (np.all(result[k] == expected[k])) for k in result.keys()}
     assert np.all(cmp.values())
+
+
+def test_DecisionMatrix_to_latex(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+
+    latex = dm.to_latex()
+
+    # create the expected table
+    df = dm.to_dataframe()
+    df.columns = [rf"\textbf{{{col}}}" for col in df.columns]
+
+    expected = df.to_latex(bold_rows=True)
+
+    expected_lines = expected.splitlines()
+    expected_lines.insert(6, r"\midrule")
+    expected = "\n".join(expected_lines)
+
+    assert latex == expected
 
 
 def test_DecisionMatrix_describe(data_values):
@@ -485,6 +529,53 @@ def test_DecisionMatrix_self_ne(data_values):
         criteria=ocnames,
     )
     assert not dm.equals(other)
+
+
+def test_DecisionMatrix_diff(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+
+    result = dm.diff(dm)
+
+    assert result.has_differences is False
+    assert result.left_type is data.DecisionMatrix
+    assert result.right_type is data.DecisionMatrix
+    assert result.different_types is False
+    assert result.members_diff == {}
+
+    # compare with another dm
+
+    omtx, oobjectives, oweights, oanames, ocnames = data_values(seed=43)
+
+    other = data.mkdm(
+        matrix=omtx,
+        objectives=oobjectives,
+        weights=oweights,
+        alternatives=oanames,
+        criteria=ocnames,
+    )
+
+    result = dm.diff(other)
+
+    assert result.has_differences
+    assert result.left_type is data.DecisionMatrix
+    assert result.right_type is data.DecisionMatrix
+    assert result.different_types is False
+    assert set(result.members_diff) == {
+        "shape",
+        "alternatives",
+        "weights",
+        "objectives",
+        "matrix",
+        "criteria",
+    }
 
 
 # =============================================================================

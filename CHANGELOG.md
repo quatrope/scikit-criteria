@@ -1,8 +1,88 @@
-# Changelog of Scikit-Criteria
+# Whats new?
 
 <!-- BODY -->
 
-## Version 0.8.5
+## Version 0.9
+
+- **New**: The `has_loops`method of the `DecisionMatrix` class now uses the networkx library to compute the dominance graph and check if it is a DAG.
+- **New**: Added the `to_latex` method to `DecisionMatrix` to generate a LaTeX table representation of the decision matrix.
+- **Changed Behavior**: Corrected the functionality of the PushNegatives transformation. The transformer now appropriately manages negative values by identifying the lowest negative value in the matrix and adding its absolute value to all matrix elements.
+
+- **Changed Behaviour**: The `copy()` method with `kwargs` in `DecisionMatrix` and all `SKCMethodABC` derived classes is now deprecated. Instead, use the new `replace()` method which provides a clearer and more maintainable way to create copies with modified parameters:
+
+    ```python
+    # Old way (deprecated)
+    dm_copy = decision_matrix.copy(weights=[0.5, 0.5])
+    method_copy = method.copy(parameter=new_value)
+
+    # New way
+    dm_copy = decision_matrix.replace(weights=[0.5, 0.5])
+    method_copy = method.replace(parameter=new_value)
+    ```
+
+  The `copy()` method will continue to work for creating exact copies, but passing
+  parameters through `kwargs` will raise a deprecation warning.
+
+- The `utils.deprecate` module has been streamlined for better usability. The warning system now uses a simpler implementation that emits warnings only once per call location. The raising functionality has been moved to module level configuration.
+
+- ***Dependencies:** Added requirements for NumPy 2.0, Network-X 3.4 and scikit-learn 1.6
+
+
+## Version 0.8.7
+
+- **New** Added functionality for user extension of scikit-criteria with
+  decorators for creating aggregation and transformation models using
+  functions.
+
+    ```python
+    >>> from skcriteria.extend import mkagg, mktransformer
+    >>>
+    >>> @mkagg
+    >>> def MyAgg(**kwargs):
+    >>>     # Implementation of the aggregation function
+    >>>
+    >>> @mkagg(foo=1)
+    >>> def MyAggWithHyperparam(**kwargs):
+    >>>     # Implementation of the aggregation function with
+    >>>     # hyperparameter 'foo'
+    >>>
+    >>> @mktransformer
+    >>> def MyTransformer(**kwargs):
+    >>>     # Implementation of the transformation function
+    >>>
+    >>> @mktransformer(bar=2)
+    >>> def MyTransformerWithHyperparam(**kwargs):
+    >>>     # Implementation of the transformation function with
+    >>>     # hyperparameter 'bar'
+    ```
+
+  These decorators enable the creation of aggregation and transformation
+  classes based on provided functions, allowing users to
+  define decision-making models with less flexibility than traditional
+  inheritance-based models.
+
+  For more information check the tutorial [Extending Aggregation and Transformation Functions](https://scikit-criteria.quatrope.org/en/latest/tutorial/extend.html)
+
+- **New Module:** Introduced the `skcriteria.testing` module, exposing utility functions for for comparing objects created in Scikit-Criteria in a testing environment. These functions facilitate the comparison of instances of the `DecisionMatrix`, `ResultABC`, and `RanksComparator` classes.
+
+  The assertion functions utilize pandas and numpy testing utilities for comparing matrices, series, and other attributes.
+
+  Check the [Reference](https://scikit-criteria.quatrope.org/en/latest/api/testing.html) for more information.
+
+- **New** The API of the agg, pipeline, preprocessing, and extend modules has
+  been cleaned up to prevent autocompletion with imports from other modules.
+  The imported modules are still present, but they are excluded when attempting
+  to autocomplete. This functionality is achieved thanks to the context manager
+  `skcriteria.utils.cmanagers.hidden()`.
+
+- **New** All methods (agg and transformers) has a new `get_method_name`
+  instance method.
+
+- **Drop** Drop support for Python 3.8
+
+---
+
+## Version 0.8.6
 
 - **New** Rank reversal 1 implementhed in the `RankInvariantChecker` class
 
@@ -16,7 +96,7 @@
     >>> rrt1 = RankInvariantChecker(TOPSIS())
     >>> rrt1.evaluate(dm)
     <RanksComparator [ranks=['Original', 'M.ETH', 'M.LTC', 'M.XLM', 'M.BNB', 'M.ADA', 'M.LINK', 'M.XRP', 'M.DOGE']]>
-    ``````
+    ```
 
 - **New** The module `skcriteria.madm` was deprecated in favor
   of `skcriteria.agg`
@@ -26,18 +106,21 @@
 - Now all cached methods and properties are stored inside the instance.
   Previously this was stored inside the class generating a memoryleak.
 
+---
 
 ## Version 0.8.3
 
 - Fixed a bug detected on the EntropyWeighted, Now works as the literature
   specifies
 
+---
 
 ## Version 0.8.2
 
 - We bring back Python 3.7 because is the version used in google.colab.
 - Bugfixes in `plot.frontier` and `dominance.eq`.
 
+---
 
 ## Version 0.8
 
@@ -99,6 +182,8 @@
   - `skcriteria.core.methods.SKCMatrixAndWeightTransformerABC` `->`
     `skcriteria.preprocessing.SKCMatrixAndWeightTransformerABC`
 
+---
+
 ## Version 0.7
 
 - **New method**: `ELECTRE2`.
@@ -120,6 +205,7 @@
   - `kernel_size_` to know the number of alternatives in the kernel.
   - `kernel_where_` was replaced by `kernelwhere_` to standardize the api.
 
+---
 
 ## Version 0.6
 
@@ -140,6 +226,8 @@
 - New deprecation mechanism through the
 - `skcriteria.utils.decorators.deprecated` decorator.
 
+---
+
 ## Version 0.5
 
 In this version scikit-criteria was rewritten from scratch. Among other things:
@@ -153,9 +241,13 @@ In this version scikit-criteria was rewritten from scratch. Among other things:
 
 **Full Changelog**: https://github.com/quatrope/scikit-criteria/commits/0.5
 
+---
+
 ## Version 0.2
 
 First OO stable version.
+
+---
 
 ## Version 0.1
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -16,14 +16,16 @@ datasets."""
 # =============================================================================
 # IMPORRTS
 # =============================================================================
+from ..utils import hidden
 
-import json
-import os
-import pathlib
+with hidden():
+    import json
+    import os
+    import pathlib
 
-from skcriteria.core.data import mkdm
+    from skcriteria.core.data import mkdm
 
-from .. import core
+    from .. import core
 
 # =============================================================================
 # CONSTANTS

@@ -96,7 +96,7 @@ nbsphinx_allow_errors = True
 nbsphinx_prompt_width = "0pt"
 
 nbsphinx_prolog = """
-{% set docname = "docs/source/" + env.doc2path(env.docname, base=False) %}
+{% set docname = "docs/source/" + (env.doc2path(env.docname, base=False) | string) %}
 {% set release = "master" %}
 
 .. |nbsp| unicode:: 0xA0
@@ -147,7 +147,7 @@ master_doc = "index"
 
 # General information about the project.
 project = skcriteria.NAME
-copyright = "2016-2021, Juan B. Cabral - Nadia A. Luczywo - Copyright (c) 2022, QuatroPe"
+copyright = "2016-2021, Juan B. Cabral - Nadia A. Luczywo - Copyright (c) 2022-2024, QuatroPe"
 
 
 author = "Juan BC"
@@ -186,10 +186,7 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 
-import sphinx_rtd_theme
-
 html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -302,7 +299,7 @@ DYNAMIC_RST = {
 for md_name, rst_name in DYNAMIC_RST.items():
     md_path = SKCRITERIA_PATH / md_name
     with open(md_path) as fp:
-        readme_md = fp.read().split("<!-- BODY -->")[-1]
+        readme_md = fp.read().split("<!-- BODY -->", 1)[-1]
 
     rst_path = CURRENT_PATH / "_dynamic" / rst_name
 

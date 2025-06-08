@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.methods
-
-"""
+"""test for skcriteria.methods"""
 
 
 # =============================================================================
@@ -23,7 +21,7 @@ import numpy as np
 import pytest
 
 from skcriteria import agg
-from skcriteria.cmp import RankInvariantChecker, RanksComparator
+from skcriteria.cmp import RanksComparator
 from skcriteria.core import methods
 from skcriteria.pipeline import SKCPipeline
 from skcriteria.preprocessing import SKCMatrixAndWeightTransformerABC
@@ -32,7 +30,7 @@ from skcriteria.preprocessing.filters import (
     SKCArithmeticFilterABC,
     SKCSetFilterABC,
 )
-
+from skcriteria.ranksrev import RankInvariantChecker
 
 # =============================================================================
 # TEST UTILITES
@@ -74,7 +72,6 @@ def _parameters_diff(original, copy):
 
 
 @pytest.mark.run(order=-1)
-@pytest.mark.skip
 def test_SLCMethodABC_concrete_subclass_copy():
     # CLASSES FOR THE FAKE PIPELINE
     class _FakeTrans:

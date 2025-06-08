@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -15,8 +15,11 @@
 # IMPORTS
 # =============================================================================
 
-from .core import SKCMethodABC
-from .utils import Bunch, unique_names
+from .utils import hidden
+
+with hidden():
+    from .core import SKCMethodABC
+    from .utils import Bunch, unique_names
 
 
 # =============================================================================
@@ -110,7 +113,7 @@ class SKCPipeline(SKCMethodABC):
         """
         if isinstance(ind, slice):
             if ind.step not in (1, None):
-                cname = type(self).__name__
+                cname = type(self).__qualname__
                 raise ValueError(f"{cname} slicing only supports a step of 1")
             return self.__class__(self.steps[ind])
         elif isinstance(ind, int):
