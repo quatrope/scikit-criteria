@@ -314,34 +314,36 @@ class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
 
 
 def spotis(matrix, weights, bounds, isp):
-    """Execute SPOTIS method"""
-    
-    min_bounds = bounds[:,0]
-    max_bounds = bounds[:,1]
+    """Execute SPOTIS method."""
+    min_bounds = bounds[:, 0]
+    max_bounds = bounds[:, 1]
 
     # Calculate alternatives distances to ISP and normalize it
     normalized_distance = np.abs((matrix - isp) / (max_bounds - min_bounds))
-    
+
     # Scores by weighted sum of normalized distances
     scores = np.sum(normalized_distance * weights, axis=1)
-    
+
     return rank.rank_values(scores), {"score": scores}
 
 
 class SPOTIS(SKCDecisionMakerABC):
     r"""The Stable Preference Ordering Towards Ideal Solution (SPOTIS) method.
 
-    The SPOTIS method is a multi-criteria decision analysis method that is exempt of rank reversal.
-    The method is rank reversal free because the preference ordering established from the score matrix
-    of the MCDM problem does not require relative comparisons between the alternatives, but only
-    comparisons with respect to the ideal solution chosen by the MCDM designer (ISP).
+    The SPOTIS method is a multi-criteria decision analysis method that is
+    exempt of rank reversal. The method is rank reversal free because the
+    preference ordering established from the score matrix of the MCDM problem
+    does not require relative comparisons between the alternatives, but only
+    comparisons with respect to the ideal solution (ISP) chosen by the
+    MCDM designer.
 
     Raises
     ------
     ValueError:
-        - If the bounds are provided and the matrix has values out of the bounds.
-        - If the ISP is provided and the ISP has values out of the bounds (either given or calculated from the matrix).
-        - If the bounds or ISP have an invalid shape.
+        - If bounds are provided and the matrix has values out of the bounds.
+        - If ISP is provided and the ISP has values out of the bounds (either
+          given or calculated from the matrix).
+        - If bounds or ISP have an invalid shape.
 
     References
     ----------
@@ -350,13 +352,12 @@ class SPOTIS(SKCDecisionMakerABC):
 
     _skcriteria_parameters = ["bounds", "isp"]
 
-    def __init__(self, bounds = None, isp = None):
+    def __init__(self, bounds=None, isp=None):
         self._bounds = bounds
         self._isp = isp
 
         if bounds is not None and isp is not None:
             self._validate_isp(isp, bounds)
-
 
     @property
     def bounds(self):
@@ -372,17 +373,14 @@ class SPOTIS(SKCDecisionMakerABC):
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if self._bounds is None:
             self._bounds = self._bounds_from_matrix(matrix)
-        
+
         if self._isp is None:
             self._isp = self._isp_from_bounds(self._bounds, objectives)
 
         self._validate_bounds(self._bounds, matrix)
         self._validate_isp(self._isp, self._bounds)
 
-        extra = {
-            "bounds": self._bounds,
-            "isp": self._isp
-        }
+        extra = {"bounds": self._bounds, "isp": self._isp}
 
         rank, method_extra = spotis(matrix, weights, self._bounds, self._isp)
         extra.update(method_extra)
@@ -397,40 +395,49 @@ class SPOTIS(SKCDecisionMakerABC):
             values=values,
             extra=extra,
         )
-    
+
     def _bounds_from_matrix(self, matrix):
         """Calculate the bounds of the problem from the matrix."""
-
         min_bounds = np.min(matrix, axis=0).reshape(-1, 1)
         max_bounds = np.max(matrix, axis=0).reshape(-1, 1)
         return np.hstack((min_bounds, max_bounds))
-    
-    
-    def _isp_from_bounds(self, bounds, objectives):
-        """Calculate the reference or nominal Ideal Solution Point from the bounds and objectives."""
 
+    def _isp_from_bounds(self, bounds, objectives):
+        """Calculate the reference or nominal Ideal Solution Point (ISP) \
+        from the bounds and objectives."""
         row_indexs = np.arange(bounds.shape[0])
-        col_indexs = [0 if obj == Objective.MIN.value else 1 for obj in objectives]
+        col_indexs = [
+            0 if obj == Objective.MIN.value else 1 for obj in objectives
+        ]
         isp = bounds[row_indexs, col_indexs]
 
         return isp
-    
+
     def _validate_bounds(self, bounds, matrix):
         if bounds.shape != (matrix.shape[1], 2):
-            raise ValueError(f"Invalid shape for bounds. It must be (n_criteria, 2). Got: {bounds.shape}.")
-        
-        min_bounds, max_bounds = bounds[:,0], bounds[:,1]
+            raise ValueError(
+                f"Invalid shape for bounds. It must be (n_criteria, 2). \
+                Got: {bounds.shape}."
+            )
+
+        min_bounds, max_bounds = bounds[:, 0], bounds[:, 1]
 
         within_bounds = (matrix >= min_bounds) & (matrix <= max_bounds)
         if not np.all(within_bounds):
-            raise ValueError("The matrix values must be within the provided bounds.")
-        
+            raise ValueError(
+                "The matrix values must be within the provided bounds."
+            )
+
     def _validate_isp(self, isp, bounds):
         if isp.shape[0] != bounds.shape[0]:
-            raise ValueError(f"Invalid shape for Ideal Solution Point (ISP). It must have the same number of criteria as the bounds. Got: {isp.shape}.")
-        
-        min_bounds, max_bounds = bounds[:,0], bounds[:,1]
-        if not np.all(isp >= min_bounds) or not np.all(isp <= max_bounds):
-            raise ValueError("The isp values must be within the provided bounds.")
-        
+            raise ValueError(
+                f"Invalid shape for Ideal Solution Point (ISP). It must \
+                have the same number of criteria as the bounds. \
+                Got: {isp.shape}."
+            )
 
+        min_bounds, max_bounds = bounds[:, 0], bounds[:, 1]
+        if not np.all(isp >= min_bounds) or not np.all(isp <= max_bounds):
+            raise ValueError(
+                "The isp values must be within the provided bounds."
+            )
