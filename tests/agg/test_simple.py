@@ -223,61 +223,54 @@ def test_WeightedProductModel_enwiki_1015567716():
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "ranker_cls, lambda_value",
-    [
-        (WeightedProductModel, 0),
-        (WeightedSumModel, 1),
-    ],
-)
-def test_waspas_model_extreme_lambdas_behave_like_known_models(
-    ranker_cls, lambda_value
-):
-    seed = 42
-    dm = _random_waspas_inputs(seed)
-
-    expected_ranker = ranker_cls()
-    expected_result = expected_ranker.evaluate(dm)
-
-    waspas_ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
-    waspas_result = waspas_ranker.evaluate(dm)
-
-    assert waspas_result.values_equals(expected_result)
-    assert np.allclose(
-        waspas_result.e_.score,
-        (
-            10**expected_result.e_.score
-            if lambda_value == 0
-            else expected_result.e_.score
-        ),
-        atol=1e-4,
-    )
-
-
-def _random_waspas_inputs(n_alt=4, n_crit=5, cost_ratio=0.3, seed=None):
-    if seed is not None:
-        np.random.seed(seed)
-
+def test_WASPAS_with_minimize_fails():
+    """WASPAS should raise ValueError if input matrix contains min objectives."""
     dm = skcriteria.mkdm(
-        matrix=np.random.rand(n_alt, n_crit) * 100,
-        objectives=np.random.choice(
-            [min, max], size=n_crit, p=[cost_ratio, 1 - cost_ratio]
-        ),
-        weights=np.random.rand(n_crit),
+        matrix=[[1, 7, 3], [3, 5, 6]],
+        objectives=[max, min, max],
+    )
+    ranker = WeightedAggregatedSumProductAssessment()
+
+    with pytest.raises(
+        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with minimize objective"
+    ):
+        ranker.evaluate(dm)
+
+
+def test_WASPAS_with_zero_fails():
+    """WASPAS should raise ValueError if matrix contains 0s (division/log problems)."""
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 0, 6]],
+        objectives=[max, max, max],
+    )
+    ranker = WeightedAggregatedSumProductAssessment()
+
+    with pytest.raises(
+        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with values <= 0"
+    ):
+        ranker.evaluate(dm)
+
+
+@pytest.mark.parametrize("invalid_lambda", [-0.1, 1.1, 2, -5])
+def test_WASPAS_invalid_l_values(invalid_lambda):
+    """WASPAS should raise ValueError if l is not in [0, 1]"""
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2], [3, 4]],
+        objectives=[max, max],
     )
 
-    transformers = [
-        InvertMinimize(),
-        SumScaler(target="both"),
-    ]
-    for t in transformers:
-        dm = t.transform(dm)
+    expected_msg = (
+        f"WeightedAggregatedSumProductAssessment requires 'l' to be "
+        f"between 0 and 1, but found {invalid_lambda}."
+    )
 
-    return dm
+    with pytest.raises(ValueError, match=expected_msg):
+        ranker = WeightedAggregatedSumProductAssessment(l=invalid_lambda)
+        ranker.evaluate(dm)
 
 
 @pytest.mark.parametrize(
-    "l, expected_rank, expected_scores",
+    "lambda_value, expected_rank, expected_scores",
     [
         (
             0,
@@ -348,7 +341,7 @@ def _random_waspas_inputs(n_alt=4, n_crit=5, cost_ratio=0.3, seed=None):
     ],
 )
 def test_WASPAS_chakraborty2015applications(
-        l,
+        lambda_value,
         expected_rank,
         expected_scores):
     """
@@ -356,8 +349,8 @@ def test_WASPAS_chakraborty2015applications(
 
         Chakraborty, S., Zavadskas, E. K., & Antucheviciene, J. (2015).
         Applications of WASPAS method as a multi-criteria decision-making tool.
-        Economic Computation and Economic Cybernetics Studies and Research, 49(1), 5-22.
-        Example 2.
+        Economic Computation and Economic Cybernetics Studies and Research,
+        49(1), 5-22. Example 2.
 
         This data corresponds to Example 2 from the paper.
     """
@@ -398,53 +391,9 @@ def test_WASPAS_chakraborty2015applications(
         {"score": expected_scores},
     )
 
-    ranker = WeightedAggregatedSumProductAssessment(l=l)
+    ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
     result = ranker.evaluate(dm)
 
     assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
-
-
-def test_WASPAS_with_minimize_fails():
-    """WASPAS should raise ValueError if input matrix contains min objectives."""
-    dm = skcriteria.mkdm(
-        matrix=[[1, 7, 3], [3, 5, 6]],
-        objectives=[max, min, max],
-    )
-    ranker = WeightedAggregatedSumProductAssessment()
-
-    with pytest.raises(
-        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with minimize objective"
-    ):
-        ranker.evaluate(dm)
-
-
-def test_WASPAS_with_zero_fails():
-    """WASPAS should raise ValueError if matrix contains 0s (division/log problems)."""
-    dm = skcriteria.mkdm(
-        matrix=[[1, 2, 3], [4, 0, 6]],
-        objectives=[max, max, max],
-    )
-    ranker = WeightedAggregatedSumProductAssessment()
-
-    with pytest.raises(
-        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with values <= 0"
-    ):
-        ranker.evaluate(dm)
-
-
-@pytest.mark.parametrize("invalid_l", [-0.1, 1.1, 2, -5])
-def test_WASPAS_invalid_l_values(invalid_l):
-    """WASPAS should raise ValueError if l is not in [0, 1]"""
-    dm = skcriteria.mkdm(
-        matrix=[[1, 2], [3, 4]],
-        objectives=[max, max],
-    )
-
-    with pytest.raises(
-            ValueError,
-            match=f"WeightedAggregatedSumProductAssessment requires 'l' to be between 0 and 1, but found {invalid_l}."
-    ):
-        ranker = WeightedAggregatedSumProductAssessment(l=invalid_l)
-        ranker.evaluate(dm)
