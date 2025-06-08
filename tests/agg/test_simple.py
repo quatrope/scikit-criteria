@@ -23,9 +23,9 @@ import pytest
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.simple import (
+    WeightedAggregatedSumProductAssessment,
     WeightedProductModel,
     WeightedSumModel,
-    WeightedAggregatedSumProductAssessment,
 )
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler
@@ -230,15 +230,13 @@ def test_WeightedProductModel_enwiki_1015567716():
         (WeightedProductModel, 0),
     ],
 )
-def test_WASPAS_compared_to_known_models(
-    ranker_cls, lambda_value
-):
+def test_WASPAS_compared_to_known_models(ranker_cls, lambda_value):
     dm = skcriteria.mkdm(
         matrix=[
-            [0.5099, 0.0465,  0.2427, 0.3246, 0.1166],
-            [0.2123, 0.7622,  0.2051, 0.3259, 0.5295],
-            [0.0280, 0.0456,  0.2134, 0.1151, 0.1359],
-            [0.2496, 0.1455,  0.3386, 0.2342, 0.2177],
+            [0.5099, 0.0465, 0.2427, 0.3246, 0.1166],
+            [0.2123, 0.7622, 0.2051, 0.3259, 0.5295],
+            [0.0280, 0.0456, 0.2134, 0.1151, 0.1359],
+            [0.2496, 0.1455, 0.3386, 0.2342, 0.2177],
         ],
         objectives=[max, max, max, max, max],
         weights=[0.3672, 0.0933, 0.2405, 0.2770, 0.0217],
@@ -247,7 +245,9 @@ def test_WASPAS_compared_to_known_models(
     expected_ranker = ranker_cls()
     expected_result = expected_ranker.evaluate(dm)
 
-    waspas_ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
+    waspas_ranker = WeightedAggregatedSumProductAssessment(
+        lambda_value=lambda_value
+    )
     waspas_result = waspas_ranker.evaluate(dm)
 
     assert waspas_result.values_equals(expected_result)
@@ -266,10 +266,10 @@ def test_WASPAS_compared_to_known_models(
 def test_WASPAS_verify_intermediate_calculations(lambda_value):
     dm = skcriteria.mkdm(
         matrix=[
-            [0.5099, 0.0465,  0.2427, 0.3246, 0.1166],
-            [0.2123, 0.7622,  0.2051, 0.3259, 0.5295],
-            [0.0280, 0.0456,  0.2134, 0.1151, 0.1359],
-            [0.2496, 0.1455,  0.3386, 0.2342, 0.2177],
+            [0.5099, 0.0465, 0.2427, 0.3246, 0.1166],
+            [0.2123, 0.7622, 0.2051, 0.3259, 0.5295],
+            [0.0280, 0.0456, 0.2134, 0.1151, 0.1359],
+            [0.2496, 0.1455, 0.3386, 0.2342, 0.2177],
         ],
         objectives=[max, max, max, max, max],
         weights=[0.3672, 0.0933, 0.2405, 0.2770, 0.0217],
@@ -278,7 +278,9 @@ def test_WASPAS_verify_intermediate_calculations(lambda_value):
     wsm_result = WeightedSumModel().evaluate(dm)
     wpm_result = WeightedProductModel().evaluate(dm)
 
-    waspas_ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
+    waspas_ranker = WeightedAggregatedSumProductAssessment(
+        lambda_value=lambda_value
+    )
     waspas_result = waspas_ranker.evaluate(dm)
 
     assert np.allclose(waspas_result.e_.wsm_scores, wsm_result.e_.score)
@@ -286,7 +288,10 @@ def test_WASPAS_verify_intermediate_calculations(lambda_value):
 
 
 def test_WASPAS_with_minimize_fails():
-    """WASPAS should raise ValueError if input matrix contains min objectives."""
+    """
+    WASPAS should raise ValueError if input
+    matrix contains min objectives.
+    """
     dm = skcriteria.mkdm(
         matrix=[[1, 7, 3], [3, 5, 6]],
         objectives=[max, min, max],
@@ -294,13 +299,20 @@ def test_WASPAS_with_minimize_fails():
     ranker = WeightedAggregatedSumProductAssessment()
 
     with pytest.raises(
-        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with minimize objective"
+        ValueError,
+        match=(
+            "WeightedAggregatedSumProductAssessment can't "
+            "operate with minimize objective"
+        ),
     ):
         ranker.evaluate(dm)
 
 
 def test_WASPAS_with_zero_fails():
-    """WASPAS should raise ValueError if matrix contains 0s (division/log problems)."""
+    """
+    WASPAS should raise ValueError if matrix
+     contains 0s (division/log problems).
+    """
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 0, 6]],
         objectives=[max, max, max],
@@ -308,26 +320,33 @@ def test_WASPAS_with_zero_fails():
     ranker = WeightedAggregatedSumProductAssessment()
 
     with pytest.raises(
-        ValueError, match="WeightedAggregatedSumProductAssessment can't operate with values <= 0"
+        ValueError,
+        match=(
+            "WeightedAggregatedSumProductAssessment can't "
+            "operate with values <= 0"
+        ),
     ):
         ranker.evaluate(dm)
 
 
 @pytest.mark.parametrize("invalid_lambda", [-0.1, 1.1, 2, -5])
 def test_WASPAS_invalid_l_values(invalid_lambda):
-    """WASPAS should raise ValueError if l is not in [0, 1]"""
+    """WASPAS should raise ValueError if lambda_value is not in [0, 1]"""
     dm = skcriteria.mkdm(
         matrix=[[1, 2], [3, 4]],
         objectives=[max, max],
     )
 
-    expected_msg = (
-        f"WeightedAggregatedSumProductAssessment requires 'l' to be "
-        f"between 0 and 1, but found {invalid_lambda}."
-    )
-
-    with pytest.raises(ValueError, match=expected_msg):
-        ranker = WeightedAggregatedSumProductAssessment(l=invalid_lambda)
+    with pytest.raises(
+        ValueError,
+        match=(
+            "WeightedAggregatedSumProductAssessment requires 'lambda_value'"
+            f" to be between 0 and 1, but found {invalid_lambda}."
+        ),
+    ):
+        ranker = WeightedAggregatedSumProductAssessment(
+            lambda_value=invalid_lambda
+        )
         ranker.evaluate(dm)
 
 
@@ -337,75 +356,184 @@ def test_WASPAS_invalid_l_values(invalid_lambda):
         (
             0,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8578, 0.8144, 0.8408, 0.9413, 0.8632,
-                0.8241, 0.8454, 0.8915, 0.8987, 0.8697]
+            [
+                0.8578,
+                0.8144,
+                0.8408,
+                0.9413,
+                0.8632,
+                0.8241,
+                0.8454,
+                0.8915,
+                0.8987,
+                0.8697,
+            ],
         ),
         (
             0.1,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8580, 0.8149, 0.8410, 0.9414, 0.8633,
-                0.8249, 0.8464, 0.8922, 0.8995, 0.8706]
+            [
+                0.8580,
+                0.8149,
+                0.8410,
+                0.9414,
+                0.8633,
+                0.8249,
+                0.8464,
+                0.8922,
+                0.8995,
+                0.8706,
+            ],
         ),
         (
             0.2,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8581, 0.8154, 0.8412, 0.9415, 0.8634,
-                0.8256, 0.8474, 0.8929, 0.9003, 0.8714]
+            [
+                0.8581,
+                0.8154,
+                0.8412,
+                0.9415,
+                0.8634,
+                0.8256,
+                0.8474,
+                0.8929,
+                0.9003,
+                0.8714,
+            ],
         ),
         (
             0.3,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8582, 0.8159, 0.8414, 0.9415, 0.8636,
-                0.8263, 0.8484, 0.8936, 0.9011, 0.8723]
+            [
+                0.8582,
+                0.8159,
+                0.8414,
+                0.9415,
+                0.8636,
+                0.8263,
+                0.8484,
+                0.8936,
+                0.9011,
+                0.8723,
+            ],
         ),
         (
             0.4,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8583, 0.8164, 0.8417, 0.9416, 0.8637,
-                0.8271, 0.8493, 0.8942, 0.9019, 0.8732]
+            [
+                0.8583,
+                0.8164,
+                0.8417,
+                0.9416,
+                0.8637,
+                0.8271,
+                0.8493,
+                0.8942,
+                0.9019,
+                0.8732,
+            ],
         ),
         (
             0.5,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8584, 0.8169, 0.8419, 0.9417, 0.8638,
-                0.8278, 0.8503, 0.8949, 0.9027, 0.8740]
+            [
+                0.8584,
+                0.8169,
+                0.8419,
+                0.9417,
+                0.8638,
+                0.8278,
+                0.8503,
+                0.8949,
+                0.9027,
+                0.8740,
+            ],
         ),
         (
             0.6,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8585, 0.8174, 0.8421, 0.9417, 0.8640,
-                0.8286, 0.8513, 0.8956, 0.9035, 0.8749]
+            [
+                0.8585,
+                0.8174,
+                0.8421,
+                0.9417,
+                0.8640,
+                0.8286,
+                0.8513,
+                0.8956,
+                0.9035,
+                0.8749,
+            ],
         ),
         (
             0.7,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8586, 0.8179, 0.8423, 0.9418, 0.8641,
-                0.8293, 0.8523, 0.8963, 0.9043, 0.8758]
+            [
+                0.8586,
+                0.8179,
+                0.8423,
+                0.9418,
+                0.8641,
+                0.8293,
+                0.8523,
+                0.8963,
+                0.9043,
+                0.8758,
+            ],
         ),
         (
             0.8,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8588, 0.8184, 0.8425, 0.9419, 0.8643,
-                0.8300, 0.8532, 0.8969, 0.9051, 0.8766]
+            [
+                0.8588,
+                0.8184,
+                0.8425,
+                0.9419,
+                0.8643,
+                0.8300,
+                0.8532,
+                0.8969,
+                0.9051,
+                0.8766,
+            ],
         ),
         (
             0.9,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8589, 0.8189, 0.8427, 0.9419, 0.8644,
-                0.8308, 0.8542, 0.8976, 0.9059, 0.8775]
+            [
+                0.8589,
+                0.8189,
+                0.8427,
+                0.9419,
+                0.8644,
+                0.8308,
+                0.8542,
+                0.8976,
+                0.9059,
+                0.8775,
+            ],
         ),
         (
             1,
             [6, 10, 8, 1, 5, 9, 7, 3, 2, 4],
-            [0.8590, 0.8194, 0.8430, 0.9420, 0.8645,
-                0.8315, 0.8552, 0.8983, 0.9067, 0.8784]
-        )
+            [
+                0.8590,
+                0.8194,
+                0.8430,
+                0.9420,
+                0.8645,
+                0.8315,
+                0.8552,
+                0.8983,
+                0.9067,
+                0.8784,
+            ],
+        ),
     ],
 )
 def test_WASPAS_chakraborty2015applications(
-        lambda_value,
-        expected_rank,
-        expected_scores):
+    lambda_value, expected_rank, expected_scores
+):
     """
     Data from:
 
@@ -427,7 +555,7 @@ def test_WASPAS_chakraborty2015applications(
         [522727, 75.42, 4, 5800],
         [486970, 62.62, 4, 5600],
         [509394, 65.87, 4, 6400],
-        [513333, 70.67, 4, 6000]
+        [513333, 70.67, 4, 6000],
     ]
 
     # Normalize the matrix
@@ -453,7 +581,7 @@ def test_WASPAS_chakraborty2015applications(
         {"score": expected_scores},
     )
 
-    ranker = WeightedAggregatedSumProductAssessment(l=lambda_value)
+    ranker = WeightedAggregatedSumProductAssessment(lambda_value=lambda_value)
     result = ranker.evaluate(dm)
 
     assert result.values_equals(expected)

@@ -200,15 +200,14 @@ class WeightedProductModel(SKCDecisionMakerABC):
 # =============================================================================
 
 
-def waspas(matrix, weights, l=0.5):
-    """Execute Weighted Aggregated Sum Product ASsessment without any validation."""
-
+def waspas(matrix, weights, lambda_value=0.5):
+    """Execute WASPAS without any validation."""
     _, wsm_scores = wsm(matrix, weights)
 
     _, log10_wpm_scores = wpm(matrix, weights)
     wpm_scores = np.power(10, log10_wpm_scores)
 
-    score = l * wsm_scores + (1 - l) * wpm_scores
+    score = lambda_value * wsm_scores + (1 - lambda_value) * wpm_scores
     ranking = rank.rank_values(score, reverse=True)
 
     return (
@@ -227,9 +226,10 @@ class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
     an aggregation parameter :math:`\lambda \in [0, 1]`.
 
     It is very important to state here that it is applicable only
-    when all the data are expressed in exactly the same unit. If this is not
-    the case, then the final result is equivalent to "adding apples and
-    oranges". To avoid this problem a previous normalization step is necessary.
+    when all the data are expressed in exactly the same unit. If this
+    is not the case, then the final result is equivalent to "adding
+    apples and oranges". To avoid this problem a previous
+    normalization step is necessary.
 
     In general, suppose that a given MCDA problem is defined on :math:`m`
     alternatives and :math:`n` decision criteria. Let :math:`w_j` denote
@@ -251,43 +251,47 @@ class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
     ValueError:
         If some objective is for minimization,
         or some value in the matrix is <= 0,
-        or if the parameter `l` is not in the range [0, 1].
+        or if the parameter `lambda_value` is not in the range [0, 1].
 
     References
     ----------
     :cite:p:`zavadskas2012optimization`
     """
 
-    _skcriteria_parameters = ["l"]
+    _skcriteria_parameters = ["lambda_value"]
 
-    def __init__(self, l=0.5):
-        l = float(l)
-        if not (1 >= l >= 0):
+    def __init__(self, lambda_value=0.5):
+        lambda_value = float(lambda_value)
+        if not (1 >= lambda_value >= 0):
             raise ValueError(
-                f"WeightedAggregatedSumProductAssessment requires 'l' to be between 0 and 1, but found {l}.")
-        self._l = l
+                "WeightedAggregatedSumProductAssessment"
+                " requires 'lambda_value' to be between"
+                f" 0 and 1, but found {lambda_value}."
+            )
+        self._lambda_value = lambda_value
 
     @property
-    def l(self):
+    def lambda_value(self):
         """Aggregation parameter λ ∈ [0, 1] that balances WSM and WPM."""
-        return self._l
+        return self._lambda_value
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if Objective.MIN.value in objectives:
             raise ValueError(
-                "WeightedAggregatedSumProductAssessment can't operate with minimize objective"
+                "WeightedAggregatedSumProductAssessment can't"
+                " operate with minimize objective"
             )
         if np.any(matrix <= 0):
-            raise ValueError(
-                "WeightedAggregatedSumProductAssessment can't operate with values <= 0")
 
-        (
-            rank,
-            wsm_scores,
-            log10_wpm_scores,
-            score
-        ) = waspas(matrix, weights, self._l)
+            raise ValueError(
+                "WeightedAggregatedSumProductAssessment can't"
+                " operate with values <= 0"
+            )
+
+        (rank, wsm_scores, log10_wpm_scores, score) = waspas(
+            matrix, weights, self._lambda_value
+        )
         return rank, {
             "wsm_scores": wsm_scores,
             "log10_wpm_scores": log10_wpm_scores,
