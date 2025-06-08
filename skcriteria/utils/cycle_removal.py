@@ -15,7 +15,10 @@
 # IMPORTS
 # =============================================================================
 
+import random
 import warnings
+from collections import Counter
+from itertools import combinations
 
 import networkx as nx
 
@@ -24,15 +27,144 @@ import networkx as nx
 # =============================================================================
 
 
-def break_cycles_greedy(G):
-    """Removes cycles from a directed Networkx graph using a greedy algorithm.
-    Creates a copy."""
-    G = G.copy()
-    while True:
-        try:
-            cycle = nx.find_cycle(G, orientation="original")
-            G.remove_edge(*cycle[-1][:2])
-        except nx.exception.NetworkXNoCycle:
-            warnings.warn("No cycles found on graph")
-            break
-    return G
+def _cycle_to_edges(cycle):
+    """Convert a cycle (list of nodes) to a list of edges."""
+    return [(cycle[i], cycle[(i + 1) % len(cycle)]) for i in range(len(cycle))]
+
+
+def _select_edge_random(cycle, edge_freq, rng):
+    """Select a random edge from cycle."""
+    edges = _cycle_to_edges(cycle)
+    return rng.choice(edges)
+
+
+def _select_edge_weighted(cycle, edge_freq, rng):
+    """Select edge with probability proportional to frequency (more frequent = more likely)."""
+    edges = _cycle_to_edges(cycle)
+    weights = [edge_freq[edge] + 1 for edge in edges]
+    return rng.choices(edges, weights=weights, k=1)[0]
+
+
+def filter_minimal_removals(acyclic_graphs):
+    """
+    Filter acyclic graphs to keep only those with minimal edge removals.
+
+    Parameters
+    ----------
+    acyclic_graphs : list
+        List of tuples (acyclic_graph, removed_edges_set)
+
+    Returns
+    -------
+    list
+        Filtered list with only minimal removal solutions
+    """
+    if not acyclic_graphs:
+        return []
+
+    to_discard = set()
+
+    for (i1, (g1, r1)), (i2, (g2, r2)) in combinations(
+        enumerate(acyclic_graphs), 2
+    ):
+        if r1.issubset(r2) and r1 != r2:
+            to_discard.add(i2)
+        elif r2.issubset(r1) and r1 != r2:
+            to_discard.add(i1)
+
+    return [gr for i, gr in enumerate(acyclic_graphs) if i not in to_discard]
+
+
+# Strategy dictionary
+_STRATEGIES = {
+    "random": {"selector": _select_edge_random, "needs_freq": False},
+    "weighted": {"selector": _select_edge_weighted, "needs_freq": True},
+}
+
+
+def _calculate_edge_frequencies(graph):
+    """Calculate edge frequencies across all cycles in the graph."""
+    edge_freq = Counter()
+    for cycle in nx.simple_cycles(graph):
+        edges = _cycle_to_edges(cycle)
+        edge_freq.update(edges)
+    return edge_freq
+
+
+def generate_acyclic_graphs(
+    graph, strategy="random", max_attempts=1000, max_graphs=10, seed=42
+):
+    """
+    Generate multiple acyclic graphs by removing edges from cycles.
+
+    Parameters
+    ----------
+    graph : networkx.DiGraph
+        The input directed graph
+    strategy : str, optional
+        Edge selection strategy: "random" or "weighted"
+    max_attempts : int, optional
+        Maximum number of attempts to generate graphs
+    max_graphs : int, optional
+        Maximum number of acyclic graphs to generate
+    seed : int, optional
+        Random seed for reproducibility
+
+    Returns
+    -------
+    list
+        List of tuples (acyclic_graph, removed_edges_set)
+    """
+    rng = random.Random(seed)
+    seen_removals = set()
+    acyclic_graphs = []
+
+    # Validate strategy
+    if strategy not in _STRATEGIES:
+        available_strategies = list(STRATEGIES.keys())
+        raise ValueError(
+            f"Unknown strategy: {strategy}. Available strategies: {available_strategies}"
+        )
+
+    # Check if graph is already acyclic
+    cycles = list(nx.simple_cycles(graph))
+    if not cycles:
+        return [(graph.copy(), set())]
+
+    # Get strategy configuration
+    strategy_config = STRATEGIES[strategy]
+    select_edge = strategy_config["selector"]
+
+    # Calculate edge frequencies if needed
+    if strategy_config["needs_freq"]:
+        edge_freq = _calculate_edge_frequencies(graph)
+    else:
+        edge_freq = Counter()  # Empty counter for consistency
+
+    attempts = 0
+    while attempts < max_attempts and len(acyclic_graphs) < max_graphs:
+        attempts += 1
+        to_remove = set()
+
+        # Select edges to remove from each cycle
+        for cycle in cycles:
+            edge_to_remove = select_edge(cycle, edge_freq, rng)
+            to_remove.add(edge_to_remove)
+
+        # Skip if we've seen this combination before
+        removal_frozenset = frozenset(to_remove)
+        if removal_frozenset in seen_removals:
+            continue
+
+        seen_removals.add(removal_frozenset)
+
+        # Test if removing edges creates acyclic graph
+        modified_graph = graph.copy()
+        modified_graph.remove_edges_from(to_remove)
+
+        if nx.is_directed_acyclic_graph(modified_graph):
+            acyclic_graphs.append((modified_graph, to_remove))
+            # Filter to keep only minimal removals
+            acyclic_graphs = filter_minimal_removals(acyclic_graphs)
+
+    return acyclic_graphs
