@@ -28,7 +28,7 @@ def normalise_dm(matrix: np.ndarray):
     """Normalise the decision matrix."""
 
     sums_arr = np.sum(matrix, axis=0) # Sums of all values for each column (criteria)
-    return np.divide(matrix, sums_arr)
+    return matrix / sums_arr
 
 def sum_indexes(matrix: np.ndarray, objectives: np.ndarray):
     """Determine the sums of the minimizing and maximizing indexes, respectively."""
@@ -48,14 +48,15 @@ def determine_significances(s_max, s_min : np.ndarray):
     """Determine the significances of the compared alternatives
     describing the advantages and disadvantages."""
 
-    min_s_min = s_min.min()
+    min_s_min = np.min(s_min)
     
     dividend = min_s_min * np.sum(s_min)
     
-    divisor_sum = np.sum(np.divide(min_s_min, s_min))  
-    divisor = np.multiply(s_min, divisor_sum)
+    divisor_sum = np.sum(min_s_min / s_min)
+    divisor = s_min * divisor_sum
     
-    sig = np.add(s_max, np.divide(dividend, divisor))
+    sig = s_max + (dividend / divisor)
+
     return sig
 
 def copras(matrix, weights, objectives):
@@ -65,7 +66,7 @@ def copras(matrix, weights, objectives):
     normalised_dm = normalise_dm(matrix)
 
     #   1: Compute the weighted normalised decision-making matrix
-    weighted_normalised_dm = np.multiply(normalised_dm, weights)
+    weighted_normalised_dm = normalised_dm * weights
 
     #   2: Calculate the sums of weighted normalised indices describing 
     #      the i^th alternative
@@ -76,7 +77,7 @@ def copras(matrix, weights, objectives):
     significances = determine_significances(s_max, s_min)
 
     #   4: Calculate the utility degree N_i (out of 100) of alternative i
-    utility_degrees = np.multiply(np.divide(significances, max(significances)), 100)
+    utility_degrees = (significances / max(significances) * 100)
 
     #   5: Rank alternatives based on utility
     ranking = rank.rank_values(utility_degrees, reverse=True)
