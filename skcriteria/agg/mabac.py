@@ -16,6 +16,7 @@
 # =============================================================================
 
 from ..utils import hidden
+from tabulate import tabulate
 
 with hidden():
     import numpy as np
@@ -32,40 +33,35 @@ with hidden():
 
 def mabac(matrix, objectives, weights):
     """Execute MABAC without any validation."""
-
-    # benefit and cost matrices
-    benefit_matrix = matrix[:, objectives == Objective.MAX.value]
-    cost_matrix = matrix[:, objectives == Objective.MIN.value]
-
-    # max and min for benefit criteria
-    max_benefit = np.max(benefit_matrix, axis=0)
-    min_benefit = np.min(benefit_matrix, axis=0)
-
-    # normalized benefit matrix
-    normalized_benefit = (benefit_matrix - min_benefit) / (max_benefit - min_benefit)
-
-    # max and min for cost criteria
-    max_cost = np.max(cost_matrix, axis=0)
-    min_cost = np.min(cost_matrix, axis=0)
-
-    # normalized cost matrix
-    normalized_cost = (cost_matrix - max_cost) / (min_cost - max_cost)
-
-    # combining normalized matrices
-    normalized_matrix = np.concatenate([normalized_benefit, normalized_cost], axis=1)
+    
+    # Create normalized matrix maintaining original column order
+    normalized_matrix = np.zeros_like(matrix, dtype=float)
+    
+    # Normalize each criterion
+    for j in range(matrix.shape[1]):
+        if objectives[j] == Objective.MAX.value:
+            # Benefit criteria
+            max_val = np.max(matrix[:, j])
+            min_val = np.min(matrix[:, j])
+            normalized_matrix[:, j] = (matrix[:, j] - min_val) / (max_val - min_val)
+        else:
+            # Cost criteria
+            max_val = np.max(matrix[:, j])
+            min_val = np.min(matrix[:, j])
+            normalized_matrix[:, j] = (matrix[:, j] - max_val) / (min_val - max_val)
     
     # weighted normalized decision matrix
-    # inverse order of weights
-    weights_inverse = weights[::-1]
-    weighted_matrix = (normalized_matrix+1) * weights_inverse
+    weighted_matrix = (normalized_matrix + 1) * weights
+
     
-    # border approximation area (BAA)
-    border_approximation_area = np.prod(weighted_matrix, axis=0) ** (1/len(matrix))
+    # border approximation area (BAA) - geometric mean across alternatives
+    m = matrix.shape[0]  # number of alternatives
+    border_approximation_area = np.prod(weighted_matrix, axis=0) ** (1/m)
     
     # distance from BAA
     distance = weighted_matrix - border_approximation_area
     
-    # final score
+    # final score (sum across criteria for each alternative)
     score = np.sum(distance, axis=1)
     
     # ranking (higher score is better)
