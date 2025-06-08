@@ -3,7 +3,6 @@
 tox
 ipdb
 pytest
-pytest-ordering
 pyquery
 
 black
