@@ -241,15 +241,16 @@ def test_VIKOR_invalid_v():
         VIKOR(v=-0.1)
 
 
- # TODO: 0.415 <= w1 <= 0.630 should not change compromise_set
- # TODO: otherwise, 0.366 <= w1 <= 0.746 compromise_set should be [0,1]
+# TODO: 0.415 <= w1 <= 0.630 should not change compromise_set
+# TODO: otherwise, 0.366 <= w1 <= 0.746 compromise_set should be [0,1]
 @pytest.mark.parametrize("w1", [0.5])
 @pytest.mark.parametrize("alt", [True, False])
 def test_VIKOR_opricovic2004compromise(w1, alt):
     """
     Data from:
         Opricovic, S., & Tzeng, G. H. (2004).
-        Compromise solution by MCDM methods: A comparative analysis of VIKOR and TOPSIS.
+        Compromise solution by MCDM methods:
+        A comparative analysis of VIKOR and TOPSIS.
         European Journal of Operational Research, 156(2), 445-455.
 
     """
