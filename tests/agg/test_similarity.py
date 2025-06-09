@@ -191,6 +191,50 @@ def test_VIKOR():
     assert not diff.has_differences, diff
 
 
+def test_VIKOR_tied():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [5, 8, 4],
+            [7, 6, 8],
+            [8, 8, 6],
+            [7, 4, 6],
+            [8, 8, 6],
+        ],
+        weights=[0.3, 0.4, 0.3],
+        objectives=[max, max, max],
+        alternatives=["A1", "A2", "A3", "A4", "A2bis"],
+        criteria=["DUR", "CAP", "REL"],
+    )
+
+    expected = RankResult(
+        "VIKOR",
+        ["A1", "A2", "A3", "A4", "A2bis"],
+        [3, 2, 1, 4, 1],
+        {
+            "r_k": np.array([0.3, 0.2, 0.15, 0.4, 0.15]),
+            "s_k": np.array([0.6, 0.3, 0.15, 0.65, 0.15]),
+            "q_k": np.array([0.75, 0.25, 0.0, 1.0, 0.0]),
+            "acceptable_advantage": False,
+            "acceptable_stability": True,
+            "compromise_set": np.array([1, 2]),
+        },
+    )
+
+    ranker = VIKOR()
+    result = ranker.evaluate(dm)
+
+    def DEBUG(result):
+        print(result)
+        for k, v in result.e_.items():
+            print(f"{k:20}{v}")
+
+    DEBUG(result)
+    DEBUG(expected)
+
+    diff = expected.diff(result)
+    assert not diff.has_differences, diff
+
+
 def test_VIKOR_invalid_v():
     with pytest.raises(ValueError):
         VIKOR(v=1.1)

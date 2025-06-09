@@ -209,7 +209,7 @@ class VIKOR(SKCDecisionMakerABC):
         rank_r_k = rank.rank_values(r_k, reverse=False)
 
         # Check if solution is acceptable
-        best_q = np.where(rank_q_k == 1)
+        best_q = np.where(rank_q_k == 1) # TODO: There could be many qs ranked 1
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - q_k[best_q] < dq)
         # Our chosen solution must be the only one with acceptable advantage
