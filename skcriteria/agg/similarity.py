@@ -202,12 +202,17 @@ class VIKOR(SKCDecisionMakerABC):
 
         # scale maps zenith to 1. We want the opposite, so we invert objectives
         matrix_scaled = scale(matrix, objectives * -1) * weights
+
         # New criteria: Manhattan distance and Chebyshev distance
-        ncriteria_to_2criteria = lambda a: (np.sum(a), np.max(a))
+        def ncriteria_to_2criteria(alternative):
+            return (np.sum(alternative), np.max(alternative))
+
         # N criteria problem -> 2 criteria problem
-        distances_matrix = np.apply_along_axis(ncriteria_to_2criteria, 1, matrix_scaled)
+        distances_matrix = np.apply_along_axis(
+            ncriteria_to_2criteria, 1, matrix_scaled
+        )
         distances_matrix_scaled = scale(distances_matrix, [1, 1])
-        # In this new problem weights are [v, 1-v]
+        # We now do weighted sum of our 2 criteria with weights [v, 1-v]
         ans = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
 
         q_k = ans
