@@ -167,14 +167,12 @@ def test_VIKOR():
         ["A1", "A2", "A3", "A4"],
         [3, 2, 1, 4],
         {
-            # "f_star": np.array([8, 8, 8]),
-            # "f_minus": np.array([5, 4, 4]),
             "r_k": np.array([0.3, 0.2, 0.15, 0.4]),
             "s_k": np.array([0.6, 0.3, 0.15, 0.65]),
             "q_k": np.array([0.75, 0.25, 0.0, 1.0]),
-            "aceptable_advantage": np.array([False]),
-            "aceptable_stability": True,
-            "compromise_set": np.array([3, 1, 2]),
+            "acceptable_advantage": np.array([False]),
+            "acceptable_stability": True,
+            "compromise_set": np.array([1, 2]),
         },
     )
 

@@ -228,54 +228,29 @@ class VIKOR(SKCDecisionMakerABC):
         def best(rank):
             return np.where(rank == 1)
 
-        def second_best(rank):
-            return np.where(rank == 2)
-
         # STEP 5
+        best_q = np.where(rank_q_k == 1)
         dq = 1 / (len(matrix) - 1)
+        acceptable_advantage = q_k[rank_q_k == 2] - q_k[best_q] >= dq
 
-        advantage_condition = (
-            q_k[second_best(rank_q_k)] - q_k[best(rank_q_k)] >= dq
-        )
-        aceptable_advantage = np.where(advantage_condition, True, False)
-
-        aceptable_stability = best(rank_q_k) in (
-            best(rank_s_k),
-            best(rank_r_k),
+        acceptable_stability = best_q in (
+            np.where(rank_s_k == 1),
+            np.where(rank_r_k == 1),
         )
 
-        empty_array = np.array([0, 0])
-
-        stability_result = np.where(
-            aceptable_stability == False,
-            [rank_q_k[0], rank_q_k[1]],
-            empty_array,
-        )
-        stability_result = stability_result[stability_result != 0]
-
-        empty_array = np.array([0])
-
-        advantage_result_1 = np.where(
-            aceptable_advantage == False, (rank_q_k[0]), empty_array
-        )
-        advantage_result_1 = advantage_result_1[advantage_result_1 != 0]
-
-        advantage_result_2 = np.where(q_k - q_k[np.where(rank_q_k == 1)] < dq)[
-            0
-        ]
-
-        compromise_set = np.concatenate(
-            (stability_result, advantage_result_1, advantage_result_2)
-        )
+        if acceptable_stability and acceptable_advantage:
+            compromise_set = best_q
+        elif not acceptable_stability and acceptable_advantage:
+            compromise_set = np.where(rank_q_k <= 2)
+        else:
+            compromise_set = np.where(q_k - q_k[best_q] < dq)[0]
 
         extra = {
-            # "f_star": zenith,
-            # "f_minus": nadir,
             "r_k": r_k,
             "s_k": s_k,
             "q_k": q_k,
-            "aceptable_advantage": aceptable_advantage,
-            "aceptable_stability": aceptable_stability,
+            "acceptable_advantage": acceptable_advantage,
+            "acceptable_stability": acceptable_stability,
             "compromise_set": compromise_set,
         }
 
