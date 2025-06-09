@@ -173,15 +173,6 @@ class VIKOR(SKCDecisionMakerABC):
             extra=extra,
         )
 
-    def _check_stability_condition(self, rank0, rank1):
-        r0_fpos = np.argwhere(rank0 == 1).squeeze()
-        r1_fpos = np.argwhere(rank1 == 1).squeeze()
-
-        if len(r1_fpos):
-            pass
-
-        return r0_fpos == r1_fpos
-
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         from skcriteria.preprocessing.scalers import (
             matrix_scale_by_cenit_distance as scale,
