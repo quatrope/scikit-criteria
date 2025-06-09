@@ -200,42 +200,36 @@ class VIKOR(SKCDecisionMakerABC):
         distances_matrix_scaled = scale(distances_matrix, [1, 1])
         # We now do weighted sum of our 2 criteria with weights [v, 1-v]
         q_k = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
-
-        # Opricovic calls Manhattan S and Chebyshev R
-        s_k, r_k = distances_matrix.T
         # Rank them
         rank_q_k = rank.rank_values(q_k, reverse=False)
-        rank_s_k = rank.rank_values(s_k, reverse=False)
-        rank_r_k = rank.rank_values(r_k, reverse=False)
 
         # Check if solution is acceptable
-        best_q = np.where(rank_q_k == 1) # TODO: There could be many qs ranked 1
+        chosen_qs = np.where(rank_q_k == 1) # Possibly many qs with rank 1
+        best_q_value = q_k[chosen_qs[0][0]] # The value of the best q
         dq = 1 / (len(matrix) - 1)
-        qs_with_acceptable_advantage = np.where(q_k - q_k[best_q] < dq)
-        # Our chosen solution must be the only one with acceptable advantage
-        has_acceptable_advantage = np.count_nonzero(qs_with_acceptable_advantage) == 1
-        # It must also be the chosen solution of one of the original distances
-        has_acceptable_stability = best_q in (
-            np.where(rank_s_k == 1),
-            np.where(rank_r_k == 1),
-        )
+        qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
+        # Our chosen Qs must be the only one(s) with acceptable advantage
+        has_acceptable_advantage = np.isin(qs_with_acceptable_advantage, chosen_qs).all()
+        # They must also be the chosen solution of one of the original distances
+        bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
+        has_acceptable_stability = np.isin(chosen_qs, bests).all()
 
         if has_acceptable_stability and has_acceptable_advantage:
             # Our solution was good
-            compromise_set = best_q
+            compromise_set = chosen_qs
         elif not has_acceptable_stability and has_acceptable_advantage:
-            # When unstable, top-2 are chosen
+            # When unstable, top 2 ranks are chosen
             compromise_set = np.where(rank_q_k <= 2)
         else:
             # If all fails, include all that would have acceptable advantage
             compromise_set = qs_with_acceptable_advantage
 
         extra = {
-            "r_k": r_k,
-            "s_k": s_k,
+            "r_k": distances_matrix[:, 1],
+            "s_k": distances_matrix[:, 0],
             "q_k": q_k,
-            "acceptable_advantage": has_acceptable_advantage,
-            "acceptable_stability": has_acceptable_stability,
+            "acceptable_advantage": bool(has_acceptable_advantage),
+            "acceptable_stability": bool(has_acceptable_stability),
             "compromise_set": compromise_set[0],
         }
 
