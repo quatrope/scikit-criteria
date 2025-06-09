@@ -196,35 +196,24 @@ class VIKOR(SKCDecisionMakerABC):
                     name = "unknown"
                 print(f"{frame.f_lineno} - {name}: {arg}")
 
-        def scaled_distance(array, zenith=np.min, nadir=np.max):
-            zenith = zenith(array) if callable(zenith) else zenith
-            nadir = nadir(array) if callable(nadir) else nadir
-            raw_distance = array - zenith
-            range_ = nadir - zenith
-            return raw_distance / range_
+        from skcriteria.preprocessing.scalers import (
+            matrix_scale_by_cenit_distance as scale,
+        )
 
-        # STEP 1
-        # Compute the ideal and anti-ideal points
-        maxs = np.amax(matrix, axis=0)
-        mins = np.amin(matrix, axis=0)
-        zenith = np.where(objectives == 1, maxs, mins)
-        nadir = np.where(objectives == 1, mins, maxs)
+        # scale maps zenith to 1. We want the opposite, so we invert objectives
+        matrix_scaled = scale(matrix, objectives * -1) * weights
+        # New criteria: Manhattan distance and Chebyshev distance
+        ncriteria_to_2criteria = lambda a: (np.sum(a), np.max(a))
+        # N criteria problem -> 2 criteria problem
+        distances_matrix = np.apply_along_axis(ncriteria_to_2criteria, 1, matrix_scaled)
+        distances_matrix_scaled = scale(distances_matrix, [1, 1])
+        # In this new problem weights are [v, 1-v]
+        ans = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
 
-        # STEP 2
-        # Compute the weighted distances (manhattan = sum of coordinates, chebyshev = max coordinate)
-        weighed_distances = scaled_distance(matrix, zenith, nadir) * weights
-        DEBUG(weighed_distances)
-        manhattan_dists = np.sum(weighed_distances, axis=1)
-        chebyshev_dists = np.max(weighed_distances, axis=1)
-        # STEP 3
-        # Weigh both by self.v
+        q_k = ans
+        s_k = distances_matrix[:, 0]
+        r_k = distances_matrix[:, 1]
 
-        combined_dists = (1 - self.v) * scaled_distance(chebyshev_dists)
-        combined_dists += self.v * scaled_distance(manhattan_dists)
-
-        q_k = combined_dists
-        s_k = manhattan_dists
-        r_k = chebyshev_dists
         # STEP 4
         # Rank them
         rank_q_k = rank.rank_values(q_k, reverse=False)
@@ -275,8 +264,8 @@ class VIKOR(SKCDecisionMakerABC):
         )
 
         extra = {
-            "f_star": zenith,
-            "f_minus": nadir,
+            # "f_star": zenith,
+            # "f_minus": nadir,
             "r_k": r_k,
             "s_k": s_k,
             "q_k": q_k,

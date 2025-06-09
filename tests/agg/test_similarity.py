@@ -167,8 +167,8 @@ def test_VIKOR():
         ["A1", "A2", "A3", "A4"],
         [3, 2, 1, 4],
         {
-            "f_star": np.array([8, 8, 8]),
-            "f_minus": np.array([5, 4, 4]),
+            # "f_star": np.array([8, 8, 8]),
+            # "f_minus": np.array([5, 4, 4]),
             "r_k": np.array([0.3, 0.2, 0.15, 0.4]),
             "s_k": np.array([0.6, 0.3, 0.15, 0.65]),
             "q_k": np.array([0.75, 0.25, 0.0, 1.0]),
@@ -180,6 +180,14 @@ def test_VIKOR():
 
     ranker = VIKOR()
     result = ranker.evaluate(dm)
+
+    def DEBUG(result):
+        print(result)
+        for k, v in result.e_.items():
+            print(f"{k:20}{v}")
+
+    DEBUG(result)
+    DEBUG(expected)
 
     diff = expected.diff(result)
     assert not diff.has_differences, diff
