@@ -170,7 +170,7 @@ def test_VIKOR():
             "r_k": np.array([0.3, 0.2, 0.15, 0.4]),
             "s_k": np.array([0.6, 0.3, 0.15, 0.65]),
             "q_k": np.array([0.75, 0.25, 0.0, 1.0]),
-            "acceptable_advantage": np.array([False]),
+            "acceptable_advantage": False,
             "acceptable_stability": True,
             "compromise_set": np.array([1, 2]),
         },
