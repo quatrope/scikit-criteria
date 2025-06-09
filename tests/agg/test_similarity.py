@@ -241,7 +241,11 @@ def test_VIKOR_invalid_v():
         VIKOR(v=-0.1)
 
 
-def test_VIKOR_opricovic2004compromise():
+ # TODO: 0.415 <= w1 <= 0.630 should not change compromise_set
+ # TODO: otherwise, 0.366 <= w1 <= 0.746 compromise_set should be [0,1]
+@pytest.mark.parametrize("w1", [0.5])
+@pytest.mark.parametrize("alt", [True, False])
+def test_VIKOR_opricovic2004compromise(w1, alt):
     """
     Data from:
         Opricovic, S., & Tzeng, G. H. (2004).
@@ -249,26 +253,24 @@ def test_VIKOR_opricovic2004compromise():
         European Journal of Operational Research, 156(2), 445-455.
 
     """
-    problem_f = skcriteria.mkdm(
-        matrix=[
-            [1., 3000.],
-            [2., 3750.],
-            [5., 4500.],
-        ],
-        weights=[0.5, 0.5],
+
+    matrix = [
+        [1.0, 3000.0],
+        [2.0, 3750.0],
+        [5.0, 4500.0],
+    ]
+    if alt:
+        matrix = np.apply_along_axis(
+            lambda row: (row[0] + 5, row[1] / 1000 - 1), 1, matrix
+        )
+
+    dm = skcriteria.mkdm(
+        matrix=matrix,
+        weights=[w1, 1 - w1],
         objectives=[min, max],
         alternatives=["A1", "A2", "A3"],
         criteria=["Risk", "Altitude"],
     )
-
-    
-    problem_phi_matrix = np.apply_along_axis(
-        lambda row: (row[0]+5, row[1]/1000 - 1),
-        1,
-        problem_f.matrix
-    
-    )
-    problem_phi = problem_f.replace(matrix=problem_phi_matrix)
 
     expected = RankResult(
         "VIKOR",
@@ -277,7 +279,7 @@ def test_VIKOR_opricovic2004compromise():
         {
             "r_k": np.array([0.5, 0.25, 0.5]),
             "s_k": np.array([0.5, 0.375, 0.5]),
-            "q_k": np.array([1., 0., 1.]),
+            "q_k": np.array([1.0, 0.0, 1.0]),
             "acceptable_advantage": True,
             "acceptable_stability": True,
             "compromise_set": np.array([1]),
@@ -285,13 +287,7 @@ def test_VIKOR_opricovic2004compromise():
     )
 
     ranker = VIKOR()
-    result = ranker.evaluate(problem_f)
-
-    diff = expected.diff(result)
-    assert not diff.has_differences, diff
-
-    ranker = VIKOR()
-    result = ranker.evaluate(problem_phi)
+    result = ranker.evaluate(dm)
 
     diff = expected.diff(result)
     assert not diff.has_differences, diff
