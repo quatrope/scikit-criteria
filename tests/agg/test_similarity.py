@@ -239,3 +239,59 @@ def test_VIKOR_invalid_v():
         VIKOR(v=1.1)
     with pytest.raises(ValueError):
         VIKOR(v=-0.1)
+
+
+def test_VIKOR_opricovic2004compromise():
+    """
+    Data from:
+        Opricovic, S., & Tzeng, G. H. (2004).
+        Compromise solution by MCDM methods: A comparative analysis of VIKOR and TOPSIS.
+        European Journal of Operational Research, 156(2), 445-455.
+
+    """
+    problem_f = skcriteria.mkdm(
+        matrix=[
+            [1., 3000.],
+            [2., 3750.],
+            [5., 4500.],
+        ],
+        weights=[0.5, 0.5],
+        objectives=[min, max],
+        alternatives=["A1", "A2", "A3"],
+        criteria=["Risk", "Altitude"],
+    )
+
+    
+    problem_phi_matrix = np.apply_along_axis(
+        lambda row: (row[0]+5, row[1]/1000 - 1),
+        1,
+        problem_f.matrix
+    
+    )
+    problem_phi = problem_f.replace(matrix=problem_phi_matrix)
+
+    expected = RankResult(
+        "VIKOR",
+        ["A1", "A2", "A3"],
+        [2, 1, 2],
+        {
+            "r_k": np.array([0.5, 0.25, 0.5]),
+            "s_k": np.array([0.5, 0.375, 0.5]),
+            "q_k": np.array([1., 0., 1.]),
+            "acceptable_advantage": True,
+            "acceptable_stability": True,
+            "compromise_set": np.array([1]),
+        },
+    )
+
+    ranker = VIKOR()
+    result = ranker.evaluate(problem_f)
+
+    diff = expected.diff(result)
+    assert not diff.has_differences, diff
+
+    ranker = VIKOR()
+    result = ranker.evaluate(problem_phi)
+
+    diff = expected.diff(result)
+    assert not diff.has_differences, diff
