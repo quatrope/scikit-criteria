@@ -177,47 +177,65 @@ class VIKOR(SKCDecisionMakerABC):
         r0_fpos = np.argwhere(rank0 == 1).squeeze()
         r1_fpos = np.argwhere(rank1 == 1).squeeze()
 
-        if len(r1_fpos): pass
-
+        if len(r1_fpos):
+            pass
 
         return r0_fpos == r1_fpos
 
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-        # STEP 1
 
+        def DEBUG(*args):
+            import inspect
+
+            frame = inspect.currentframe().f_back
+            for arg in args:
+                name = [k for k, v in frame.f_locals.items() if v is arg]
+                if name:
+                    name = name[0]
+                else:
+                    name = "unknown"
+                print(f"{frame.f_lineno} - {name}: {arg}")
+
+        def scaled_distance(array, zenith=np.min, nadir=np.max):
+            zenith = zenith(array) if callable(zenith) else zenith
+            nadir = nadir(array) if callable(nadir) else nadir
+            raw_distance = array - zenith
+            range_ = nadir - zenith
+            return raw_distance / range_
+
+        # STEP 1
+        # Compute the ideal and anti-ideal points
         maxs = np.amax(matrix, axis=0)
         mins = np.amin(matrix, axis=0)
-
-        f_star = np.where(objectives == 1, maxs, mins)
-        f_minus = np.where(objectives == 1, mins, maxs)
+        zenith = np.where(objectives == 1, maxs, mins)
+        nadir = np.where(objectives == 1, mins, maxs)
 
         # STEP 2
-
-        num = f_star - matrix
-        den = f_star - f_minus
-
-        scaled = num / den
-        s_k = np.dot(scaled, weights)
-        r_k = np.max((weights * num) / den, axis=1)
-
+        # Compute the weighted distances (manhattan = sum of coordinates, chebyshev = max coordinate)
+        weighed_distances = scaled_distance(matrix, zenith, nadir) * weights
+        DEBUG(weighed_distances)
+        manhattan_dists = np.sum(weighed_distances, axis=1)
+        chebyshev_dists = np.max(weighed_distances, axis=1)
         # STEP 3
+        # Weigh both by self.v
 
-        s_star = np.min(s_k)
-        s_minus = np.max(s_k)
-        r_star = np.min(r_k)
-        r_minus = np.max(r_k)
+        combined_dists = (1 - self.v) * scaled_distance(chebyshev_dists)
+        combined_dists += self.v * scaled_distance(manhattan_dists)
 
-        term_1 = self.v * (s_k - s_star) / (s_minus - s_star)
-        term_2 = (1 - self.v) * (r_k - r_star) / (r_minus - r_star)
-        q_k = term_1 + term_2
-
+        q_k = combined_dists
+        s_k = manhattan_dists
+        r_k = chebyshev_dists
         # STEP 4
+        # Rank them
         rank_q_k = rank.rank_values(q_k, reverse=False)
         rank_s_k = rank.rank_values(s_k, reverse=False)
         rank_r_k = rank.rank_values(r_k, reverse=False)
 
-        def best(rank): return np.where(rank == 1)
-        def second_best(rank): return np.where(rank == 2)
+        def best(rank):
+            return np.where(rank == 1)
+
+        def second_best(rank):
+            return np.where(rank == 2)
 
         # STEP 5
         dq = 1 / (len(matrix) - 1)
@@ -227,8 +245,10 @@ class VIKOR(SKCDecisionMakerABC):
         )
         aceptable_advantage = np.where(advantage_condition, True, False)
 
-
-        aceptable_stability = best(rank_q_k) in (best(rank_s_k), best(rank_r_k))
+        aceptable_stability = best(rank_q_k) in (
+            best(rank_s_k),
+            best(rank_r_k),
+        )
 
         empty_array = np.array([0, 0])
 
@@ -255,8 +275,8 @@ class VIKOR(SKCDecisionMakerABC):
         )
 
         extra = {
-            "f_star": f_star,
-            "f_minus": f_minus,
+            "f_star": zenith,
+            "f_minus": nadir,
             "r_k": r_k,
             "s_k": s_k,
             "q_k": q_k,
