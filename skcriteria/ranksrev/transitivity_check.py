@@ -53,6 +53,13 @@ def _untie_equivalent_ranks(r1, r2):
     return ((r1, r2), (r2, r1))
 
 
+def _transitivity_break_bound(n):
+    if n % 2 == 0:
+        return n * (n**2 - 4) // 24
+    else:
+        return n * (n**2 - 1) // 24
+
+
 # =============================================================================
 # CLASS
 # =============================================================================
@@ -223,61 +230,50 @@ class TransitivityChecker(SKCMethodABC):
 
     def _create_rank_with_info(self, orank, extra, dag, edges):
 
-        sorted_rank = list(nx.topological_sort(dag))
+        sorted_alternatives = list(nx.topological_sort(dag))
 
-        # TODO create a sort with ties
+        alternative_rank_value = dict(
+            zip(
+                sorted_alternatives, np.arange(len(sorted_alternatives), 0, -1)
+            )
+        )
 
         extra["rrt23"] = Bunch(
             "rrt23",
             {
-                "acyclic_graph": dag,  # TODO guardar aristas removidas, hacer en cycle_removal
+                "acyclic_graph": dag,
                 "removed_edges": edges,
             },
         )
 
-        # TODO MAKE RIGHT ALTERNATIVE RANKING
-
         untied_rank = RankResult(
             method=orank.method,
-            alternatives=sorted_rank,
-            values=np.arange(len(sorted_rank), 0, -1),
+            alternatives=orank.alternatives,
+            values=np.array(
+                [alternative_rank_value[alt] for alt in orank.alternatives]
+            ),
             extra=extra,
         )
 
         return untied_rank
 
-    def _get_ranks(self, g, orank, extra):
+    def _get_ranks(self, graph, orank, extra):
 
-        cycles = list(nx.simple_cycles(g))  # TODO: Usar recursive
         untied_ranks = []
 
-        # TODO: generate_acyclic_graphs maneja el caso sin ciclos,
-        # podríamos unificar los 2 criterios al costo de un ciclo de for
-        # que quizas es mejor que buscar ciclos 2 veces
-        if cycles:
-            # Generate acyclic graphs using the new cycle removal module
-            acyclic_graphs = generate_acyclic_graphs(
-                g,
-                strategy=self._cycle_removal_strategy,
-                max_attempts=self._max_acyclic_graphs
-                * 10,  # TODO (agregamos parametro?) PAU, NI IDEA, VER
-                max_graphs=self._max_acyclic_graphs,
-                seed=self._random_state,
-            )
-            # Generate sorted ranks for all acyclic graphs
-            # all_sorted_ranks = []
-            for (
-                dag,
-                edges,
-            ) in acyclic_graphs:  # TODO agregar if en el generate?
-                untied_rank = self._create_rank_with_info(
-                    orank, extra, dag, edges
-                )
-                untied_ranks.append(untied_rank)
-        else:
-            # No cycles found, graph is already acyclic
-            dag = g.copy()
-            edges = set()
+        acyclic_graphs = generate_acyclic_graphs(
+            graph,
+            strategy=self._cycle_removal_strategy,
+            max_attempts=self._max_acyclic_graphs
+            * 10,  # TODO (agregamos parametro?) PAU, NI IDEA, VER
+            max_graphs=self._max_acyclic_graphs,
+            seed=self._random_state,
+        )
+
+        for (
+            dag,
+            edges,
+        ) in acyclic_graphs:
             untied_rank = self._create_rank_with_info(orank, extra, dag, edges)
             untied_ranks.append(untied_rank)
 
@@ -308,12 +304,11 @@ class TransitivityChecker(SKCMethodABC):
         # Create directed graph
         graph = nx.DiGraph(edges)
 
-        trans_break = nx.chordal_cycle_graph(
-            graph
-        )  # TODO mejorar interpretabilidad
-        trans_break_rate = (
-            len(trans_break) / 49
-        )  # TODO total de 3ciclos, cambiar el 49
+        trans_break = list(nx.simple_cycles(graph, length_bound=3))
+
+        trans_break_rate = len(trans_break) / _transitivity_break_bound(
+            len(graph.nodes)
+        )
 
         return graph, trans_break, trans_break_rate
 
@@ -343,7 +338,7 @@ class TransitivityChecker(SKCMethodABC):
         # we need a first reference ranking
         orank = dmaker.evaluate(dm)
 
-        extra = dict(orank.extra_.items())  # TODO MMMMMMMM VER
+        extra = dict(orank.extra_.items())
 
         graph, trans_break, trans_break_rate = self._test_criterion_2(dm)
 
