@@ -193,6 +193,7 @@ class VIKOR(SKCDecisionMakerABC):
         # New criteria: Manhattan distance and Chebyshev distance
         def ncriteria_to_2criteria(alternative):
             return (np.sum(alternative), np.max(alternative))
+
         # N criteria problem -> 2 criteria problem
         distances_matrix = np.apply_along_axis(
             ncriteria_to_2criteria, 1, matrix_scaled
@@ -204,13 +205,15 @@ class VIKOR(SKCDecisionMakerABC):
         rank_q_k = rank.rank_values(q_k, reverse=False)
 
         # Check if solution is acceptable
-        chosen_qs = np.where(rank_q_k == 1) # Possibly many qs with rank 1
-        best_q_value = q_k[chosen_qs[0][0]] # The value of the best q
+        chosen_qs = np.where(rank_q_k == 1)  # Possibly many qs with rank 1
+        best_q_value = q_k[chosen_qs[0][0]]  # The value of the best q
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
         # Our chosen Qs must be the only one(s) with acceptable advantage
-        has_acceptable_advantage = np.isin(qs_with_acceptable_advantage, chosen_qs).all()
-        # They must also be the chosen solution of one of the original distances
+        has_acceptable_advantage = np.isin(
+            qs_with_acceptable_advantage, chosen_qs
+        ).all()
+        # They must also be the best solution of one of the original distances
         bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
         has_acceptable_stability = np.isin(chosen_qs, bests).all()
 

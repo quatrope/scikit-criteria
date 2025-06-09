@@ -210,9 +210,9 @@ def test_VIKOR_tied():
         ["A1", "A2", "A3", "A4"],
         [3, 2, 1, 1],
         {
-            "r_k": np.array([0.4,  0.2,  0.15, 0.15]),
-            "s_k": np.array([1.,    0.275, 0.15,  0.15]),
-            "q_k": np.array([1.,         0.17352941, 0.,         0. ]),
+            "r_k": np.array([0.4, 0.2, 0.15, 0.15]),
+            "s_k": np.array([1.0, 0.275, 0.15, 0.15]),
+            "q_k": np.array([1.0, 0.17352941, 0.0, 0.0]),
             "acceptable_advantage": False,
             "acceptable_stability": True,
             "compromise_set": np.array([1, 2, 3]),
