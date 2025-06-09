@@ -183,19 +183,6 @@ class VIKOR(SKCDecisionMakerABC):
         return r0_fpos == r1_fpos
 
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-
-        def DEBUG(*args):
-            import inspect
-
-            frame = inspect.currentframe().f_back
-            for arg in args:
-                name = [k for k, v in frame.f_locals.items() if v is arg]
-                if name:
-                    name = name[0]
-                else:
-                    name = "unknown"
-                print(f"{frame.f_lineno} - {name}: {arg}")
-
         from skcriteria.preprocessing.scalers import (
             matrix_scale_by_cenit_distance as scale,
         )
@@ -206,44 +193,41 @@ class VIKOR(SKCDecisionMakerABC):
         # New criteria: Manhattan distance and Chebyshev distance
         def ncriteria_to_2criteria(alternative):
             return (np.sum(alternative), np.max(alternative))
-
         # N criteria problem -> 2 criteria problem
         distances_matrix = np.apply_along_axis(
             ncriteria_to_2criteria, 1, matrix_scaled
         )
         distances_matrix_scaled = scale(distances_matrix, [1, 1])
         # We now do weighted sum of our 2 criteria with weights [v, 1-v]
-        ans = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
+        q_k = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
 
-        q_k = ans
+        # Opricovic calls Manhattan S and Chebyshev R
         s_k, r_k = distances_matrix.T
-
-        # STEP 4
         # Rank them
         rank_q_k = rank.rank_values(q_k, reverse=False)
         rank_s_k = rank.rank_values(s_k, reverse=False)
         rank_r_k = rank.rank_values(r_k, reverse=False)
 
-        def best(rank):
-            return np.where(rank == 1)
-
-        # STEP 5
+        # Check if solution is acceptable
         best_q = np.where(rank_q_k == 1)
-
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - q_k[best_q] < dq)
+        # Our chosen solution must be the only one with acceptable advantage
         has_acceptable_advantage = np.count_nonzero(qs_with_acceptable_advantage) == 1
-
+        # It must also be the chosen solution of one of the original distances
         has_acceptable_stability = best_q in (
             np.where(rank_s_k == 1),
             np.where(rank_r_k == 1),
         )
 
         if has_acceptable_stability and has_acceptable_advantage:
+            # Our solution was good
             compromise_set = best_q
         elif not has_acceptable_stability and has_acceptable_advantage:
+            # When unstable, top-2 are chosen
             compromise_set = np.where(rank_q_k <= 2)
         else:
+            # If all fails, include all that would have acceptable advantage
             compromise_set = qs_with_acceptable_advantage
 
         extra = {
