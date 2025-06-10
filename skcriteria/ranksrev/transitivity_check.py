@@ -279,10 +279,12 @@ class TransitivityChecker(SKCMethodABC):
 
         return list(untied_ranks)
 
-    def _test_criterion_2(self, dm):
+    def _test_criterion_2(self, dm, orank):
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
-        pairwise_combinations = map(list, it.combinations(dm.alternatives, 2))
+        pairwise_combinations = map(
+            list, it.combinations(orank.alternatives, 2)
+        )
 
         dmaker = self._dmaker
 
@@ -340,7 +342,9 @@ class TransitivityChecker(SKCMethodABC):
 
         extra = dict(orank.extra_.items())
 
-        graph, trans_break, trans_break_rate = self._test_criterion_2(dm)
+        graph, trans_break, trans_break_rate = self._test_criterion_2(
+            dm, orank
+        )
 
         # TODO: Configurar si devolver tied/untied
         untied_ranks = self._get_ranks(graph, orank, extra)
