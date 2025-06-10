@@ -45,7 +45,7 @@ with hidden():
 # =============================================================================
 
 
-class EuclidianCODAS(SKCDecisionMakerABC):
+class CODAS(SKCDecisionMakerABC):
     #Descripcion piola de que hace
 
     _skcriteria_parameters = []
@@ -56,44 +56,14 @@ class EuclidianCODAS(SKCDecisionMakerABC):
             raise ValueError(
                 "Error: CODAS can't operate with negative values on the DM Matrix"
             )
-        if (weights > 1 or weights < 0 )
+        if np.any(weights < 0 ) or np.any (weights > 1)
             raise ValueError(
-                "Error: CODAS can only operate with weights between 0 and 1"
-            ) # Step 3 del paper
-        
-        #ACA TENEMOS QUE LLAMAR AL METODO QUE IMPLEMENTAMOS
-        #rank, score = fmf(matrix, objectives, weights)
-        return rank, {"score": score}
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "EuclidianCODAS",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )
-
-
-# =============================================================================
-# TaxicabCODAS
-# =============================================================================
-class TaxicabCODAS(SKCDecisionMakerABC):
-
-    #Descripcion piola de que hace
-    _skcriteria_parameters = []
-
-    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-        if np.any(matrix <= 0):
+                "Error: CODAS can only operate with weights between zero and one"
+            ) 
+        if np.sum(weights) != 1
             raise ValueError(
-                "Error: CODAS can't operate with negative values on the DM Matrix"
+                "Error: Codas can only operate with normalized weights"
             )
-        if (weights > 1 or weights < 0 )
-            raise ValueError(
-                "Error: CODAS can only operate with weights between 0 and 1"
-            ) # Step 3 del paper
-                
         #ACA TENEMOS QUE LLAMAR AL METODO QUE IMPLEMENTAMOS
         #rank, score = fmf(matrix, objectives, weights)
         return rank, {"score": score}
@@ -101,8 +71,10 @@ class TaxicabCODAS(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "TaxicabCODAS",
+            "CODAS",
             alternatives=alternatives,
             values=values,
             extra=extra,
         )
+
+
