@@ -78,9 +78,7 @@ class SKCWeighterABC(SKCTransformerABC):
             matrix=matrix, objectives=objectives, weights=weights
         )
 
-        kwargs.update(
-            matrix=matrix, objectives=objectives, weights=new_weights
-        )
+        kwargs.update(matrix=matrix, objectives=objectives, weights=new_weights)
 
         return kwargs
 
@@ -335,9 +333,7 @@ def critic_weights(matrix, objectives, correlation="pearson", scale=True):
     dindex = np.std(matrix, axis=0)
     import pandas as pd
 
-    corr_m1 = 1 - pd.DataFrame(matrix).corr(method=correlation).to_numpy(
-        copy=True
-    )
+    corr_m1 = 1 - pd.DataFrame(matrix).corr(method=correlation).to_numpy(copy=True)
     uweights = dindex * np.sum(corr_m1, axis=0)
     weights = uweights / np.sum(uweights)
     return weights
@@ -430,29 +426,71 @@ class Critic(CRITIC):
 # =============================================================================
 #
 # =============================================================================
+def construct_rancom_matrix(weights):
+    C_i = weights.reshape(-1, 1)
+    C_j = weights.reshape(1, -1)
+
+    rancom_matrix = np.where(C_i > C_j, 0, np.where(C_i == C_j, 0.5, 1))
+
+    return rancom_matrix
 
 
-def rancom_weights(matrix):
-    # something np or pd or scipy related
-    pass
+def rancom_weights(weights):
+    # NOTE RANCOM assumes that the sum of the weights of the matrix is 1
+    # NOTE RANCOM assumes lower weight values correspond to higher importance
+    # NOTE RANCOM allow ties
+
+    """
+    NOTE: RANCOM steps:
+        1. Build MAC (Matrix of Ranking Comparison)
+            Mnxn where all weight are compared to each other
+            aij = 1 if ai < aj, 0.5 if ai == aj, 0 if ai > aj
+        2. Calculate SWC (Summed Criteria Weights)
+            Sum of each row
+        3. Calculate final weights
+            wi = SWCi / sum(SWC)
+    """
+    C_i = weights.reshape(-1, 1)
+    C_j = weights.reshape(1, -1)
+    rancom_matrix = np.where(C_i > C_j, 0, np.where(C_i == C_j, 0.5, 1))
+
+    summed_criteria_weights = np.sum(rancom_matrix, axis=1)
+    total_swc = np.sum(summed_criteria_weights)
+    result = summed_criteria_weights / total_swc
+
+    return result
+
+
 
 class RANCOM(SKCWeighterABC):
-    _skcriteria_parameters = [] # list[str] each element should match the parameters
-                                # of the helper function
+    """
+     Warnings
+    --------
+    UserWarning:
+        If there are less than five weights. The original paper suggest that RANCOM
+        weighter works better with five or more criteria. Nothing prevents its use
+        with four or less.
 
-    # if helper function has parameter:
-    def __init__(self, params="default value"):
-        self._param_n = params
+    References
+    ----------
+    :cite:p:`` TODO complete this
 
-    @property
-    def param_n(self):
-        """Nice docstrings that explains param"""
-        return self._param_n
-    
-    @doc_inherit(SKCWeighterABC._weight_matrix) # always this
+    """
+
+    _skcriteria_parameters = []  # NOTE this will remain empty as RANCOM use
+    # predefined weights
+
+    @doc_inherit(SKCWeighterABC._weight_matrix)  # always this
     def _weight_matrix(self, matrix, objectives, weights):
+        if len(weights) < 5:
+            warnings.warn(
+                "RANCOM method proves to be a more suitable solution to handle "
+                "the expert inaccuracies for the problems with 5 or more criteria."
+                "Despite this, nothing prevents its use with four or fewer."
+            )
+
         # return helper function with necessary args
-        pass
+        return rancom_weights(weights)
 
 
 # =============================================================================
