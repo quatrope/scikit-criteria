@@ -24,7 +24,7 @@ import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.simple import (
     SPOTIS,
-    WeightedAggregatedSumProductAssessment,
+    WASPASModel,
     WeightedProductModel,
     WeightedSumModel,
 )
@@ -240,9 +240,7 @@ def test_WASPAS_verify_intermediate_calculations(lambda_value):
     wsm_expected_score = [0.3423875, 0.30016082, 0.10069051, 0.25625906]
     wpm_expected_score = [-0.53523796, -0.56448693, -1.13554217, -0.60153986]
 
-    waspas_ranker = WeightedAggregatedSumProductAssessment(
-        lambda_value=lambda_value
-    )
+    waspas_ranker = WASPASModel(lambda_value=lambda_value)
 
     waspas_result = waspas_ranker.evaluate(dm)
 
@@ -259,14 +257,11 @@ def test_WASPAS_with_minimize_fails():
         matrix=[[1, 7, 3], [3, 5, 6]],
         objectives=[max, min, max],
     )
-    ranker = WeightedAggregatedSumProductAssessment()
+    ranker = WASPASModel()
 
     with pytest.raises(
         ValueError,
-        match=(
-            "WeightedAggregatedSumProductAssessment can't "
-            "operate with minimize objective"
-        ),
+        match=("WASPASModel can't operate with minimize objective"),
     ):
         ranker.evaluate(dm)
 
@@ -280,14 +275,11 @@ def test_WASPAS_with_zero_fails():
         matrix=[[1, 2, 3], [4, 0, 6]],
         objectives=[max, max, max],
     )
-    ranker = WeightedAggregatedSumProductAssessment()
+    ranker = WASPASModel()
 
     with pytest.raises(
         ValueError,
-        match=(
-            "WeightedAggregatedSumProductAssessment can't "
-            "operate with values <= 0"
-        ),
+        match=("WASPASModel can't operate with values <= 0"),
     ):
         ranker.evaluate(dm)
 
@@ -303,13 +295,11 @@ def test_WASPAS_invalid_l_values(invalid_lambda):
     with pytest.raises(
         ValueError,
         match=(
-            "WeightedAggregatedSumProductAssessment requires 'lambda_value'"
-            f" to be between 0 and 1, but found {invalid_lambda}."
+            "WASPASModel requires 'lambda_value' to be "
+            f"between 0 and 1, but found {invalid_lambda}."
         ),
     ):
-        ranker = WeightedAggregatedSumProductAssessment(
-            lambda_value=invalid_lambda
-        )
+        ranker = WASPASModel(lambda_value=invalid_lambda)
         ranker.evaluate(dm)
 
 
@@ -538,13 +528,13 @@ def test_WASPAS_chakraborty2015applications(
     )
 
     expected = RankResult(
-        "WeightedAggregatedSumProductAssessment",
+        "WASPASModel",
         ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"],
         expected_rank,
         {"score": expected_scores},
     )
 
-    ranker = WeightedAggregatedSumProductAssessment(lambda_value=lambda_value)
+    ranker = WASPASModel(lambda_value=lambda_value)
     result = ranker.evaluate(dm)
 
     assert result.values_equals(expected)

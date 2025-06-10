@@ -218,7 +218,7 @@ def waspas(matrix, weights, lambda_value=0.5):
     )
 
 
-class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
+class WASPASModel(SKCDecisionMakerABC):
     r"""The Weighted Aggregated Sum Product ASsessment method.
 
     WASPAS is a multicriteria decision analysis method that combines the
@@ -264,30 +264,25 @@ class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
         lambda_value = float(lambda_value)
         if not (1 >= lambda_value >= 0):
             raise ValueError(
-                "WeightedAggregatedSumProductAssessment"
-                " requires 'lambda_value' to be between"
-                f" 0 and 1, but found {lambda_value}."
+                "WASPASModel requires 'lambda_value' to be "
+                f"between 0 and 1, but found {lambda_value}."
             )
         self._lambda_value = lambda_value
 
     @property
     def lambda_value(self):
-        """Aggregation parameter λ ∈ [0, 1] that balances WSM and WPM."""
+        """Aggregation parameter in [0, 1] that balances WSM and WPM."""
         return self._lambda_value
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if Objective.MIN.value in objectives:
             raise ValueError(
-                "WeightedAggregatedSumProductAssessment can't"
-                " operate with minimize objective"
+                "WASPASModel can't operate with minimize objective"
             )
         if np.any(matrix <= 0):
 
-            raise ValueError(
-                "WeightedAggregatedSumProductAssessment can't"
-                " operate with values <= 0"
-            )
+            raise ValueError("WASPASModel can't operate with values <= 0")
 
         (rank, wsm_scores, log10_wpm_scores, score) = waspas(
             matrix, weights, self._lambda_value
@@ -301,7 +296,7 @@ class WeightedAggregatedSumProductAssessment(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "WeightedAggregatedSumProductAssessment",
+            "WASPASModel",
             alternatives=alternatives,
             values=values,
             extra=extra,
