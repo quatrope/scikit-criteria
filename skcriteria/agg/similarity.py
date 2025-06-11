@@ -31,10 +31,12 @@ with hidden():
 
 def DEBUG(*ass):
     from inspect import currentframe as c
+
     f = c().f_back
     for a in ass:
-        n = [k for k, v in f.f_locals.items() if v is a]+['?']
-        print(f.f_lineno,n[0],a)
+        n = [k for k, v in f.f_locals.items() if v is a] + ["?"]
+        print(f.f_lineno, n[0], a)
+
 
 # =============================================================================
 # TOPSIS
@@ -213,31 +215,48 @@ class VIKOR(SKCDecisionMakerABC):
         rank_q_k = rank.rank_values(q_k, reverse=False)
 
         # Check if solution is acceptable
-        has_rank1_qs = np.where(rank_q_k == 1, 1, 0)  # probably can delete this array 
+        has_rank1_qs = np.where(
+            rank_q_k == 1, 1, 0
+        )  # probably can delete this array
         rank1_cnt = np.sum(has_rank1_qs == 1)
-        
-        # chosen_qs = np.where(rank_q_k == 1)  # Possibly many qs with rank 1
+
         # best_q_value = q_k[chosen_qs[0][0]]  # The value of the best q
         best_q_value = np.min(q_k)
 
         # DEBUG(chosen_qs,best_q_value, best_qq_value)
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
-        
+
         # chosen_qs always have acc. adv., therefore same len <=> same qs
-        has_acceptable_advantage = len(qs_with_acceptable_advantage[0]) == rank1_cnt
+        has_acceptable_advantage = (
+            len(qs_with_acceptable_advantage[0]) == rank1_cnt
+        )
         # They must also be the best solution of one of the original distances
         # DEBUG(distances_matrix_scaled[:,1] * distances_matrix_scaled[:,0])
+
         has_any_best_coordinate = np.where(distances_matrix_scaled[:,1] * distances_matrix_scaled[:,0] == 0, 1, 0)
         stables_rank1_cnt = np.sum(has_rank1_qs * has_any_best_coordinate == 1)
-
-        # has_acceptable_stability = np.isin(chosen_qs, bests).all()
         has_acceptable_stability = rank1_cnt == stables_rank1_cnt
+
+        multiplied_together = np.prod(distances_matrix_scaled, axis=1)
+        magic = rank_q_k * multiplied_together# todo: check types
+        zero_cnt = np.sum(magic == 0)
+        magic_cnt = np.sum(multiplied_together == magic)
+        has_acceptable_stability = zero_cnt == magic_cnt
+
+        chosen_qs = np.where(rank_q_k == 1)  # Possibly many qs with rank 1
+        bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
+        has_acceptable_stability = np.isin(chosen_qs, bests).all()
+
+        chosen_qs = np.where(rank_q_k == 1)  # Possibly many qs with rank 1
+        bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
+        has_acceptable_stability = set(chosen_qs[0]).issubset(set(bests[0]))
+        # breakpoint()
         # TODO: Can we iterate over chosen_qs to check for 0s in r,s?
 
         if has_acceptable_stability and has_acceptable_advantage:
             # Our solution was good
-            compromise_set = np.where(has_rank1_qs==1)
+            compromise_set = np.where(has_rank1_qs == 1)
         elif not has_acceptable_stability and has_acceptable_advantage:
             # When unstable, top 2 ranks are chosen
             compromise_set = np.where(rank_q_k <= 2)
