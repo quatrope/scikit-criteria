@@ -156,7 +156,11 @@ class TOPSIS(SKCDecisionMakerABC):
 class VIKOR(SKCDecisionMakerABC):
     _skcriteria_parameters = ["v"]
 
-    def __init__(self, *, v=0.5):
+    def __init__(
+        self,
+        *,
+        v=0.5,
+    ):
         self._v = float(v)
         if not (self._v >= 0 and self._v <= 1):
             raise ValueError(f"'v' must be 0 <= v <= 1. Found {self._v}")
@@ -178,6 +182,9 @@ class VIKOR(SKCDecisionMakerABC):
             matrix_scale_by_cenit_distance as scale,
         )
 
+        # TODO: Check there are no criteria with only one value, as this will
+        #       cause division by zero in the scaling step.
+
         # scale maps zenith to 1. We want the opposite, so we invert objectives
         matrix_scaled = scale(matrix, objectives * -1) * weights
 
@@ -189,6 +196,9 @@ class VIKOR(SKCDecisionMakerABC):
         distances_matrix = np.apply_along_axis(
             ncriteria_to_2criteria, 1, matrix_scaled
         )
+        # distances_matrix = np.column_stack((
+        #     np.sum(matrix_scaled), np.max(matrix_scaled))
+        # ) # Alternative, to be checked
         distances_matrix_scaled = scale(distances_matrix, [1, 1])
         # We now do weighted sum of our 2 criteria with weights [v, 1-v]
         q_k = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
@@ -200,13 +210,14 @@ class VIKOR(SKCDecisionMakerABC):
         best_q_value = q_k[chosen_qs[0][0]]  # The value of the best q
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
-        # Our chosen Qs must be the only one(s) with acceptable advantage
-        has_acceptable_advantage = np.isin(
-            qs_with_acceptable_advantage, chosen_qs
-        ).all()
+        # chosen_qs always have acc. adv., therefore same len <=> same qs
+        has_acceptable_advantage = len(qs_with_acceptable_advantage) == len(
+            chosen_qs
+        )
         # They must also be the best solution of one of the original distances
         bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
         has_acceptable_stability = np.isin(chosen_qs, bests).all()
+        # TODO: Can we iterate over chosen_qs to check for 0s in r,s?
 
         if has_acceptable_stability and has_acceptable_advantage:
             # Our solution was good
@@ -214,6 +225,7 @@ class VIKOR(SKCDecisionMakerABC):
         elif not has_acceptable_stability and has_acceptable_advantage:
             # When unstable, top 2 ranks are chosen
             compromise_set = np.where(rank_q_k <= 2)
+            # TODO: Check whether to include all ranked 2nd or only one
         else:
             # If all fails, include all that would have acceptable advantage
             compromise_set = qs_with_acceptable_advantage
@@ -226,6 +238,9 @@ class VIKOR(SKCDecisionMakerABC):
             "acceptable_stability": bool(has_acceptable_stability),
             "compromise_set": compromise_set[0],
         }
+        # TODO: Compromise set should probably return the names of alternatives
+        #       not their indices
+        # TODO: Should compromise_set affect rank_q_k?
 
         # return
         return rank_q_k, extra
