@@ -62,11 +62,8 @@ def determine_significances(s_max, s_min : np.ndarray):
 def copras(matrix, weights, objectives):
     """Execute the COPRAS method without any validation"""
     # Steps
-    #   0: Normalise the decision-making matrix        
-    normalised_dm = normalise_dm(matrix)
-
     #   1: Compute the weighted normalised decision-making matrix
-    weighted_normalised_dm = normalised_dm * weights
+    weighted_normalised_dm = matrix * weights
 
     #   2: Calculate the sums of weighted normalised indices describing 
     #      the i^th alternative
@@ -95,11 +92,12 @@ class COPRAS(SKCDecisionMakerABC):
     Raises
     ------
     ValueError:
-        If some value in the matrix is <= 0.
+        If some value in the matrix is < 0.
 
     References
     ----------
     :cite:p:`zavadskas1996new`
+    :cite:p:`organ2016performance`
 
     """
     _skcriteria_parameters = []
