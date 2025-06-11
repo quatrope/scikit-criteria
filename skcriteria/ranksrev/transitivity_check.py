@@ -54,6 +54,34 @@ def _untie_equivalent_ranks(r1, r2):
 
 
 def _transitivity_break_bound(n):
+    """
+    Calculate the maximum number of transitivity violations possible in a n-tournament.
+
+    This function computes the theoretical upper bound for the number of 3-cycles
+    (intransitive triples) that can occur in a tournament with n alternatives.
+    A 3-cycle occurs when alternative A beats B, B beats C, but C beats A,
+    violating transitivity.
+
+    Parameters
+    ----------
+    n : int
+        Number of alternatives/participants in the tournament.
+        Must be a positive integer >= 3 for meaningful results.
+
+    Returns
+    -------
+    int
+        Maximum possible number of transitivity violations (3-cycles) in a
+        tournament of size n. Returns 0 for n < 3.
+
+    Notes
+    -----
+    This bound represents the worst-case scenario for transitivity violations.
+
+    References
+    ----------
+    :cite:p:`roy1990outranking`
+    """
     if n % 2 == 0:
         return n * (n**2 - 4) // 24
     else:
@@ -131,12 +159,13 @@ class TransitivityChecker(SKCMethodABC):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
-        repeats = self.repeat
-        ama = self._allow_missing_alternatives
-        lds = self.last_diff_strategy
+        # repeats = self.repeat
+        # ama = self._allow_missing_alternatives
+        # lds = self.last_diff_strategy
         return (
-            f"<{name} {dm} repeats={repeats}, "
-            f"allow_missing_alternatives={ama} last_diff_strategy={lds!r}>"
+            f"<{name} {dm}>"
+            #   repeats={repeats}, "
+            # f"allow_missing_alternatives={ama} last_diff_strategy={lds!r}>"
         )
 
     # PROPERTIES ==============================================================
@@ -264,8 +293,7 @@ class TransitivityChecker(SKCMethodABC):
         acyclic_graphs = generate_acyclic_graphs(
             graph,
             strategy=self._cycle_removal_strategy,
-            max_attempts=self._max_acyclic_graphs
-            * 10,  # TODO (agregamos parametro?) PAU, NI IDEA, VER
+            # TODO (agregamos parametro?) PAU, NI IDEA, VER
             max_graphs=self._max_acyclic_graphs,
             seed=self._random_state,
         )
@@ -306,7 +334,12 @@ class TransitivityChecker(SKCMethodABC):
         # Create directed graph
         graph = nx.DiGraph(edges)
 
-        trans_break = list(nx.simple_cycles(graph, length_bound=3))
+        # trans_break = list(nx.simple_cycles(graph, length_bound=3))
+        trans_break = [
+            cycle
+            for cycle in nx.simple_cycles(graph, length_bound=3)
+            if len(cycle) == 3
+        ]
 
         trans_break_rate = len(trans_break) / _transitivity_break_bound(
             len(graph.nodes)

@@ -21,6 +21,7 @@ from collections import Counter
 from itertools import combinations
 
 import networkx as nx
+import numpy as np
 
 # =============================================================================
 # CYCLE REMOVAL
@@ -35,14 +36,14 @@ def _cycle_to_edges(cycle):
 def _select_edge_random(cycle, edge_freq, rng):
     """Select a random edge from cycle."""
     edges = _cycle_to_edges(cycle)
-    return rng.choice(edges)
+    return tuple(rng.choice(edges))
 
 
 def _select_edge_weighted(cycle, edge_freq, rng):
     """Select edge with probability proportional to frequency (more frequent = more likely)."""
     edges = _cycle_to_edges(cycle)
     weights = [edge_freq[edge] + 1 for edge in edges]
-    return rng.choices(edges, weights=weights, k=1)[0]
+    return tuple(rng.choice(edges, weights=weights, k=1)[0])
 
 
 _CYCLE_REMOVAL_STRATEGIES = {
@@ -96,7 +97,7 @@ def _calculate_edge_frequencies(graph):
 
 
 def generate_acyclic_graphs(
-    graph, strategy="random", max_attempts=1000, max_graphs=10, seed=42
+    graph, strategy="random", max_graphs=10, seed=None
 ):
     """
     Generate multiple acyclic graphs by removing edges from cycles.
@@ -119,9 +120,10 @@ def generate_acyclic_graphs(
     list
         List of tuples (acyclic_graph, removed_edges_set)
     """
-    rng = random.Random(seed)
+    rng = np.random.default_rng(seed)
     seen_removals = set()
     acyclic_graphs = []
+    max_possible_attempts = 10 # TODO: Definir
 
     # Validate strategy
     if strategy not in _CYCLE_REMOVAL_STRATEGIES:
@@ -131,7 +133,6 @@ def generate_acyclic_graphs(
         )
 
     # Check if graph is already acyclic
-    # TODO: simple_cycles_recursive() ?
     # TODO: maybe move this at the top
     cycles = list(nx.simple_cycles(graph))
     if not cycles:
@@ -148,7 +149,7 @@ def generate_acyclic_graphs(
         edge_freq = Counter()  # Empty counter for consistency
 
     attempts = 0
-    while attempts < max_attempts and len(acyclic_graphs) < max_graphs:
+    while attempts < max_possible_attempts and len(acyclic_graphs) < max_graphs:
         attempts += 1
         to_remove = set()
 
@@ -156,13 +157,6 @@ def generate_acyclic_graphs(
         for cycle in cycles:
             edge_to_remove = select_edge(cycle, edge_freq, rng)
             to_remove.add(edge_to_remove)
-
-        # Skip if we've seen this combination before
-        removal_frozenset = frozenset(to_remove)
-        if removal_frozenset in seen_removals:
-            continue
-
-        seen_removals.add(removal_frozenset)
 
         # Test if removing edges creates acyclic graph
         modified_graph = graph.copy()
