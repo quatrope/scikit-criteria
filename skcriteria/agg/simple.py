@@ -193,3 +193,45 @@ class WeightedProductModel(SKCDecisionMakerABC):
             values=values,
             extra=extra,
         )
+
+# =============================================================================
+# RAM
+# =============================================================================
+
+def ram(matrix, objectives, weights):
+    """Execute RAM without any validation."""
+
+    weighted_matrix = np.multiply(matrix, weights)
+
+    s_plus = np.sum(weighted_matrix[:, objectives == Objective.MAX.value], axis=1)
+    s_minus = np.sum(weighted_matrix[:, objectives == Objective.MIN.value], axis=1)
+
+    score = np.power(2+ s_plus, 1/(2+s_minus))
+
+    return rank.rank_values(score, reverse=True), s_plus, s_minus, score
+
+class RAM(SKCDecisionMakerABC):
+    """Root Assessnebt Method.
+
+    Biri biri que hay que completar.
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
+    def _evaluate_data(self, matrix, weights, objectives, **kwargs):
+        rank, s_plus, s_minus, score = ram(matrix, objectives, weights)
+        return rank, {
+            "s_plus": s_plus,
+            "s_minus": s_minus,
+            "score": score,
+        }
+
+    @doc_inherit(SKCDecisionMakerABC._make_result)
+    def _make_result(self, alternatives, values, extra):
+        return RankResult(
+            "RAM",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
+        )
