@@ -44,6 +44,24 @@ class SKCDecisionMakerABC(SKCMethodABC):
     _skcriteria_abstract_class = True
     _skcriteria_dm_type = "decision_maker"
 
+    def _prepare_data(self, **kwargs):
+        """Prepare the data for evaluation.
+
+        This method is used to prepare the data before running the evaluation.
+
+        It should perform any validation logic and build required data for
+        the main calculation performed by the :py:meth:`_evaluate_data`
+        method.
+
+        Returns
+        -------
+        dict
+            Processed data to be used by the
+            :py:meth:`_evaluate_data` method.
+
+        """
+        return kwargs
+
     @abc.abstractmethod
     def _evaluate_data(self, **kwargs):
         raise NotImplementedError()
@@ -68,7 +86,9 @@ class SKCDecisionMakerABC(SKCMethodABC):
         """
         data = dm.to_dict()
 
-        result_data, extra = self._evaluate_data(**data)
+        prepared_data = self._prepare_data(**data)
+
+        result_data, extra = self._evaluate_data(**prepared_data)
 
         alternatives = data["alternatives"]
         result = self._make_result(
