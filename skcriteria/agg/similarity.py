@@ -29,6 +29,13 @@ with hidden():
     from ..utils import doc_inherit, rank
 
 
+def DEBUG(*ass):
+    from inspect import currentframe as c
+    f = c().f_back
+    for a in ass:
+        n = [k for k, v in f.f_locals.items() if v is a]+['?']
+        print(f.f_lineno,n[0],a)
+
 # =============================================================================
 # TOPSIS
 # =============================================================================
@@ -210,10 +217,16 @@ class VIKOR(SKCDecisionMakerABC):
         best_q_value = q_k[chosen_qs[0][0]]  # The value of the best q
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
+        
+        old = np.isin(
+            qs_with_acceptable_advantage, chosen_qs
+        ).all()
         # chosen_qs always have acc. adv., therefore same len <=> same qs
         has_acceptable_advantage = len(qs_with_acceptable_advantage) == len(
             chosen_qs
         )
+        DEBUG(has_acceptable_advantage, old) # This currently does not work
+
         # They must also be the best solution of one of the original distances
         bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
         has_acceptable_stability = np.isin(chosen_qs, bests).all()
