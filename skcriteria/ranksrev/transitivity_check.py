@@ -312,7 +312,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return list(untied_ranks)
 
-    def _create_graph(self, dm, orank):
+    def _dominance_graph(self, dm, orank):
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
         pairwise_combinations = map(
@@ -339,9 +339,7 @@ class TransitivityChecker(SKCMethodABC):
         # Create directed graph
         return nx.DiGraph(edges)
 
-    def _test_criterion_2(self, dm, orank):
-        #Create graph
-        graph = self._create_graph(dm, orank)
+    def _calculate_transitivity_break(self,graph):
 
         # TODO: Justificar el 3 en length_bound
         trans_break = list(nx.simple_cycles(graph, length_bound=3))
@@ -350,7 +348,16 @@ class TransitivityChecker(SKCMethodABC):
             len(graph.nodes)
         )
 
+        return trans_break, trans_break_rate
+
+    def _test_criterion_2(self, dm, orank):
+        #Create pairwise dominance graph
+        graph = self._dominance_graph(dm, orank)
+
+        #Calculate transitivity break, and it's rate
+        trans_break, trans_break_rate = self._calculate_transitivity_break(graph)
         return graph, trans_break, trans_break_rate
+
 
     def evaluate(self, *, dm):
         """Executes the transitivity test.
@@ -385,6 +392,7 @@ class TransitivityChecker(SKCMethodABC):
             dm, orank
         )
 
+        #TODO: What is test criterion 3?
         returned_ranks = []
         if untie_rankings:
             returned_ranks = self._get_ranks(graph, orank, extra)
