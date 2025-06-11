@@ -23,8 +23,7 @@ import pytest
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.copras import COPRAS
-
-from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
+from skcriteria.preprocessing.scalers import scale_by_sum
 
 # =============================================================================
 # TESTS

@@ -26,11 +26,13 @@ with hidden():
 
 
 def sum_indexes(matrix: np.ndarray, objectives: np.ndarray):
-    """Determine the sums of the minimizing and maximizing indexes,
-    respectively."""
+    """
+    Determine the sums of the minimizing and maximizing indexes.
 
-    # Since each column represents a criteria, we must first
-    # differenciate those to be maximised from those to be minimised
+    Each column represents a criterion. This function separates those
+    to be maximized from those to be minimized, and sums the values
+    accordingly for each alternative.
+    """
     criteria_max = np.compress(
         Objective.MAX.value == objectives, matrix, axis=1
     )
@@ -38,8 +40,6 @@ def sum_indexes(matrix: np.ndarray, objectives: np.ndarray):
         Objective.MIN.value == objectives, matrix, axis=1
     )
 
-    # Then, we sum all maximising/minimising values for each
-    # alternative solution
     s_max = np.sum(criteria_max, axis=1)
     s_min = np.sum(criteria_min, axis=1)
 
@@ -47,13 +47,15 @@ def sum_indexes(matrix: np.ndarray, objectives: np.ndarray):
 
 
 def determine_significances(s_max, s_min: np.ndarray):
-    """Determine the significances of the compared alternatives
-    describing the advantages and disadvantages."""
+    """
+    Determine the significances of the compared alternatives.
 
+    This reflects the combined advantages and disadvantages of each
+    alternative, using the COPRAS method formulas.
+    """
     min_s_min = np.min(s_min)
 
     dividend = min_s_min * np.sum(s_min)
-
     divisor_sum = np.sum(min_s_min / s_min)
     divisor = s_min * divisor_sum
 
@@ -63,48 +65,42 @@ def determine_significances(s_max, s_min: np.ndarray):
 
 
 def copras(matrix, weights, objectives):
-    """Execute the COPRAS method without any validation"""
-    # Steps
-    #   1: Compute the weighted normalised decision-making matrix
+    """
+    Execute the COPRAS method without any validation.
+
+    Steps:
+        1. Compute the weighted normalized decision-making matrix.
+        2. Calculate sums describing the alternatives.
+        3. Determine significances of alternatives.
+        4. Calculate the utility degree of each alternative.
+        5. Rank the alternatives based on utility.
+    """
     weighted_dm = matrix * weights
-
-    #   2: Calculate the sums of weighted normalised indices describing
-    #      the i^th alternative
     s_max, s_min = sum_indexes(weighted_dm, objectives)
-
-    #   3: Determine the significances of the alternatives describing
-    #     their advantages S_+i and disadvantages S_-i
     significances = determine_significances(s_max, s_min)
-
-    #   4: Calculate the utility degree N_i (out of 100) of alternative i
     utility_degrees = significances / max(significances) * 100
-
-    #   5: Rank alternatives based on utility
     ranking = rank.rank_values(utility_degrees, reverse=True)
     return ranking, utility_degrees
 
 
 class COPRAS(SKCDecisionMakerABC):
-    r"""The COPRAS method
+    """
+    The COPRAS method.
 
-    The COmplex PRoportional ASsessment (COPRAS) method was introduced
-    by Zavadskas and Kaklauskas and was used to evaluate the superiority
-    of one alternative over another and makes it possible to compare
-    alternatives. It is used to assess the maximizing and minimizing index
-    values, and the effect of maximizing and minimizing indexes of attributes
-    on the results assessment is considered separately.
+    The COmplex PRoportional ASsessment (COPRAS) method, introduced by
+    Zavadskas and Kaklauskas, is used to evaluate the superiority of
+    one alternative over another. It supports comparison of alternatives
+    based on maximizing and minimizing index values.
 
     Raises
     ------
-    ValueError:
-        If some value in the matrix is < 0 or if there are no criteria
-        to be minimized.
+    ValueError
+        If any matrix value is < 0 or if there are no criteria to minimize.
 
     References
     ----------
     :cite:p:`zavadskas1996new`
     :cite:p:`organ2016performance`
-
     """
 
     _skcriteria_parameters = []
