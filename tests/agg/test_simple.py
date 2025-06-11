@@ -22,7 +22,7 @@ import pytest
 
 import skcriteria
 from skcriteria.agg import RankResult
-from skcriteria.agg.simple import WeightedProductModel, WeightedSumModel
+from skcriteria.agg.simple import RAM, WeightedProductModel, WeightedSumModel
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler
 
@@ -207,6 +207,103 @@ def test_WeightedProductModel_enwiki_1015567716():
     dm = transformer.transform(dm)
 
     ranker = WeightedProductModel()
+    result = ranker.evaluate(dm)
+
+    assert result.values_equals(expected)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score)
+
+
+# =============================================================================
+# RAM
+# =============================================================================
+
+
+def test_RootAssessmentMethod():
+    """
+    Data from:
+        P. V. Thanh, D. V. Duc, H. X. Khoa, and T. V. Dua
+        Integrating the Root Assessment Method with Subjective Weighting Methods for Battery Electric Vehicle Selection
+        Eng. Technol. Appl. Sci. Res., vol. 15, no. 2, pp. 21526-21531, Apr. 2025.
+
+    """
+    dm = skcriteria.mkdm(
+        matrix=[
+            [90, 7.9, 7.5, 35180, 1732, 18, 62, 382, 90, 150, 450],
+            [25, 7.3, 20, 44450, 1320, 13, 33.2, 260, 160, 170, 425],
+            [100, 7.8, 9.5, 36620, 1616, 28, 60, 320, 146, 200, 480],
+            [40, 2.4, 7, 74490, 2107, 18.6, 70, 539, 260, 503, 420],
+            [30, 10, 10, 23500, 1500, 15, 41, 300, 168, 92, 434],
+            [54, 9.9, 6, 52940, 1527, 15.1, 100, 311, 172, 120, 462],
+            [60, 9.6, 9.6, 36025, 1567, 15, 36, 201, 150, 134, 341],
+            [54, 11.2, 9, 37000, 1506, 15.7, 64, 448, 166, 201, 315],
+            [45, 12.7, 7.5, 24550, 1200, 21, 62, 132, 130, 82, 185],
+            [36, 6.9, 3.5, 29900, 1365, 16, 33, 176, 153, 181, 225],
+        ],
+        objectives=[min, min, min, min, min, min, max, max, max, max, max],
+        weights=[
+            0.1382,
+            0.0275,
+            0.1836,
+            0.0851,
+            0.0174,
+            0.0518,
+            0.2745,
+            0.0388,
+            0.0670,
+            0.1079,
+            0.0082,
+        ],
+    )
+
+    expected = RankResult(
+        "RAM",
+        ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"],
+        [6, 10, 8, 1, 7, 2, 9, 3, 5, 4],
+        {
+            "s_plus": [
+                0.0488,
+                0.0372,
+                0.0524,
+                0.0825,
+                0.0373,
+                0.0682,
+                0.0351,
+                0.0565,
+                0.0427,
+                0.0359,
+            ],
+            "s_minus": [
+                0.0560,
+                0.0647,
+                0.0658,
+                0.0494,
+                0.0426,
+                0.0470,
+                0.0522,
+                0.0503,
+                0.0439,
+                0.0314,
+            ],
+            "score": [
+                1.4174,
+                1.4115,
+                1.4163,
+                1.4304,
+                1.4168,
+                1.4262,
+                1.4137,
+                1.4214,
+                1.4183,
+                1.4190,
+            ],
+        },
+    )
+
+    transformer = SumScaler(target="both")
+    dm = transformer.transform(dm)
+
+    ranker = RAM()
     result = ranker.evaluate(dm)
 
     assert result.values_equals(expected)
