@@ -41,9 +41,34 @@ with hidden():
 
 
 # =============================================================================
-# EuclidianCODAS
+# CODAS
 # =============================================================================
+def codas(matrix, objectives, weights):
+    ##STEP2 : matriz normalizada
+    norm_matrix = np.zeros_like(matrix, dtype=float)
 
+    if Objective.MAX.value in objectives:
+        #filtramos los de beneficio
+        max_columns= matrix[: , objectives == Objective.MAX.value]
+        #calculamos maximo de cada columna
+        #BUG:might be zero?
+        max_values = np.max(max_columns, axis=0)
+        #Ecuacion (1)
+        norm_matrix[:, objectives == Objective.MAX.value] = max_columns / max_values
+    if Objective.MIN.value in objectives:
+        #filtramos los de costo
+        min_columns = matrix [:, objectives == Objective.MIN.value]
+        #calculamos minimo de cada columna 
+        #BUG:might be zero?
+        min_values = np.min(min_columns, axis=0)
+        #Ecuacion (1)
+        norm_matrix[:, objectives == Objective.MIN.value] = min_values / min_columns
+
+    ##STEP3 matriz normalizada con pesos
+    w_norm_matrix = np.multiply(norm_matrix, weights)
+
+    ##STEP4 Determinar la solucion negativa ideal
+    ns_arr = np.min(w_norm_matrix, axis=0)
 
 class CODAS(SKCDecisionMakerABC):
     #Descripcion piola de que hace
@@ -56,16 +81,7 @@ class CODAS(SKCDecisionMakerABC):
             raise ValueError(
                 "Error: CODAS can't operate with negative values on the DM Matrix"
             )
-        if np.any(weights < 0 ) or np.any (weights > 1)
-            raise ValueError(
-                "Error: CODAS can only operate with weights between zero and one"
-            ) 
-        if np.sum(weights) != 1
-            raise ValueError(
-                "Error: Codas can only operate with normalized weights"
-            )
-        #ACA TENEMOS QUE LLAMAR AL METODO QUE IMPLEMENTAMOS
-        #rank, score = fmf(matrix, objectives, weights)
+        rank, score = codas(matrix, objectives, weights)
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
