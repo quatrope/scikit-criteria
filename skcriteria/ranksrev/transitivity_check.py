@@ -312,7 +312,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return list(untied_ranks)
 
-    def _test_criterion_2(self, dm, orank):
+    def _create_graph(self, dm, orank):
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
         pairwise_combinations = map(
@@ -324,7 +324,7 @@ class TransitivityChecker(SKCMethodABC):
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
         with joblib.Parallel(
-            prefer=self._parallel_backend, n_jobs=self._n_jobs
+                prefer=self._parallel_backend, n_jobs=self._n_jobs
         ) as P:
             delayed_evaluation = joblib.delayed(
                 self._evaluate_pairwise_submatrix
@@ -337,7 +337,11 @@ class TransitivityChecker(SKCMethodABC):
         edges = self._get_graph_edges(results)
 
         # Create directed graph
-        graph = nx.DiGraph(edges)
+        return nx.DiGraph(edges)
+
+    def _test_criterion_2(self, dm, orank):
+        #Create graph
+        graph = self._create_graph(dm, orank)
 
         # TODO: Justificar el 3 en length_bound
         trans_break = list(nx.simple_cycles(graph, length_bound=3))
@@ -349,7 +353,7 @@ class TransitivityChecker(SKCMethodABC):
         return graph, trans_break, trans_break_rate
 
     def evaluate(self, *, dm):
-        """Executes a the transitivity test.
+        """Executes the transitivity test.
 
         Parameters
         ----------
@@ -362,9 +366,9 @@ class TransitivityChecker(SKCMethodABC):
             An object containing multiple rankings of the alternatives, with
             information on any changes made to the original decision matrix in
             the `extra_` attribute. Specifically, the `extra_` attribute
-            contains a an object in the key `rrt1` that provides
+            contains an object in the key `rrt1` that provides
             information on any changes made to the original decision matrix,
-            including the the noise applied to worsen any sub-optimal
+            including the noise applied to worsen any suboptimal
             alternative.
 
         """
