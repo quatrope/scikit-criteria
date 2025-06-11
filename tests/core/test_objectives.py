@@ -36,6 +36,21 @@ def test_Objective_from_alias():
         objectives.Objective.from_alias("no anda")
 
 
+def test_Objective_eq():
+    # Assert MIN is equal to all MIN aliases and not equal to all MAX aliases
+    for alias in objectives.Objective._MIN_ALIASES.value:
+        assert objectives.Objective.MIN == alias
+        assert objectives.Objective.MAX != alias
+
+    # Assert MAX is equal to all MAX aliases and not equal to all MIN aliases
+    for alias in objectives.Objective._MAX_ALIASES.value:
+        assert objectives.Objective.MAX == alias
+        assert objectives.Objective.MIN != alias
+
+    assert objectives.Objective.MIN != "whatever"
+    assert objectives.Objective.MAX != "whatever"
+
+
 def test_Objective_str():
     assert str(objectives.Objective.MAX) == objectives.Objective.MAX.name
     assert str(objectives.Objective.MIN) == objectives.Objective.MIN.name
