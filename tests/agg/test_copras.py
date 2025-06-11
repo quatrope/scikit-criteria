@@ -27,7 +27,7 @@ from skcriteria.agg.copras import COPRAS
 from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
 
 # =============================================================================
-# TEST CLASSES
+# TESTS
 # =============================================================================
 
 
@@ -79,3 +79,86 @@ def test_COPRAS_Uysal2022assistants():
     assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_["score"], expected.e_["score"], atol=1e-3)
+
+
+def test_COPRAS_NoMinimizingCriteriaExcption():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [250, 120, 20, 800],
+            [130, 200, 40, 1000],
+            [350, 340, 15, 600],
+        ],
+        objectives=[max, max, max, max],
+        weights=[1, 2, 3, 4],
+    )
+
+    ranker = COPRAS()
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
+
+
+def test_COPRAS_NegativeValuesException():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [250, 120, 20, 800],
+            [130, 200, -40, 1000],
+            [350, 340, 15, 600],
+        ],
+        objectives=[max, min, max, max],
+        weights=[1, 2, 3, 4],
+    )
+
+    ranker = COPRAS()
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
+
+
+def test_COPRAS_Więckowski2022CriteriaMethodsComparison():
+    """
+    Data from:
+        Więckowski, J., & Szyjewski, Z. (2022).
+        Practical Study of Selected Multi-Criteria Methods Comparison.
+        Procedia Computer Science, 207, 4565–4573.
+        https://doi.org/10.1016/j.procs.2022.09.520
+    """
+
+    dm = skcriteria.mkdm(
+        matrix=scale_by_sum(
+            [
+                [3.5, 6.0, 1256.0, 4.0, 16.0, 3.0, 17.3, 8.0, 2.82, 4100.0],
+                [3.1, 4.0, 1000.0, 2.0, 8.0, 1.0, 15.6, 5.0, 3.08, 3800.0],
+                [3.6, 6.0, 2000.0, 4.0, 16.0, 3.0, 17.3, 5.0, 2.90, 4000.0],
+                [3.0, 4.0, 1000.0, 2.0, 8.0, 2.0, 17.3, 5.0, 2.60, 3500.0],
+                [3.3, 6.0, 1008.0, 4.0, 12.0, 3.0, 15.6, 8.0, 2.30, 3800.0],
+                [3.6, 6.0, 1000.0, 2.0, 16.0, 3.0, 15.6, 5.0, 2.80, 4000.0],
+                [3.5, 6.0, 1256.0, 2.0, 16.0, 1.0, 15.6, 6.0, 2.90, 4000.0],
+            ],
+            axis=0,
+        ),
+        objectives=[max, max, max, max, max, max, max, max, min, min],
+        weights=[
+            0.297,
+            0.025,
+            0.035,
+            0.076,
+            0.154,
+            0.053,
+            0.104,
+            0.017,
+            0.025,
+            0.214,
+        ],
+    )
+
+    ranker = COPRAS()
+    result = ranker.evaluate(dm)
+
+    expected = RankResult(
+        "COPRAS",
+        ["A0", "A1", "A2", "A3", "A4", "A5", "A6"],
+        [2, 7, 1, 6, 3, 4, 5],
+        extra={},
+    )
+
+    assert result.values_equals(expected)
+    assert result.method == expected.method
