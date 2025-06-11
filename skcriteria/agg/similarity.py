@@ -31,10 +31,12 @@ with hidden():
 
 def DEBUG(*ass):
     from inspect import currentframe as c
+
     f = c().f_back
     for a in ass:
-        n = [k for k, v in f.f_locals.items() if v is a]+['?']
-        print(f.f_lineno,n[0],a)
+        n = [k for k, v in f.f_locals.items() if v is a] + ["?"]
+        print(f.f_lineno, n[0], a)
+
 
 # =============================================================================
 # TOPSIS
@@ -213,9 +215,9 @@ class VIKOR(SKCDecisionMakerABC):
         rank_q_k = rank.rank_values(q_k, reverse=False)
 
         # Check if solution is acceptable
-        has_rank1_qs = np.where(rank_q_k == 1, 1, 0)  # probably can delete this array 
-        rank1_cnt = np.sum(has_rank1_qs == 1)
-        
+        # has_rank1_qs = np.where(rank_q_k == 1, 1, 0)  # probably can delete this array
+        rank1_cnt = np.sum(rank_q_k == 1)
+
         # chosen_qs = np.where(rank_q_k == 1)  # Possibly many qs with rank 1
         # best_q_value = q_k[chosen_qs[0][0]]  # The value of the best q
         best_q_value = np.min(q_k)
@@ -223,21 +225,31 @@ class VIKOR(SKCDecisionMakerABC):
         # DEBUG(chosen_qs,best_q_value, best_qq_value)
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
-        
+
         # chosen_qs always have acc. adv., therefore same len <=> same qs
-        has_acceptable_advantage = len(qs_with_acceptable_advantage[0]) == rank1_cnt
+        has_acceptable_advantage = (
+            len(qs_with_acceptable_advantage[0]) == rank1_cnt
+        )
         # They must also be the best solution of one of the original distances
         # DEBUG(distances_matrix_scaled[:,1] * distances_matrix_scaled[:,0])
-        has_any_best_coordinate = np.where(distances_matrix_scaled[:,1] * distances_matrix_scaled[:,0] == 0, 1, 0)
-        stables_rank1_cnt = np.sum(has_rank1_qs * has_any_best_coordinate == 1)
+        # has_any_best_coordinate = np.where(distances_matrix_scaled[:,1] * distances_matrix_scaled[:,0] == 0, 1, 0)
+        # stables_rank1_cnt = np.sum(has_rank1_qs * has_any_best_coordinate == 1)
 
         # has_acceptable_stability = np.isin(chosen_qs, bests).all()
-        has_acceptable_stability = rank1_cnt == stables_rank1_cnt
+        aux = (
+            rank_q_k
+            * distances_matrix_scaled[:, 1]
+            * distances_matrix_scaled[:, 0]
+        )
+        zero_cnt = np.sum(aux == 0)
+        aux = (
+            distances_matrix_scaled[:, 1] * distances_matrix_scaled[:, 0] - aux
+        )
+        has_acceptable_stability = np.sum(aux == 0) == zero_cnt
         # TODO: Can we iterate over chosen_qs to check for 0s in r,s?
-
         if has_acceptable_stability and has_acceptable_advantage:
             # Our solution was good
-            compromise_set = np.where(has_rank1_qs==1)
+            compromise_set = np.where(rank_q_k == 1)
         elif not has_acceptable_stability and has_acceptable_advantage:
             # When unstable, top 2 ranks are chosen
             compromise_set = np.where(rank_q_k <= 2)
@@ -245,6 +257,14 @@ class VIKOR(SKCDecisionMakerABC):
         else:
             # If all fails, include all that would have acceptable advantage
             compromise_set = qs_with_acceptable_advantage
+
+        # This include all variables in compromise set to rank 1. Maybe can be an option ?
+        max_compromise_rank = np.max(rank_q_k[compromise_set])
+        res = np.where(
+            rank_q_k <= max_compromise_rank,
+            1,
+            rank_q_k - max_compromise_rank + 1,
+        )
 
         extra = {
             "r_k": distances_matrix[:, 1],
@@ -259,4 +279,4 @@ class VIKOR(SKCDecisionMakerABC):
         # TODO: Should compromise_set affect rank_q_k?
 
         # return
-        return rank_q_k, extra
+        return res, extra

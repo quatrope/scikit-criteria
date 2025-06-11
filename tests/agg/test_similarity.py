@@ -165,7 +165,7 @@ def test_VIKOR():
     expected = RankResult(
         "VIKOR",
         ["A1", "A2", "A3", "A4"],
-        [3, 2, 1, 4],
+        [2, 1, 1, 3],
         {
             "r_k": np.array([0.3, 0.2, 0.15, 0.4]),
             "s_k": np.array([0.6, 0.3, 0.15, 0.65]),
@@ -208,7 +208,7 @@ def test_VIKOR_tied():
     expected = RankResult(
         "VIKOR",
         ["A1", "A2", "A3", "A4"],
-        [3, 2, 1, 1],
+        [2, 1, 1, 1],
         {
             "r_k": np.array([0.4, 0.2, 0.15, 0.15]),
             "s_k": np.array([1.0, 0.275, 0.15, 0.15]),
