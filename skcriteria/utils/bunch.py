@@ -116,3 +116,6 @@ class Bunch(Mapping):
     def get(self, key, default=None):
         """Get item from bunch."""
         return self._data.get(key, default)
+
+    def to_dict(self):
+        return self._data

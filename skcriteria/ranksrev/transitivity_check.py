@@ -33,13 +33,22 @@ import pandas as pd
 from ..agg import RankResult
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
-from ..utils import Bunch, generate_acyclic_graphs, unique_names
+from ..utils import Bunch, rank, generate_acyclic_graphs, unique_names
+
 
 # =============================================================================
 # INTERNAL FUNCTIONS
 # =============================================================================
 
 # TODO: discuss if this should move into a sepparate module
+
+
+def _untie_first(r1, r2):
+    return (r1, r2)
+
+
+def _untie_second(r1, r2):
+    return (r2, r1)
 
 
 def _untie_equivalent_ranks(r1, r2):
@@ -51,6 +60,13 @@ def _untie_equivalent_ranks(r1, r2):
     # 4.   Insert both ranks in different orders (causing a cycle).
     # 5.   Insert none (causing a disjount graph).
     return ((r1, r2), (r2, r1))
+
+
+def _untie_by_dominance(r1, r2):
+    dominance_result = rank.dominance(r1, r2)
+    return (
+        (r1, r2) if dominance_result.aDb < dominance_result.bDa else (r2, r1)
+    )
 
 
 def _transitivity_break_bound(n):
@@ -89,6 +105,17 @@ def _transitivity_break_bound(n):
 
 
 # =============================================================================
+# INTERNAL VARIABLES
+# =============================================================================
+
+_PAIR_RANK_UNTIERS = {
+    "both": _untie_equivalent_ranks,
+    "dominance": _untie_by_dominance,
+    "first": _untie_first,
+    "second": _untie_second,
+}
+
+# =============================================================================
 # CLASS
 # =============================================================================
 
@@ -124,7 +151,8 @@ class TransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
-        pair_rank_untier=None,
+        untie_rankings=False,
+        pair_rank_untier="both",
         random_state=None,
         cycle_removal_strategy="random",
         max_acyclic_graphs=10000,
@@ -135,10 +163,11 @@ class TransitivityChecker(SKCMethodABC):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
 
+        # RANKS RELATED PROPERTIES
+        self._untie_rankings = untie_rankings
+
         # UNTIE EQUIVALENT RANKS
-        if pair_rank_untier and not callable(pair_rank_untier):
-            raise TypeError("'pair_rank_untier' must be callable")
-        self._pair_rank_untier = pair_rank_untier or _untie_equivalent_ranks
+        self._pair_rank_untier = pair_rank_untier
 
         # PARALLEL BACKEND
         self._parallel_backend = parallel_backend
@@ -243,13 +272,16 @@ class TransitivityChecker(SKCMethodABC):
             # Access the ranking assigned by the model
             ranks = rr.rank_
 
+            # Get the rank untier strategy
+            pair_rank_untier = self._pair_rank_untier
+
             # Identify which one is ranked better (lower number is better)
             if ranks[0] < ranks[1]:
                 edges.append((alt_names[0], alt_names[1]))
             elif ranks[1] < ranks[0]:
                 edges.append((alt_names[1], alt_names[0]))
             else:
-                untied_ranks = self._pair_rank_untier(
+                untied_ranks = _PAIR_RANK_UNTIERS[pair_rank_untier](
                     alt_names[0], alt_names[1]
                 )
                 if untied_ranks:
@@ -293,9 +325,11 @@ class TransitivityChecker(SKCMethodABC):
         acyclic_graphs = generate_acyclic_graphs(
             graph,
             strategy=self._cycle_removal_strategy,
-            # TODO (agregamos parametro?) PAU, NI IDEA, VER
+            max_attempts=(
+                self._max_acyclic_graphs * 10
+            ),  # TODO (agregamos parametro?) PAU, NI IDEA, VER
             max_graphs=self._max_acyclic_graphs,
-            seed=self._random_state,
+            seed=self._random_state.random(),
         )
 
         for (
@@ -307,7 +341,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return list(untied_ranks)
 
-    def _test_criterion_2(self, dm, orank):
+    def _dominance_graph(self, dm, orank):
         # Generate all pairwise combinations of alternatives
         # For n alternatives, creates C(n,2) = n*(n-1)/2 unique sub-problems
         pairwise_combinations = map(
@@ -319,7 +353,7 @@ class TransitivityChecker(SKCMethodABC):
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
         with joblib.Parallel(
-            prefer=self._parallel_backend, n_jobs=self._n_jobs
+                prefer=self._parallel_backend, n_jobs=self._n_jobs
         ) as P:
             delayed_evaluation = joblib.delayed(
                 self._evaluate_pairwise_submatrix
@@ -332,23 +366,30 @@ class TransitivityChecker(SKCMethodABC):
         edges = self._get_graph_edges(results)
 
         # Create directed graph
-        graph = nx.DiGraph(edges)
+        return nx.DiGraph(edges)
 
-        # trans_break = list(nx.simple_cycles(graph, length_bound=3))
-        trans_break = [
-            cycle
-            for cycle in nx.simple_cycles(graph, length_bound=3)
-            if len(cycle) == 3
-        ]
+    def _calculate_transitivity_break(self,graph):
+
+        # TODO: Justificar el 3 en length_bound
+        trans_break = list(nx.simple_cycles(graph, length_bound=3))
 
         trans_break_rate = len(trans_break) / _transitivity_break_bound(
             len(graph.nodes)
         )
 
+        return trans_break, trans_break_rate
+
+    def _test_criterion_2(self, dm, orank):
+        #Create pairwise dominance graph
+        graph = self._dominance_graph(dm, orank)
+
+        #Calculate transitivity break, and it's rate
+        trans_break, trans_break_rate = self._calculate_transitivity_break(graph)
         return graph, trans_break, trans_break_rate
 
+
     def evaluate(self, *, dm):
-        """Executes a the transitivity test.
+        """Executes the transitivity test.
 
         Parameters
         ----------
@@ -361,14 +402,15 @@ class TransitivityChecker(SKCMethodABC):
             An object containing multiple rankings of the alternatives, with
             information on any changes made to the original decision matrix in
             the `extra_` attribute. Specifically, the `extra_` attribute
-            contains a an object in the key `rrt1` that provides
+            contains an object in the key `rrt1` that provides
             information on any changes made to the original decision matrix,
-            including the the noise applied to worsen any sub-optimal
+            including the noise applied to worsen any suboptimal
             alternative.
 
         """
 
         dmaker = self._dmaker
+        untie_rankings = self._untie_rankings
 
         # we need a first reference ranking
         orank = dmaker.evaluate(dm)
@@ -379,14 +421,17 @@ class TransitivityChecker(SKCMethodABC):
             dm, orank
         )
 
-        # TODO: Configurar si devolver tied/untied
-        untied_ranks = self._get_ranks(graph, orank, extra)
+        #TODO: What is test criterion 3?
+        returned_ranks = []
+        if untie_rankings:
+            returned_ranks = self._get_ranks(graph, orank, extra)
 
         names = ["Original"] + [
-            f"Untied{i+1}" for i in range(len(untied_ranks))
+            f"Untied{i+1}" for i in range(len(returned_ranks))
         ]
+
         named_ranks = unique_names(
-            names=names, elements=[orank] + untied_ranks
+            names=names, elements=[orank] + returned_ranks
         )
 
         return RanksComparator(
