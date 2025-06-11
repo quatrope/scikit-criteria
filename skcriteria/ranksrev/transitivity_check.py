@@ -33,13 +33,22 @@ import pandas as pd
 from ..agg import RankResult
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
-from ..utils import Bunch, generate_acyclic_graphs, unique_names
+from ..utils import Bunch, rank, generate_acyclic_graphs, unique_names
+
 
 # =============================================================================
 # INTERNAL FUNCTIONS
 # =============================================================================
 
 # TODO: discuss if this should move into a sepparate module
+
+
+def _untie_first(r1, r2):
+    return (r1, r2)
+
+
+def _untie_second(r1, r2):
+    return (r2, r1)
 
 
 def _untie_equivalent_ranks(r1, r2):
@@ -53,12 +62,30 @@ def _untie_equivalent_ranks(r1, r2):
     return ((r1, r2), (r2, r1))
 
 
+def _untie_by_dominance(r1, r2):
+    dominance_result = rank.dominance(r1, r2)
+    return (
+        (r1, r2) if dominance_result.aDb < dominance_result.bDa else (r2, r1)
+    )
+
+
 def _transitivity_break_bound(n):
     if n % 2 == 0:
         return n * (n**2 - 4) // 24
     else:
         return n * (n**2 - 1) // 24
 
+
+# =============================================================================
+# INTERNAL VARIABLES
+# =============================================================================
+
+_PAIR_RANK_UNTIERS = {
+    "both": _untie_equivalent_ranks,
+    "dominance": _untie_by_dominance,
+    "first": _untie_first,
+    "second": _untie_second,
+}
 
 # =============================================================================
 # CLASS
@@ -96,7 +123,8 @@ class TransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
-        pair_rank_untier=None,
+        untie_rankings=False,
+        pair_rank_untier="both",
         random_state=None,
         cycle_removal_strategy="random",
         max_acyclic_graphs=10000,
@@ -107,10 +135,11 @@ class TransitivityChecker(SKCMethodABC):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
 
+        # RANKS RELATED PROPERTIES
+        self._untie_rankings = untie_rankings
+
         # UNTIE EQUIVALENT RANKS
-        if pair_rank_untier and not callable(pair_rank_untier):
-            raise TypeError("'pair_rank_untier' must be callable")
-        self._pair_rank_untier = pair_rank_untier or _untie_equivalent_ranks
+        self._pair_rank_untier = pair_rank_untier
 
         # PARALLEL BACKEND
         self._parallel_backend = parallel_backend
@@ -214,13 +243,16 @@ class TransitivityChecker(SKCMethodABC):
             # Access the ranking assigned by the model
             ranks = rr.rank_
 
+            # Get the rank untier strategy
+            pair_rank_untier = self._pair_rank_untier
+
             # Identify which one is ranked better (lower number is better)
             if ranks[0] < ranks[1]:
                 edges.append((alt_names[0], alt_names[1]))
             elif ranks[1] < ranks[0]:
                 edges.append((alt_names[1], alt_names[0]))
             else:
-                untied_ranks = self._pair_rank_untier(
+                untied_ranks = _PAIR_RANK_UNTIERS[pair_rank_untier](
                     alt_names[0], alt_names[1]
                 )
                 if untied_ranks:
@@ -264,10 +296,11 @@ class TransitivityChecker(SKCMethodABC):
         acyclic_graphs = generate_acyclic_graphs(
             graph,
             strategy=self._cycle_removal_strategy,
-            max_attempts=self._max_acyclic_graphs
-            * 10,  # TODO (agregamos parametro?) PAU, NI IDEA, VER
+            max_attempts=(
+                self._max_acyclic_graphs * 10
+            ),  # TODO (agregamos parametro?) PAU, NI IDEA, VER
             max_graphs=self._max_acyclic_graphs,
-            seed=self._random_state,
+            seed=self._random_state.random(),
         )
 
         for (
@@ -306,6 +339,7 @@ class TransitivityChecker(SKCMethodABC):
         # Create directed graph
         graph = nx.DiGraph(edges)
 
+        # TODO: Justificar el 3 en length_bound
         trans_break = list(nx.simple_cycles(graph, length_bound=3))
 
         trans_break_rate = len(trans_break) / _transitivity_break_bound(
@@ -336,6 +370,7 @@ class TransitivityChecker(SKCMethodABC):
         """
 
         dmaker = self._dmaker
+        untie_rankings = self._untie_rankings
 
         # we need a first reference ranking
         orank = dmaker.evaluate(dm)
@@ -346,14 +381,16 @@ class TransitivityChecker(SKCMethodABC):
             dm, orank
         )
 
-        # TODO: Configurar si devolver tied/untied
-        untied_ranks = self._get_ranks(graph, orank, extra)
+        returned_ranks = []
+        if untie_rankings:
+            returned_ranks = self._get_ranks(graph, orank, extra)
 
         names = ["Original"] + [
-            f"Untied{i+1}" for i in range(len(untied_ranks))
+            f"Untied{i+1}" for i in range(len(returned_ranks))
         ]
+
         named_ranks = unique_names(
-            names=names, elements=[orank] + untied_ranks
+            names=names, elements=[orank] + returned_ranks
         )
 
         return RanksComparator(

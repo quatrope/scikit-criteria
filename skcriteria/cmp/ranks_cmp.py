@@ -96,9 +96,6 @@ class RanksComparator(Sequence, DiffEqualityMixin):
     def _validate_ranks(self):
         ranks = self._ranks
 
-        if len(ranks) <= 1:
-            raise ValueError("At least two ranks needed to instance a RankComparator")
-
         used_names = set()
         first_alternatives = set(ranks[0][1].alternatives)
         for name, part in ranks:
@@ -134,7 +131,7 @@ class RanksComparator(Sequence, DiffEqualityMixin):
 
         """
         return Bunch("ranks", dict(self.ranks))
-    
+
     @property
     def extra_(self):
         """Additional information about the comparison.
@@ -142,7 +139,7 @@ class RanksComparator(Sequence, DiffEqualityMixin):
         Note
         ----
         ``e_`` is an alias for this property.
-        
+
         """
         return self._extra
 
