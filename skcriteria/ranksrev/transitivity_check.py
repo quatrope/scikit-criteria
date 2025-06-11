@@ -151,7 +151,6 @@ class TransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
-        untie_rankings=False,
         pair_rank_untier="both",
         random_state=None,
         cycle_removal_strategy="random",
@@ -162,9 +161,6 @@ class TransitivityChecker(SKCMethodABC):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
-
-        # RANKS RELATED PROPERTIES
-        self._untie_rankings = untie_rankings
 
         # UNTIE EQUIVALENT RANKS
         self._pair_rank_untier = pair_rank_untier
@@ -291,20 +287,26 @@ class TransitivityChecker(SKCMethodABC):
 
     def _create_rank_with_info(self, orank, extra, dag, edges):
 
-        sorted_alternatives = list(nx.topological_sort(dag))
+        topological_sorts = nx.all_topological_sort(dag)
+        sort_count = len(topological_sorts)
+
+        sorted_alternatives = topological_sorts[0]
 
         alternative_rank_value = dict(
             zip(
-                sorted_alternatives, np.arange(len(sorted_alternatives), 0, -1)
+                sorted_alternatives[0], np.arange(len(sorted_alternatives[0]), 0, -1)
             )
         )
 
-        extra["rrt23"] = Bunch(
+        extra_dict = extra.to_dict()
+
+        extra_dict["rrt23"] = Bunch(
             "rrt23",
             {
                 "acyclic_graph": dag,
                 "removed_edges": edges,
-            },
+                "topological_sort_count" = sort_count,
+            }
         )
 
         untied_rank = RankResult(
@@ -322,6 +324,8 @@ class TransitivityChecker(SKCMethodABC):
 
         untied_ranks = []
 
+
+
         acyclic_graphs = generate_acyclic_graphs(
             graph,
             strategy=self._cycle_removal_strategy,
@@ -329,7 +333,7 @@ class TransitivityChecker(SKCMethodABC):
                 self._max_acyclic_graphs * 10
             ),  # TODO (agregamos parametro?) PAU, NI IDEA, VER
             max_graphs=self._max_acyclic_graphs,
-            seed=self._random_state.random(),
+            seed=self._random_state,
         )
 
         for (
@@ -379,7 +383,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return trans_break, trans_break_rate
 
-    def _test_criterion_2(self, dm, orank):
+    def _generate_graph_data(self, dm, orank):
         #Create pairwise dominance graph
         graph = self._dominance_graph(dm, orank)
 
@@ -410,21 +414,19 @@ class TransitivityChecker(SKCMethodABC):
         """
 
         dmaker = self._dmaker
-        untie_rankings = self._untie_rankings
 
         # we need a first reference ranking
         orank = dmaker.evaluate(dm)
 
         extra = dict(orank.extra_.items())
 
-        graph, trans_break, trans_break_rate = self._test_criterion_2(
+        graph, trans_break, trans_break_rate = self._generate_graph_data(
             dm, orank
         )
 
         #TODO: What is test criterion 3?
         returned_ranks = []
-        if untie_rankings:
-            returned_ranks = self._get_ranks(graph, orank, extra)
+        returned_ranks = self._get_ranks(graph, orank, extra)
 
         names = ["Original"] + [
             f"Untied{i+1}" for i in range(len(returned_ranks))
@@ -440,5 +442,6 @@ class TransitivityChecker(SKCMethodABC):
                 "pairwise_dominance_graph": graph,
                 "transitivity_breaks": trans_break,
                 "transitivity_break_rate": trans_break_rate,
+                "test_criterion_3": True,
             },
         )

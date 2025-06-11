@@ -118,4 +118,5 @@ class Bunch(Mapping):
         return self._data.get(key, default)
 
     def to_dict(self):
-        return self._data
+        # TODO: @diego fijarse garpar
+        return self._data.deepcopy()

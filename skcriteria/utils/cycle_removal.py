@@ -132,12 +132,6 @@ def generate_acyclic_graphs(
             f"Unknown strategy: {strategy}. Available strategies: {available_strategies}"
         )
 
-    # Check if graph is already acyclic
-    # TODO: maybe move this at the top
-    cycles = list(nx.simple_cycles(graph))
-    if not cycles:
-        return [(graph.copy(), set())]
-
     # Get strategy configuration
     strategy_config = _CYCLE_REMOVAL_STRATEGIES[strategy]
     select_edge = strategy_config["selector"]
@@ -164,7 +158,5 @@ def generate_acyclic_graphs(
 
         if nx.is_directed_acyclic_graph(modified_graph):
             acyclic_graphs.append((modified_graph, to_remove))
-            # Filter to keep only minimal removals
-            acyclic_graphs = _filter_minimal_removals(acyclic_graphs)
 
     return acyclic_graphs
