@@ -108,8 +108,6 @@ def generate_acyclic_graphs(
         The input directed graph
     strategy : str, optional
         Edge selection strategy: "random" or "weighted"
-    max_attempts : int, optional
-        Maximum number of attempts to generate graphs
     max_graphs : int, optional
         Maximum number of acyclic graphs to generate
     seed : int, optional
@@ -124,6 +122,7 @@ def generate_acyclic_graphs(
     seen_removals = set()
     acyclic_graphs = []
     max_possible_attempts = 10 # TODO: Definir
+    cycles = nx.simple_cycles(graph)
 
     # Validate strategy
     if strategy not in _CYCLE_REMOVAL_STRATEGIES:
@@ -152,11 +151,9 @@ def generate_acyclic_graphs(
             edge_to_remove = select_edge(cycle, edge_freq, rng)
             to_remove.add(edge_to_remove)
 
-        # Test if removing edges creates acyclic graph
+        # Creates acyclic graph
         modified_graph = graph.copy()
         modified_graph.remove_edges_from(to_remove)
-
-        if nx.is_directed_acyclic_graph(modified_graph):
-            acyclic_graphs.append((modified_graph, to_remove))
+        acyclic_graphs.append((modified_graph, to_remove))
 
     return acyclic_graphs

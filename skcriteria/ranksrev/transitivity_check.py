@@ -102,7 +102,57 @@ def _transitivity_break_bound(n):
         return n * (n**2 - 4) // 24
     else:
         return n * (n**2 - 1) // 24
+    
+def in_degree_sort(dag):
+    """
+    Sorts the nodes of a directed acyclic graph (DAG) into hierarchical groups
+    based on in-degree using the graph's transitive reduction.
 
+    The result represents a topological layering of the graph.
+
+    Parameters:
+    -----------
+    dag : networkx.DiGraph
+        A directed acyclic graph (DAG).
+
+    Returns:
+    --------
+    list[list[hashable]]
+        A list of lists of nodes grouped by their in-degree level.
+    """
+    graph_reduction = nx.transitive_reduction(dag)
+    groups_sort = []
+
+    while graph_reduction.nodes:
+        group = [node for node in list(graph_reduction.nodes) if graph_reduction.in_degree(node) == 0]
+        groups_sort.append(group)
+        graph_reduction.remove_nodes_from(group)
+
+    return groups_sort
+
+def assign_rankings(groups):
+    """
+    Assign ascending integer rankings to grouped items.
+
+    All items in the same group share the same rank, starting from 1 for the first group,
+    and increasing by 1 for each subsequent group.
+
+    Parameters
+    ----------
+    groups : list[list[hashable]]
+        A list of groups (each group is a list of items).
+
+    Returns
+    -------
+    dict
+        A dictionary mapping each item to its assigned rank.
+    """
+    rankings = {}
+    for rank, group in enumerate(groups, start=1):
+        for item in group:
+            rankings[item] = rank
+
+    return rankings
 
 # =============================================================================
 # INTERNAL VARIABLES
@@ -121,7 +171,7 @@ _PAIR_RANK_UNTIERS = {
 
 
 class TransitivityChecker(SKCMethodABC):
-    r"""
+    """
     Parameters
     ----------
     dmaker: Decision maker - must implement the ``evaluate()`` method
@@ -287,16 +337,21 @@ class TransitivityChecker(SKCMethodABC):
 
     def _create_rank_with_info(self, orank, extra, dag, edges):
 
-        topological_sorts = nx.all_topological_sort(dag)
+        topological_sorts = list(nx.all_topological_sort(dag))
         sort_count = len(topological_sorts)
 
-        sorted_alternatives = topological_sorts[0]
+        if sort_count > 1:
+            alternative_rank_value = assign_rankings(in_degree_sort(dag))
 
-        alternative_rank_value = dict(
-            zip(
-                sorted_alternatives[0], np.arange(len(sorted_alternatives[0]), 0, -1)
+        else:
+            sorted_alternatives = topological_sorts[0]
+
+            alternative_rank_value = dict(
+                zip(
+                    sorted_alternatives,
+                    np.arange(1,len(sorted_alternatives)+1),
+                )
             )
-        )
 
         extra_dict = extra.to_dict()
 
@@ -324,14 +379,9 @@ class TransitivityChecker(SKCMethodABC):
 
         untied_ranks = []
 
-
-
         acyclic_graphs = generate_acyclic_graphs(
             graph,
             strategy=self._cycle_removal_strategy,
-            max_attempts=(
-                self._max_acyclic_graphs * 10
-            ),  # TODO (agregamos parametro?) PAU, NI IDEA, VER
             max_graphs=self._max_acyclic_graphs,
             seed=self._random_state,
         )
