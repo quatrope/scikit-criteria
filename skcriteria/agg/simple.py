@@ -217,11 +217,11 @@ def ram(matrix, objectives, weights):
 
 
 class RAM(SKCDecisionMakerABC):
-    """Root Assessment Method (RAM).
+    r"""Root Assessment Method (RAM).
 
     RAM calculates the utility value of each alternative by aggregating their
     scores over the criteria, treating beneficial and non-beneficial criteria
-    differently. The method uses an aggregation function that combines 
+    differently. The method uses an aggregation function that combines
     compensatory and partially compensatory characteristics.
 
     The aggregation function used is:
@@ -229,12 +229,16 @@ class RAM(SKCDecisionMakerABC):
     .. math::
         RI_i = \sqrt[2 + S_{-i}]{2 + S_{+i}}
 
-    where :math:`S_{+i}` is the weighted sum of beneficial criteria for alternative :math:`i`,
-    :math:`S_{-i}` is the weighted sum of non-beneficial criteria for alternative :math:`i`.
+    where :math:`S_{+i}` is the weighted sum of beneficial criteria for
+    alternative :math:`i`,
+    :math:`S_{-i}` is the weighted sum of non-beneficial criteria for
+    alternative :math:`i`.
     :math:`RI_i` is the score of alternative :math:`i` based on the RAM method.
-    The ranking is done based on the score, where higher scores indicate better alternatives.
+    The ranking is done based on the score, where higher scores indicate better
+    alternatives.
 
-    To use this method, the decision matrix should be normalized using the following formula:
+    To use this method, the decision matrix should be normalized using the
+    following formula:
 
     .. math::
         \overline{X}_{ij} = \frac{X_{ij}}{\sum\limits_{j=1}^m X_{ij}}
