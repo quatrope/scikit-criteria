@@ -360,7 +360,7 @@ class TransitivityChecker(SKCMethodABC):
             {
                 "acyclic_graph": dag,
                 "removed_edges": edges,
-                "topological_sort_count" = sort_count,
+                "topological_sort_count": sort_count,
             }
         )
 
