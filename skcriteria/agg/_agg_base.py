@@ -18,6 +18,7 @@
 
 import abc
 from collections import Counter
+from functools import partial
 
 import numpy as np
 
@@ -209,7 +210,9 @@ class ResultABC(DiffEqualityMixin, metaclass=abc.ABCMeta):
             "method": np.array_equal,
             "alternatives": np.array_equal,
             "values": array_allclose,
-            "extra_": dict_allclose,
+            "extra_": partial(
+                dict_allclose, rtol=rtol, atol=atol, equal_nan=equal_nan
+            ),
         }
 
         the_diff = diff(self, other, **members)
