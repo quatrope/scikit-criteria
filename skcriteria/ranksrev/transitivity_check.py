@@ -495,6 +495,6 @@ class TransitivityChecker(SKCMethodABC):
                 "pairwise_dominance_graph": graph,
                 "transitivity_breaks": trans_break,
                 "transitivity_break_rate": trans_break_rate,
-                "test_criterion_3": True,
+                "test_criterion_3": True, #TODO: What is this?
             },
         )
