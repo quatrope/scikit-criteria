@@ -337,7 +337,7 @@ class TransitivityChecker(SKCMethodABC):
 
     def _create_rank_with_info(self, orank, extra, dag, edges):
 
-        topological_sorts = list(nx.all_topological_sort(dag))
+        topological_sorts = list(nx.all_topological_sorts(dag))
         sort_count = len(topological_sorts)
 
         if sort_count > 1:

@@ -154,6 +154,8 @@ def generate_acyclic_graphs(
         # Creates acyclic graph
         modified_graph = graph.copy()
         modified_graph.remove_edges_from(to_remove)
-        acyclic_graphs.append((modified_graph, to_remove))
+
+        if nx.is_directed_acyclic_graph(modified_graph):
+            acyclic_graphs.append((modified_graph, to_remove))
 
     return acyclic_graphs
