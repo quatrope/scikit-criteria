@@ -60,7 +60,7 @@ class SKCDecisionMakerABC(SKCMethodABC):
             :py:meth:`_evaluate_data` method.
 
         """
-        return kwargs
+        return dict()
 
     @abc.abstractmethod
     def _evaluate_data(self, **kwargs):
@@ -70,7 +70,7 @@ class SKCDecisionMakerABC(SKCMethodABC):
     def _make_result(self, alternatives, values, extra):
         raise NotImplementedError()
 
-    def evaluate(self, dm):
+    def evaluate(self, dm, **kwargs):
         """Validate the dm and calculate and evaluate the alternatives.
 
         Parameters
@@ -86,9 +86,9 @@ class SKCDecisionMakerABC(SKCMethodABC):
         """
         data = dm.to_dict()
 
-        prepared_data = self._prepare_data(**data)
+        prepared_data = self._prepare_data(**data, **kwargs)
 
-        result_data, extra = self._evaluate_data(**prepared_data)
+        result_data, extra = self._evaluate_data(**data, **prepared_data)
 
         alternatives = data["alternatives"]
         result = self._make_result(
