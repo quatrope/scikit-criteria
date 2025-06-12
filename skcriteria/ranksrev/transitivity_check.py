@@ -331,36 +331,39 @@ class TransitivityChecker(SKCMethodABC):
                     alt_names[0], alt_names[1]
                 )
                 if untied_ranks:
-                    edges.extend(untied_ranks)
+                    if pair_rank_untier == "both":
+                        edges.extend(untied_ranks)
+                    else:
+                        edges.append(untied_ranks)
 
         return edges
 
     def _create_rank_with_info(self, orank, extra, dag, edges):
 
-        topological_sorts = list(nx.all_topological_sorts(dag))
-        sort_count = len(topological_sorts)
+        # topological_sorts = list(nx.all_topological_sorts(dag))
+        # sort_count = len(topological_sorts)
 
-        if sort_count > 1:
-            alternative_rank_value = assign_rankings(in_degree_sort(dag))
+        # if sort_count > 1:
+        alternative_rank_value = assign_rankings(in_degree_sort(dag))
 
-        else:
-            sorted_alternatives = topological_sorts[0]
+        # else:
+        #     sorted_alternatives = list(nx.lexicographical_topological_sort(dag))
 
-            alternative_rank_value = dict(
-                zip(
-                    sorted_alternatives,
-                    np.arange(1,len(sorted_alternatives)+1),
-                )
-            )
+        #     alternative_rank_value = dict(
+        #         zip(
+        #             sorted_alternatives,
+        #             np.arange(1,len(sorted_alternatives)+1),
+        #         )
+        #     )
 
-        extra_dict = extra.to_dict()
+        # extra_dict = extra.to_dict()
 
-        extra_dict["rrt23"] = Bunch(
+        extra["rrt23"] = Bunch(
             "rrt23",
             {
                 "acyclic_graph": dag,
                 "removed_edges": edges,
-                "topological_sort_count": sort_count,
+                # "topological_sort_count": sort_count,
             }
         )
 
