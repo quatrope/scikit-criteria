@@ -121,8 +121,8 @@ def generate_acyclic_graphs(
     rng = np.random.default_rng(seed)
     seen_removals = set()
     acyclic_graphs = []
-    max_possible_attempts = 10 # TODO: Definir
     cycles = nx.simple_cycles(graph)
+    max_possible_attempts = 10
 
     # Validate strategy
     if strategy not in _CYCLE_REMOVAL_STRATEGIES:
