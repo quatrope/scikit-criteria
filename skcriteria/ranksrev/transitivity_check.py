@@ -44,11 +44,11 @@ from ..utils import Bunch, rank, generate_acyclic_graphs, unique_names
 
 
 def _untie_first(r1, r2):
-    return (r1, r2)
+    return [(r1, r2)]
 
 
 def _untie_second(r1, r2):
-    return (r2, r1)
+    return [(r2, r1)]
 
 
 def _untie_equivalent_ranks(r1, r2):
@@ -59,14 +59,15 @@ def _untie_equivalent_ranks(r1, r2):
     # 2-3. Insert only one rank.
     # 4.   Insert both ranks in different orders (causing a cycle).
     # 5.   Insert none (causing a disjount graph).
-    return ((r1, r2), (r2, r1))
+    return [(r1, r2), (r2, r1)]
 
 
 def _untie_by_dominance(r1, r2):
     dominance_result = rank.dominance(r1, r2)
-    return (
+    winner_edge = (
         (r1, r2) if dominance_result.aDb < dominance_result.bDa else (r2, r1)
     )
+    return [winner_edge]
 
 
 def _transitivity_break_bound(n):
@@ -104,10 +105,13 @@ def _transitivity_break_bound(n):
         return n * (n**2 - 1) // 24
 
 
+<<<<<<< HEAD
 def _both_bound(n):
     return n * (n - 1) * (n - 2) / 3
 
 
+=======
+>>>>>>> 9468ece029d5ef26a09b0a8bdace5f4982792ad1
 def in_degree_sort(dag):
     """
     Sorts the nodes of a directed acyclic graph (DAG) into hierarchical groups
@@ -351,12 +355,8 @@ class TransitivityChecker(SKCMethodABC):
             elif ranks[1] < ranks[0]:
                 edges.append((alt_names[1], alt_names[0]))
             else:
-                untied_ranks = tie_breaker(alt_names[0], alt_names[1])
-                if untied_ranks:
-                    if pair_rank_untier == "both":
-                        edges.extend(untied_ranks)
-                    else:
-                        edges.append(untied_ranks)
+                untied_edges = tie_breaker(alt_names[0], alt_names[1])
+                edges.extend(untied_edges)
 
         return edges
 
@@ -378,7 +378,7 @@ class TransitivityChecker(SKCMethodABC):
         #         )
         #     )
 
-        # extra_dict = extra.to_dict()
+        print(f"Tipo de extra: {type(extra)}")
 
         untied_rank = RankResult(
             method=orank.method,
@@ -491,7 +491,7 @@ class TransitivityChecker(SKCMethodABC):
         # we need a first reference ranking
         orank = dmaker.evaluate(dm)
 
-        extra = dict(orank.extra_.items())
+        extra = orank.extra_
 
         graph, trans_break, trans_break_rate = self._generate_graph_data(
             dm, orank
@@ -517,6 +517,6 @@ class TransitivityChecker(SKCMethodABC):
                 "pairwise_dominance_graph": graph,
                 "transitivity_breaks": trans_break,
                 "transitivity_break_rate": trans_break_rate,
-                "test_criterion_3": test_criterion_3,  # TODO: What is this?
+                "test_criterion_3": test_criterion_3,
             },
         )
