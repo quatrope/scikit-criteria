@@ -135,6 +135,15 @@ def test_bounds_validation():
         criteria=["C1", "C2", "C3"],
     )
 
+    # Note that the bounds are invalid because the shape is wrong.
+    bounds = np.array(
+        [
+            [1, 6],
+        ]
+    )
+    with pytest.raises(ValueError, match=r"Invalid shape for bounds.*"):
+        SPOTIS().evaluate(dm, bounds=bounds)
+
     # Note that the bounds are invalid because there is an
     # alternative with a value out of the bounds.
     bounds = np.array([[1, 6], [2, 8], [3, 9]])
@@ -153,6 +162,15 @@ def test_isp_validation():
         weights=[1, 1, 1],
         criteria=["C1", "C2", "C3"],
     )
+
+    # Note that the ISP is invalid because it has an invalid shape.
+    bounds = np.array([[1, 7], [2, 8], [3, 9]])
+    isp = np.array([0, 1])
+
+    with pytest.raises(
+        ValueError, match=r"Invalid shape for Ideal Solution Point \(ISP\).*"
+    ):
+        SPOTIS().evaluate(dm, bounds=bounds, isp=isp)
 
     # Note that the ISP is invalid because it is outside the
     # bounds of the criterias.
