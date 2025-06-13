@@ -371,8 +371,6 @@ class TransitivityChecker(SKCMethodABC):
         #         )
         #     )
 
-        print(f"Tipo de extra: {type(extra)}")
-
         untied_rank = RankResult(
             method=orank.method,
             alternatives=orank.alternatives,
@@ -455,7 +453,7 @@ class TransitivityChecker(SKCMethodABC):
     def _test_criterion_3(self, graph):
         """Perform test criterion 3"""
         cycles = nx.simple_cycles(graph)
-        cycles_count = len(np.asarray([c for c in cycles if len(c) >= 3]))
+        cycles_count = len(([c for c in cycles if len(c) >= 3]))
         return cycles_count == 0
 
     def evaluate(self, *, dm):

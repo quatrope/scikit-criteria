@@ -43,7 +43,7 @@ def _select_edge_weighted(cycle, edge_freq, rng):
     """Select edge with probability proportional to frequency (more frequent = more likely)."""
     edges = _cycle_to_edges(cycle)
     weights = [edge_freq[edge] + 1 for edge in edges]
-    return tuple(rng.choice(edges, weights=weights, k=1)[0])
+    return tuple(rng.choice(edges, p=np.array(weights) / np.sum(weights)))
 
 
 _CYCLE_REMOVAL_STRATEGIES = {
@@ -55,36 +55,6 @@ _CYCLE_REMOVAL_STRATEGIES = {
 # =============================================================================
 # MAIN FUNCTIONALITY
 # =============================================================================
-
-
-def _filter_minimal_removals(acyclic_graphs):
-    """
-    Filter acyclic graphs to keep only those with minimal edge removals.
-
-    Parameters
-    ----------
-    acyclic_graphs : list
-        List of tuples (acyclic_graph, removed_edges_set)
-
-    Returns
-    -------
-    list
-        Filtered list with only minimal removal solutions
-    """
-    if not acyclic_graphs:
-        return []
-
-    to_discard = set()
-
-    for (i1, (g1, r1)), (i2, (g2, r2)) in combinations(
-        enumerate(acyclic_graphs), 2
-    ):
-        if r1.issubset(r2) and r1 != r2:
-            to_discard.add(i2)
-        elif r2.issubset(r1) and r1 != r2:
-            to_discard.add(i1)
-
-    return [gr for i, gr in enumerate(acyclic_graphs) if i not in to_discard]
 
 
 def _calculate_edge_frequencies(graph):
@@ -121,8 +91,8 @@ def generate_acyclic_graphs(
     rng = np.random.default_rng(seed)
     seen_removals = set()
     acyclic_graphs = []
-    cycles = nx.simple_cycles(graph)
-    max_possible_attempts = 10
+    cycles = list(nx.simple_cycles(graph))
+    max_possible_attempts = 50
 
     # Validate strategy
     if strategy not in _CYCLE_REMOVAL_STRATEGIES:
@@ -142,7 +112,9 @@ def generate_acyclic_graphs(
         edge_freq = Counter()  # Empty counter for consistency
 
     attempts = 0
-    while attempts < max_possible_attempts and len(acyclic_graphs) < max_graphs:
+    while (
+        attempts < max_possible_attempts and len(acyclic_graphs) < max_graphs
+    ):
         attempts += 1
         to_remove = set()
 
