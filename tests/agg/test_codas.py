@@ -29,13 +29,15 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
 
 from skcriteria.agg.codas import CODAS
-from skcriteria.preprocessing.scalers import MinMaxScaler
+from skcriteria.preprocessing.scalers import CodasTransformer
 
 def test_codas_negative_coord_fail():
     dm = skc.mkdm(
         matrix=[[1, 2, 3], [4, -1, 6]],
         objectives=[max, max, max],
     )
+    transformer = CodasTransformer()
+    dm_t = transformer.transform(dm)
 
     ranker = CODAS()
 
@@ -91,10 +93,11 @@ def test_codas_LISCO():
     )
 
 
-    ##transformer = MinMaxScaler(target="matrix")
-    #dm = transformer.transform(dm)
+    transformer = CodasTransformer()
+    dm_t = transformer.transform(dm)
+
     ranker = CODAS()
-    result = ranker.evaluate(dm)
+    result = ranker.evaluate(dm_t)
 
     assert result.values_equals(expected)
     assert result.method == expected.method
@@ -145,9 +148,12 @@ def test_codas_chakraborty_zavadaskas2014():
         "CODAS", ["A1", "A2", "A3", "A4", "A5", "A6", "A7"], [3, 1, 2, 5, 7, 6, 4], 
         {"score":  [0.5122,  1.4633,  1.0715, -0.2125, -1.8515, -1.1717, 0.1887]}
     )
-   
+
+    transformer = CodasTransformer()
+    dm_t = transformer.transform(dm)
+
     ranker = CODAS()
-    result = ranker.evaluate(dm)
+    result = ranker.evaluate(dm_t)
 
     assert result.values_equals(expected)
     assert result.method == expected.method
@@ -207,9 +213,12 @@ def test_codas_zavadaskas_turskis2010():
         {"score":  
         [0.768, 0.363, -0.105, -0.329, -2.384, -2.207, -2.043, 2.929, 2.890, -1.282, 0.568, 0.313, 0.157, 0.364]}
     )
-   
+
+    transformer = CodasTransformer()
+    dm_t = transformer.transform(dm)
+
     ranker = CODAS()
-    result = ranker.evaluate(dm)    
+    result = ranker.evaluate(dm_t)  
 
     assert result.values_equals(expected)
     assert result.method == expected.method

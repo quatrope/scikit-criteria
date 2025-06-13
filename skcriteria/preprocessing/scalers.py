@@ -472,3 +472,40 @@ class CenitDistanceMatrixScaler(SKCTransformerABC):
             matrix=distance_mtx, objectives=objectives, dtypes=dtypes
         )
         return kwargs
+
+
+
+def codas_normalization(matrix, weights, objectives):
+    norm_matrix = np.zeros_like(matrix, dtype=float)
+    if  Objective.MAX.value in objectives:
+        max_columns= matrix[: , objectives == Objective.MAX.value]
+        max_values = np.max(max_columns, axis=0)
+        norm_matrix[:, objectives == Objective.MAX.value] = (max_columns / max_values)
+
+    if Objective.MIN.value in objectives:
+        min_columns = matrix[:,objectives == Objective.MIN.value]
+        min_values = np.min(min_columns, axis=0)
+        norm_matrix[:, objectives == Objective.MIN.value] = (min_values / min_columns)
+
+    w_norm_matrix = np.multiply(norm_matrix, weights)
+
+    return w_norm_matrix
+
+
+class CodasTransformer(SKCTransformerABC):
+    """
+    INFO:
+    """
+    
+    _skcriteria_parameters = []
+    
+    @doc_inherit(SKCTransformerABC._transform_data)
+    def _transform_data(self, matrix, objectives, weights, **kwargs):
+        matrix_transformation = codas_normalization(matrix, weights, objectives)
+
+        dtypes = np.full(np.shape(objectives), float)
+
+        kwargs.update(
+            matrix=matrix_transformation, objectives=objectives, weights=weights, dtypes=dtypes
+        )
+        return kwargs

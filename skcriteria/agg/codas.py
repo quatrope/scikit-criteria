@@ -61,35 +61,14 @@ def codas_relative_assessment(euclidian_d, taxicab_d, tau=0.02):
 
 
 def codas(matrix, objectives, weights):
-    ##STEP2 : matriz normalizada
-    norm_matrix = np.zeros_like(matrix, dtype=float)
-    if  Objective.MAX.value in objectives:
-        max_columns= matrix[: , objectives == Objective.MAX.value]
-        #BUG:might be zero?
-        max_values = np.max(max_columns, axis=0)
-        #Ecuacion (1)
-        norm_matrix[:, objectives == Objective.MAX.value] = (max_columns / max_values)
-
-    if Objective.MIN.value in objectives:
-        min_columns = matrix[:,objectives == Objective.MIN.value]
-        #BUG:might be zero?
-        min_values = np.min(min_columns, axis=0)
-        #Ecuacion (1)
-        norm_matrix[:, objectives == Objective.MIN.value] = (min_values / min_columns)
-
-    
-
-    ##STEP3 matriz normalizada con pesos
-    w_norm_matrix = np.multiply(norm_matrix, weights)
-
 
     ##STEP4 Determinar la solucion negativa ideal
-    ns_arr = np.min(w_norm_matrix, axis=0)
+    ns_arr = np.min(matrix, axis=0)
 
     #STEP5 Calcular distancia manhattan y distancia euclidiana
-    taxicab_distances = np.sum(np.abs(w_norm_matrix - ns_arr), axis=1)
+    taxicab_distances = np.sum(np.abs(matrix - ns_arr), axis=1)
 
-    euclidian_distances = np.sqrt(np.sum((w_norm_matrix - ns_arr)**2, axis=1 ))
+    euclidian_distances = np.sqrt(np.sum((matrix - ns_arr)**2, axis=1 ))
 
     #STEP6 construir matriz de evaluacion relativa
     rel_assessment_m = codas_relative_assessment(euclidian_distances, taxicab_distances, tau=0.02)
