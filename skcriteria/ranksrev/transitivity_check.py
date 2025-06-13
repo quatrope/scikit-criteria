@@ -55,10 +55,6 @@ def _untie_equivalent_ranks(r1, r2):
     # The untie criteria is non-trivial and greatly affects the resulting graph.
     # This default criteria inserts them with arbitrary order, but other
     # heuristics could work.
-    # 1.   Inserting both ranks with a different order.
-    # 2-3. Insert only one rank.
-    # 4.   Insert both ranks in different orders (causing a cycle).
-    # 5.   Insert none (causing a disjount graph).
     return [(r1, r2), (r2, r1)]
 
 
@@ -105,13 +101,10 @@ def _transitivity_break_bound(n):
         return n * (n**2 - 1) // 24
 
 
-<<<<<<< HEAD
 def _both_bound(n):
     return n * (n - 1) * (n - 2) / 3
 
 
-=======
->>>>>>> 9468ece029d5ef26a09b0a8bdace5f4982792ad1
 def in_degree_sort(dag):
     """
     Sorts the nodes of a directed acyclic graph (DAG) into hierarchical groups
