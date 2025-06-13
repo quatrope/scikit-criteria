@@ -118,5 +118,6 @@ class Bunch(Mapping):
         return self._data.get(key, default)
 
     def to_dict(self):
+        """Return a deep copy of the internal data as a regular dictionary."""
         # TODO: @diego fijarse garpar
-        return self._data.deepcopy()
+        return copy.deepcopy(dict(self._data))
