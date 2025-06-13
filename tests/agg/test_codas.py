@@ -52,8 +52,19 @@ def test_codas_LISCO():
         weights=[0.2857, 0.3036, 0.2321, 0.1786],
     )
 
+    expected = RankResult(
+        "CODAS", ["A1", "A2", "A3", "A4", "A5", "A6"], [1, 2, 3, 5, 6, 4], 
+        {"score":  [1.3914,  0.3411,  -0.2170, -0.5381, -0.7292, -0.2481]}
+    )
+
 
     ##transformer = MinMaxScaler(target="matrix")
     #dm = transformer.transform(dm)
     ranker = CODAS()
     result = ranker.evaluate(dm)
+
+    assert result.values_equals(expected)
+    assert result.method == expected.method
+
+    assert np.all(result.e_.score.round(4) == expected.e_.score)
+

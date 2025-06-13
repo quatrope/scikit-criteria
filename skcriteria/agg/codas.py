@@ -37,12 +37,29 @@ with hidden():
 
     from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
     from ..core import Objective
-    from ..utils import doc_inherit, will_change
+    from ..utils import doc_inherit, rank
 
 
 # =============================================================================
 # CODAS
 # =============================================================================
+
+def codas_relative_assessment(euclidian_d, taxicab_d, tau=0.02):
+    n= len(euclidian_d)
+    Ra= np.zeros((n,n))
+
+    for i in range(n):
+        for k in range(n):
+            diff_E = euclidian_d[i] - euclidian_d[k]
+            psi = 1 if abs(diff_E)>= tau else 0
+            diff_T= taxicab_d[i]- taxicab_d[k]
+            Ra[i,k] = diff_E + psi * diff_T
+    
+    return Ra
+
+
+
+
 def codas(matrix, objectives, weights):
     ##STEP2 : matriz normalizada
     norm_matrix = np.zeros_like(matrix, dtype=float)
@@ -69,29 +86,24 @@ def codas(matrix, objectives, weights):
 
 
     ##STEP4 Determinar la solucion negativa ideal
-    ns_arr = np.min(w_norm_matrix, axis=0).round(4)
+    ns_arr = np.min(w_norm_matrix, axis=0)
 
-    print("\nnegative-ideal",ns_arr)
     
 
     #STEP5 Calcular distancia manhattan y distancia euclidiana
-    taxicab_distances = np.sum(np.abs(w_norm_matrix - ns_arr), axis=1).round(4)
-    print("\ntaxicab", taxicab_distances)
+    taxicab_distances = np.sum(np.abs(w_norm_matrix - ns_arr), axis=1)
 
-    euclidian_distances = np.sqrt(np.sum((w_norm_matrix - ns_arr)**2, axis=1 )).round(4)
-    print("\neuclidian",euclidian_distances)
+    euclidian_distances = np.sqrt(np.sum((w_norm_matrix - ns_arr)**2, axis=1 ))
     
     #STEP6 construir matriz de evaluacion relativa
+    rel_assessment_m = codas_relative_assessment(euclidian_distances, taxicab_distances, tau=0.02)
+
+    #Evaluar score de cada alternativa
+
+    score = np.sum(rel_assessment_m, axis=1)
 
 
-
-
-    rank = [1, 1, 1, 1, 1, 1]
-
-    matrix_result = norm_matrix
-
-
-    return rank, matrix_result
+    return rank.rank_values(score, reverse=True), score
 
 class CODAS(SKCDecisionMakerABC):
     #Descripcion piola de que hace
@@ -104,8 +116,8 @@ class CODAS(SKCDecisionMakerABC):
             raise ValueError(
                 "Error: CODAS can't operate with negative values on the DM Matrix"
             )
-        rank, result = codas(matrix, objectives, weights)
-        return rank, {"score": result}
+        rank, score = codas(matrix, objectives, weights)
+        return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
