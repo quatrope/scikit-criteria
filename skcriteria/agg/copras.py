@@ -95,7 +95,9 @@ class COPRAS(SKCDecisionMakerABC):
     Raises
     ------
     ValueError
-        If any matrix value is < 0 or if there are no criteria to minimize.
+        If any matrix value is < 0, if there are no criteria to minimize
+        or if an alternative has all 0s for values in all minimizing
+        criteria.
 
     References
     ----------
@@ -113,6 +115,15 @@ class COPRAS(SKCDecisionMakerABC):
         if not (Objective.MIN.value in objectives):
             raise ValueError(
                 "COPRAS cannot operate solely on maximising criteria"
+            )
+
+        sum_min = np.sum(
+            matrix, axis=1, where=(Objective.MIN.value == objectives)
+        )
+        if 0 in sum_min:
+            raise ValueError(
+                "COPRAS cannot operate when an alternative has all 0s"
+                "for values in all minimizing criteria"
             )
 
         ranking, score = copras(matrix, weights, objectives)

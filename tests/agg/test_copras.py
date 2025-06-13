@@ -112,6 +112,22 @@ def test_COPRAS_NegativeValuesException():
         ranker.evaluate(dm)
 
 
+def test_COPRAS_All0sInMinimizingCriteriaException():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [250, 120, 20, 800],
+            [130, 0, 40, 0],
+            [350, 340, 15, 600],
+        ],
+        objectives=[max, min, max, min],
+        weights=[1, 2, 3, 4],
+    )
+
+    ranker = COPRAS()
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
+
+
 def test_COPRAS_Więckowski2022CriteriaMethodsComparison():
     """
     Data from:
