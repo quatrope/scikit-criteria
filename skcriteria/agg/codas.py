@@ -46,29 +46,52 @@ with hidden():
 def codas(matrix, objectives, weights):
     ##STEP2 : matriz normalizada
     norm_matrix = np.zeros_like(matrix, dtype=float)
+    norm_matrix = matrix.copy().astype(float)
 
-    if Objective.MAX.value in objectives:
-        #filtramos los de beneficio
-        max_columns= matrix[: , objectives == Objective.MAX.value]
-        #calculamos maximo de cada columna
+    if  Objective.MAX.value in objectives:
+        max_columns= norm_matrix[: , objectives == Objective.MAX.value]
         #BUG:might be zero?
         max_values = np.max(max_columns, axis=0)
         #Ecuacion (1)
-        norm_matrix[:, objectives == Objective.MAX.value] = max_columns / max_values
+        norm_matrix[:, objectives == Objective.MAX.value] = (max_columns / max_values)
+
     if Objective.MIN.value in objectives:
-        #filtramos los de costo
-        min_columns = matrix [:, objectives == Objective.MIN.value]
-        #calculamos minimo de cada columna 
+        min_columns = norm_matrix[:,objectives == Objective.MIN.value]
         #BUG:might be zero?
         min_values = np.min(min_columns, axis=0)
         #Ecuacion (1)
-        norm_matrix[:, objectives == Objective.MIN.value] = min_values / min_columns
+        norm_matrix[:, objectives == Objective.MIN.value] = (min_values / min_columns)
+    
 
     ##STEP3 matriz normalizada con pesos
     w_norm_matrix = np.multiply(norm_matrix, weights)
 
+
+
     ##STEP4 Determinar la solucion negativa ideal
-    ns_arr = np.min(w_norm_matrix, axis=0)
+    ns_arr = np.min(w_norm_matrix, axis=0).round(4)
+
+    print("\nnegative-ideal",ns_arr)
+    
+
+    #STEP5 Calcular distancia manhattan y distancia euclidiana
+    taxicab_distances = np.sum(np.abs(w_norm_matrix - ns_arr), axis=1).round(4)
+    print("\ntaxicab", taxicab_distances)
+
+    euclidian_distances = np.sqrt(np.sum((w_norm_matrix - ns_arr)**2, axis=1 )).round(4)
+    print("\neuclidian",euclidian_distances)
+    
+    #STEP6 construir matriz de evaluacion relativa
+
+
+
+
+    rank = [1, 1, 1, 1, 1, 1]
+
+    matrix_result = norm_matrix
+
+
+    return rank, matrix_result
 
 class CODAS(SKCDecisionMakerABC):
     #Descripcion piola de que hace
@@ -81,8 +104,8 @@ class CODAS(SKCDecisionMakerABC):
             raise ValueError(
                 "Error: CODAS can't operate with negative values on the DM Matrix"
             )
-        rank, score = codas(matrix, objectives, weights)
-        return rank, {"score": score}
+        rank, result = codas(matrix, objectives, weights)
+        return rank, {"score": result}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
