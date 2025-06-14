@@ -33,5 +33,5 @@ __all__ = [
     "RankResult",
     "ResultABC",
     "SKCDecisionMakerABC",
-    "MABAC"
-    ]
+    "MABAC",
+]
