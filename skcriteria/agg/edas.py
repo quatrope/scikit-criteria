@@ -38,20 +38,20 @@ with hidden():
 # EDAS
 # =============================================================================
 
-def edas(matrix, weights, beneficial):
+def edas(matrix, weights, objectives):
     """Execute edas without any validation"""
     """Step 1: Select criteria"""
     """Step 2: Construct the decision matrix"""
 
     """Step 3: Determine the average solution for each criteria"""
     average_solution = np.mean(matrix, axis=0)
-
+    print("avj", average_solution)
     """Step 4: Calculate the positive (PDA) and distance (NDA) from average"""
     pda = np.zeros_like(matrix)
     nda = np.zeros_like(matrix)
 
     for j in range(matrix.shape[1]):
-        is_beneficial = beneficial[j] == True
+        is_beneficial = objectives[j] == max
         avg_j = average_solution[j]
         if is_beneficial:
             pda[:, j] = np.divide(np.maximum(0, (matrix[:, j] - avg_j)), avg_j)
@@ -72,20 +72,20 @@ def edas(matrix, weights, beneficial):
     scores = np.multiply(0.5, (normalized_sum_pda + normalized_sum_nda))
 
     """Step 8: Rank the alternatives according to the decreasing values of the score"""
-    ranked = np.argsrot(-scores)
+    ranked = -scores
     
-    return rank.rank_values(ranked), ranked 
+    return rank.rank_values(ranked), scores 
 
 class EDAS(SKCDecisionMakerABC):
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, weights, beneficial, **kwargs):
+    def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if np.any(matrix <= 0):
             raise ValueError(
                 "Edas can't operate with values <= 0"
             )
-        rank, score = edas(matrix, weights, beneficial)
+        rank, score = edas(matrix, weights, objectives)
         return rank, {"score": score}
     
     @doc_inherit(SKCDecisionMakerABC._make_result)
