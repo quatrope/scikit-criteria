@@ -37,9 +37,13 @@ def ervd(matrix, objectives, weights, reference_points, alpha, lambd):
 
     for j in range(matrix.shape[1]):
         if objectives[j] == Objective.MAX.value:
-            matrix[:, j] = incrising_value_function(reference_points[j], matrix[:, j], alpha, lambd)
+            matrix[:, j] = incrising_value_function(
+                reference_points[j], matrix[:, j], alpha, lambd
+            )
         else:
-            matrix[:, j] = decreasing_value_function(reference_points[j], matrix[:, j], alpha, lambd)
+            matrix[:, j] = decreasing_value_function(
+                reference_points[j], matrix[:, j], alpha, lambd
+            )
 
     # create the ideal and the anti ideal arrays
     ideal = np.max(matrix, axis=0)
@@ -76,12 +80,19 @@ class ERVD(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
-        return RankResult("ERVD", alternatives=alternatives, values=values, extra=extra)
+        return RankResult(
+            "ERVD", alternatives=alternatives, values=values, extra=extra
+        )
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):  # type: ignore
         rank, similarity, ideal, anti_ideal, s_plus, s_minus = ervd(
-            matrix, objectives, weights, self.reference_points, self.alpha, self.lambd
+            matrix,
+            objectives,
+            weights,
+            self.reference_points,
+            self.alpha,
+            self.lambd,
         )
 
         return rank, {
