@@ -51,13 +51,6 @@ def _untie_second(r1, r2):
     return [(r2, r1)]
 
 
-def _untie_equivalent_ranks(r1, r2):
-    # The untie criteria is non-trivial and greatly affects the resulting graph.
-    # This default criteria inserts them with arbitrary order, but other
-    # heuristics could work.
-    return [(r1, r2), (r2, r1)]
-
-
 def _untie_by_dominance(r1, r2):
     dominance_result = rank.dominance(r1, r2)
     winner_edge = (
@@ -93,16 +86,12 @@ def _transitivity_break_bound(n):
 
     References
     ----------
-    :cite:p:`roy1990outranking`
+    :cite:p:``
     """
     if n % 2 == 0:
         return n * (n**2 - 4) // 24
     else:
         return n * (n**2 - 1) // 24
-
-
-def _both_bound(n):
-    return n * (n - 1) * (n - 2) / 3
 
 
 def in_degree_sort(dag):
@@ -162,26 +151,30 @@ def assign_rankings(groups):
     return rankings
 
 
+def _format_transitivity_cycles(lst):
+    result = []
+    for sublist in lst:
+        transformed = ">".join(sublist) + ">" + sublist[0]
+        result.append([transformed])
+    return result
+
+
 # =============================================================================
 # INTERNAL VARIABLES
 # =============================================================================
 
 _PAIR_RANK_UNTIERS = {
-    "both": {
-        "edge_creation": _untie_equivalent_ranks,
-        "bound_function": _both_bound,
-    },
     "dominance": {
         "edge_creation": _untie_by_dominance,
-        "bound_function": _transitivity_break_bound,
+        "untie_name": "DOMINANCE",
     },
     "first": {
         "edge_creation": _untie_first,
-        "bound_function": _transitivity_break_bound,
+        "untie_name": "FIRST WINS",
     },
     "second": {
         "edge_creation": _untie_second,
-        "bound_function": _transitivity_break_bound,
+        "untie_name": "SECOND WINS",
     },
 }
 
@@ -213,18 +206,22 @@ class TransitivityChecker(SKCMethodABC):
     _skcriteria_dm_type = "rank_reversal"
     _skcriteria_parameters = [
         "dmaker",
-        "parallel_backend",
+        "pair_rank_untier",
         "random_state",
+        "make_transitive_strategy",
+        "max_ranks",
+        "parallel_backend",
+        "n_jobs",
     ]
 
     def __init__(
         self,
         dmaker,
         *,
-        pair_rank_untier="both",
+        pair_rank_untier="dominance",
         random_state=None,
-        cycle_removal_strategy="random",
-        max_acyclic_graphs=10000,
+        make_transitive_strategy="random",
+        max_ranks=50,
         parallel_backend=None,
         n_jobs=None,
     ):
@@ -242,13 +239,13 @@ class TransitivityChecker(SKCMethodABC):
         # RANDOM
         self._random_state = np.random.default_rng(random_state)
 
-        # STRATEGY FOR REMOVAL OF CYCLES
-        self._cycle_removal_strategy = (
-            cycle_removal_strategy  # TODO VERR CONDICION
+        # STRATEGY FOR REMOVAL OF BREAKS IN TRANSITIVITY
+        self._make_transitive_strategy = (
+            make_transitive_strategy  # TODO VERR CONDICION
         )
 
-        # MAXIMIMUM PERMITED ACYCLIC GRAPHS TO BE GENERATED
-        self._max_acyclic_graphs = max_acyclic_graphs  # TODO VER CONDICIONN
+        # MAXIMIMUM PERMITED RANKS TO BE GENERATED
+        self._max_ranks = int(max_ranks)  # TODO VER CONDICIONN
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -281,12 +278,12 @@ class TransitivityChecker(SKCMethodABC):
         return self._random_state
 
     @property
-    def cycle_removal_strategy(self):
-        return self._cycle_removal_strategy
+    def make_transitive_strategy(self):
+        return self._make_transitive_strategy
 
     @property
-    def max_acyclic_graphs(self):
-        return self._max_acyclic_graphs
+    def max_ranks(self):
+        return self._max_ranks
 
     @property
     def n_jobs(self):
@@ -353,54 +350,75 @@ class TransitivityChecker(SKCMethodABC):
 
         return edges
 
-    def _create_rank_with_info(self, orank, extra, dag, edges):
+    def _add_break_info_to_rank(self, rank, dag, removed_edges):
 
-        # topological_sorts = list(nx.all_topological_sorts(dag))
-        # sort_count = len(topological_sorts)
+        method = str(rank.method)
+        if dag != None:
+            method = (
+                method
+                + ", Untie method: "
+                + _PAIR_RANK_UNTIERS[self._pair_rank_untier]["untie_name"]
+            )
 
-        # if sort_count > 1:
+        extra = dict(rank.extra_.items())
+
+        extra["rrt23"] = Bunch(
+            "rrt23",
+            {
+                "acyclic_graph": dag,
+                "removed_edges": removed_edges,
+            },
+        )
+
+        patched_rank = RankResult(
+            method=method,
+            alternatives=rank.alternatives,
+            values=rank.values,
+            extra=extra,
+        )
+        return patched_rank
+
+    def _create_rank_from_dag(self, orank, dag, removed_edges):
+
         alternative_rank_value = assign_rankings(in_degree_sort(dag))
 
-        # else:
-        #     sorted_alternatives = list(nx.lexicographical_topological_sort(dag))
-
-        #     alternative_rank_value = dict(
-        #         zip(
-        #             sorted_alternatives,
-        #             np.arange(1,len(sorted_alternatives)+1),
-        #         )
-        #     )
-
-        untied_rank = RankResult(
+        rank = RankResult(
             method=orank.method,
             alternatives=orank.alternatives,
             values=np.array(
                 [alternative_rank_value[alt] for alt in orank.alternatives]
             ),
-            extra=extra,
+            extra=orank.extra_,
         )
 
-        return untied_rank
+        rank = self._add_break_info_to_rank(rank, dag, removed_edges)
 
-    def _get_ranks(self, graph, orank, extra):
+        return rank
 
-        untied_ranks = []
+    def _get_ranks(self, graph, orank):
 
-        acyclic_graphs = generate_acyclic_graphs(
-            graph,
-            strategy=self._cycle_removal_strategy,
-            max_graphs=self._max_acyclic_graphs,
-            seed=self._random_state,
-        )
+        ranks = []
 
-        for (
-            dag,
-            edges,
-        ) in acyclic_graphs:
-            untied_rank = self._create_rank_with_info(orank, extra, dag, edges)
-            untied_ranks.append(untied_rank)
+        if nx.is_directed_acyclic_graph(graph):
+            rank = self._create_rank_from_dag(orank, graph, removed_edges=None)
+            ranks.append(rank)
 
-        return list(untied_ranks)
+        else:
+            acyclic_graphs = generate_acyclic_graphs(
+                graph,
+                strategy=self._make_transitive_strategy,
+                max_graphs=self._max_ranks,
+                seed=self._random_state,
+            )
+
+            for (
+                dag,
+                removed_edges,
+            ) in acyclic_graphs:
+                rank = self._create_rank_from_dag(orank, dag, removed_edges)
+                ranks.append(rank)
+
+        return list(ranks)
 
     def _dominance_graph(self, dm, orank):
         # Generate all pairwise combinations of alternatives
@@ -431,8 +449,9 @@ class TransitivityChecker(SKCMethodABC):
 
     def _calculate_transitivity_break(self, graph):
 
-        # TODO: Justificar el 3 en length_bound
         trans_break = list(nx.simple_cycles(graph, length_bound=3))
+
+        trans_break = _format_transitivity_cycles(trans_break)
 
         trans_break_rate = len(trans_break) / _transitivity_break_bound(
             len(graph.nodes)
@@ -450,11 +469,20 @@ class TransitivityChecker(SKCMethodABC):
         )
         return graph, trans_break, trans_break_rate
 
-    def _test_criterion_3(self, graph):
+    def _test_criterion_2(self, trans_break_rate):
+        """Perform test criterion 2"""
+        return trans_break_rate == 0
+
+    def _test_criterion_3(self, test_criterion_2, orank, returned_ranks):
         """Perform test criterion 3"""
-        cycles = nx.simple_cycles(graph)
-        cycles_count = len(([c for c in cycles if len(c) >= 3]))
-        return cycles_count == 0
+        result = False
+        if (
+            test_criterion_2
+            and (orank.values == returned_ranks[0].values).all()
+        ):
+            result = True
+
+        return result
 
     def evaluate(self, *, dm):
         """Executes the transitivity test.
@@ -482,20 +510,25 @@ class TransitivityChecker(SKCMethodABC):
         # we need a first reference ranking
         orank = dmaker.evaluate(dm)
 
-        extra = orank.extra_
+        orank = self._add_break_info_to_rank(
+            orank, dag=None, removed_edges=None
+        )
 
         graph, trans_break, trans_break_rate = self._generate_graph_data(
             dm, orank
         )
 
-        # TODO: What is test criterion 3?
-        test_criterion_3 = self._test_criterion_3(graph)
+        test_criterion_2 = self._test_criterion_2(trans_break_rate)
 
         returned_ranks = []
-        returned_ranks = self._get_ranks(graph, orank, extra)
+        returned_ranks = self._get_ranks(graph, orank)
+
+        test_criterion_3 = self._test_criterion_3(
+            test_criterion_2, orank, returned_ranks
+        )
 
         names = ["Original"] + [
-            f"Untied{i+1}" for i in range(len(returned_ranks))
+            f"Recomposition{i+1}" for i in range(len(returned_ranks))
         ]
 
         named_ranks = unique_names(
@@ -505,9 +538,10 @@ class TransitivityChecker(SKCMethodABC):
         return RanksComparator(
             named_ranks,
             extra={
+                "test_criterion_2": test_criterion_2,
                 "pairwise_dominance_graph": graph,
-                "transitivity_breaks": trans_break,
-                "transitivity_break_rate": trans_break_rate,
                 "test_criterion_3": test_criterion_3,
+                "transitivity_break": trans_break,
+                "transitivity_break_rate": trans_break_rate,
             },
         )
