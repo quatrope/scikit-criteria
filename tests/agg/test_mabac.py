@@ -31,7 +31,7 @@ def test_mabac_from_dragan_2014():
     The selection of transport and handling resources in logistics centers
     using Multi-Attributive Border Approximation area Comparison
     (MABAC)
-    2014 Cirovic, Dragan
+    2014 Dragan Pamučar and Goran Ćirović
 
     """
 
@@ -157,6 +157,26 @@ def test_mabac_from_dragan_2014():
         0.0590,
     ]
 
+    expected_score = [
+        0.0826,
+        0.2183,
+        -0.0488,
+        0.0246,
+        -0.0704,
+        0.0465,
+        0.0464,
+    ]
+
+    expected_rank = [
+        2,
+        1,
+        6,
+        5,
+        7,
+        3,
+        4,
+    ]
+
     dm = DecisionMatrix.from_mcda_data(
         forklift_matrix,
         objectives,
@@ -178,5 +198,9 @@ def test_mabac_from_dragan_2014():
 
     result = MABAC().evaluate(dm)
     baa_result = result.extra_["border_approximation_area"]
+    score_result = result.extra_["score"]
+    rank_result = result.rank_
 
     assert np.allclose(baa_result, expected_baa, atol=1.0e-3)
+    assert (rank_result == expected_rank).all()
+    assert np.allclose(score_result, expected_score, atol=1.0e-3)
