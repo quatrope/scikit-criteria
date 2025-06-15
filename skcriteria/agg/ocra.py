@@ -31,7 +31,8 @@ with hidden():
 
 
 def _agg_input_performance(in_matrix, in_weights):
-    """Calculate aggregate performance for input/non-beneficial/min criteria."""
+    """Calculate aggregate performance for input/non-beneficial/min
+    criteria."""
     # extract mins and maxes of criteria
     mins = np.min(in_matrix, axis=0)
     maxs = np.max(in_matrix, axis=0)
