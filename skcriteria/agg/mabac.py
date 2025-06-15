@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""Implementation of Multi-Attributive Border Approximation Area Comparison
+"""Implementation of Multi-Attributive Border Approximation Area Comparison \
 (MABAC) method."""
 
 # =============================================================================
@@ -33,7 +33,6 @@ with hidden():
 
 def mabac(matrix, objectives, weights):
     """Execute MABAC without any validation."""
-
     # Create normalized matrix maintaining original column order
     normalized_matrix = np.zeros_like(matrix, dtype=float)
 
@@ -82,21 +81,24 @@ class MABAC(SKCDecisionMakerABC):
     area (BAA), which is calculated as the geometric mean of the
     weighted normalized decision matrix.
 
-    The method consists of the following steps:
-    1. Normalization of the decision matrix
-    2. Calculation of the weighted normalized decision matrix
-    3. Determination of the border approximation area (BAA)
-    4. Calculation of the distance from BAA
-    5. Calculation of the final score
+    The method consists of the following steps::
+
+        1. Normalization of the decision matrix
+        2. Calculation of the weighted normalized decision matrix
+        3. Determination of the border approximation area (BAA)
+        4. Calculation of the distance from BAA
+        5. Calculation of the final score
 
     Parameters
     ----------
     matrix : ndarray
         Decision matrix where each row is an alternative and each
         column is a criterion.
+
     objectives : ndarray
-        Array indicating if each criterion is to be maximized (1)
-        or minimized (-1).
+        Array indicating if each criterion is to be maximized (1) or
+        minimized (-1).
+
     weights : ndarray
         Array of weights for each criterion.
 
@@ -104,16 +106,16 @@ class MABAC(SKCDecisionMakerABC):
     -------
     tuple
         A tuple containing:
-        - rank : ndarray
-            Ranking of the alternatives according to MABAC (1 is best)
-        - score : ndarray
-            Score for each alternative
-        - border_approximation_area : ndarray
-            Border approximation area values
+            - rank : ndarray
+                Ranking of the alternatives according to MABAC (1 is best)
+            - score : ndarray
+                Score for each alternative
+            - border_approximation_area : ndarray
+                Border approximation area values
 
     References
     ----------
-    :cite:p:`pamucar2015`
+    :cite:p:`pamucar20153016`
 
     """
 
