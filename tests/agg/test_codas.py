@@ -24,13 +24,18 @@ import pytest
 import skcriteria as skc
 from skcriteria.agg import RankResult
 
+# TODO Eliminar sys, os 
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../")))
+
+sys.path.insert(
+    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+)
 
 from skcriteria.agg.codas import CODAS
 from skcriteria.preprocessing.scalers import CodasTransformer
 
+# TODO Reveer test, haciendo que se verifique la guarda de la clase CODAS
 def test_codas_negative_coord_fail():
     dm = skc.mkdm(
         matrix=[[1, 2, 3], [4, -1, 6]],
@@ -45,9 +50,7 @@ def test_codas_negative_coord_fail():
         ranker.evaluate(dm)
 
 
-
 def test_codas_LISCO():
-    
     """
     Data From:
 
@@ -88,10 +91,11 @@ def test_codas_LISCO():
     )
 
     expected = RankResult(
-        "CODAS", ["A1", "A2", "A3", "A4", "A5", "A6"], [1, 2, 3, 5, 6, 4], 
-        {"score":  [1.3914,  0.3411,  -0.2170, -0.5381, -0.7292, -0.2481]}
+        "CODAS",
+        ["A1", "A2", "A3", "A4", "A5", "A6"],
+        [1, 2, 3, 5, 6, 4],
+        {"score": [1.3914, 0.3411, -0.2170, -0.5381, -0.7292, -0.2481]},
     )
-
 
     transformer = CodasTransformer()
     dm_t = transformer.transform(dm)
@@ -104,11 +108,11 @@ def test_codas_LISCO():
 
     assert np.all(result.e_.score.round(4) == expected.e_.score)
 
+
 def test_codas_chakraborty_zavadaskas2014():
-    #dos minutos te costaba chequear que los datos esten bien zavadaskas....
-    """ 
+    """
     Data From:
-   
+
     https://www.researchgate.net/publication/308697546_A_new_combinative_distance-based_assessment_CODAS_method_for_multi-criteria_decision-making
 
     This example is adapted from Chakraborty and Zavadskas (2014), which is
@@ -136,7 +140,6 @@ def test_codas_chakraborty_zavadaskas2014():
             [2.5, 0.1, 560, 500, 915],
             [4.5, 0.08, 1016, 350, 508],
             [3, 0.1, 1778, 1000, 920],
-
         ],
         objectives=[max, min, max, max, max],
         alternatives=["A1", "A2", "A3", "A4", "A5", "A6", "A7"],
@@ -145,8 +148,10 @@ def test_codas_chakraborty_zavadaskas2014():
     )
 
     expected = RankResult(
-        "CODAS", ["A1", "A2", "A3", "A4", "A5", "A6", "A7"], [3, 1, 2, 5, 7, 6, 4], 
-        {"score":  [0.5122,  1.4633,  1.0715, -0.2125, -1.8515, -1.1717, 0.1887]}
+        "CODAS",
+        ["A1", "A2", "A3", "A4", "A5", "A6", "A7"],
+        [3, 1, 2, 5, 7, 6, 4],
+        {"score": [0.5122, 1.4633, 1.0715, -0.2125, -1.8515, -1.1717, 0.1887]},
     )
 
     transformer = CodasTransformer()
@@ -160,14 +165,12 @@ def test_codas_chakraborty_zavadaskas2014():
     assert np.all(result.e_.score.round(4) == expected.e_.score)
 
 
-
 def test_codas_zavadaskas_turskis2010():
-    #dos minutos te costaba chequear que los datos esten bien zavadaskas....
-    """ 
+    """
     Data From:
-    
+
     https://www.researchgate.net/publication/308697546_A_new_combinative_distance-based_assessment_CODAS_method_for_multi-criteria_decision-making
-    
+
     This example is adapted from Zavadskas and Turskis (2010) and considers the
     evaluation of microclimate in an office environment.
 
@@ -186,39 +189,86 @@ def test_codas_zavadaskas_turskis2010():
     """
     dm = skc.mkdm(
         matrix=[
-        [7.6, 46, 18, 390, 0.1, 11],
-        [5.5, 32, 21, 360, 0.05, 11],
-        [5.3, 32, 21, 290, 0.05, 11],
-        [5.7, 37, 19, 270, 0.05, 9],
-        [4.2, 38, 19, 240, 0.1, 8],
-        [4.4, 38, 19, 260, 0.1, 8],
-        [3.9, 42, 16, 270, 0.1, 5],
-        [7.9, 44, 20, 400, 0.05, 6],
-        [8.1, 44, 20, 380, 0.05, 6],
-        [4.5, 46, 18, 320, 0.1, 7],
-        [5.7, 48, 20, 320, 0.05, 11],
-        [5.2, 48, 20, 310, 0.05, 11],
-        [7.1, 49, 19, 280, 0.1, 12],
-        [6.9, 50, 16, 250, 0.05, 10],
+            [7.6, 46, 18, 390, 0.1, 11],
+            [5.5, 32, 21, 360, 0.05, 11],
+            [5.3, 32, 21, 290, 0.05, 11],
+            [5.7, 37, 19, 270, 0.05, 9],
+            [4.2, 38, 19, 240, 0.1, 8],
+            [4.4, 38, 19, 260, 0.1, 8],
+            [3.9, 42, 16, 270, 0.1, 5],
+            [7.9, 44, 20, 400, 0.05, 6],
+            [8.1, 44, 20, 380, 0.05, 6],
+            [4.5, 46, 18, 320, 0.1, 7],
+            [5.7, 48, 20, 320, 0.05, 11],
+            [5.2, 48, 20, 310, 0.05, 11],
+            [7.1, 49, 19, 280, 0.1, 12],
+            [6.9, 50, 16, 250, 0.05, 10],
         ],
         objectives=[max, max, max, max, min, min],
-        alternatives=["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14"],
+        alternatives=[
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5",
+            "A6",
+            "A7",
+            "A8",
+            "A9",
+            "A10",
+            "A11",
+            "A12",
+            "A13",
+            "A14",
+        ],
         criteria=["A/P", "RH", "AT", "ILw", "AF", "DP"],
         weights=[0.21, 0.16, 0.26, 0.17, 0.12, 0.08],
     )
-    
+
     expected = RankResult(
-        "CODAS", ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14"], 
-        [3, 6, 9, 10, 14, 13, 12, 1, 2, 11, 4, 7, 8, 5], 
-        {"score":  
-        [0.768, 0.363, -0.105, -0.329, -2.384, -2.207, -2.043, 2.929, 2.890, -1.282, 0.568, 0.313, 0.157, 0.364]}
+        "CODAS",
+        [
+            "A1",
+            "A2",
+            "A3",
+            "A4",
+            "A5",
+            "A6",
+            "A7",
+            "A8",
+            "A9",
+            "A10",
+            "A11",
+            "A12",
+            "A13",
+            "A14",
+        ],
+        [3, 6, 9, 10, 14, 13, 12, 1, 2, 11, 4, 7, 8, 5],
+        {
+            "score": [
+                0.768,
+                0.363,
+                -0.105,
+                -0.329,
+                -2.384,
+                -2.207,
+                -2.043,
+                2.929,
+                2.890,
+                -1.282,
+                0.568,
+                0.313,
+                0.157,
+                0.364,
+            ]
+        },
     )
 
     transformer = CodasTransformer()
     dm_t = transformer.transform(dm)
 
     ranker = CODAS()
-    result = ranker.evaluate(dm_t)  
+    result = ranker.evaluate(dm_t)
 
     assert result.values_equals(expected)
     assert result.method == expected.method

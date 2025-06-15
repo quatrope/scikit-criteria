@@ -474,18 +474,29 @@ class CenitDistanceMatrixScaler(SKCTransformerABC):
         return kwargs
 
 
+# =============================================================================
+# CODAS NORMALIZATION # TODO Chequear con Juan el nombre
+# =============================================================================
+
 
 def codas_normalization(matrix, weights, objectives):
+    # TODO Documentar
+    # Se hace el STEP 2 y STEP 3 de CODAS
+
     norm_matrix = np.zeros_like(matrix, dtype=float)
-    if  Objective.MAX.value in objectives:
-        max_columns= matrix[: , objectives == Objective.MAX.value]
+    if Objective.MAX.value in objectives:
+        max_columns = matrix[:, objectives == Objective.MAX.value]
         max_values = np.max(max_columns, axis=0)
-        norm_matrix[:, objectives == Objective.MAX.value] = (max_columns / max_values)
+        norm_matrix[:, objectives == Objective.MAX.value] = (
+            max_columns / max_values
+        )
 
     if Objective.MIN.value in objectives:
-        min_columns = matrix[:,objectives == Objective.MIN.value]
+        min_columns = matrix[:, objectives == Objective.MIN.value]
         min_values = np.min(min_columns, axis=0)
-        norm_matrix[:, objectives == Objective.MIN.value] = (min_values / min_columns)
+        norm_matrix[:, objectives == Objective.MIN.value] = (
+            min_values / min_columns
+        )
 
     w_norm_matrix = np.multiply(norm_matrix, weights)
 
@@ -493,19 +504,31 @@ def codas_normalization(matrix, weights, objectives):
 
 
 class CodasTransformer(SKCTransformerABC):
-    """
-    INFO:
-    """
-    
+    # TODO Documentar
+
     _skcriteria_parameters = []
-    
+
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, weights, **kwargs):
-        matrix_transformation = codas_normalization(matrix, weights, objectives)
+
+        # TODO Chequeo de casos
+        # Caso 0: Todos los valores deben ser mayores iguales a 0
+        # Caso 1: Si toda una columna es 0 y se busca maximizar esa columna, error
+        # Caso 2: Si un valor de la columna es 0 y se buscar minimizar, error
+        # Caso 3: Sumatoria de los pesos es igual 1 y estan entre 0 y 1
+        # Caso 4: Revisar objectives
+        # Caso ?: Linealizar algo linearizado da lo mismo 
+
+        matrix_transformation = codas_normalization(
+            matrix, weights, objectives
+        )
 
         dtypes = np.full(np.shape(objectives), float)
 
         kwargs.update(
-            matrix=matrix_transformation, objectives=objectives, weights=weights, dtypes=dtypes
+            matrix=matrix_transformation,
+            objectives=objectives,
+            weights=weights,
+            dtypes=dtypes,
         )
         return kwargs
