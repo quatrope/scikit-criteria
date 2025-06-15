@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -31,8 +31,8 @@ with hidden():
 
 
 def _agg_input_performance(in_matrix, in_weights):
-    """Calculate aggregate performance for input/non-beneficial/min
-    criteria."""
+    """Calculate aggregate performance for\
+    input/non-beneficial/min criteria."""
     # extract mins and maxes of criteria
     mins = np.min(in_matrix, axis=0)
     maxs = np.max(in_matrix, axis=0)
@@ -73,11 +73,11 @@ def ocra_performance(matrix, objectives, weights):
     # compute min and max (in and out) performances, respectively
     perf_in = _agg_input_performance(
         matrix[:, in_objectives],
-        weights[in_objectives]
+        weights[in_objectives],
     )
     perf_out = _agg_output_performance(
         matrix[:, out_objectives],
-        weights[out_objectives]
+        weights[out_objectives],
     )
 
     # combine results and scale
@@ -96,6 +96,7 @@ def ocra_performance(matrix, objectives, weights):
 
 class OCRA(SKCDecisionMakerABC):
     r"""OCRA (Operational Competitiveness Rating) method.
+
     OCRA was initially intended (Parkan, 1994) to maximize the efficiency of
     a Production Unit (PU), seen as a set of activities that consume resources
     (inputs) and generate rewards (outputs), thus leading to a higher
@@ -144,7 +145,7 @@ class OCRA(SKCDecisionMakerABC):
         rank, perf, perf_in, perf_out = ocra_performance(
             matrix,
             objectives,
-            weights
+            weights,
         )
         return rank, {
             "performance": perf,
@@ -158,5 +159,5 @@ class OCRA(SKCDecisionMakerABC):
             "OCRA",
             alternatives=alternatives,
             values=values,
-            extra=extra
+            extra=extra,
         )

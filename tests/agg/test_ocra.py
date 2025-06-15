@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -68,13 +68,13 @@ def test_OCRA_hotels():
     assert result.method == expected.method
     assert np.allclose(
         np.round(result.e_.performance, 3),
-        expected.e_.performance
+        expected.e_.performance,
     )
     assert np.allclose(
         np.round(result.e_.input_performance, 3),
-        expected.e_.input_performance
+        expected.e_.input_performance,
     )
     assert np.allclose(
         np.round(result.e_.output_performance, 3),
-        expected.e_.output_performance
+        expected.e_.output_performance,
     )
