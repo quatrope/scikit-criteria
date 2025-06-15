@@ -29,8 +29,9 @@ with hidden():
 # INPUT/OUTPUT PERFORMANCE
 # =============================================================================
 
+
 def _agg_input_performance(in_matrix, in_weights):
-    """Calculate aggregate performance for input/non-beneficial/min criteria"""
+    """Calculate aggregate performance for input/non-beneficial/min criteria."""
     # extract mins and maxes of criteria
     mins = np.min(in_matrix, axis=0)
     maxs = np.max(in_matrix, axis=0)
@@ -47,7 +48,7 @@ def _agg_input_performance(in_matrix, in_weights):
 
 
 def _agg_output_performance(out_matrix, out_weights):
-    """Calculate aggregate performance for output/beneficial/max criteria"""
+    """Calculate aggregate performance for output/beneficial/max criteria."""
     # extract mins of criteria
     mins = np.min(out_matrix, axis=0)
 
@@ -63,7 +64,7 @@ def _agg_output_performance(out_matrix, out_weights):
 
 
 def ocra_performance(matrix, objectives, weights):
-    """Compute the overall performance of each alternative"""
+    """Compute the overall performance of each alternative."""
     # masks for min and max (non-beneficial and beneficial) objectives
     in_objectives = objectives == Objective.MIN.value
     out_objectives = objectives == Objective.MAX.value
@@ -93,27 +94,26 @@ def ocra_performance(matrix, objectives, weights):
 
 
 class OCRA(SKCDecisionMakerABC):
-    r""""OCRA (Operational Competitiveness Rating) method
-
-    OCRA was initially intended (Parkan, 1994) to maximize the efficiency of 
-    a Production Unit (PU), seen as a set of activities that consume resources 
-    (inputs) and generate rewards (outputs), thus leading to a higher 
-    operational competitiveness. OCRA is thought of as an improvement of Data 
-    Envelopment Analysis (DEA): more efficient, robust, and properly sensitive 
+    r"""OCRA (Operational Competitiveness Rating) method.
+    OCRA was initially intended (Parkan, 1994) to maximize the efficiency of
+    a Production Unit (PU), seen as a set of activities that consume resources
+    (inputs) and generate rewards (outputs), thus leading to a higher
+    operational competitiveness. OCRA is thought of as an improvement of Data
+    Envelopment Analysis (DEA): more efficient, robust, and properly sensitive
     to changes in inputs or outputs.
 
-    In a general-purpose sense, PUs are the alternatives to be compared, and 
-    a quantity and value of each type of input/output is instead given as a 
-    criteria value and corresponding weight. Inputs are non-beneficial 
-    criteria that should be minimized, and Outputs are beneficial criteria 
+    In a general-purpose sense, PUs are the alternatives to be compared, and
+    a quantity and value of each type of input/output is instead given as a
+    criteria value and corresponding weight. Inputs are non-beneficial
+    criteria that should be minimized, and Outputs are beneficial criteria
     that should be maximized; thus, the entire Decision Matrix is used.
 
-    The performance of beneficial and non-beneficial criteria is computed 
-    separately and aggregated for each alternative, and then I/O criteria 
-    are summed to yield a final performance ranking. The Min value of each 
-    criteria is used in both cases (rather that Max - Min), following the 
-    implementation from Işık, A. T. (2016) and Madić, M. (2015). This means 
-    values are not scaled as 0-1 (possible future extension); however, they 
+    The performance of beneficial and non-beneficial criteria is computed
+    separately and aggregated for each alternative, and then I/O criteria
+    are summed to yield a final performance ranking. The Min value of each
+    criteria is used in both cases (rather that Max - Min), following the
+    implementation from Işık, A. T. (2016) and Madić, M. (2015). This means
+    values are not scaled as 0-1 (possible future extension); however, they
     are floored to the Min value twice (first separately, then overall), such
     that the worst performance is always zero.
 
@@ -127,7 +127,7 @@ class OCRA(SKCDecisionMakerABC):
     :math:`j = 1, 2, ..., g` for the objectives to be minimized,
     :math:`j = g + 1, g + 2, ..., n` for the objectives to be maximized.
     :math:`w_j` is the relative importance (weight) of each criteria.
-    
+
     References
     ----------
     :cite:p:`parkan1994ocra`
@@ -159,4 +159,3 @@ class OCRA(SKCDecisionMakerABC):
             values=values,
             extra=extra
         )
-    
