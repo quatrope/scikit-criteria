@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
+# Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022-2025 QuatroPe
+# All rights reserved.
+
 from ..utils import hidden
 
 with hidden():
@@ -8,7 +15,7 @@ with hidden():
     from ..utils import doc_inherit, rank
 
 
-def incrising_value_function(reference_point, values, alpha, lambd):
+def _increasing_value_function(reference_point, values, alpha, lambd):
     gains = values > reference_point
     losses = ~gains
 
@@ -19,7 +26,7 @@ def incrising_value_function(reference_point, values, alpha, lambd):
     return result
 
 
-def decreasing_value_function(reference_point, values, alpha, lambd):
+def _decreasing_value_function(reference_point, values, alpha, lambd):
     gains = values < reference_point
     losses = ~gains
 
@@ -37,11 +44,11 @@ def ervd(matrix, objectives, weights, reference_points, alpha, lambd):
 
     for j in range(matrix.shape[1]):
         if objectives[j] == Objective.MAX.value:
-            matrix[:, j] = incrising_value_function(
+            matrix[:, j] = _increasing_value_function(
                 reference_points[j], matrix[:, j], alpha, lambd
             )
         else:
-            matrix[:, j] = decreasing_value_function(
+            matrix[:, j] = _decreasing_value_function(
                 reference_points[j], matrix[:, j], alpha, lambd
             )
 
@@ -73,10 +80,9 @@ class ERVD(SKCDecisionMakerABC):
 
     _skcriteria_parameters = []
 
-    def __init__(self, reference_points, lambd=2.25, alpha=0.88):
+    def __init__(self, *, lambd=2.25, alpha=0.88):
         self.lambd = lambd
         self.alpha = alpha
-        self.reference_points = reference_points
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
@@ -85,12 +91,14 @@ class ERVD(SKCDecisionMakerABC):
         )
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):  # type: ignore
+    def _evaluate_data(
+        self, matrix, objectives, weights, reference_points, **kwargs
+    ):
         rank, similarity, ideal, anti_ideal, s_plus, s_minus = ervd(
             matrix,
             objectives,
             weights,
-            self.reference_points,
+            reference_points,
             self.alpha,
             self.lambd,
         )
@@ -102,3 +110,44 @@ class ERVD(SKCDecisionMakerABC):
             "s_plus": s_plus,
             "s_minus": s_minus,
         }
+
+    def _validate_reference_points(self, reference_points, matrix):
+        if reference_points is None:
+            raise ValueError(
+                "Reference points must be provided for ERVD evaluation."
+            )
+        if len(reference_points) != matrix.shape[1]:
+            raise ValueError(
+                "Reference points must match the number of criteria in "
+                "the decision matrix."
+            )
+
+    def evaluate(self, dm, *, reference_points=None):
+        """Validate the dm and calculate and evaluate the alternatives.
+
+        Parameters
+        ----------
+        dm: :py:class:`skcriteria.data.DecisionMatrix`
+            Decision matrix on which the ranking will be calculated.
+        reference_points: array-like, optional
+            Reference points for each criterion.
+
+        Returns
+        -------
+        :py:class:`skcriteria.data.RankResult`
+            Ranking.
+        """
+        data = dm.to_dict()
+
+        self._validate_reference_points(reference_points, data["matrix"])
+
+        result_data, extra = self._evaluate_data(
+            **data, reference_points=reference_points
+        )
+
+        alternatives = data["alternatives"]
+        result = self._make_result(
+            alternatives=alternatives, values=result_data, extra=extra
+        )
+
+        return result
