@@ -53,6 +53,30 @@ class SKCDecisionMakerABC(SKCMethodABC):
         raise NotImplementedError()
 
     def _prepare_data(self, **kwargs):
+        """
+        Preprocess or adapt the input data before evaluation.
+
+        This method is a hook for subclasses to customize the data extracted
+        from the input DecisionMatrix. It receives a dictionary representation
+        of the decision matrix (as returned by `DecisionMatrix.to_dict()`),
+        and can modify, remove, or add new entries as needed by the specific
+        decision-making method.
+
+        The default implementation returns the data unchanged.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Dictionary containing the keys of a DecisionMatrix object, such as
+            "matrix", "criteria", "alternatives", "weights", and any additional
+            method-specific parameters.
+
+        Returns
+        -------
+        dict
+            The modified or unmodified dictionary to be used in
+            `_evaluate_data`.
+        """
         return kwargs
 
     def evaluate(self, dm, **kwargs):

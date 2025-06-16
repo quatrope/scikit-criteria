@@ -9,12 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""
-ARAS aggregation method for multi-criteria decision making.
-
-Implements Additive Ratio Assessment (ARAS) as proposed in Balezentiene and
-Kusta (2012).
-"""
+"""Implements the Additive Ratio Assessment (Balezentiene & Kusta, 2012)."""
 
 
 # =============================================================================
@@ -39,34 +34,30 @@ with hidden():
 def aras(matrix, weights, ideal):
     """Execute the ARAS method without any validation.
 
-    This function assumes that the user has already separated the ideal
-    solution from the decision matrix. Typically, the ideal is extracted as
-    the **first row** of the original decision matrix provided by the user.
+    This function assumes that the ideal alternative has already been extracted
+    from the decision matrix and provided separately.
 
-    The ARAS method calculates the utility of each alternative relative to
-    the ideal by summing the weighted criteria and normalizing with respect
-    to the ideal score.
+    The results returned by this function do not include the ideal alternative
+    itself.
 
     Parameters
     ----------
-    matrix : ndarray of shape (n_alternatives, m_criteria)
-        The decision matrix without the ideal row. Each row represents
-        an alternative and each column a criterion.
+    matrix : ndarray of shape (n_alternatives, n_criteria)
+        The decision matrix excluding the ideal alternative.
     weights : ndarray of shape (n_criteria,)
-        The weight of each criterion. Must sum to 1.
+        The weight of each criterion.
     ideal : ndarray of shape (n_criteria,)
-        The ideal alternative, extracted as the first row of the original
-        decision matrix.
+        The ideal alternative, provided separately.
     """
-    # apply weights
+    # apply weights to the deision matrix and the ideal alternative
     wmtx = np.multiply(matrix, weights)
     wideal = np.multiply(ideal, weights)
 
-    # calculate optimality function
+    # compute the weighted score of each alternative
     score = np.sum(wmtx, axis=1)
     ideal_score = np.sum(wideal)
 
-    # compare variation with the ideal
+    # calculate utility values
     utility = score / ideal_score
 
     return (
@@ -80,16 +71,16 @@ def aras(matrix, weights, ideal):
 class ARAS(SKCDecisionMakerABC):
     """Additive Ratio Assessment (ARAS).
 
-    ARAS (Additive Ratio Assessment) is a multi-criteria decision-making (MCDM)
-    method that ranks alternatives based on their aggregated performance with
-    respect to an explicitly provided ideal solution.
+    ARAS is a multi-criteria decision-making (MCDM) method that ranks
+    alternatives based on their aggregated performance with respect to an
+    explicitly provided ideal alternative.
 
-    Each alternative is evaluated by summing its weighted performance scores
-    across all criteria, and then comparing that sum to the ideal score.
-    The closer the total score is to the ideal, the better the alternative
-    ranks.
+    Each alternative's score is computed by summing its weighted values across
+    all criteria. The utility of an alternative is then defined as the ratio of
+    its score to the score of the ideal alternative. The higher this utility,
+    the better the alternative ranks.
 
-    This implementation **requires** a user-supplied ideal vector, taken as the
+    This implementation requires a user-supplied ideal vector, taken as the
     first row of the decision matrix. All objectives must be of maximization
     type; minimization is not supported and will raise an error.
 
@@ -98,7 +89,7 @@ class ARAS(SKCDecisionMakerABC):
     ValueError
         If any objective is set to `Objective.MIN`.
     ValueError
-        If the extracted ideal is not coherent with the maximization objective
+        If the ideal is not coherent with the maximization objective
         (i.e., is lower than the observed maximum in the matrix).
 
     References
@@ -117,24 +108,16 @@ class ARAS(SKCDecisionMakerABC):
         corresponding column (criterion) of the decision matrix.
 
         ARAS assumes all objectives are to be maximized, so the ideal must
-        dominate all alternatives in every criterion. This ensures that the
-        utility of each alternative (relative to the ideal) is a
-        value in [0, 1].
+        fulfill the above. This ensures that the utility of each alternative
+        (relative to the ideal) is a value in [0, 1].
 
         Parameters
         ----------
         matrix : array_like
-            The decision matrix containing one row per alternative and
-            one column per criterion. Must be at least 2D.
-        ideal : array_like
-            A 1D array containing the ideal value for each criterion.
-            Must have the same number of elements as columns in `matrix`.
+            The decision matrix excluding the ideal alternative.
 
-        Returns
-        -------
-        bool
-            True if all ideal[i] >= max(matrix[:, i]),
-            False otherwise.
+        ideal : ndarray of shape (n_criteria,)
+            The ideal alternative.
         """
         # extract the maxima of each column of the matrix
         maxs = np.max(matrix, axis=0)
@@ -165,6 +148,12 @@ class ARAS(SKCDecisionMakerABC):
         }
 
     def _prepare_data(self, **kwargs):
+        """
+        Preprocess the input data for the ARAS method.
+
+        This method assumes that the ideal alternative is the first row
+        of the decision matrix, and separates it accordingly.
+        """
         kwargs["ideal"] = kwargs["matrix"][0]
         kwargs["matrix"] = kwargs["matrix"][1:]
         kwargs["alternatives"] = kwargs["alternatives"][1:]
