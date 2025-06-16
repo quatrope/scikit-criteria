@@ -184,6 +184,9 @@ def test_ERVD_shyur2015multiple():
                 0.027,
                 0.040,
                 0.009,
+                0.038,
+                0.031,
+                0.016,
                 0.040,
                 0.036,
                 0.007,
@@ -223,9 +226,58 @@ def test_ERVD_shyur2015multiple():
     assert np.allclose(
         result.e_.similarity, expected.e_.similarity, atol=1.0e-3
     )
-    # assert np.allclose(result.e_.s_plus, expected.e_.s_plus, atol=1.0e-3)
-    # assert np.allclose(result.e_.s_minus, expected.e_.s_minus, atol=1.0e-3)
+    assert np.allclose(result.e_.s_plus, expected.e_.s_plus, atol=1.0e-3)
+    assert np.allclose(result.e_.s_minus, expected.e_.s_minus, atol=1.0e-3)
 
 
 def test_decreasing_value_function():
-    pass
+    alternatives_matrix = np.array(
+        [
+            [5, 2, 7],
+            [9, 3, 5],
+            [7, 1, 8],
+        ]
+    )
+
+    weights = np.array([1, 1, 1])
+    objectives = [1, -1, 1]
+    reference_points = np.ones(3) * 5
+
+    transformer = SumScaler(target="matrix")
+
+    dm = skcriteria.mkdm(
+        matrix=alternatives_matrix,
+        objectives=objectives,
+        weights=weights,
+    )
+    # Normalize the alternatives matrix
+    n_dm = transformer.transform(dm)
+
+    # Scale the reference points
+    n_reference_points = reference_points / np.sum(alternatives_matrix, axis=0)
+    ranker = ERVD()
+    result: RankResult = ranker.evaluate(
+        n_dm, reference_points=n_reference_points
+    )
+
+    expected = RankResult(
+        method="ERVD",
+        alternatives=[
+            "A0",
+            "A1",
+            "A2",
+        ],
+        values=[2, 3, 1],
+        extra={
+            "similarity": [0.398, 0.313, 0.856],
+            "s_plus": [0.445, 0.507, 0.106],
+            "s_minus": [0.294, 0.232, 0.634],
+        },
+    )
+
+    assert result.values_equals(expected)
+    assert np.allclose(result.e_.s_plus, expected.e_.s_plus, atol=1.0e-3)
+    assert np.allclose(result.e_.s_minus, expected.e_.s_minus, atol=1.0e-3)
+    assert np.allclose(
+        result.e_.similarity, expected.e_.similarity, atol=1.0e-3
+    )
