@@ -437,3 +437,49 @@ class CRITIC(SKCWeighterABC):
 @doc_inherit(CRITIC, warn_class=False)
 class Critic(CRITIC):
     pass
+
+
+def gini_weights(matrix):
+    """
+
+    """
+    n, m = matrix.shape
+    
+    # mean per column (criterion)
+    col_means = np.mean(matrix, axis=0)  # shape (m,)
+    
+    # Expand matrix for broadcasting:
+    # matrix[:, :, None] shape (n, m, 1)
+    # matrix[:, None, :] shape (n, 1, m)
+    # We want pairwise differences along rows for each column:
+    
+    # Compute absolute differences along the rows for each column:
+    # Result shape (n, n, m)
+    diff = np.abs(matrix[:, None, :] - matrix[None, :, :])
+    
+    # Sum differences for each (j, column i) over k (axis=1)
+    sum_diff_per_j = np.sum(diff, axis=1)  # shape (n, m)
+    
+    # Divide by denominator: 2 * n^2 * mean of each column (broadcast)
+    denom = 2 * n**2 * col_means  # shape (m,)
+    
+    values = sum_diff_per_j / denom  # shape (n, m)
+    
+    # Sum over j (axis=0) to get weights per column
+    weights = np.sum(values, axis=0)  # shape (m,)
+    
+    # Normalize weights
+    return weights / np.sum(weights)
+
+
+
+class GiniWeighter(SKCWeighterABC):
+    """
+
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCWeighterABC._weight_matrix)
+    def _weight_matrix(self, matrix, **kwargs):
+        return gini_weights(matrix)

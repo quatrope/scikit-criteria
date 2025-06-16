@@ -32,6 +32,7 @@ from skcriteria.preprocessing.weighters import (
     EqualWeighter,
     SKCWeighterABC,
     StdWeighter,
+    GiniWeighter,
     critic_weights,
     pearson_correlation,
     spearman_correlation,
@@ -430,3 +431,30 @@ def test_spearman_correlation_with_deprecation_warning():
         result = spearman_correlation(mtx.T)
 
     np.testing.assert_allclose(result, expected)
+
+# =============================================================================
+# Gini
+# =============================================================================
+
+def test_Gini():
+    dm = skcriteria.mkdm(
+        matrix=[[5, 6, 7],
+                           [5.5, 6.1, 8],
+                           [4, 5, 9]],
+        objectives=[min, max, max],
+        weights=[1, 2, 3],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[[5, 6, 7],
+                           [5.5, 6.1, 8],
+                           [4, 5, 9]],
+        objectives=[min, max, max],
+        weights=[0.412, 0.2562, 0.3319],
+    )
+
+    weighter = GiniWeighter()
+    result = weighter.transform(dm)
+
+    assert result.aequals(expected, atol=1e-3)
+    
