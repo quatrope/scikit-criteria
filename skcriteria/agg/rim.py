@@ -18,8 +18,8 @@
 from ..utils import hidden
 
 with hidden():
-
     import numpy as np
+
     from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..utils import doc_inherit, rank
 
@@ -30,9 +30,7 @@ with hidden():
 
 
 def _rim_normalize(value, value_range, ref_ideal):
-    """
-    Normalization function based on the reference range and ideal
-    """
+    """Normalization function based on the reference range and ideal."""
     A, B = value_range
     C, D = ref_ideal
 
@@ -131,7 +129,8 @@ class RIM(SKCDecisionMakerABC):
 
         Returns
         -------
-        RankResult
+        :py:class:`skcriteria.data.RankResult`
+            Ranking.
         """
         data = dm.to_dict()
 

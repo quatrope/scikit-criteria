@@ -26,7 +26,7 @@ from skcriteria.agg.similarity import TOPSIS
 from skcriteria.preprocessing.scalers import VectorScaler
 
 # =============================================================================
-# TEST TOPSIS
+# TEST CLASSES
 # =============================================================================
 
 
