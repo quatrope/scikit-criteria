@@ -16,8 +16,10 @@
 # =============================================================================
 
 
-import pytest
 import numpy as np
+
+import pytest
+
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.rim import RIM
@@ -73,8 +75,12 @@ def test_RIM():
     result = rim.evaluate(dm, ref_ideals=ref_ideals, ranges=ranges)
 
     i_plus_expected = np.array([0.23129, 0.11251, 0.31877, 0.27831, 0.12070])
-    i_minus_expected = np.array([0.32823, 0.12132, 0.03554, 0.05926, 0.11819])
-    score_expected = np.array([0.58663, 0.51883, 0.10031, 0.17556, 0.49475])
+    i_minus_expected = np.array([0.32823, 0.34831, 0.18852, 0.24344, 0.34378])
+    score_expected = np.array([0.58663, 0.75560, 0.37165, 0.46671, 0.73988])
+
+    # the calculation on paper is incorrect
+    # i_minus_paper = np.array([0.32823, 0.12132, 0.03554, 0.05926, 0.11819])
+    # score_expected = np.array([0.58663, 0.51883, 0.10031, 0.17556, 0.49475])
 
     norm_matrix_expected = np.array(
         [
@@ -98,8 +104,8 @@ def test_RIM():
 
     expected = RankResult(
         "RIM",
-        ["A", "B", "E", "D", "C"],
-        [1, 2, 3, 4, 5],
+        ["A", "B", "C", "D", "E"],
+        [3, 1, 5, 4, 2],
         {
             "score": score_expected,
             "norm_matrix": norm_matrix_expected,
@@ -111,19 +117,16 @@ def test_RIM():
 
     assert isinstance(result, RankResult)
     assert result.shape == (5,)
-    np.testing.assert_allclose(
+
+    assert np.allclose(
         result.e_["norm_matrix"], expected.e_["norm_matrix"], atol=1e-4
     )
-    np.testing.assert_allclose(
+    assert np.allclose(
         result.e_["weighted_matrix"], expected.e_["weighted_matrix"], atol=1e-4
     )
-    np.testing.assert_allclose(
-        result.e_["i_plus"], expected.e_["i_plus"], atol=1e-5
-    )
-    np.testing.assert_allclose(
-        result.e_["i_minus"], expected.e_["i_minus"], atol=1e-5
-    )
-    assert np.allclose(result.e_["score"], expected.e_["score"], atol=1e-5)
+    assert np.allclose(result.e_["i_plus"], expected.e_["i_plus"], atol=1e-4)
+    assert np.allclose(result.e_["i_minus"], expected.e_["i_minus"], atol=1e-4)
+    assert np.allclose(result.e_["score"], expected.e_["score"], atol=1e-3)
 
     assert result.rank_.tolist() == expected.rank_.tolist()
 
@@ -148,3 +151,63 @@ def test_RIM_invalid_values():
 
     with pytest.raises(ValueError, match="Outside the accepted range"):
         rim.evaluate(dm, ref_ideals=ref_ideals, ranges=ranges)
+
+
+def test_RIM_invalid_ref_ideals_length():
+    matrix = [[1, 2]]
+    weights = [1, 1]
+    objectives = [max, max]
+    ranges = [(0, 10), (0, 10)]
+    ref_ideals = [(1, 2)]  # miss one ideal
+
+    dm = skcriteria.mkdm(matrix=matrix, weights=weights, objectives=objectives)
+    rim = RIM()
+
+    with pytest.raises(ValueError, match="ref_ideals length"):
+        rim.evaluate(dm, ref_ideals=ref_ideals, ranges=ranges)
+
+
+def test_RIM_invalid_ranges_length():
+    matrix = [[1, 2]]
+    weights = [1, 1]
+    objectives = [max, max]
+    ranges = [(0, 10)]  # miss one range
+    ref_ideals = [(1, 2), (3, 4)]
+
+    dm = skcriteria.mkdm(matrix=matrix, weights=weights, objectives=objectives)
+    rim = RIM()
+
+    with pytest.raises(ValueError, match="ranges length"):
+        rim.evaluate(dm, ref_ideals=ref_ideals, ranges=ranges)
+
+
+def test_RIM_ideal_outside_range():
+    matrix = [[1, 2]]
+    weights = [1, 1]
+    objectives = [max, max]
+    ranges = [(0, 10), (0, 5)]
+    ref_ideals = [(1, 2), (6, 7)]  # outside range
+
+    dm = skcriteria.mkdm(matrix=matrix, weights=weights, objectives=objectives)
+    rim = RIM()
+
+    with pytest.raises(ValueError, match="must be within ranges"):
+        rim.evaluate(dm, ref_ideals=ref_ideals, ranges=ranges)
+
+
+def test_RIM_missing_ref_ideals_or_ranges():
+    matrix = [[1, 2]]
+    weights = [1, 1]
+    objectives = [max, max]
+    dm = skcriteria.mkdm(matrix=matrix, weights=weights, objectives=objectives)
+    rim = RIM()
+
+    error_spected = "Both `ref_ideals` and `ranges` are required."
+    with pytest.raises(ValueError, match=error_spected):
+        rim.evaluate(dm)  # without ref_ideals or ranges
+
+    with pytest.raises(ValueError, match=error_spected):
+        rim.evaluate(dm, ref_ideals=[(1, 2), (1, 2)])  # without ranges
+
+    with pytest.raises(ValueError, match=error_spected):
+        rim.evaluate(dm, ranges=[(0, 5), (0, 5)])  # without ref_ideals

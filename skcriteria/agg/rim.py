@@ -72,7 +72,7 @@ def _rim(matrix, weights, ref_ideals, ranges):
 
     # Calculate the relative index of each alternative
     R = i_minus / (i_plus + i_minus)
-    ranking = rank.rank_values(R)
+    ranking = rank.rank_values(R, reverse=True)
 
     return ranking, {
         "score": R,
@@ -138,9 +138,6 @@ class RIM(SKCDecisionMakerABC):
         if ref_ideals is None or ranges is None:
             raise ValueError("Both `ref_ideals` and `ranges` are required.")
 
-        # ref_ideals = [tuple(x) for x in np.asarray(ref_ideals)]
-        # ranges = [tuple(x) for x in np.asarray(ranges)]
-
         self._validate_ranges(data["matrix"], ref_ideals, ranges)
 
         result_data, extra = self._evaluate_data(
@@ -174,8 +171,8 @@ class RIM(SKCDecisionMakerABC):
         if len(ranges) != n_criteria:
             raise ValueError("ranges length must match number of criteria.")
 
-        for i, (ideal, bound) in enumerate(zip(ref_ideals, ranges)):
-            if not (bound[0] <= ideal[0] <= ideal[1] <= bound[1]):
+        for i, (ideal, valid_range) in enumerate(zip(ref_ideals, ranges)):
+            if not (valid_range[0] <= ideal[0] <= ideal[1] <= valid_range[1]):
                 raise ValueError(
-                    f"ref_ideals[{i}] = {ideal} must be within ranges[{i}] = {bound}"
+                    f"{ideal} must be within ranges[{i}] = {valid_range}"
                 )
