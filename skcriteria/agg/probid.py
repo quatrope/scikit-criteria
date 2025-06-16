@@ -9,7 +9,8 @@
 # DOCS
 # =============================================================================
 
-"""PROBID (Preference Ranking On the Basis of Ideal-Average Distance) method."""
+"""PROBID (Preference Ranking On the Basis of Ideal-Average Distance) and
+sPROBID (simple variation of PROBID)."""
 
 # =============================================================================
 # IMPORTS
@@ -30,61 +31,12 @@ with hidden():
 
 
 # =============================================================================
-# PROBID
+# BasePROBID
 # =============================================================================
 
 
-def probid(matrix, objectives, weights, metric="euclidean", **kwargs):
-    """Execute PROBID without any validation."""
-    # apply weights
-    wmtx = np.multiply(matrix, weights)
-
-    # sort from most PIS to most NIS
-    where_max = np.equal(objectives, Objective.MAX.value)
-
-    ideals = np.where(where_max, np.sort(wmtx, axis=0)[::-1], np.sort(wmtx, axis=0))
-
-    # calculate averages
-    average = np.mean(wmtx, axis=0)
-
-    # calculate distances
-    d_nis = distance.cdist(
-        wmtx, ideals, metric=metric, out=None, **kwargs
-    )
-    d_avrg = distance.cdist(
-        wmtx, average[True], metric=metric, out=None, **kwargs
-    ).T.flatten()
-
-    # calculate the overall positive-ideal distance
-    cut_point = (len(d_nis) + (len(d_nis) % 2)) // 2
-
-    weights = 1 / np.arange(1, cut_point + 1)
-    pos_ideal = np.sum(d_nis[:,:cut_point] * weights, axis=1)
-
-    # calculate the overall negative-ideal distance
-    weights = 1 / (len(d_nis) - np.arange(cut_point, len(d_nis)+1) + 1)
-    neg_ideal = np.sum(d_nis[:,cut_point - 1:] * weights, axis=1)
-
-    # pos-ideal/neg-ideal ratio
-    ratio = pos_ideal / neg_ideal
-
-    # performance score
-    score = 1 / ( 1 + ratio**2) + d_avrg
-
-    # compute the rank and return the result
-    return (
-        rank.rank_values(score, reverse=True),
-        ideals,
-        pos_ideal,
-        neg_ideal,
-        score,
-    )
-
-
-class PROBID(SKCDecisionMakerABC):
-    """ The PROBID method considers a spectrum of ideal solutions and the average
-    solution to determine the performance score of each optimal solution.
-
+class BasePROBID(SKCDecisionMakerABC):
+    """Base abstract class for PROBID variants.
     Parameters
     ----------
     metric : str or callable, optional
@@ -127,11 +79,11 @@ class PROBID(SKCDecisionMakerABC):
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         if Objective.MIN.value in objectives:
             warnings.warn(
-                "Although PROBID can operate with minimization objectives, "
+                f"Although {self.__class__.__name__} can operate with minimization objectives, "
                 "this is not recommended. Consider reversing the weights "
                 "for these cases."
             )
-        rank, ideals, pos_ideal, neg_ideal, score = probid(
+        rank, ideals, pos_ideal, neg_ideal, score = self._method_func(
             matrix,
             objectives,
             weights,
@@ -144,8 +96,128 @@ class PROBID(SKCDecisionMakerABC):
             "score": score,
         }
 
+
+# =============================================================================
+# PROBID
+# =============================================================================
+
+
+def probid(matrix, objectives, weights, metric="euclidean", **kwargs):
+    """Execute PROBID without any validation."""
+    # apply weights
+    wmtx = np.multiply(matrix, weights)
+
+    # sort from most PIS to most NIS
+    where_max = np.equal(objectives, Objective.MAX.value)
+    ideals = np.where(
+        where_max, np.sort(wmtx, axis=0)[::-1], np.sort(wmtx, axis=0)
+    )
+
+    # calculate averages
+    average = np.mean(wmtx, axis=0)
+
+    # calculate distances
+    d_pis = distance.cdist(
+        wmtx, ideals, metric=metric, out=None, **kwargs
+    )
+    d_avrg = distance.cdist(
+        wmtx, average[True], metric=metric, out=None, **kwargs
+    ).T.flatten()
+
+    # calculate the point where the ideal distance is cut
+    n_alternatives = len(d_pis)
+    median_split = (n_alternatives + (n_alternatives % 2)) // 2
+
+    # calculate the overall positive-ideal distance
+    weights = 1 / np.arange(1, median_split + 1)
+    pos_ideal = np.sum(d_pis[:,:median_split] * weights, axis=1)
+
+    # calculate the overall negative-ideal distance
+    weights = 1 / (n_alternatives - np.arange(median_split, n_alternatives + 1) + 1)
+    neg_ideal = np.sum(d_pis[:,median_split - 1:] * weights, axis=1)
+
+    # pos-ideal/neg-ideal ratio
+    ratio = pos_ideal / neg_ideal
+
+    # performance score
+    score = 1 / (1 + ratio**2) + d_avrg
+
+    # compute the rank and return the result
+    return (
+        rank.rank_values(score, reverse=True),
+        ideals,
+        pos_ideal,
+        neg_ideal,
+        score,
+    )
+
+class PROBID(BasePROBID):
+    """The PROBID method considers a spectrum of ideal solutions and the average
+    solution to determine the performance score of each optimal solution."""
+
+    _method_func = staticmethod(probid)
+    
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
             "PROBID", alternatives=alternatives, values=values, extra=extra
+        )
+
+
+# =============================================================================
+# sPROBID
+# =============================================================================
+
+
+def sprobid(matrix, objectives, weights, metric="euclidean", **kwargs):
+    """Execute sPROBID without any validation."""
+    # apply weights
+    wmtx = np.multiply(matrix, weights)
+
+    # sort from most PIS to most NIS
+    where_max = np.equal(objectives, Objective.MAX.value)
+    ideals = np.where(
+        where_max, np.sort(wmtx, axis=0)[::-1], np.sort(wmtx, axis=0)
+    )
+
+    # calculate distances
+    d_pis = distance.cdist(
+        wmtx, ideals, metric=metric, out=None, **kwargs
+    )
+
+    # calculate the point where the ideal distance is cut
+    n_alternatives = len(d_pis)
+    quartile_split = max(1, n_alternatives // 4)
+
+    # calculate the overall positive-ideal distance
+    weights = 1 / np.arange(1, quartile_split + 1)
+    pos_ideal = np.sum(d_pis[:,:quartile_split] * weights, axis=1)
+
+    # calculate the overall negative-ideal distance
+    quartile_split = n_alternatives - quartile_split
+    weights = 1 / (n_alternatives - np.arange(quartile_split, n_alternatives))
+    neg_ideal = np.sum(d_pis[:, quartile_split:] * weights, axis=1)
+
+    # performance score
+    score = neg_ideal / pos_ideal
+
+    # compute the rank and return the result
+    return (
+        rank.rank_values(score, reverse=True),
+        ideals,
+        pos_ideal,
+        neg_ideal,
+        score,
+    )
+
+class sPROBID(BasePROBID):
+    """The sPROBID method simplifies PROBID method by using only the top and
+    bottom quartiles of ideal solutions."""
+
+    _method_func = staticmethod(sprobid)
+    
+    @doc_inherit(SKCDecisionMakerABC._make_result) 
+    def _make_result(self, alternatives, values, extra):
+        return RankResult(
+            "sPROBID", alternatives=alternatives, values=values, extra=extra
         )
