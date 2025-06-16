@@ -18,6 +18,7 @@
 
 import numpy as np
 
+import pytest
 
 import skcriteria
 from skcriteria.agg import RankResult
@@ -29,8 +30,68 @@ from skcriteria.preprocessing.scalers import SumScaler
 # =============================================================================
 
 
-def test_ERVD():
-    """ """
+def test_ervd_reference_points_none():
+    alternatives_matrix = np.array(
+        [
+            [1, 2],
+            [3, 4],
+        ]
+    )
+
+    weights = np.array([0.5, 0.5])
+    objectives = np.ones(2)
+
+    dm = skcriteria.mkdm(
+        matrix=alternatives_matrix,
+        objectives=objectives,
+        weights=weights,
+    )
+
+    ranker = ERVD(lambd=2.25, alpha=0.88)
+
+    with pytest.raises(
+        ValueError,
+        match="Reference points must be provided for ERVD evaluation.",
+    ):
+        ranker.evaluate(dm, reference_points=None)
+
+
+def test_ervd_reference_points_invalid_legth():
+    alternatives_matrix = np.array(
+        [
+            [1, 2],
+            [3, 4],
+        ]
+    )
+
+    weights = np.array([0.5, 0.5])
+    objectives = np.ones(2)
+    reference_points = np.array([1, 2, 3])  # Invalid length
+    dm = skcriteria.mkdm(
+        matrix=alternatives_matrix,
+        objectives=objectives,
+        weights=weights,
+    )
+
+    ranker = ERVD(lambd=2.25, alpha=0.88)
+
+    with pytest.raises(
+        ValueError,
+        match="Reference points must match the number of criteria in "
+        "the decision matrix.",
+    ):
+        ranker.evaluate(dm, reference_points=reference_points)
+
+
+def test_ERVD_shyur2015multiple():
+    """
+    Data from
+
+    Shyur, H. J., Yin, L., Shih, H. S., & Cheng, C. B. (2015).
+    A multiple criteria decision making method based on relative
+    value distances.
+    Foundations of Computing and Decision Sciences, 40(4), 299-315.
+    """
     alternatives_matrix = np.array(
         [
             [80, 70, 87, 77, 76, 80, 75],
@@ -164,3 +225,7 @@ def test_ERVD():
     )
     # assert np.allclose(result.e_.s_plus, expected.e_.s_plus, atol=1.0e-3)
     # assert np.allclose(result.e_.s_minus, expected.e_.s_minus, atol=1.0e-3)
+
+
+def test_decreasing_value_function():
+    pass

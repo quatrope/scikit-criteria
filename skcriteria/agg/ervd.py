@@ -5,6 +5,16 @@
 # Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
+# =============================================================================
+# DOCS
+# =============================================================================
+
+"""Implementation of ERVD method."""
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
 from ..utils import hidden
 
 with hidden():
@@ -13,6 +23,10 @@ with hidden():
     from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..core import Objective
     from ..utils import doc_inherit, rank
+
+# =============================================================================
+# ERVD
+# =============================================================================
 
 
 def _increasing_value_function(reference_point, values, alpha, lambd):
@@ -38,10 +52,7 @@ def _decreasing_value_function(reference_point, values, alpha, lambd):
 
 
 def ervd(matrix, objectives, weights, reference_points, alpha, lambd):
-    """
-    Execute ERVD without any validation.
-    """
-
+    """Execute ERVD without any validation."""
     for j in range(matrix.shape[1]):
         if objectives[j] == Objective.MAX.value:
             matrix[:, j] = _increasing_value_function(
@@ -75,7 +86,27 @@ def ervd(matrix, objectives, weights, reference_points, alpha, lambd):
 
 class ERVD(SKCDecisionMakerABC):
     """
-    ERVD (election based on relative value distances).
+    Election based on Relative Value Distances (ERVD) decision-making method.
+
+    This method integrates an s-shape value function, departing from the
+    traditional expected utility function, to more accurately capture
+    risk-averse and risk-seeking behaviors. ERVD builds upon the foundational
+    principles of the TOPSIS method, extending its capabilities by
+    incorporating concepts from prospect theory to refine the assessment of
+    alternatives based on their relative distances from ideal and anti-ideal
+    solutions.
+
+    Parameters
+    ----------
+    lambd: float, default=2.25
+        Represents the attenuation factor of the losse.
+
+    alpha: float, default=0.88
+        Diminishing sensitivity parameters.
+
+    References
+    ----------
+    :cite:p:`shyur2015multiple`
     """
 
     _skcriteria_parameters = []
