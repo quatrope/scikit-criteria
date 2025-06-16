@@ -56,35 +56,33 @@ def probid(matrix, objectives, weights, metric="euclidean", **kwargs):
     ).T.flatten()
 
     # calculate the overall positive-ideal distance
-    midpoint = (len(d_nis) + (len(d_nis) % 2)) // 2
+    cut_point = (len(d_nis) + (len(d_nis) % 2)) // 2
 
-    weights = 1 / np.arange(1, midpoint + 1)
-    pos_ideal = np.sum(d_nis[:,:midpoint] * weights, axis=1)
+    weights = 1 / np.arange(1, cut_point + 1)
+    pos_ideal = np.sum(d_nis[:,:cut_point] * weights, axis=1)
 
     # calculate the overall negative-ideal distance
-    weights = 1 / (len(d_nis) - np.arange(midpoint, len(d_nis)+1) + 1)
-    neg_ideal = np.sum(d_nis[:,midpoint - 1:] * weights, axis=1)
+    weights = 1 / (len(d_nis) - np.arange(cut_point, len(d_nis)+1) + 1)
+    neg_ideal = np.sum(d_nis[:,cut_point - 1:] * weights, axis=1)
 
     # pos-ideal/neg-ideal ratio
-    pi_ni_ratio = pos_ideal / neg_ideal
+    ratio = pos_ideal / neg_ideal
 
     # performance score
-    performance_score = 1 / ( 1 + pi_ni_ratio**2) + d_avrg
+    score = 1 / ( 1 + ratio**2) + d_avrg
 
     # compute the rank and return the result
     return (
-        rank.rank_values(performance_score, reverse=True),
+        rank.rank_values(score, reverse=True),
         ideals,
         pos_ideal,
         neg_ideal,
-        performance_score,
+        score,
     )
 
 
 class PROBID(SKCDecisionMakerABC):
-    """The Technique for Order of Preference by Similarity to Ideal Solution.
-
-    The PROBID method considers a spectrum of ideal solutions and the average
+    """ The PROBID method considers a spectrum of ideal solutions and the average
     solution to determine the performance score of each optimal solution.
 
     Parameters
@@ -133,7 +131,7 @@ class PROBID(SKCDecisionMakerABC):
                 "this is not recommended. Consider reversing the weights "
                 "for these cases."
             )
-        rank, ideals, pos_ideal, neg_ideal, performance_score = probid(
+        rank, ideals, pos_ideal, neg_ideal, score = probid(
             matrix,
             objectives,
             weights,
@@ -143,7 +141,7 @@ class PROBID(SKCDecisionMakerABC):
             "ideals": ideals,
             "pos_ideal": pos_ideal,
             "neg_ideal": neg_ideal,
-            "performance_score": performance_score,
+            "score": score,
         }
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
