@@ -41,6 +41,25 @@ with hidden():
 
 EPSILON = 1e-10
 
+def distance_from_avg(matrix, objectives, avg):
+    pda = np.zeros_like(matrix)
+    nda = np.zeros_like(matrix)
+    
+    is_beneficial = np.array([obj == max for obj in objectives])
+    diff_from_avg = matrix - avg
+
+    pda_filtered = np.where(is_beneficial,
+                       np.maximum(0, diff_from_avg),
+                       np.maximum(0, -diff_from_avg))
+    pda = pda_filtered / (avg + EPSILON)
+
+    nda_filtered = np.where(is_beneficial,
+                      np.maximum(0, -diff_from_avg),
+                      np.maximum(0, diff_from_avg))
+    nda = nda_filtered / (avg + EPSILON)
+
+    return pda, nda
+
 def edas(matrix, weights, objectives):
     """Execute edas without any validation"""
     """Step 1: Select criteria"""
@@ -49,32 +68,18 @@ def edas(matrix, weights, objectives):
     """Step 3: Determine the average solution for each criteria"""
     average_solution = np.mean(matrix, axis=0)
 
-    # TODO: convertir en funcion
     """Step 4: Calculate the positive (PDA) and distance (NDA) from average"""
-    pda = np.zeros_like(matrix)
-    nda = np.zeros_like(matrix)
-
-    # TODO: vectorizar
-    # TODO: evitar division por 0
-    for j in range(matrix.shape[1]):
-        is_beneficial = objectives[j] == max
-        avg_j = average_solution[j]
-        if is_beneficial:
-            pda[:, j] = np.maximum(0, (matrix[:, j] - avg_j)) / avg_j
-            nda[:, j] = np.maximum(0, (avg_j - matrix[:, j])) / avg_j
-        else:
-            pda[:, j] = np.maximum(0, (avg_j - matrix[:, j])) / avg_j
-            nda[:, j] = np.maximum(0, (matrix[:, j] - avg_j)) / avg_j
+    pda , nda = distance_from_avg(matrix, objectives, average_solution)
 
     """Step 5: Determine the weighted sum of PDA and NDA for all alternatives"""
-    # TODO: revisar
+
     sum_pda = np.sum(pda * weights, axis=1)
     sum_nda = np.sum(nda * weights, axis=1)
 
     """Step 6: Normalize the values of weighted sums for all alternatives"""
-    # TODO: cambiar ese max por el maximo de cada fila
-    normalized_sum_pda = sum_pda / np.max(sum_pda)
-    normalized_sum_nda = 1 - (sum_nda / np.max(sum_nda))
+    
+    normalized_sum_pda = sum_pda / (np.max(sum_pda) + EPSILON)
+    normalized_sum_nda = 1 - (sum_nda / (np.max(sum_nda) + EPSILON))
 
     """Step 7: Calculate the appraisal score for all alternatives"""
     scores = 0.5 * (normalized_sum_pda + normalized_sum_nda)

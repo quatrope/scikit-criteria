@@ -51,10 +51,11 @@ def test_EDAS():
 
     ranker = EDAS()
     result = ranker.evaluate(dm)
+    print('\n')
+    print(result.e_.score)
     print(result)
-    print(-result.e_.score)
 
-def test_EDAS_mobile_selection():
+def test_EDAS_Mobile_selection():
     """Test EDAS for mobile phone selection problem."""
     dm = skcriteria.mkdm(
         matrix=[
@@ -64,14 +65,15 @@ def test_EDAS_mobile_selection():
             [275, 32, 8, 4],   # Mobile-4
             [225, 16, 16, 2]   # Mobile-5
         ],
-        objectives=[min, max, max, max],  # Price↓, Storage↑, Camera↑, Looks↑
-        weights=[0.35, 0.25, 0.25, 0.15],  # From row 3
+        objectives=[min, max, max, max],  
+        weights=[0.35, 0.25, 0.25, 0.15],  
         criteria=["Price", "Storage", "Camera", "Looks"],
-        alternatives=["Mobile-1", "Mobile-2", "Mobile-3", "Mobile-4", "Mobile-5"]
+        alternatives=["M-1", "M-2", "M-3", "M-4", "M-5"]
     )
 
     # Execute EDAS
     ranker = EDAS()
     result = ranker.evaluate(dm)
-    
+    print('\n')
+    print(result.e_.score)
     print(result)
