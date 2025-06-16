@@ -42,7 +42,7 @@ def test_codas_negative_coord_fail():
         objectives=[max, max, max],
     )
     transformer = CodasTransformer()
-    dm_t = transformer.transform(dm)
+    dm_transformed = transformer.transform(dm)
 
     ranker = CODAS()
 
@@ -98,10 +98,10 @@ def test_codas_LISCO():
     )
 
     transformer = CodasTransformer()
-    dm_t = transformer.transform(dm)
+    dm_transformed = transformer.transform(dm)
 
     ranker = CODAS()
-    result = ranker.evaluate(dm_t)
+    result = ranker.evaluate(dm_transformed)
 
     assert result.values_equals(expected)
     assert result.method == expected.method
@@ -155,10 +155,10 @@ def test_codas_chakraborty_zavadaskas2014():
     )
 
     transformer = CodasTransformer()
-    dm_t = transformer.transform(dm)
+    dm_transformed = transformer.transform(dm)
 
     ranker = CODAS()
-    result = ranker.evaluate(dm_t)
+    result = ranker.evaluate(dm_transformed)
 
     assert result.values_equals(expected)
     assert result.method == expected.method
@@ -265,10 +265,10 @@ def test_codas_zavadaskas_turskis2010():
     )
 
     transformer = CodasTransformer()
-    dm_t = transformer.transform(dm)
+    dm_transformed = transformer.transform(dm)
 
     ranker = CODAS()
-    result = ranker.evaluate(dm_t)
+    result = ranker.evaluate(dm_transformed)
 
     assert result.values_equals(expected)
     assert result.method == expected.method

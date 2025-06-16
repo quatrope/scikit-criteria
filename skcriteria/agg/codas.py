@@ -49,6 +49,7 @@ with hidden():
 
 def codas_relative_assessment(euclidian_d, taxicab_d, tau=0.02):
     # TODO Documentar
+    # TODO: cambiar nombres de variables de una letra a algo mas descriptivo
     n = len(euclidian_d)
     Ra = np.zeros((n, n))
 
@@ -87,12 +88,13 @@ def codas(matrix, objectives, weights):
 
 class CODAS(SKCDecisionMakerABC):
     # TODO Descripcion
-
+    # TODO: hacer tau un parametro especial
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         # TODO Los valores tienen que estar entre 0 y 1
+        # TODO: verificar que tau esta entre 0.01 y 0.05
         if np.any(matrix <= 0):
             raise ValueError(
                 "Error: CODAS can't operate with negative values on the DM Matrix"
