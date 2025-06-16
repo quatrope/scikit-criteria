@@ -49,10 +49,13 @@ class SKCDecisionMakerABC(SKCMethodABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _make_result(self, alternatives, values, extra):
+    def _make_result(self, alternatives, values, extra, **kwargs):
         raise NotImplementedError()
 
-    def evaluate(self, dm):
+    def _prepare_data(self, **kwargs):
+        return kwargs
+
+    def evaluate(self, dm, **kwargs):
         """Validate the dm and calculate and evaluate the alternatives.
 
         Parameters
@@ -68,11 +71,15 @@ class SKCDecisionMakerABC(SKCMethodABC):
         """
         data = dm.to_dict()
 
+        data = self._prepare_data(**data, **kwargs)
+
         result_data, extra = self._evaluate_data(**data)
 
         alternatives = data["alternatives"]
         result = self._make_result(
-            alternatives=alternatives, values=result_data, extra=extra
+            alternatives=alternatives,
+            values=result_data,
+            extra=extra,
         )
 
         return result

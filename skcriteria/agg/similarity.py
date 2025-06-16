@@ -147,9 +147,11 @@ class TOPSIS(SKCDecisionMakerABC):
             "TOPSIS", alternatives=alternatives, values=values, extra=extra
         )
 
+
 # =============================================================================
 # ARAS
 # =============================================================================
+
 
 def aras(matrix, weights, ideal):
     """Execute ARAS without any validation"""
@@ -169,93 +171,101 @@ def aras(matrix, weights, ideal):
         score,
         utility,
         ideal_score,
-        wideal
     )
 
 
 class ARAS(SKCDecisionMakerABC):
     """Additive Ratio Assessment (ARAS).
 
-    ARAS (Additive Ratio Assessment) is a multi-criteria decision-making method
-    based on the principle that the optimal alternative has the greatest
-    utility degree compared to the ideal solution. The performance of each
-    alternative is calculated as the sum of its weighted criteria values,
-    and compared against an aggregated ideal score.
+    ARAS (Additive Ratio Assessment) is a multi-criteria decision-making (MCDM)
+    method that ranks alternatives based on their aggregated performance with
+    respect to an explicitly provided ideal solution.
 
-    This implementation allows specifying a custom ideal vector. The ideal
-    should be a 1D array containing one ideal value per criterion. If not
-    provided (see future support), it should be computed based on the matrix
-    and the objective for each criterion.
+    Each alternative is evaluated by summing its weighted performance scores
+    across all criteria, and then comparing that sum to the ideal score.
+    The closer the total score is to the ideal, the better the alternative
+    ranks.
 
-    Parameters
-    ----------
-    ideal : array_like
-        A 1D array containing the ideal values for each criterion, with the
-        same length as the number of columns in the decision matrix. For
-        maximization criteria, the ideal should be greater than or equal to
-        the maximum observed value. For minimization, it should be less than
-        or equal to the minimum observed value.
+    This implementation **requires** a user-supplied ideal vector, taken as the
+    first row of the decision matrix. All objectives must be of maximization
+    type; minimization is not supported and will raise an error.
 
-    Notes
-    -----
-    Unlike methods based on distance metrics (like TOPSIS), ARAS directly
-    compares weighted aggregated values against a reference ideal score.
-    This makes it suitable for additive, linear comparisons across criteria.
-
-    The ideal vector is expected to match the dimensionality of the decision
-    matrix (i.e., one value per criterion) and to be coherent with the data.
-
-    Warnings
-    --------
-    UserWarning:
-        If some objective is to minimize.
+    Raises
+    ------
+    ValueError
+        If any objective is set to `Objective.MIN`.
+    ValueError
+        If the extracted ideal is not coherent with the maximization objective
+        (i.e., is lower than the observed maximum in the matrix).
 
     References
     ----------
     :cite:p:`zavadskas2010new`
     """
 
-    _skcriteria_parameters = ["ideal"]
+    _skcriteria_parameters = []
 
-    def __init__(self, *, ideal): # To do: valor por defecto de ideal
-        self._ideal = ideal
+    def _check_ideal(self, matrix, ideal):
+        """
+        Validate that the provided ideal vector is coherent with ARAS assumptions.
 
-    @property
-    def ideal(self):
-        """Ideal array used to calculate ARAS."""
-        return self._ideal
+        This method checks whether each value in the provided `ideal` vector is
+        greater than or equal to the maximum value observed in the corresponding
+        column (criterion) of the decision matrix.
 
-    def _check_ideal(self, matrix, objectives, ideal):
-        # Limit values per criterion (max or min depending on the objective)
-        bounds = np.where(
-            np.equal(objectives, Objective.MAX.value), # To do: max and min como variables distintas
-            np.max(matrix, axis=0),
-            np.min(matrix, axis=0)
-        )
+        ARAS assumes all objectives are to be maximized, so the ideal must dominate
+        all alternatives in every criterion. This ensures that the utility of each
+        alternative (relative to the ideal) is a value in [0, 1].
 
-        # Return True if calculated ideal is the first row of the matrix
-        return bounds == ideal # To do: ideal no está en la matriz mas
+        Parameters
+        ----------
+        matrix : array_like
+            The decision matrix containing one row per alternative and one column
+            per criterion. Must be at least 2D.
+        ideal : array_like
+            A 1D array containing the ideal value for each criterion. Must have the
+            same number of elements as columns in `matrix`.
+
+        Returns
+        -------
+        bool
+            True if the ideal vector is valid (i.e., all ideal[i] >= max(matrix[:, i])),
+            False otherwise.
+        """
+
+        # extract the maxima of each column of the matrix
+        maxs = np.max(matrix, axis=0)
+
+        # check if the ideal is greater than or equal to the maxs
+        return np.all(maxs <= ideal)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+    def _evaluate_data(self, matrix, objectives, weights, ideal, **kwargs):
         if Objective.MIN.value in objectives:
-            warnings.warn(
-                "Although ARAS can operate with minimization objectives, "
-                "this is not recommended. Consider reversing the weights "
-                "for these cases."
+            raise ValueError(
+                "ARAS can't operate with minimization objectives. "
+                "Consider reversing the weights."
             )
 
-        ranking, scores, utility, ideal_score, wideal = aras(
-            matrix,
-            weights,
-            ideal=self._ideal
-        )
+        if not self._check_ideal(matrix, ideal):
+            raise ValueError(
+                "Invalid ideal vector: all ideal values must be greater than"
+                "or equal to the maximum observed value for each corresponding"
+                "criterion (ARAS assumes maximization objectives only)."
+            )
+
+        ranking, scores, utility, ideal_score = aras(matrix, weights, ideal)
         return ranking, {
             "score": scores,
             "utility": utility,
             "ideal_score": ideal_score,
-            "weighted ideal": wideal,
         }
+
+    def _prepare_data(self, **kwargs):
+        kwargs["ideal"] = kwargs["matrix"][0]
+        kwargs["matrix"] = kwargs["matrix"][1:]
+        kwargs["alternatives"] = kwargs["alternatives"][1:]
+        return kwargs
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
