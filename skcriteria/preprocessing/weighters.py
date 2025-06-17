@@ -445,29 +445,28 @@ class Critic(CRITIC):
 
 def merec_weights(matrix):
     """Execute the MEREC method without any validation."""
+    #The paper:
+    #   Keshavarz Ghorabaee, M., Zavadskas, E. K., Olfat, L., Turskis, Z., & Antucheviciene, J. (2021).
+    #    Determination of objective weights using a method based on the removal effects of criteria (MEREC).
 
     matrix = np.asarray(matrix, dtype=float)
     n_criteria = matrix.shape[1]
 
-    performance = np.log(1 + np.mean(np.abs(np.log(matrix)), axis=1))
+    # Compute overall performance for each alternative using all criteria.
+    performance = np.log(1 + np.mean(np.abs(np.log(matrix)), axis=1, keepdims=True))
 
-    matrix_calc = np.abs(np.log(matrix))
+    # Compute the performance of each alternative after removing each criterion.
+    log_matrix = np.abs(np.log(matrix))
+    total_log_per_alt = np.sum(log_matrix, axis=1, keepdims=True)
     
-    mask = np.ones((n_criteria, n_criteria)) - np.eye(n_criteria)
-    masked_matrix = matrix_calc[:, None,:] * mask[None, :, :]
-    performance_reduce =  np.log(1 + (masked_matrix.sum(axis=2)*(1/n_criteria)))
+    log_without_criterion = total_log_per_alt - log_matrix
     
-    matrix_sum = np.sum(matrix_calc, axis=1)
-    matrix_sum = np.tile(matrix_sum, (n_criteria, 1))
-    matrix_sum = matrix_sum.T
-    matrix_calc = matrix_sum - matrix_calc
-    performance_reduce = np.log(1 + matrix_calc/n_criteria)
+    performance_reduce = np.log(1 + log_without_criterion/n_criteria)
     
-    #performance = np.tile(performance, (n_criteria, 1))
-    #performance = performance.T
-    #deviations = np.sum(np.abs(performance_reduce - performance), axis = 0)
-    deviations = np.sum(np.abs(performance_reduce - performance[:, None]), axis = 0)
+    # Compute deviations between full and reduced performance.
+    deviations = np.sum(np.abs(performance_reduce - performance), axis = 0)
     
+    # Normalize the deviations to obtain criterion weights.
     weights = deviations / np.sum(deviations)
 
     return weights
