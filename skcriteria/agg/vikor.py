@@ -44,20 +44,26 @@ def DEBUG(*ass):
 
 
 class VIKOR(SKCDecisionMakerABC):
-    _skcriteria_parameters = ["v"]
+    _skcriteria_parameters = ["v", "use_compromise_set"]
 
     def __init__(
         self,
         *,
         v=0.5,
+        use_compromise_set = True
     ):
         self._v = float(v)
         if not (self._v >= 0 and self._v <= 1):
             raise ValueError(f"'v' must be 0 <= v <= 1. Found {self._v}")
+        self._use_compromise_set = use_compromise_set
 
     @property
     def v(self):
         return self._v
+    
+    @property
+    def use_compromise_set(self):
+        return self._use_compromise_set
 
     def _make_result(self, alternatives, values, extra):
         return RankResult(
@@ -131,12 +137,13 @@ class VIKOR(SKCDecisionMakerABC):
             compromise_set = qs_with_acceptable_advantage
 
         # This include all variables in compromise set to rank 1. Maybe can be an option ?
-        max_compromise_rank = np.max(rank_q_k[compromise_set])
-        res = np.where(
-            rank_q_k <= max_compromise_rank,
-            1,
-            rank_q_k - max_compromise_rank + 1,
-        )
+        if self.use_compromise_set:
+            max_compromise_rank = np.max(rank_q_k[compromise_set])
+            rank_q_k = np.where(
+                rank_q_k <= max_compromise_rank,
+                1,
+                rank_q_k - max_compromise_rank + 1,
+            )
 
         extra = {
             "r_k": distances_matrix[:, 1],
@@ -151,4 +158,4 @@ class VIKOR(SKCDecisionMakerABC):
         # TODO: Should compromise_set affect rank_q_k?
 
         # return
-        return res, extra
+        return rank_q_k, extra
