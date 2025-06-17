@@ -223,7 +223,7 @@ def test_ResultBase_equals():
     method = "test_method"
     alternatives = ["a", "b", "c"]
     rank = [1, 2, 3]
-    extra = {"alfa": 1, "beta": np.array([1, 2])}
+    extra = {"alfa": 1, "beta": np.array([1.0, 2.0])}
 
     result = TestResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
@@ -252,6 +252,20 @@ def test_ResultBase_equals():
     assert result != neq
     assert not result.equals(neq)
     assert not result.aequals(neq)
+
+    # tolerance
+    slightly_off = TestResult(
+        method=method,
+        alternatives=alternatives,
+        values=rank,
+        extra={
+            "alfa": extra["alfa"],
+            "beta": np.array([1.01, 2.01]),
+        },
+    )
+
+    assert not result.aequals(slightly_off)
+    assert result.aequals(slightly_off, rtol=1e-01, atol=1e-01)
 
 
 # =============================================================================
