@@ -441,6 +441,8 @@ class Critic(CRITIC):
 
 def gini_weights(matrix):
     """
+    Calculates weights with Gini coefficient.
+
     Computes the weights for each criterion of the matrix by calculating
     the Gini coefficient of each column, and normalizing this value to
     assign the weights.
@@ -476,6 +478,8 @@ def gini_weights(matrix):
 
 class GiniWeighter(SKCWeighterABC):
     """
+    Calculates the weights with the Gini coefficient.
+
     The method aims at the determination of objective weights of relative
     importance in MCDM problems. It uses the Gini coefficient of the data of
     each criterion to assign the weights, giving a higher weight to a more
