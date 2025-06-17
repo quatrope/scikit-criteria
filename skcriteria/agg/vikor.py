@@ -45,6 +45,15 @@ def DEBUG(*ass):
 
 
 def _scale(matrix, objectives):
+    """Calculates similarity to Zenith, with 0 indicating equal to Nadir and
+    1 indicating equal to Zenith.
+
+    Warnings
+    --------
+    UserWarning:
+        Division by zero may occur during scaling if any criterion has
+        identical values across all alternatives.
+    """
     with np.errstate(divide="warn"):
         with warnings.catch_warnings(record=True) as w:
             result = matrix_scale_by_cenit_distance(matrix, objectives)
@@ -123,41 +132,28 @@ class VIKOR(SKCDecisionMakerABC):
         )
 
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-
-        # TODO: Check there are no criteria with only one value, as this will
-        #       cause division by zero in the scaling step.
-
-        # scale maps zenith to 1. We want the opposite, so we invert objectives
+        # (a): Scale the matrix by distance to zenith
+        # _scale maps zenith to 1. We want the opposite so we invert objectives
         matrix_scaled = _scale(matrix, objectives * -1) * weights
 
-        # New criteria: Manhattan distance and Chebyshev distance
-        def ncriteria_to_2criteria(alternative):
-            return (np.sum(alternative), np.max(alternative))
-
-        # N criteria problem -> 2 criteria problem
-        distances_matrix = np.apply_along_axis(
-            ncriteria_to_2criteria, 1, matrix_scaled
+        # (b): Compute Manhattan distance (S) and Chebyshev distance (R)
+        distances_matrix = np.column_stack(
+            (np.sum(matrix_scaled, axis=1), np.max(matrix_scaled, axis=1))
         )
-        # distances_matrix = np.column_stack((
-        #     np.sum(matrix_scaled), np.max(matrix_scaled))
-        # ) # Alternative, to be checked
+
         distances_matrix_scaled = _scale(distances_matrix, [1, 1])
-        # We now do weighted sum of our 2 criteria with weights [v, 1-v]
+        # (c): Compute Q: weighted sum of our distances with weights [v, 1-v]
         q_k = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
-        # Rank them
+        # (d): Rank them
         rank_q_k = rank.rank_values(q_k, reverse=False)
 
-        # Check if solution is acceptable
-
+        # (e): Check if solution is acceptable
         has_rank1_qs = np.where(
             rank_q_k == 1, 1, 0
-        )  # probably can delete this array
+        )  # TODO: probably can delete this array
         rank1_cnt = np.sum(has_rank1_qs == 1)
 
-        # best_q_value = q_k[chosen_qs[0][0]]  # The value of the best q
         best_q_value = np.min(q_k)
-
-        # DEBUG(chosen_qs,best_q_value, best_qq_value)
         dq = 1 / (len(matrix) - 1)
         qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
 
@@ -166,23 +162,21 @@ class VIKOR(SKCDecisionMakerABC):
             len(qs_with_acceptable_advantage[0]) == rank1_cnt
         )
         # They must also be the best solution of one of the original distances
-        # DEBUG(distances_matrix_scaled[:,1] * distances_matrix_scaled[:,0])
         chosen_qs = np.where(rank_q_k == 1)  # Possibly many qs with rank 1
         bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
         has_acceptable_stability = set(chosen_qs[0]).issubset(set(bests[0]))
-        # TODO: Can we iterate over chosen_qs to check for 0s in r,s?
+
         if has_acceptable_stability and has_acceptable_advantage:
             # Our solution was good
             compromise_set = np.where(rank_q_k == 1)
         elif not has_acceptable_stability and has_acceptable_advantage:
             # When unstable, top 2 ranks are chosen
             compromise_set = np.where(rank_q_k <= 2)
-            # TODO: Check whether to include all ranked 2nd or only one
         else:
             # If all fails, include all that would have acceptable advantage
             compromise_set = qs_with_acceptable_advantage
 
-        # This include all variables in compromise set to rank 1. Maybe can be an option ?
+        # Reorder ranking so alternatives in compromise set tie at rank 1
         if self.use_compromise_set:
             max_compromise_rank = np.max(rank_q_k[compromise_set])
             rank_q_k = np.where(
@@ -199,9 +193,5 @@ class VIKOR(SKCDecisionMakerABC):
             "acceptable_stability": bool(has_acceptable_stability),
             "compromise_set": compromise_set[0],
         }
-        # TODO: Compromise set should probably return the names of alternatives
-        #       not their indices
-        # TODO: Should compromise_set affect rank_q_k?
 
-        # return
         return rank_q_k, extra
