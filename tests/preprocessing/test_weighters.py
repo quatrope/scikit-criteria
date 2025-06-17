@@ -29,7 +29,6 @@ from skcriteria.preprocessing.weighters import (
     CRITIC,
     Critic,
     MEREC,
-    Merec,
     EntropyWeighter,
     EqualWeighter,
     SKCWeighterABC,
@@ -37,8 +36,7 @@ from skcriteria.preprocessing.weighters import (
     critic_weights,
     pearson_correlation,
     spearman_correlation,
-    invert_objectives,
-    SumScaler
+    Objective
 )
 
 
@@ -446,23 +444,35 @@ def test_MEREC_():
     Data from:
     """
 
-    dm = skcriteria.mkdm(
-        matrix=[
+    matrix = np.array(
+        [
             [450, 8000, 54, 145],
             [10, 9100, 2, 160],
             [100, 8200, 31, 153],
             [220, 9300, 1, 162],
             [5, 8400, 23, 158]
-        ],
-        objectives=[max, max, min, min],
-        weights=[61, 1.08, 4.33],
+        ]
     )
     
-    inverter = invert_objectives.InvertMinimize()
-    dm = inverter.transform(dm)
-    
-    scaler = SumScaler(target="matrix")
-    dm = scaler.transform(dm)
+    objectives = [max, max, min, min]
+    weights = [1, 1, 1, 1]
+
+    where_max = np.array([obj is max for obj in objectives])
+
+    maxs = matrix.max(axis=0)
+    mins = matrix.min(axis=0)
+
+    normalized_matrix = np.where(
+        where_max,
+        mins / matrix,
+        matrix / maxs
+    )
+
+    dm = skcriteria.mkdm(
+        matrix=normalized_matrix,
+        objectives=objectives,
+        weights=weights
+    )
 
     expected = skcriteria.mkdm(
             matrix=[
@@ -472,7 +482,7 @@ def test_MEREC_():
                 [0.023, 0.860, 0.019, 1],
                 [1, 0.952, 0.426, 0.975]
             ],
-            objectives=[max, max, max, max],
+            objectives=[max, max, min, min],
             weights=[0.5752, 0.0141, 0.4016, 0.0091],
     )
     
