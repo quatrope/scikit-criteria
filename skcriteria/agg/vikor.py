@@ -27,15 +27,6 @@ with hidden():
     from skcriteria.preprocessing.scalers import matrix_scale_by_cenit_distance
 
 
-def DEBUG(*ass):
-    from inspect import currentframe as c
-
-    f = c().f_back
-    for a in ass:
-        n = [k for k, v in f.f_locals.items() if v is a] + ["?"]
-        print(f.f_lineno, n[0], a)
-
-
 # =============================================================================
 # VIKOR
 # =============================================================================
