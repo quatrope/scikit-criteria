@@ -93,6 +93,10 @@ def generate_acyclic_graphs(
     cycles = list(nx.simple_cycles(graph))
     max_possible_attempts = 2 * max_graphs
 
+    # If the graph is already acyclic, return it with no edges removed
+    if nx.is_directed_acyclic_graph(graph):
+        return [(graph.copy(), set())]
+
     # Validate strategy
     if strategy not in _CYCLE_REMOVAL_STRATEGIES:
         available_strategies = list(_CYCLE_REMOVAL_STRATEGIES.keys())
