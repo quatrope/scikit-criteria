@@ -445,43 +445,50 @@ class Critic(CRITIC):
 
 def merec_weights(matrix):
     """Execute the MEREC method without any validation."""
-    
+
     matrix = np.asarray(matrix, dtype=float)
     n_criteria = matrix.shape[1]
-    
+
     performance = np.log(1 + np.mean(np.abs(np.log(matrix)), axis=1))
+
+    matrix_calc = np.abs(np.log(matrix))
     
     mask = np.ones((n_criteria, n_criteria)) - np.eye(n_criteria)
-    masked_matrix = matrix[:, None,:] * mask[None, :, :]
-    performance_reduce = masked_matrix.sum(axis=2)
+    masked_matrix = matrix_calc[:, None,:] * mask[None, :, :]
+    performance_reduce =  np.log(1 + (masked_matrix.sum(axis=2)*(1/n_criteria)))
     
-    deviations = np.sum(np.abs(performance_reduce - performance), axis = 0)
+    matrix_sum = np.sum(matrix_calc, axis=1)
+    matrix_sum = np.tile(matrix_sum, (n_criteria, 1))
+    matrix_sum = matrix_sum.T
+    matrix_calc = matrix_sum - matrix_calc
+    performance_reduce = np.log(1 + matrix_calc/n_criteria)
+    
+    #performance = np.tile(performance, (n_criteria, 1))
+    #performance = performance.T
+    #deviations = np.sum(np.abs(performance_reduce - performance), axis = 0)
+    deviations = np.sum(np.abs(performance_reduce - performance[:, None]), axis = 0)
     
     weights = deviations / np.sum(deviations)
-    
+
     return weights
-        
+
 
 class MEREC(SKCWeighterABC):
     """  MEREC: Method based on the Removal Effects of Criteria.
 
     This method assigns objective weights to each criterion based on its
     removal effect on the overall performance of alternatives. The greater       TO DO: falta parametro y warnings
-    the impact of removing a criterion, the higher its weight.    
-    
+    the impact of removing a criterion, the higher its weight.
+
     Reference
     ---------
     :cite:p:`keshavarz2021determination`
     """
-    
+
+    _skcriteria_parameters = []
+
     @doc_inherit(SKCWeighterABC._weight_matrix)
-    def _weight_matrix(self, matrix, objectives, **kwargs):
-        if Objective.MIN.value in objectives:
-            warnings.warn(
-                "Although MEREC can operate with minimization objectives, "
-                "this is not recommended. Consider reversing the weights "
-                "for these cases."
-            )
+    def _weight_matrix(self, matrix, **kwargs):
 
         return merec_weights(
             matrix

@@ -28,6 +28,8 @@ import skcriteria
 from skcriteria.preprocessing.weighters import (
     CRITIC,
     Critic,
+    MEREC,
+    Merec,
     EntropyWeighter,
     EqualWeighter,
     SKCWeighterABC,
@@ -35,6 +37,8 @@ from skcriteria.preprocessing.weighters import (
     critic_weights,
     pearson_correlation,
     spearman_correlation,
+    invert_objectives,
+    SumScaler
 )
 
 
@@ -430,3 +434,49 @@ def test_spearman_correlation_with_deprecation_warning():
         result = spearman_correlation(mtx.T)
 
     np.testing.assert_allclose(result, expected)
+    
+    
+# =============================================================================
+# MEREC
+# =============================================================================
+
+
+def test_MEREC_():
+    """
+    Data from:
+    """
+
+    dm = skcriteria.mkdm(
+        matrix=[
+            [450, 8000, 54, 145],
+            [10, 9100, 2, 160],
+            [100, 8200, 31, 153],
+            [220, 9300, 1, 162],
+            [5, 8400, 23, 158]
+        ],
+        objectives=[max, max, min, min],
+        weights=[61, 1.08, 4.33],
+    )
+    
+    inverter = invert_objectives.InvertMinimize()
+    dm = inverter.transform(dm)
+    
+    scaler = SumScaler(target="matrix")
+    dm = scaler.transform(dm)
+
+    expected = skcriteria.mkdm(
+            matrix=[
+                [0.011, 1, 1, 0.895],
+                [0.500, 0.879, 0.037, 0.988],
+                [0.050, 0.976, 0.574, 0.944],
+                [0.023, 0.860, 0.019, 1],
+                [1, 0.952, 0.426, 0.975]
+            ],
+            objectives=[max, max, max, max],
+            weights=[0.5752, 0.0141, 0.4016, 0.0091],
+    )
+    
+    weighter = MEREC()
+    
+    result = weighter.transform(dm)
+    assert result.aequals(expected)
