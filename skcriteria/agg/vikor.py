@@ -22,10 +22,7 @@ with hidden():
 
     import numpy as np
 
-    from scipy.spatial import distance
-
     from ._agg_base import RankResult, SKCDecisionMakerABC
-    from ..core import Objective
     from ..utils import doc_inherit, rank
     from skcriteria.preprocessing.scalers import matrix_scale_by_cenit_distance
 
@@ -45,14 +42,19 @@ def DEBUG(*ass):
 
 
 def _scale(matrix, objectives):
-    """Calculates similarity to Zenith, with 0 indicating equal to Nadir and
-    1 indicating equal to Zenith.
+    """Linearly scale columns in matrix to [0,1], with 1 = Zenith.
+
+    See Also
+    --------
+    skcriteria.preprocessing.scalers.matrix_scale_by_cenit_distance :
+        Underlying scaler, without the meaningful warning.
 
     Warnings
     --------
     UserWarning:
         Division by zero may occur during scaling if any criterion has
-        identical values across all alternatives.
+        identical values across all alternatives, or there is identical
+        group utility or individual regret across all alternatives.
     """
     with np.errstate(divide="warn"):
         with warnings.catch_warnings(record=True) as w:
@@ -60,36 +62,45 @@ def _scale(matrix, objectives):
 
     if len(w) > 0:
         warnings.warn(
-            "Some criteria was equal in all alternatives, so it was ignored. "
-            "Inspect the Decision Matrix for criteria with a single value, "
-            "or the distances r_k, s_k in result.extra_ to know which."
+            "Some criteria (or distance) was equal in all alternatives, "
+            "so it was ignored. Inspect the Decision Matrix for criteria "
+            "with a single value, or the distances r_k, s_k in result.extra_ "
+            "to know which."
         )
 
     return np.nan_to_num(result)
 
 
 class VIKOR(SKCDecisionMakerABC):
-    """The VIKOR (VIseKriterijumska Optimizacija I Kompromisno Resenje) Method for Multi-Criteria Decision Making.
+    """The VIKOR Method for Multi-Criteria Decision Making.
 
-    VIKOR introduces the concept of a compromise solution, which is a feasible solution that is closest to the ideal,
-    and represents a balance between the majority rule (group utility) and the individual regret of the opponent.
+    VIKOR (VIseKriterijumska Optimizacija I Kompromisno Resenje)
+    introduces the concept of a compromise solution, which is a feasible
+    solution that is closest to the ideal, and represents a balance
+    between the majority rule (group utility) and the individual regret
+    of the opponent.
 
-    The method evaluates alternatives by converting an n-criteria decision problem into a bi-criteria one using
-    the Manhattan distance (S_k) and the Chebyshev distance (R_k). These are then combined into a single aggregated
-    score (Q_k) using a weight factor `v` that reflects the decision-making strategy: emphasis on group utility (low `v`)
-    or individual regret (high `v`).
+    The method evaluates alternatives by converting an n-criteria
+    decision problem into a bi-criteria one using the Manhattan distance
+    (S_k) and the Chebyshev distance (R_k). These are then combined into
+    a single aggregated score (Q_k) using a weight factor `v` that
+    reflects the decision-making strategy: emphasis on group utility
+    (low `v`) or individual regret (high `v`).
 
-    VIKOR allows the identification of a compromise solution if the following two conditions are met:
-    - Acceptable advantage: The best-ranked alternative is sufficiently better than the second.
-    - Acceptable stability: The best-ranked alternative must also be the best in at least one of the original distance metrics.
+    VIKOR allows the identification of a compromise solution if the
+    following two conditions are met:
+    - Acceptable advantage: The best-ranked alternative is sufficiently
+    better than the second.
+    - Acceptable stability: The best-ranked alternative must also be the
+    best in at least one of the original distance metrics.
 
     Parameters
     ----------
     v : float, optional, default=0.5
         The strategy weight that reflects the decision-making tendency.
-        `v = 0` gives full weight to the Chebyshev distance (individual regret),
-        `v = 1` gives full weight to the Manhattan distance (group utility),
-        and `v = 0.5` balances both.
+        `v = 0` gives full weight to the Chebyshev distance (individual
+        regret), `v = 1` gives full weight to the Manhattan distance
+        (group utility), and `v = 0.5` balances both.
         Must satisfy 0 <= v <= 1.
 
     use_compromise_set : bool, optional, default=True
@@ -100,7 +111,9 @@ class VIKOR(SKCDecisionMakerABC):
     Warnings
     --------
     UserWarning:
-        Division by zero may occur during scaling if any criterion has identical values across all alternatives.
+        Division by zero may occur during scaling if any criterion has
+        identical values across all alternatives, or there is identical
+        group utility or individual regret across all alternatives.
 
     References
     ----------
@@ -117,12 +130,15 @@ class VIKOR(SKCDecisionMakerABC):
 
     @property
     def v(self):
+        """The strategy weight for VIKOR."""
         return self._v
 
     @property
     def use_compromise_set(self):
+        """Whether to use the compromise set in ranking."""
         return self._use_compromise_set
 
+    @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
             method="VIKOR",
@@ -131,6 +147,7 @@ class VIKOR(SKCDecisionMakerABC):
             extra=extra,
         )
 
+    @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         # (a): Scale the matrix by distance to zenith
         # _scale maps zenith to 1. We want the opposite so we invert objectives
