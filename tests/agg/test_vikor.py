@@ -29,34 +29,29 @@ from skcriteria.agg.vikor import VIKOR
 # =============================================================================
 
 
-@pytest.mark.xfail(
-    reason="This divides by zero and VIKOR does not check for it"
+@pytest.mark.parametrize(
+    "matrix",
+    [
+        pytest.param([[1, 0, 3], [5, 0, 6]], id="criterion_all_equals"),
+        pytest.param([[1, 0, 3], [0, 5, 6]], id="regret_all_equals"),
+    ],
 )
-def test_VIKOR_old():
-    dm = skcriteria.mkdm(
-        matrix=[[1, 0, 3], [0, 5, 6]],
-        objectives=[max, max, max],
-    )
+def test_VIKOR_warn_zerodiv(matrix):
+    """Test that VIKOR warns when a scaling causes a divison by zero.
 
-    expected = RankResult(
-        "VIKOR",
-        ["A0", "A1"],
-        [2, 1],
-        {
-            "ideal": [1, 5, 6],
-            "anti_ideal": [0, 0, 3],
-            "similarity": [0.14639248, 0.85360752],
-        },
-    )
+    This can happen when a criterion has the same value across all alternatives
+    or when R_k (regret, or max distance) or S_k are equal for all alternatives
+    and it results in the criterion (or R_k or S_k) being ignored.
+    """
+    dm = skcriteria.mkdm(matrix=matrix, objectives=[max, max, max])
+
+    expected = RankResult("VIKOR", ["A0", "A1"], [1, 1], {})
 
     ranker = VIKOR()
-    result = ranker.evaluate(dm)
-
-    assert result.values_equals(expected)
+    with pytest.warns(UserWarning):
+        result = ranker.evaluate(dm)
+    assert np.all(result.alternatives == expected.alternatives)
     assert result.method == expected.method
-    assert np.all(result.e_.ideal == expected.e_.ideal)
-    assert np.allclose(result.e_.anti_ideal, expected.e_.anti_ideal)
-    assert np.allclose(result.e_.similarity, expected.e_.similarity)
 
 
 def test_VIKOR():

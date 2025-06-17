@@ -97,6 +97,7 @@ class VIKOR(SKCDecisionMakerABC):
     ----------
     :cite:p:`opricovic2004compromise`
     """
+
     _skcriteria_parameters = ["v", "use_compromise_set"]
 
     def __init__(self, *, v=0.5, use_compromise_set=True):
