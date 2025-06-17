@@ -79,9 +79,7 @@ class VIKOR(SKCDecisionMakerABC):
 
     References
     ----------
-    :cite:p:`ouedraogo2020comparative`
-    :cite:p:`serdar2017comparison`
-    :cite:p:`eolssvikor`
+    :cite:p:`opricovic2004compromise`
     """
     _skcriteria_parameters = ["v", "use_compromise_set"]
 
