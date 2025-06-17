@@ -131,11 +131,8 @@ def test_VIKOR_invalid_v():
         VIKOR(v=-0.1)
 
 
-# TODO: 0.415 <= w1 <= 0.630 should not change compromise_set
-# TODO: otherwise, 0.366 <= w1 <= 0.746 compromise_set should be [0,1]
-@pytest.mark.parametrize("w1", [0.5])
 @pytest.mark.parametrize("alt", [True, False])
-def test_VIKOR_opricovic2004compromise(w1, alt):
+def test_VIKOR_opricovic2004compromise(alt):
     """
     Data from:
         Opricovic, S., & Tzeng, G. H. (2004).
@@ -157,7 +154,7 @@ def test_VIKOR_opricovic2004compromise(w1, alt):
 
     dm = skcriteria.mkdm(
         matrix=matrix,
-        weights=[w1, 1 - w1],
+        weights=[0.5, 0.5],
         objectives=[min, max],
         alternatives=["A1", "A2", "A3"],
         criteria=["Risk", "Altitude"],
@@ -180,5 +177,4 @@ def test_VIKOR_opricovic2004compromise(w1, alt):
     ranker = VIKOR()
     result = ranker.evaluate(dm)
 
-    diff = expected.diff(result)
-    assert not diff.has_differences, diff
+    assert expected == result
