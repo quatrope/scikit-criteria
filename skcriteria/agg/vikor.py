@@ -33,7 +33,7 @@ with hidden():
 
 
 def _scale(matrix, objectives):
-    """Linearly scale columns in matrix to [0,1], with 1 = Zenith.
+    """Scale columns in matrix to [0,1], indicating distance to Zenith.
 
     See Also
     --------
@@ -47,6 +47,10 @@ def _scale(matrix, objectives):
         identical values across all alternatives, or there is identical
         group utility or individual regret across all alternatives.
     """
+    # matrix_scale_by_cenit_distance maps zenith to 1.
+    # We want the opposite so we invert objectives
+    objectives = np.asarray(objectives, dtype=float) * -1
+
     with np.errstate(divide="warn"):
         with warnings.catch_warnings(record=True) as w:
             result = matrix_scale_by_cenit_distance(matrix, objectives)
@@ -73,17 +77,23 @@ class VIKOR(SKCDecisionMakerABC):
 
     The method evaluates alternatives by converting an n-criteria
     decision problem into a bi-criteria one using the Manhattan distance
-    (S_k) and the Chebyshev distance (R_k). These are then combined into
-    a single aggregated score (Q_k) using a weight factor `v` that
-    reflects the decision-making strategy: emphasis on group utility
-    (low `v`) or individual regret (high `v`).
+    (:math:`S_k`, or group utility) and the Chebyshev distance
+    (:math:`R_k`, or individual regret). These are then combined into
+    a single aggregated score (:math:`Q_k`) using a weight factor
+    :math:`v` that reflects the decision-making strategy: emphasis on
+    group utility (high :math:`v`) or individual regret (low :math:`v`).
 
-    VIKOR allows the identification of a compromise solution if the
-    following two conditions are met:
-    - Acceptable advantage: The best-ranked alternative is sufficiently
-    better than the second.
-    - Acceptable stability: The best-ranked alternative must also be the
-    best in at least one of the original distance metrics.
+    VIKOR allows the identification of a single compromise solution if
+    the following two conditions are met:
+
+    - Acceptable advantage:
+        The best-ranked alternative is sufficiently better than the
+        second.
+    - Acceptable stability:
+        The best-ranked alternative must also be the best in at least
+        one of the original distance metrics.
+
+    Otherwise, it identifies a set of compromise solutions.
 
     Parameters
     ----------
@@ -92,12 +102,13 @@ class VIKOR(SKCDecisionMakerABC):
         `v = 0` gives full weight to the Chebyshev distance (individual
         regret), `v = 1` gives full weight to the Manhattan distance
         (group utility), and `v = 0.5` balances both.
-        Must satisfy 0 <= v <= 1.
+        Must satisfy `0 <= v <= 1`.
 
     use_compromise_set : bool, optional, default=True
         If True, all alternatives within the identified compromise set
         are ranked equally at the top position (rank 1).
-        If False, only the best Q_k remains at the top rank.
+        If False, only the best :math:`Q_k` remains at the top rank, and
+        it is up to the user to examine the compromise set afterwards.
 
     Warnings
     --------
@@ -141,15 +152,14 @@ class VIKOR(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         # (a): Scale the matrix by distance to zenith
-        # _scale maps zenith to 1. We want the opposite so we invert objectives
-        matrix_scaled = _scale(matrix, objectives * -1) * weights
+        matrix_scaled = _scale(matrix, objectives) * weights
 
         # (b): Compute Manhattan distance (S) and Chebyshev distance (R)
         distances_matrix = np.column_stack(
             (np.sum(matrix_scaled, axis=1), np.max(matrix_scaled, axis=1))
         )
-
-        distances_matrix_scaled = _scale(distances_matrix, [1, 1])
+        # Scaling to minimize distances
+        distances_matrix_scaled = _scale(distances_matrix, [-1, -1])
         # (c): Compute Q: weighted sum of our distances with weights [v, 1-v]
         q_k = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
         # (d): Rank them
