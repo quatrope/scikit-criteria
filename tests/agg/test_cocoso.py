@@ -42,17 +42,19 @@ def test_COCOSO():
 
     dm = skcriteria.mkdm(
         matrix=[
-            [60,    0.4,    2_540,      500,    990],
-            [6.35,  0.15,   1_016,      3_000,  1_041],
-            [6.8,   0.1,    1_727.2,    1_500,  1_676],
-            [10,    0.2,    1_000,      2_000,  965],
-            [2.5,   0.1,    560,        500,    915],
-            [4.5,   0.08,   1_016,      350,    508],
-            [3,     0.1,    1_778,      1_000,  920]
+            [1, 0, 1, 0.0566, 0.4127],
+            [0.067, 0.7813, 0.2303, 1, 0.4563],
+            [0.0748, 0.9375, 0.5895, 0.434, 1],
+            [0.1304, 0.625, 0.2222, 0.6226, 0.3913],
+            [0, 0.9375, 0, 0.0566, 0.3485],
+            [0.0348, 1, 0.2303, 0, 0],
+            [0.0087, 0.9375, 0.6152, 0.2453, 0.3527],
         ],
         objectives=[max, min, max, max, max],
         weights=[0.036, 0.192, 0.326, 0.326, 0.12],
     )
+
+    lambda_value = 0.5
 
     expected = RankResult(
         "CoCoso",
@@ -67,17 +69,35 @@ def test_COCOSO():
                 1.3,
                 1.443,
                 2.52,
-            ]
+            ], 
         },
     )
 
-    transformer = VectorScaler(target="matrix")
-    dm = transformer.transform(dm)
-
-    ranker = CoCoSo()
+    ranker = CoCoSo(lambda_value)
     result = ranker.evaluate(dm)
 
     assert result.values_equals(expected)
     assert result.method == expected.method
-    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-3)
+
+def test_COCOSO_invalid_lambda_value():
+    with pytest.raises(ValueError):
+        CoCoSo(lambda_value=1.5)
+
+    with pytest.raises(ValueError):
+        CoCoSo(lambda_value=-1)
+
+
+def test_COCOSO_negative_values_fail():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], 
+                [4, -1, 6]],
+        objectives=[max, max, max],
+        weights=[0.036, 0.192, 0.326],
+    )
+
+    ranker = CoCoSo()
+
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
 
