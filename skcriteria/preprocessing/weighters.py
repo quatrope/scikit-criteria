@@ -441,41 +441,50 @@ class Critic(CRITIC):
 
 def gini_weights(matrix):
     """
-
+    Computes the weights for each criterion of the matrix by calculating
+    the Gini coefficient of each column, and normalizing this value to
+    assign the weights.
     """
     n, m = matrix.shape
-    
+
     # mean per column (criterion)
     col_means = np.mean(matrix, axis=0)  # shape (m,)
-    
+
     # Expand matrix for broadcasting:
     # matrix[:, :, None] shape (n, m, 1)
     # matrix[:, None, :] shape (n, 1, m)
     # We want pairwise differences along rows for each column:
-    
+
     # Compute absolute differences along the rows for each column:
     # Result shape (n, n, m)
     diff = np.abs(matrix[:, None, :] - matrix[None, :, :])
-    
+
     # Sum differences for each (j, column i) over k (axis=1)
     sum_diff_per_j = np.sum(diff, axis=1)  # shape (n, m)
-    
+
     # Divide by denominator: 2 * n^2 * mean of each column (broadcast)
     denom = 2 * n**2 * col_means  # shape (m,)
-    
+
     values = sum_diff_per_j / denom  # shape (n, m)
-    
+
     # Sum over j (axis=0) to get weights per column
     weights = np.sum(values, axis=0)  # shape (m,)
-    
+
     # Normalize weights
     return weights / np.sum(weights)
 
 
-
 class GiniWeighter(SKCWeighterABC):
     """
-
+    The method aims at the determination of objective weights of relative
+    importance in MCDM problems. It uses the Gini coefficient of the data of
+    each criterion to assign the weights, giving a higher weight to a more
+    unequal distribution. It takes the decision matrix as a parameter.
+    See:
+        G. Li and G. Chi, "A New Determining Objective Weights Method-Gini
+        Coefficient Weight," 2009 First International Conference on
+        Information Science and Engineering, Nanjing, China, 2009,
+        pp. 3726-3729, doi: 10.1109/ICISE.2009.84.
     """
 
     _skcriteria_parameters = []
