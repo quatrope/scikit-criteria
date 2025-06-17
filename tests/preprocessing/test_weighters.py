@@ -28,15 +28,14 @@ import skcriteria
 from skcriteria.preprocessing.weighters import (
     CRITIC,
     Critic,
-    MEREC,
     EntropyWeighter,
     EqualWeighter,
+    MEREC,
     SKCWeighterABC,
     StdWeighter,
     critic_weights,
     pearson_correlation,
     spearman_correlation,
-    Objective
 )
 
 
@@ -439,9 +438,14 @@ def test_spearman_correlation_with_deprecation_warning():
 # =============================================================================
 
 
-def test_MEREC_():
+def test_MEREC_keshavarz2021determination():
     """
     Data from:
+        Keshavarz-Ghorabaee, M., Amiri, M., Zavadskas, E. K., Turskis, Z.,
+        & Antucheviciene, J. (2021).
+        Determination of objective weights using a new method based on the
+        removal effects of criteria (MEREC).
+        Symmetry, 13(4), 525.
     """
 
     matrix = np.array(
@@ -450,7 +454,7 @@ def test_MEREC_():
             [10, 9100, 2, 160],
             [100, 8200, 31, 153],
             [220, 9300, 1, 162],
-            [5, 8400, 23, 158]
+            [5, 8400, 23, 158],
         ]
     )
 
@@ -462,28 +466,22 @@ def test_MEREC_():
     maxs = matrix.max(axis=0)
     mins = matrix.min(axis=0)
 
-    normalized_matrix = np.where(
-        where_max,
-        mins / matrix,
-        matrix / maxs
-    )
+    normalized_matrix = np.where(where_max, mins / matrix, matrix / maxs)
 
     dm = skcriteria.mkdm(
-        matrix=normalized_matrix,
-        objectives=objectives,
-        weights=weights
+        matrix=normalized_matrix, objectives=objectives, weights=weights
     )
 
     expected = skcriteria.mkdm(
-            matrix=[
-                [0.011, 1, 1, 0.895],
-                [0.500, 0.879, 0.037, 0.988],
-                [0.050, 0.976, 0.574, 0.944],
-                [0.023, 0.860, 0.019, 1],
-                [1, 0.952, 0.426, 0.975]
-            ],
-            objectives=[max, max, min, min],
-            weights=[0.5752, 0.0141, 0.4016, 0.0091],
+        matrix=[
+            [0.011, 1, 1, 0.895],
+            [0.500, 0.879, 0.037, 0.988],
+            [0.050, 0.976, 0.574, 0.944],
+            [0.023, 0.860, 0.019, 1],
+            [1, 0.952, 0.426, 0.975],
+        ],
+        objectives=[max, max, min, min],
+        weights=[0.5752, 0.0141, 0.4016, 0.0091],
     )
 
     weighter = MEREC()

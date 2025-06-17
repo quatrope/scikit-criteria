@@ -443,41 +443,40 @@ class Critic(CRITIC):
 # MEREC
 # =============================================================================
 
+
 def merec_weights(matrix):
     """Execute the MEREC method without any validation."""
-    #The paper:
-    #   Keshavarz Ghorabaee, M., Zavadskas, E. K., Olfat, L., Turskis, Z., & Antucheviciene, J. (2021).
-    #    Determination of objective weights using a method based on the removal effects of criteria (MEREC).
-
     matrix = np.asarray(matrix, dtype=float)
     n_criteria = matrix.shape[1]
 
-    # Compute overall performance for each alternative using all criteria.
-    performance = np.log(1 + np.mean(np.abs(np.log(matrix)), axis=1, keepdims=True))
+    # overall performance of each alternative using all criteria.
+    performance = np.log(
+        1 + np.mean(np.abs(np.log(matrix)), axis=1, keepdims=True)
+    )
 
-    # Compute the performance of each alternative after removing each criterion.
+    # performance of each alternative after removing each criterion.
     log_matrix = np.abs(np.log(matrix))
-    total_log_per_alt = np.sum(log_matrix, axis=1, keepdims=True)
+    exclusion_mask = np.ones((n_criteria, n_criteria)) - np.eye(
+        n_criteria
+    )  # mask to exclude one criterion at a time
+    performance_reduce = np.log(1 + (log_matrix @ exclusion_mask) / n_criteria)
 
-    log_without_criterion = total_log_per_alt - log_matrix
+    # deviations between full and reduced performance.
+    deviations = np.sum(np.abs(performance_reduce - performance), axis=0)
 
-    performance_reduce = np.log(1 + log_without_criterion/n_criteria)
-
-    # Compute deviations between full and reduced performance.
-    deviations = np.sum(np.abs(performance_reduce - performance), axis = 0)
-
-    # Normalize the deviations to obtain criterion weights.
+    # normalize the deviations to obtain criterion weights.
     weights = deviations / np.sum(deviations)
 
     return weights
 
 
 class MEREC(SKCWeighterABC):
-    """  MEREC: Method based on the Removal Effects of Criteria.
+    """MEREC: Method based on the Removal Effects of Criteria.
 
-    This method assigns objective weights to each criterion based on its
-    removal effect on the overall performance of alternatives. The greater
-    the impact of removing a criterion, the higher its weight.
+    The MEREC method computes objective weights for each criterion
+    based on its impact on the overall performance of alternatives
+    when removed. The idea is that the more a criterion affects the
+    total evaluation when excluded, the more important it is.
 
     Reference
     ---------
@@ -488,7 +487,4 @@ class MEREC(SKCWeighterABC):
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
-
-        return merec_weights(
-            matrix
-            )
+        return merec_weights(matrix)
