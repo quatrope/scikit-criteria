@@ -458,14 +458,14 @@ def merec_weights(matrix):
     # Compute the performance of each alternative after removing each criterion.
     log_matrix = np.abs(np.log(matrix))
     total_log_per_alt = np.sum(log_matrix, axis=1, keepdims=True)
-    
+
     log_without_criterion = total_log_per_alt - log_matrix
-    
+
     performance_reduce = np.log(1 + log_without_criterion/n_criteria)
-    
+
     # Compute deviations between full and reduced performance.
     deviations = np.sum(np.abs(performance_reduce - performance), axis = 0)
-    
+
     # Normalize the deviations to obtain criterion weights.
     weights = deviations / np.sum(deviations)
 
@@ -476,7 +476,7 @@ class MEREC(SKCWeighterABC):
     """  MEREC: Method based on the Removal Effects of Criteria.
 
     This method assigns objective weights to each criterion based on its
-    removal effect on the overall performance of alternatives. The greater       TO DO: falta parametro y warnings
+    removal effect on the overall performance of alternatives. The greater
     the impact of removing a criterion, the higher its weight.
 
     Reference

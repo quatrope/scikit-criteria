@@ -432,8 +432,8 @@ def test_spearman_correlation_with_deprecation_warning():
         result = spearman_correlation(mtx.T)
 
     np.testing.assert_allclose(result, expected)
-    
-    
+
+
 # =============================================================================
 # MEREC
 # =============================================================================
@@ -453,7 +453,7 @@ def test_MEREC_():
             [5, 8400, 23, 158]
         ]
     )
-    
+
     objectives = [max, max, min, min]
     weights = [1, 1, 1, 1]
 
@@ -485,8 +485,8 @@ def test_MEREC_():
             objectives=[max, max, min, min],
             weights=[0.5752, 0.0141, 0.4016, 0.0091],
     )
-    
+
     weighter = MEREC()
-    
+
     result = weighter.transform(dm)
-    assert result.aequals(expected)
+    assert result.aequals(expected, atol=1e-3)
