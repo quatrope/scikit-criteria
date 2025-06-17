@@ -58,6 +58,7 @@ classifiers = [
 urls = { Homepage = "https://scikit-criteria.quatrope.org/", Repository = "https://github.com/quatrope/scikit-criteria" }
 dependencies = [
     "numpy>=2.0",
+    "networkx>=3.2",
     "pandas",
     "scipy",
     "jinja2",

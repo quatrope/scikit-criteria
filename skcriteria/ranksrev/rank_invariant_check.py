@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 
 from ..agg import RankResult
-from ..cmp import RanksComparator
+from ..cmp.ranks_cmp import RanksComparator
 from ..core import SKCMethodABC
 from ..utils import Bunch, unique_names
 
