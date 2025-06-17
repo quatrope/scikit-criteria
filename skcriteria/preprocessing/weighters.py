@@ -440,40 +440,44 @@ class Critic(CRITIC):
 
 
 def gini_weights(matrix):
+    r"""
+    Calculates weights using the Gini coefficient.
+
+    Computes the weights for each criterion (column) of the input matrix by
+    calculating the Gini coefficient of each column, then normalizing those
+    values to sum to 1.
+
+    The columns are sorted to use the more efficient formula for the
+    Gini coefficient:
+
+    .. math::
+
+        G = \frac{1}{n} \left( n + 1 - 2 \cdot \frac{
+        \sum_{i=1}^n \left( \sum_{j=1}^i x_j \right)
+        }{
+        \sum_{i=1}^n x_i
+        } \right)
+
+    Parameters
+    ----------
+    matrix : ndarray of shape (n_samples, n_criteria)
+        The decision matrix where each column represents a criterion.
+
+    Returns
+    -------
+    weights : ndarray of shape (n_criteria,)
+        The normalized weights derived for each column.
     """
-    Calculates weights with Gini coefficient.
+    n = matrix.shape[0]
 
-    Computes the weights for each criterion of the matrix by calculating
-    the Gini coefficient of each column, and normalizing this value to
-    assign the weights.
-    """
-    n, m = matrix.shape
+    sorted_columns = np.sort(matrix, axis=0)
+    cumulative_sums = np.cumsum(sorted_columns, axis=0)
+    column_totals = cumulative_sums[-1]
+    cumulative_totals = np.sum(cumulative_sums, axis=0)
 
-    # mean per column (criterion)
-    col_means = np.mean(matrix, axis=0)  # shape (m,)
+    gini = (n + 1 - 2 * cumulative_totals / column_totals) / n
 
-    # Expand matrix for broadcasting:
-    # matrix[:, :, None] shape (n, m, 1)
-    # matrix[:, None, :] shape (n, 1, m)
-    # We want pairwise differences along rows for each column:
-
-    # Compute absolute differences along the rows for each column:
-    # Result shape (n, n, m)
-    diff = np.abs(matrix[:, None, :] - matrix[None, :, :])
-
-    # Sum differences for each (j, column i) over k (axis=1)
-    sum_diff_per_j = np.sum(diff, axis=1)  # shape (n, m)
-
-    # Divide by denominator: 2 * n^2 * mean of each column (broadcast)
-    denom = 2 * n**2 * col_means  # shape (m,)
-
-    values = sum_diff_per_j / denom  # shape (n, m)
-
-    # Sum over j (axis=0) to get weights per column
-    weights = np.sum(values, axis=0)  # shape (m,)
-
-    # Normalize weights
-    return weights / np.sum(weights)
+    return gini / np.sum(gini)
 
 
 class GiniWeighter(SKCWeighterABC):
