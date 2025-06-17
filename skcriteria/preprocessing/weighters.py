@@ -457,16 +457,6 @@ def gini_weights(matrix):
         }{
         \sum_{i=1}^n x_i
         } \right)
-
-    Parameters
-    ----------
-    matrix : ndarray of shape (n_samples, n_criteria)
-        The decision matrix where each column represents a criterion.
-
-    Returns
-    -------
-    weights : ndarray of shape (n_criteria,)
-        The normalized weights derived for each column.
     """
     n = matrix.shape[0]
 
