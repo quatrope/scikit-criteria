@@ -44,6 +44,45 @@ def DEBUG(*ass):
 
 
 class VIKOR(SKCDecisionMakerABC):
+    """The VIKOR (VIseKriterijumska Optimizacija I Kompromisno Resenje) Method for Multi-Criteria Decision Making.
+
+    VIKOR introduces the concept of a compromise solution, which is a feasible solution that is closest to the ideal,
+    and represents a balance between the majority rule (group utility) and the individual regret of the opponent.
+
+    The method evaluates alternatives by converting an n-criteria decision problem into a bi-criteria one using
+    the Manhattan distance (S_k) and the Chebyshev distance (R_k). These are then combined into a single aggregated
+    score (Q_k) using a weight factor `v` that reflects the decision-making strategy: emphasis on group utility (low `v`)
+    or individual regret (high `v`).
+
+    VIKOR allows the identification of a compromise solution if the following two conditions are met:
+    - Acceptable advantage: The best-ranked alternative is sufficiently better than the second.
+    - Acceptable stability: The best-ranked alternative must also be the best in at least one of the original distance metrics.
+
+    Parameters
+    ----------
+    v : float, optional, default=0.5
+        The strategy weight that reflects the decision-making tendency.
+        `v = 0` gives full weight to the Chebyshev distance (individual regret),
+        `v = 1` gives full weight to the Manhattan distance (group utility),
+        and `v = 0.5` balances both.
+        Must satisfy 0 <= v <= 1.
+
+    use_compromise_set : bool, optional, default=True
+        If True, all alternatives within the identified compromise set
+        are ranked equally at the top position (rank 1).
+        If False, only the best Q_k remains at the top rank.
+
+    Warnings
+    --------
+    UserWarning:
+        Division by zero may occur during scaling if any criterion has identical values across all alternatives.
+
+    References
+    ----------
+    :cite:p:`ouedraogo2020comparative`
+    :cite:p:`serdar2017comparison`
+    :cite:p:`eolssvikor`
+    """
     _skcriteria_parameters = ["v", "use_compromise_set"]
 
     def __init__(
