@@ -437,3 +437,52 @@ class CRITIC(SKCWeighterABC):
 @doc_inherit(CRITIC, warn_class=False)
 class Critic(CRITIC):
     pass
+
+
+# =============================================================================
+# MEREC
+# =============================================================================
+
+def merec_weights(matrix):
+    """Execute the MEREC method without any validation."""
+    
+    matrix = np.asarray(matrix, dtype=float)
+    n_criteria = matrix.shape[1]
+    
+    performance = np.log(1 + np.mean(np.abs(np.log(matrix)), axis=1))
+    
+    mask = np.ones((n_criteria, n_criteria)) - np.eye(n_criteria)
+    masked_matrix = matrix[:, None,:] * mask[None, :, :]
+    performance_reduce = masked_matrix.sum(axis=2)
+    
+    deviations = np.sum(np.abs(performance_reduce - performance), axis = 0)
+    
+    weights = deviations / np.sum(deviations)
+    
+    return weights
+        
+
+class MEREC(SKCWeighterABC):
+    """  MEREC: Method based on the Removal Effects of Criteria.
+
+    This method assigns objective weights to each criterion based on its
+    removal effect on the overall performance of alternatives. The greater       TO DO: falta parametro y warnings
+    the impact of removing a criterion, the higher its weight.    
+    
+    Reference
+    ---------
+    :cite:p:`keshavarz2021determination`
+    """
+    
+    @doc_inherit(SKCWeighterABC._weight_matrix)
+    def _weight_matrix(self, matrix, objectives, **kwargs):
+        if Objective.MIN.value in objectives:
+            warnings.warn(
+                "Although MEREC can operate with minimization objectives, "
+                "this is not recommended. Consider reversing the weights "
+                "for these cases."
+            )
+
+        return merec_weights(
+            matrix
+            )
