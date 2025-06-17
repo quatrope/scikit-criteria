@@ -27,6 +27,7 @@ with hidden():
     from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..core import Objective
     from ..utils import doc_inherit, rank
+    from skcriteria.preprocessing.scalers import matrix_scale_by_cenit_distance
 
 
 def DEBUG(*ass):
@@ -41,6 +42,21 @@ def DEBUG(*ass):
 # =============================================================================
 # VIKOR
 # =============================================================================
+
+
+def _scale(matrix, objectives):
+    with np.errstate(divide="warn"):
+        with warnings.catch_warnings(record=True) as w:
+            result = matrix_scale_by_cenit_distance(matrix, objectives)
+
+    if len(w) > 0:
+        warnings.warn(
+            "Some criteria was equal in all alternatives, so it was ignored. "
+            "Inspect the Decision Matrix for criteria with a single value, "
+            "or the distances r_k, s_k in result.extra_ to know which."
+        )
+
+    return np.nan_to_num(result)
 
 
 class VIKOR(SKCDecisionMakerABC):
@@ -83,12 +99,7 @@ class VIKOR(SKCDecisionMakerABC):
     """
     _skcriteria_parameters = ["v", "use_compromise_set"]
 
-    def __init__(
-        self,
-        *,
-        v=0.5,
-        use_compromise_set = True
-    ):
+    def __init__(self, *, v=0.5, use_compromise_set=True):
         self._v = float(v)
         if not (self._v >= 0 and self._v <= 1):
             raise ValueError(f"'v' must be 0 <= v <= 1. Found {self._v}")
@@ -97,7 +108,7 @@ class VIKOR(SKCDecisionMakerABC):
     @property
     def v(self):
         return self._v
-    
+
     @property
     def use_compromise_set(self):
         return self._use_compromise_set
@@ -111,15 +122,12 @@ class VIKOR(SKCDecisionMakerABC):
         )
 
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-        from skcriteria.preprocessing.scalers import (
-            matrix_scale_by_cenit_distance as scale,
-        )
 
         # TODO: Check there are no criteria with only one value, as this will
         #       cause division by zero in the scaling step.
 
         # scale maps zenith to 1. We want the opposite, so we invert objectives
-        matrix_scaled = scale(matrix, objectives * -1) * weights
+        matrix_scaled = _scale(matrix, objectives * -1) * weights
 
         # New criteria: Manhattan distance and Chebyshev distance
         def ncriteria_to_2criteria(alternative):
@@ -132,7 +140,7 @@ class VIKOR(SKCDecisionMakerABC):
         # distances_matrix = np.column_stack((
         #     np.sum(matrix_scaled), np.max(matrix_scaled))
         # ) # Alternative, to be checked
-        distances_matrix_scaled = scale(distances_matrix, [1, 1])
+        distances_matrix_scaled = _scale(distances_matrix, [1, 1])
         # We now do weighted sum of our 2 criteria with weights [v, 1-v]
         q_k = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
         # Rank them
