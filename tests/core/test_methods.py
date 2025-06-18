@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.methods
-
-"""
+"""test for skcriteria.methods"""
 
 
 # =============================================================================
@@ -130,7 +128,26 @@ def test_SKCMethodABC_copy():
             self.foo = foo
             self.faa = faa
 
-    foo = Foo(foo=2, faa=1)
-    copy = foo.copy()
+    original = Foo(foo=2, faa=1)
+    copy = original.copy()
 
-    assert foo.get_parameters() == copy.get_parameters()
+    assert original.get_parameters() == copy.get_parameters()
+
+    with pytest.deprecated_call():
+        original.copy(foo=100)
+
+
+def test_SKCMethodABC_replace():
+    class Foo(methods.SKCMethodABC):
+        _skcriteria_dm_type = "foo"
+        _skcriteria_parameters = ["foo", "faa"]
+
+        def __init__(self, foo, faa):
+            self.foo = foo
+            self.faa = faa
+
+    original = Foo(foo=2, faa=1)
+    copy = original.replace(foo=100)
+
+    assert original.get_parameters() != copy.get_parameters()
+    assert copy.get_parameters() == {"faa": 1, "foo": 100}

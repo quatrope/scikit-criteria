@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -25,6 +25,9 @@ The module offers features for automating the execution and assessment of
 standard tests for rank reversal, primarily focusing on alterations in the
 available options.
 
+This Deprecated backward compatibility layer around
+skcriteria.ranksrev.
+
 """
 
 # =============================================================================
@@ -32,6 +35,7 @@ available options.
 # =============================================================================
 
 from .rank_inv_check import RankInvariantChecker
+from ...utils import deprecate
 
 # =============================================================================
 # ALL
@@ -40,3 +44,21 @@ from .rank_inv_check import RankInvariantChecker
 __all__ = [
     "RankInvariantChecker",
 ]
+
+
+# this will be used in two places
+deprecation_reason = (
+    "'skcriteria.cmp.ranks_rev' package is deprecated, "
+    "use 'skcriteria.ranksrev' instead"
+)
+
+
+deprecate.warn(deprecation_reason)
+
+__doc__ = deprecate.add_sphinx_deprecated_directive(
+    __doc__, version="0.9", reason=deprecation_reason
+)
+
+
+# delete the unused modules and variables
+del deprecation_reason

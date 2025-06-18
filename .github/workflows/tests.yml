@@ -6,9 +6,10 @@ name: Testing
 
 on:
   workflow_call:
+  workflow_dispatch:
 
 env:
-  default-python: '3.10'
+  default-python: '3.11'
 
 jobs:
   build:
@@ -16,17 +17,17 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        tox_env: [py39, py310, py311, py312]
+        tox_env: [py39, py310, py311, py312, py313]
         include:
           - tox_env: style
           - tox_env: docstyle
           - tox_env: check-manifest
           - tox_env: check-testdir
           - tox_env: check-headers
-          - tox_end: check-apidocsdir
-          - tox_env: coverage
+          - tox_env: check-apidocsdir
           - tox_env: mkdocs
             pandoc: true
+            os: ubuntu-22.04
 
     # The operative sistem
     runs-on: ${{ matrix.os || 'ubuntu-latest' }}
@@ -59,3 +60,8 @@ jobs:
 
       - name: tox -re ${{ matrix.tox_env }}
         run: tox -re ${{ matrix.tox_env }}
+
+      # post optionals
+      - name: Coverage
+        if: ${{ startsWith( matrix.tox_env, 'py3' ) }}
+        run: tox -e coverage

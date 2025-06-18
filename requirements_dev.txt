@@ -1,8 +1,11 @@
+-e .
+
 tox
 ipdb
 pytest
-pytest-ordering
 pyquery
+
+black
 
 flake8
 flake8-import-order
@@ -14,5 +17,7 @@ pytest-cov
 
 pydocstyle
 toml
+
+-r docs/requirements.txt
 
 https://github.com/quatrope/qafan/archive/refs/heads/master.zip

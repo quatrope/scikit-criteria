@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.cmp.ranks_cmp
-
-"""
+"""test for skcriteria.cmp.ranks_cmp"""
 
 
 # =============================================================================
@@ -269,6 +267,24 @@ def test_RanksComparator_hash():
     rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
     assert id(rcmp) == hash(rcmp)
+
+
+def test_RanksComparator_extra_get():
+    rank0 = agg.RankResult(
+        "test", ["a", "b"], [1, 1], {"alpha": 1, "bravo": 2}
+    )
+    rank1 = agg.RankResult(
+        "test", ["a", "b"], [1, 1], {"alpha": 1, "delta": 3}
+    )
+    rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
+
+    assert rcmp.extra_get("alpha") == {"test_1": 1, "test_2": 1}
+    assert rcmp.extra_get("bravo") == {"test_1": 2, "test_2": None}
+    assert rcmp.extra_get("delta", "foo") == {"test_1": "foo", "test_2": 3}
+    assert rcmp.extra_get("charly", "foo") == {
+        "test_1": "foo",
+        "test_2": "foo",
+    }
 
 
 def test_RanksComparator_plot():

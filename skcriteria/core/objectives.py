@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -78,7 +78,7 @@ class Objective(enum.Enum):
 
     @classmethod
     def from_alias(cls, alias):
-        """Return a n objective instase based on some given alias."""
+        """Return an objective instance based on some given alias."""
         if isinstance(alias, cls):
             return alias
         if isinstance(alias, str):
@@ -90,6 +90,14 @@ class Objective(enum.Enum):
         raise ValueError(f"Invalid criteria objective {alias}")
 
     # METHODS =================================================================
+
+    def __eq__(self, value: object) -> bool:
+        """Check if the objective is equal to a given value."""
+        try:
+            value = self.from_alias(value)
+        except ValueError:
+            return super().__eq__(value)
+        return self.value == value.value
 
     def __str__(self):
         """Convert the objective to an string."""

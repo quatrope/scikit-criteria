@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.preprocessing.weighters
-
-"""
+"""test for skcriteria.preprocessing.weighters"""
 
 
 # =============================================================================
@@ -284,9 +282,9 @@ def test_CRITIC_diakoulaki1995determining():
             [61, 1.08, 4.33],
             [20.7, 0.26, 4.34],
             [16.3, 1.98, 2.53],
-            [9, 3.29, 1.65],
+            [9.0, 3.29, 1.65],
             [5.4, 2.77, 2.33],
-            [4, 4.12, 1.21],
+            [4.0, 4.12, 1.21],
             [-6.1, 3.52, 2.10],
             [-34.6, 3.31, 0.98],
         ],
@@ -327,7 +325,7 @@ def test_CRITIC_minimize_warning():
         weighter.transform(dm)
 
 
-def test_Critic_bad_correlation():
+def test_CRITIC_bad_correlation():
     with pytest.raises(ValueError):
         CRITIC(correlation="foo")
     with pytest.raises(ValueError):

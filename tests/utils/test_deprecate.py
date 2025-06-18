@@ -2,21 +2,21 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.utils.deprecate
-
-"""
+"""test for skcriteria.utils.deprecate"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
+
+from inspect import cleandoc, getdoc
 
 import pytest
 
@@ -68,12 +68,7 @@ def test_add_sphinx_deprecated_directive_whit_titles():
 
 def test_warn_once():
     with pytest.deprecated_call():
-        deprecate.warn(reason="foo", version=deprecate.ERROR_GE - 0.5)
-
-
-def test_warn_error():
-    with pytest.raises(deprecate.SKCriteriaDeprecationWarning):
-        deprecate.warn(reason="foo", version=deprecate.ERROR_GE)
+        deprecate.warn(reason="foo")
 
 
 def test_deprecated():
@@ -95,7 +90,8 @@ def test_deprecated():
         """
         pass
 
-    expected_doc = """Zaraza.
+    expected_doc = cleandoc(
+        """Zaraza.
 
         Foo
 
@@ -114,6 +110,7 @@ def test_deprecated():
             Nothing to return.
 
         """
+    )
 
     decorator = deprecate.deprecated(reason="because foo", version=0.66)
     func = decorator(func)
@@ -121,11 +118,11 @@ def test_deprecated():
     with pytest.deprecated_call():
         func()
 
-    assert func.__doc__ == expected_doc
+    assert getdoc(func) == expected_doc
 
     # this can be useful to catch bugs
     # print("-" * 100)
-    # print(repr(func.__doc__))
+    # print(repr(getdoc(func)))
     # print(repr(expected_doc))
     # print("-" * 100)
 
@@ -149,7 +146,8 @@ def test_will_change():
         """
         pass
 
-    expected_doc = """Zaraza.
+    expected_doc = cleandoc(
+        """Zaraza.
 
         Foo
 
@@ -168,6 +166,7 @@ def test_will_change():
             Nothing to return.
 
         """
+    )
 
     decorator = deprecate.will_change(reason="because foo", version=0.66)
     func = decorator(func)
@@ -175,10 +174,10 @@ def test_will_change():
     with pytest.warns(deprecate.SKCriteriaFutureWarning):
         func()
 
-    assert func.__doc__ == expected_doc
+    assert getdoc(func) == expected_doc
 
     # this can be useful to catch bugs
     # print("-" * 100)
-    # print(repr(func.__doc__))
+    # print(repr(getdoc(func)))
     # print(repr(expected_doc))
     # print("-" * 100)

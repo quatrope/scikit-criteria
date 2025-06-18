@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -23,16 +23,6 @@ from packaging.version import parse as _vparse
 
 
 # =============================================================================
-# CONSTANTS
-# =============================================================================
-
-# _ If the version of the warning is >= ERROR_GE the action is setted to
-# 'error', otherwise is 'once'.
-ERROR_GE = 1.0
-
-_ERROR_GE_VERSION = _vparse(str(ERROR_GE))
-
-# =============================================================================
 # WARNINGS
 # =============================================================================
 
@@ -44,6 +34,10 @@ class SKCriteriaDeprecationWarning(DeprecationWarning):
 class SKCriteriaFutureWarning(FutureWarning):
     """Skcriteria future warning."""
 
+
+# setup warnings
+warnings.simplefilter("once", category=SKCriteriaDeprecationWarning)
+warnings.simplefilter("once", category=SKCriteriaFutureWarning)
 
 # =============================================================================
 # FUNCTIONS
@@ -111,7 +105,7 @@ def add_sphinx_deprecated_directive(doc, *, reason, version):
     return new_doc
 
 
-def warn(reason, version, *, category=SKCriteriaDeprecationWarning):
+def warn(reason, *, category=SKCriteriaDeprecationWarning):
     """Raises a deprecation warning.
 
     It will result in a warning being emitted immediately
@@ -120,19 +114,11 @@ def warn(reason, version, *, category=SKCriteriaDeprecationWarning):
     ----------
     reason: str
         Reason message which documents the deprecation in your library.
-    version: str
-        Version of your project which marks as  this feature.
-        If you follow the `Semantic Versioning <https://semver.org/>`_,
-        the version number has the format "MAJOR.MINOR.PATCH".
     category: default='SKCriteriaDeprecationWarning'
         Class of the warning.
 
     """
-    version = _vparse(str(version))
-    action = "error" if version >= _ERROR_GE_VERSION else "once"
-    with warnings.catch_warnings():
-        warnings.simplefilter(action, category=category)
-        warnings.warn(reason, category=category, stacklevel=2)
+    warnings.warn(reason, category=category, stacklevel=2)
 
 
 # =============================================================================
@@ -169,7 +155,7 @@ def deprecated(*, reason, version):
         reason=reason,
         version=version,
         category=SKCriteriaDeprecationWarning,
-        action=("error" if _ERROR_GE_VERSION <= version else "once"),
+        action="once",
     )
 
     def _dec(func):

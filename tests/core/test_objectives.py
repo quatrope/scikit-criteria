@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.core.objectives
-
-"""
+"""test for skcriteria.core.objectives"""
 
 
 # =============================================================================
@@ -36,6 +34,25 @@ def test_Objective_from_alias():
         assert objective is objectives.Objective.MIN
     with pytest.raises(ValueError):
         objectives.Objective.from_alias("no anda")
+
+
+def test_Objective_eq():
+    # Assert MIN is equal to all MIN aliases and not equal to all MAX aliases
+    for alias in objectives.Objective._MIN_ALIASES.value:
+        assert objectives.Objective.MIN == alias
+        assert alias == objectives.Objective.MIN
+        assert objectives.Objective.MAX != alias
+        assert alias != objectives.Objective.MAX
+
+    # Assert MAX is equal to all MAX aliases and not equal to all MIN aliases
+    for alias in objectives.Objective._MAX_ALIASES.value:
+        assert objectives.Objective.MAX == alias
+        assert alias == objectives.Objective.MAX
+        assert objectives.Objective.MIN != alias
+        assert alias != objectives.Objective.MIN
+
+    assert objectives.Objective.MIN != "whatever"
+    assert objectives.Objective.MAX != "whatever"
 
 
 def test_Objective_str():

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -28,6 +28,8 @@ with hidden():
     import warnings
 
     import numpy as np
+
+    import pandas as pd
 
     import scipy.stats
 
@@ -325,20 +327,30 @@ def spearman_correlation(arr):
 
 def critic_weights(matrix, objectives, correlation="pearson", scale=True):
     """Execute the CRITIC method without any validation."""
+    # The paper:
+    #   Diakoulaki, D., Mavrotas, G., & Papayannakis, L. (1995).
+    #   Determining objective weights in multiple criteria problems:
+    #   The critic method. Computers & Operations Research, 22(7), 763-770.
+
+    # and equation 1 of the paper
     matrix = np.asarray(matrix, dtype=float)
+
+    # equation 2 an 3 of the paper
     matrix = (
         matrix_scale_by_cenit_distance(matrix, objectives=objectives)
         if scale
         else matrix
     )
 
-    dindex = np.std(matrix, axis=0)
-    import pandas as pd
+    # equation 4
+    corr = pd.DataFrame(matrix).corr(method=correlation).to_numpy(copy=True)
+    one_minus_corr = 1 - corr
 
-    corr_m1 = 1 - pd.DataFrame(matrix).corr(method=correlation).to_numpy(
-        copy=True
-    )
-    uweights = dindex * np.sum(corr_m1, axis=0)
+    # equation 5
+    dindex = np.std(matrix, axis=0)
+    uweights = dindex * np.sum(one_minus_corr, axis=0)
+
+    # equation 6
     weights = uweights / np.sum(uweights)
     return weights
 

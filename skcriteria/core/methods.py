@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -19,6 +19,7 @@ import abc
 import copy
 import inspect
 
+from ..utils import deprecate
 
 # =============================================================================
 # BASE DECISION MAKER CLASS
@@ -100,20 +101,63 @@ class SKCMethodABC(metaclass=abc.ABCMeta):
         return the_parameters
 
     def copy(self, **kwargs):
-        """Return a custom copy of the current decision-maker.
+        """Create a copy of the current SKCMethodABC instance.
 
-        This method is also useful for manually modifying the values of the
-        object.
+        .. deprecated:: 0.9
+            Using kwargs with copy() is deprecated. Use SKCMethodABC.replace()
+            instead.
 
         Parameters
         ----------
-        kwargs :
-            The same parameters supported by object constructor. The values
-            provided replace the existing ones in the object to be copied.
+        **kwargs : dict, optional
+            Keyword arguments to modify attributes in the copied instance.
+            This parameter is deprecated.
 
         Returns
         -------
-        A new object.
+        SKCMethodABC
+            A new instance with the same data as the original.
+
+        See Also
+        --------
+        replace : Preferred method to create a copy with modifications.
+
+        Examples
+        --------
+        >>> method = SKCMethodABC(...)
+        >>> method_copy = method.copy()
+
+        """
+        if kwargs:
+            cls_name = type(self).__name__
+            deprecate.warn(
+                "Passing kwargs to 'copy()' is deprecated, plese use "
+                f"'{cls_name}.replace()' instead."
+            )
+        return self.replace(**kwargs)
+
+    def replace(self, **kwargs):
+        """Create a new instance with updated parameters.
+
+        This method creates a new instance of the class with the same
+        parameters as the current instance, but with the option to override
+        specific parameters through kwargs.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Keyword arguments to override in the new instance. Any parameter
+            that is valid for the class constructor can be specified.
+
+        Returns
+        -------
+        SKCMethodABC
+            A new instance with updated parameters.
+
+        Examples
+        --------
+        >>> method = SKCMethodABC(...)
+        >>> new_method = method.replace(parameter=new_value)
 
         """
         asdict = self.get_parameters()

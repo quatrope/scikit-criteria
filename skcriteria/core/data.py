@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -37,7 +37,7 @@ from .plot import DecisionMatrixPlotter
 from .stats import DecisionMatrixStatsAccessor
 from ..utils import (
     DiffEqualityMixin,
-    deprecated,
+    deprecate,
     df_temporal_header,
     diff,
     doc_inherit,
@@ -467,21 +467,57 @@ class DecisionMatrix(DiffEqualityMixin):
     # UTILITIES ===============================================================
 
     def copy(self, **kwargs):
-        """Return a deep copy of the current DecisionMatrix.
+        """Create a copy of the current DecisionMatrix instance.
 
-        This method is also useful for manually modifying the values of the
-        DecisionMatrix object.
+        .. deprecated:: 0.9
+            Using kwargs with copy() is deprecated. Use
+            DecisionMatrix.replace() instead.
 
         Parameters
         ----------
-        kwargs :
-            The same parameters supported by ``from_mcda_data()``. The values
-            provided replace the existing ones in the object to be copied.
+        **kwargs : dict, optional (deprecated)
+            Keyword arguments to modify attributes in the copied instance.
+            This parameter is deprecated.
 
         Returns
         -------
-        :py:class:`DecisionMatrix`
-            A new decision matrix.
+        DecisionMatrix
+            A new DecisionMatrix instance with the same data as the original.
+
+        See Also
+        --------
+        replace : Preferred method to create a copy with modifications.
+
+        """
+        if kwargs:
+            cls_name = type(self).__name__
+            deprecate.warn(
+                "Passing kwargs to 'copy()' is deprecated, plese use "
+                f"'{cls_name}.replace()' instead."
+            )
+        return self.replace(**kwargs)
+
+    def replace(self, **kwargs):
+        """Create a new DecisionMatrix instance with updated attributes.
+
+        Creates a copy of the current DecisionMatrix and updates it with the
+        provided keyword arguments.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Keyword arguments specifying attributes to modify in the new
+            instance. Any valid DecisionMatrix attribute can be updated.
+
+        Returns
+        -------
+        DecisionMatrix
+            A new DecisionMatrix instance with the updated attributes.
+
+        Examples
+        --------
+        >>> dm = DecisionMatrix(...)
+        >>> new_dm = dm.replace(weights=[0.3, 0.7])
 
         """
         dmdict = self.to_dict()
@@ -539,7 +575,74 @@ class DecisionMatrix(DiffEqualityMixin):
             "criteria": np.array(self.criteria, copy=True),
         }
 
-    @deprecated(
+    def to_latex(self, bold_columns=True, **kwargs):
+        """Generate LaTeX table.
+
+        Parameters
+        ----------
+        bold_columns : bool, default=True
+            If True, bold the columns.
+
+        Same parameters as ``pandas.DataFrame.to_latex()``.
+
+        Returns
+        -------
+        str
+            LaTeX table.
+
+        Notes
+        -----
+        By default, this method uses ``bold_rows=True``.
+
+        """
+        # set default parameter for pandas.DataFrame.to_latex()
+        kwargs.setdefault("bold_rows", True)
+
+        # create a DataFrame version of the DecisionMatrix
+        df = self.to_dataframe()
+
+        # generate the column names
+        columns = (
+            [rf"\textbf{{{col}}}" for col in df.columns]
+            if bold_columns
+            else list(df.columns)
+        )
+
+        # change the column names of the DataFrame
+        # this is a context manager, so it will be reverted automatically
+        with df_temporal_header(df, columns) as df:
+            # generate the latex
+            original_latex = df.to_latex(**kwargs)
+
+        # split the latex in lines
+        latex_lines = original_latex.splitlines()
+
+        # generate the string to search the weights line
+        # this is used to add a line break before the weights row
+        weights_line_starts_with = (
+            r"\textbf{weights} & " if kwargs["bold_rows"] else "weights & "
+        )
+
+        # search the line number of the weights
+        weights_line_number = None
+        for lineno, line in enumerate(latex_lines):
+            if line.startswith(weights_line_starts_with):
+                weights_line_number = lineno
+                break
+
+        # add a line break after the weights row
+        # TODO: this might only work if the pandas stylers are
+        #       configured with the default settings
+        if weights_line_number:  # pragma: no cover
+            latex_lines.insert(weights_line_number + 1, r"\midrule")
+
+        # join the lines again
+        latex = "\n".join(latex_lines)
+
+        # return the final latex
+        return latex
+
+    @deprecate.deprecated(
         reason=(
             "Use ``DecisionMatrix.stats()``, "
             "``DecisionMatrix.stats('describe)`` or "

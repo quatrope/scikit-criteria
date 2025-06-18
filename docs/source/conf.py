@@ -96,7 +96,7 @@ nbsphinx_allow_errors = True
 nbsphinx_prompt_width = "0pt"
 
 nbsphinx_prolog = """
-{% set docname = "docs/source/" + env.doc2path(env.docname, base=False) %}
+{% set docname = "docs/source/" + (env.doc2path(env.docname, base=False) | string) %}
 {% set release = "master" %}
 
 .. |nbsp| unicode:: 0xA0
@@ -186,10 +186,7 @@ todo_include_todos = False
 # a list of builtin themes.
 #
 
-import sphinx_rtd_theme
-
 html_theme = "sphinx_rtd_theme"
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 
 # Add any paths that contain custom static files (such as style sheets) here,

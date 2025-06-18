@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 """Tests for skcriteria/testing.py"""
@@ -61,7 +61,7 @@ def test_assert_dmatrix_equals_not_same_alternatives(decision_matrix):
     alternatives = list(left.alternatives)
     alternatives[0] = alternatives[0] + "_foo"
 
-    right = left.copy(alternatives=alternatives)
+    right = left.replace(alternatives=alternatives)
 
     with pytest.raises(AssertionError):
         testing.assert_dmatrix_equals(left, right)
@@ -73,7 +73,7 @@ def test_assert_dmatrix_equals_not_same_criteria(decision_matrix):
     criteria = list(left.criteria)
     criteria[0] = criteria[0] + "_foo"
 
-    right = left.copy(criteria=criteria)
+    right = left.replace(criteria=criteria)
 
     with pytest.raises(AssertionError):
         testing.assert_dmatrix_equals(left, right)
@@ -84,7 +84,7 @@ def test_assert_dmatrix_equals_not_same_matrix(decision_matrix):
 
     matrix = left.matrix + 1
 
-    right = left.copy(matrix=matrix)
+    right = left.replace(matrix=matrix)
 
     with pytest.raises(AssertionError):
         testing.assert_dmatrix_equals(left, right)
@@ -96,7 +96,7 @@ def test_assert_dmatrix_equals_not_same_objectives(decision_matrix):
     objectives = list(left.iobjectives)
     objectives[0] = objectives[0] * -1
 
-    right = left.copy(objectives=objectives)
+    right = left.replace(objectives=objectives)
 
     with pytest.raises(AssertionError):
         testing.assert_dmatrix_equals(left, right)
@@ -108,7 +108,7 @@ def test_assert_dmatrix_equals_not_same_weights(decision_matrix):
     weights = list(left.weights)
     weights[0] = weights[0] + 1
 
-    right = left.copy(weights=weights)
+    right = left.replace(weights=weights)
 
     with pytest.raises(AssertionError):
         testing.assert_dmatrix_equals(left, right)
@@ -116,7 +116,7 @@ def test_assert_dmatrix_equals_not_same_weights(decision_matrix):
 
 def test_assert_dmatrix_equals_not_same_dtypes(decision_matrix):
     left = decision_matrix(seed=42)
-    right = left.copy(dtypes=[np.float32] * len(left.criteria))
+    right = left.replace(dtypes=[np.float32] * len(left.criteria))
 
     with pytest.raises(AssertionError):
         testing.assert_dmatrix_equals(left, right, check_dtypes=True)

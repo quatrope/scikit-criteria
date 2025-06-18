@@ -2,16 +2,14 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.utils.bunch
-
-"""
+"""test for skcriteria.utils.bunch"""
 
 
 # =============================================================================
@@ -19,6 +17,7 @@
 # =============================================================================
 
 import copy
+import pickle
 
 import pytest
 
@@ -91,3 +90,25 @@ def test_Bunch_copy():
 def test_Bunch_data_is_not_a_mapping():
     with pytest.raises(TypeError, match="Data must be some kind of mapping"):
         bunch.Bunch("foo", None)
+
+
+def test_Bunch_assign_fails():
+    foo_bunch = bunch.Bunch("foo", {})
+    with pytest.raises(AttributeError, match="Bunch 'foo' is read-only"):
+        foo_bunch.some_key = 1
+
+
+def test_Bunch_setstate():
+    md = bunch.Bunch("foo", {"alfa": 1})
+    md_c = pickle.loads(pickle.dumps(md))
+
+    assert md is not md_c
+    assert md._name == md_c._name  # string are inmutable never deep copy
+    assert md._data == md_c._data and md._data is not md_c._data
+
+
+def test_Bunch_get():
+    md = bunch.Bunch("foo", {"alfa": 1})
+    assert md.get("alfa") == 1
+    assert md.get("bravo") is None
+    assert md.get("bravo", 2) == 2

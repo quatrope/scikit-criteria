@@ -21,7 +21,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "scikit-criteria"
-version = "0.8.7"
+version = "0.9.dev0"
 authors = [{name = "Juan B Cabral & QuatroPe", email = "jbcabral@unc.edu.ar"}]
 readme = "README.md"
 license = {file = "LICENSE.txt"}
@@ -58,7 +58,8 @@ classifiers = [
 ]
 urls = { Homepage = "https://scikit-criteria.quatrope.org/", Repository = "https://github.com/quatrope/scikit-criteria" }
 dependencies = [
-    "numpy>=1.0,<2.0",
+    "numpy>=2.0",
+    "networkx>=3.2",
     "pandas",
     "scipy",
     "jinja2",
@@ -66,9 +67,8 @@ dependencies = [
     "seaborn>=0.13,<0.14",
     "pulp>=2.8,<2.9",
     "Deprecated",
-    "scikit-learn>=1.3,<1.4",
+    "scikit-learn>=1.6",
     "matplotlib>=3.8.2,<3.9",
-    "importlib_metadata",
     "methodtools",
 ]
 

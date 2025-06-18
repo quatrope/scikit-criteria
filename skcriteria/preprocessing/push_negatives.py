@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022, 2023, 2024 QuatroPe
+# Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -25,13 +25,17 @@ with hidden():
     import numpy as np
 
     from ._preprocessing_base import SKCMatrixAndWeightTransformerABC
-    from ..utils import doc_inherit
+    from ..utils import doc_inherit, deprecated
 
 # =============================================================================
 # FUNCTIONS
 # =============================================================================
 
 
+@deprecated(
+    reason=("Superseeded by private methods inside the PushNegatives class."),
+    version="0.9",
+)
 def push_negatives(arr, axis):
     r"""Increment the array until all the valuer are sean >= 0.
 
@@ -95,23 +99,28 @@ class PushNegatives(SKCMatrixAndWeightTransformerABC):
     r"""Increment the matrix/weights until all the valuer are sean >= 0.
 
     If the matrix/weights has negative values this function increment the
-    values proportionally to made all the matrix/weights positive along an
-    axis.
+    values proportionally to made all the matrix/weights >= 0
 
     .. math::
 
         \overline{X}_{ij} =
             \begin{cases}
-                X_{ij} + min_{X_{ij}} & \text{if } X_{ij} < 0\\
+                X_{ij} + |min_{X_{ij}}| & \text{if } X_{ij} < 0\\
                 X_{ij}          & \text{otherwise}
             \end{cases}
 
     """
 
+    def _push_negatives(self, arr):
+        if np.all(arr >= 0):
+            return arr
+        minvalue = np.min(arr)
+        return arr + np.abs(minvalue)
+
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_weights)
     def _transform_weights(self, weights):
-        return push_negatives(weights, axis=None)
+        return self._push_negatives(weights)
 
     @doc_inherit(SKCMatrixAndWeightTransformerABC._transform_matrix)
     def _transform_matrix(self, matrix):
-        return push_negatives(matrix, axis=0)
+        return self._push_negatives(matrix)
