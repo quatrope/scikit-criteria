@@ -178,3 +178,67 @@ def test_VIKOR_opricovic2004compromise(alt):
     result = ranker.evaluate(dm)
 
     assert expected == result
+
+
+def test_VIKOR_opricovic2007extended():
+    """
+    Data from:
+        Opricovic, S., & Tzeng, G. H. (2007).
+        Extended VIKOR method in comparison with outranking methods.
+        European journal of operational research, 178(2), 514-529.
+    """
+
+    matrix = np.array([[4184.3, 2914.0, 407.2, 251.0, 195, 244, 15, 2.41],
+       [5211.9, 3630.0, 501.7, 308.3, 282, 346, 21, 1.41],
+       [5021.3, 3920.5, 504.0, 278.6, 12, 56, 3, 4.42],
+       [5566.1, 3957.9, 559.5, 335.3, 167, 268, 16, 3.36],
+       [5060.5, 3293.5, 514.1, 284.2, 69, 90, 7, 4.04],
+       [4317.9, 2925.9, 432.8, 239.3, 12, 55, 3, 4.36]], dtype=float)
+
+    criteria = [
+        "Profit [10e6 Din]",
+        "Cost [10e6 Din]",
+        "Energy produced [GW hour]",
+        "Peak energy produced [GW hour]",
+        "Homes to be relocated [Num]",
+        "Reservoirs area [ha]",
+        "Villages to displace [Num]",
+        "Environmental protection [Grade]",
+    ]
+
+    alternatives= ["A1", "A2", "A3", "A4", "A5", "A6"]
+    objectives = [max, min, max, max, min, min, min, max]
+    weights = np.array([1, 1, 1, 1, 1, 1, 1, 1], dtype=float)
+    weights /= np.sum(weights)
+
+    dm = skcriteria.mkdm(
+        matrix=matrix, criteria=criteria, objectives=objectives, weights=weights, alternatives=alternatives
+    )
+
+    # Expected
+    # Qj 0.991 1.0 0.473 0.670 0.0 0.578
+    # Sj 0.692 0.7 0.29 0.423 0.28 0.346
+    # Rj 0.125 0.125 0.121 0.125 0.067 0.125
+
+    q_k = np.array([0.991,1.0,0.473,0.670,0.0,0.578])
+    s_k = np.array([0.692, 0.7, 0.29, 0.423, 0.28, 0.346])
+    r_k = np.array([0.125, 0.125, 0.121, 0.125, 0.067, 0.125])
+
+    expected = RankResult(
+        "VIKOR",
+        ["A1", "A2", "A3", "A4", "A5", "A6"],
+        [5, 6, 2, 4, 1, 3],
+        {
+            "r_k": r_k,
+            "s_k": s_k,
+            "q_k": q_k,
+            "acceptable_advantage": True,
+            "acceptable_stability": True,
+            "compromise_set": np.array([5]),
+        },
+    )
+
+    ranker = VIKOR()
+    result = ranker.evaluate(dm)
+
+    assert expected.aequals(result, rtol=1e-3, atol=1e-3, equal_nan=True)
