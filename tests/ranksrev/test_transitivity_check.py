@@ -33,6 +33,7 @@ from skcriteria.preprocessing.scalers import SumScaler, VectorScaler
 from skcriteria.ranksrev.rank_invariant_check import RankInvariantChecker
 import skcriteria.ranksrev.transitivity_check
 from skcriteria.utils import rank
+import networkx as nx
 
 # Pipeline to apply to all pairwise sub-problems
 ws_pipe = mkpipe(
@@ -86,13 +87,110 @@ def test_TransitivityCheck_untie_dominance_second():
     actual = skcriteria.ranksrev.transitivity_check._untie_by_dominance(first,second)
     assert actual == [(second,first)]
 
-def test_TransitivityCheck_test_criterion_2():
+def test_TransitivityCheck_in_degree_sort():
+    dm = skc.datasets.load_simple_stock_selection()
+    orank = ws_pipe.evaluate(dm)
+    trans_checker = skcriteria.ranksrev.TransitivityChecker(ws_pipe)
+    graph = trans_checker._dominance_graph(dm, orank)
+    result = skcriteria.ranksrev.transitivity_check.in_degree_sort(graph)
+    assert result == [['AA'], ['GN'], ['JN'], ['PE']]
+
+def test_TransitivityCheck_assign_rankings():
+    groups = [['AA'], ['GN'], ['JN'], ['PE']]
+    result = skcriteria.ranksrev.transitivity_check.assign_rankings(groups)
+    assert result == {'AA': 1, 'GN': 2, 'JN': 3, 'PE': 4}
+
+def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
+    dm = skc.datasets.load_simple_stock_selection()
+    orank = ws_pipe.evaluate(dm)
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    graph = trans_checker._dominance_graph(dm, orank)
+    trans_break = list(nx.simple_cycles(graph, length_bound=3))
+    result = skcriteria.ranksrev.transitivity_check._format_transitivity_cycles(trans_break)
+    assert result == []
+
+def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
+    dm = skc.datasets.load_wang2005()
+    orank = ws_pipe.evaluate(dm)
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    graph = trans_checker._dominance_graph(dm, orank)
+    trans_break = list(nx.simple_cycles(graph, length_bound=3))
+    result = skcriteria.ranksrev.transitivity_check._format_transitivity_cycles(trans_break)
+    assert result != []
+
+# =============================================================================
+# PROPERTIES
+# =============================================================================
+def test_TransitivityChecker_dmaker():
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    assert trans_checker.dmaker == ws_pipe
+
+def test_TransitivityChecker_parallell_backend_none():
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    assert trans_checker.parallel_backend is None
+
+def test_TransitivityChecker_parallell_backend():
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe, parallel_backend=ws_pipe)
+    assert trans_checker.parallel_backend == ws_pipe
+
+def test_TransitivityChecker_random_state():
+    rnd_state = 42
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe,random_state=rnd_state)
+    assert trans_checker.random_state.random() == np.random.default_rng(rnd_state).random()
+
+def test_TransitivityChecker_make_transitivity_strategy_random():
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    assert trans_checker.make_transitive_strategy == "random"
+
+def test_TransitivityChecker_make_transitivity_strategy_divination():
+    strat = "divination"
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe, make_transitive_strategy=strat)
+    assert trans_checker.make_transitive_strategy == strat
+
+def test_TransitivityChecker_max_ranks_default():
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    assert trans_checker.max_ranks == 50
+
+def test_TransitivityChecker_max_ranks_custom():
+    ranks = 42
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe, max_ranks=ranks)
+    assert trans_checker.max_ranks == ranks
+
+def test_TransitivityChecker_n_jobs_default():
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    assert trans_checker.n_jobs is None
+
+def test_TransitivityChecker_n_jobs_custom():
+    jobs = 42
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe, n_jobs=jobs)
+    assert trans_checker.n_jobs == jobs
+
+# =============================================================================
+# TEST CRITERIA
+# =============================================================================
+
+def test_TransitivityCheck_test_criterion_2_pass():
+    dm = skc.datasets.load_simple_stock_selection()
+    trans_check = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    rank_comparator = trans_check.evaluate(dm=dm)
+    assert rank_comparator._extra.transitivity_break_rate == 0
+    assert rank_comparator._extra.test_criterion_2 == True
+    assert trans_check._test_criterion_2(rank_comparator._extra.transitivity_break_rate) == True
+
+def test_TransitivityCheck_test_criterion_2_fail():
     dm = skc.datasets.load_van2021evaluation()
     trans_check = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
     assert rank_comparator._extra.transitivity_break_rate == pytest.approx(0.13333,0.0001)
     assert rank_comparator._extra.test_criterion_2 == False
     assert trans_check._test_criterion_2(rank_comparator._extra.transitivity_break_rate) == False
+
+def test_TransitivityCheck_test_criterion_3_pass(): #TODO: no se si esto debería ser asi
+    dm = skc.datasets.load_simple_stock_selection()
+    trans_check = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    rank_comparator = trans_check.evaluate(dm=dm)
+    assert rank_comparator._extra.test_criterion_3 == True
+    assert len(rank_comparator.ranks) == 0
 
 def test_TransitivityCheck_test_criterion_3():
     dm = skc.datasets.load_van2021evaluation()
