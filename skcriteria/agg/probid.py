@@ -140,7 +140,7 @@ def probid(matrix, objectives, weights, metric="euclidean", **kwargs):
     weights = 1 / (
         n_alternatives - np.arange(median_split, n_alternatives + 1) + 1
     )
-    neg_ideal = np.sum(d_pis[:, median_split - 1:] * weights, axis=1)
+    neg_ideal = np.sum(d_pis[:, median_split - 1 :] * weights, axis=1)
 
     # pos-ideal/neg-ideal ratio
     ratio = pos_ideal / neg_ideal
