@@ -177,7 +177,27 @@ _PAIR_RANK_UNTIERS = {
 
 
 class TransitivityChecker(SKCMethodABC):
-    """
+    """Robustness evaluator of an MCDM method.
+
+    This checker verifies whether a method produces logically consistent and
+    stable rankings when the original decision problem is decomposed into all
+    possible pairs of alternatives.
+
+    The evaluation is performed in two stages:
+
+    1. **Transitivity Validation**:
+    Check if the rankings derived from all two-alternative sub-problems follow
+    the transitivity property. That is, if the method ranks
+    :math:`A_1 \succ A_2` and :math:`A_2 \succ A_3`, then it should also rank
+    :math:`A_1 \succ A_3` in the corresponding pair.
+
+    2. **Ranking Recomposition Consistency**:
+    The criterion attempts to reconstruct a global ranking by combining the
+    individual two-alternative rankings, offering various heuristics in case
+    the sub-problems don't follow the transitivity property. This reconstructed
+    ranking is then offered for comparrison as a `RanksComparator` for further
+    analysis.
+
     Parameters
     ----------
     dmaker: Decision maker - must implement the ``evaluate()`` method
