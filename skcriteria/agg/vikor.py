@@ -125,10 +125,10 @@ class VIKOR(SKCDecisionMakerABC):
     _skcriteria_parameters = ["v", "use_compromise_set"]
 
     def __init__(self, *, v=0.5, use_compromise_set=True):
+        self._use_compromise_set = bool(use_compromise_set)
         self._v = float(v)
         if not (self._v >= 0 and self._v <= 1):
             raise ValueError(f"'v' must be 0 <= v <= 1. Found {self._v}")
-        self._use_compromise_set = use_compromise_set
 
     @property
     def v(self):
