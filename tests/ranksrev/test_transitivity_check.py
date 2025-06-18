@@ -121,6 +121,16 @@ def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
 # =============================================================================
 # PROPERTIES
 # =============================================================================
+def test_TransitivityChecker_bad_pipe():
+    bad_pipe = "Suffering and pain"
+    with pytest.raises(TypeError) as ex:
+        skcriteria.ranksrev.transitivity_check.TransitivityChecker(bad_pipe)
+    assert "'dmaker' must implement 'evaluate()' method" in str(ex.value)
+
+def test_TransitivityChecker_repr():
+    trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
+    assert repr(trans_checker) == f"<{trans_checker.get_method_name()} {repr(trans_checker.dmaker)}>"
+
 def test_TransitivityChecker_dmaker():
     trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
     assert trans_checker.dmaker == ws_pipe

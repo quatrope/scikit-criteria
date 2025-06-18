@@ -18,7 +18,6 @@
 
 
 import numpy as np
-
 import pytest
 
 import skcriteria as skc
