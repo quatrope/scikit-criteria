@@ -231,6 +231,16 @@ class sPROBID(BasePROBID):
 
     _method_func = staticmethod(sprobid)
 
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+        if len(matrix) < 4:
+            warnings.warn(
+                "sPROBID works best with 4 or more alternatives since it"
+                "uses quartiles. Consider using PROBID instead for small"
+                "datasets."
+            )
+
+        return super()._evaluate_data(matrix, objectives, weights, **kwargs)
+
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
