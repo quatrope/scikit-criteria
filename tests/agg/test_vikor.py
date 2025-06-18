@@ -238,7 +238,7 @@ def test_VIKOR_opricovic2007extended():
             "q_k": q_k,
             "acceptable_advantage": True,
             "acceptable_stability": True,
-            "compromise_set": np.array([5]),
+            "compromise_set": np.array([4]), # A5
         },
     )
 

@@ -208,7 +208,7 @@ class VIKOR(SKCDecisionMakerABC):
             "q_k": q_k,
             "acceptable_advantage": bool(has_acceptable_advantage),
             "acceptable_stability": bool(has_acceptable_stability),
-            "compromise_set": compromise_set + 1,  # Alternatives 1-based index
+            "compromise_set": compromise_set,
         }
 
         return rank_q_k, extra
