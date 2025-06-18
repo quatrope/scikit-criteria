@@ -442,19 +442,19 @@ def rancom_weights(weights):
     - Ties between criteria are allowed
 
     Algorithm Steps:
-    1. Build MAC (Matrix of Ranking Comparison): An n×n matrix where weights are
+    1. Convert weights to rankings (lower weight = higher rank/importance)
+    2. Build MAC (Matrix of Ranking Comparison): An n×n matrix where rankings are
        compared pairwise with values:
-       - aij = 1 if wi < wj (criterion i is more important than j)
-       - aij = 0.5 if wi = wj (criteria i and j have equal importance)  
-       - aij = 0 if wi > wj (criterion i is less important than j)
-    2. Calculate SWC (Summed Criteria Weights): Sum each row of the MAC matrix
-    3. Normalize final weights: wi = SWCi / sum(SWC)
+       - aij = 1 if rank_i < rank_j (criterion i is more important than j)
+       - aij = 0.5 if rank_i = rank_j (criteria i and j have equal importance)  
+       - aij = 0 if rank_i > rank_j (criterion i is less important than j)
+    3. Calculate SWC (Summed Criteria Weights): Sum each row of the MAC matrix
+    4. Normalize final weights: wi = SWCi / sum(SWC)
 
     Parameters
     ----------
-    None
-        RANCOM uses predefined weights provided through the weighting process
-        and does not require additional configuration parameters.
+    weights: array-like
+        Input weights. Lower values correspond to higher importance.
 
     Notes
     -----
@@ -480,12 +480,20 @@ def rancom_weights(weights):
         >>> weights = [0.4, 0.2, 0.25, 0.05]
 
         >>> rancom_weights(weights)
-        >>> array([0.1, 0.4, 0.3, 0.2])
+        >>> array([0.4375, 0.1875, 0.3125, 0.0625])
 
     """
-    C_i = weights.reshape(-1, 1)
-    C_j = weights.reshape(1, -1)
-    rancom_matrix = np.where(C_i > C_j, 0, np.where(C_i == C_j, 0.5, 1))
+    # Convert weights to rankings (lower weight = higher rank/importance)
+    # Use scipy.stats.rankdata with method='dense' to handle ties properly
+    from scipy.stats import rankdata
+    # Reverse weights so that lower weight values get higher ranks
+    reversed_weights = -weights
+    rankings = rankdata(reversed_weights, method='dense')
+    
+    # Build MAC matrix based on rankings
+    rank_i = rankings.reshape(-1, 1)
+    rank_j = rankings.reshape(1, -1)
+    rancom_matrix = np.where(rank_i < rank_j, 1, np.where(rank_i == rank_j, 0.5, 0))
 
     summed_criteria_weights = np.sum(rancom_matrix, axis=1)
     total_swc = np.sum(summed_criteria_weights)

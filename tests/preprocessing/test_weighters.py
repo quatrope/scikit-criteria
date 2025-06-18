@@ -32,10 +32,12 @@ from skcriteria.preprocessing.weighters import (
     Critic,
     EntropyWeighter,
     EqualWeighter,
+    RANCOM,
     SKCWeighterABC,
     StdWeighter,
     critic_weights,
     pearson_correlation,
+    rancom_weights,
     spearman_correlation,
 )
 
@@ -432,3 +434,82 @@ def test_spearman_correlation_with_deprecation_warning():
         result = spearman_correlation(mtx.T)
 
     np.testing.assert_allclose(result, expected)
+
+
+# =============================================================================
+# RANCOM
+# =============================================================================
+
+
+def test_rancom_weights_function():
+    weights = np.array([0.4, 0.2, 0.25, 0.05])
+    expected = np.array([0.4375, 0.1875, 0.3125, 0.0625])
+    
+    result = rancom_weights(weights)
+    
+    np.testing.assert_allclose(result, expected, atol=1e-10)
+
+
+def test_rancom_weights_function2():
+    weights = np.array([6.0, 6.0, 3.5, 0.5, 1.5, 2.5, 4.5])
+    expected = np.array([0.2449, 0.2449, 0.1429, 0.0204, 0.0612, 0.1020, 0.1837])
+    
+    result = rancom_weights(weights)
+    
+    np.testing.assert_allclose(result, expected, atol=1e-3)
+
+
+def test_rancom_weights_with_ties():
+    weights = np.array([0.3, 0.3, 0.2, 0.2])
+    
+    result = rancom_weights(weights)
+    
+    # Check that weights sum to 1
+    assert np.isclose(np.sum(result), 1.0, atol=1e-10)
+    # Check that all weights are non-negative
+    assert np.all(result >= 0)
+
+
+def test_RANCOM_weighter_correct_functionality():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]],
+        objectives=[max, max, max, max, max],
+        weights=[0.1, 0.2, 0.3, 0.25, 0.15],
+    )
+    
+    weighter = RANCOM()
+    result = weighter.transform(dm)
+    
+    assert np.isclose(np.sum(result.weights), 1.0, atol=1e-10)
+    assert np.all(result.weights >= 0)
+    np.testing.assert_array_equal(result.matrix, dm.matrix)
+    np.testing.assert_array_equal(result.objectives, dm.objectives)
+
+
+def test_RANCOM_weighter_fewer_than_five_weights_warning():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3, 4], [2, 3, 4, 5]],
+        objectives=[max, max, max, max],
+        weights=[0.25, 0.25, 0.25, 0.25],
+    )
+    
+    weighter = RANCOM()
+    
+    with pytest.warns(UserWarning, match="RANCOM method proves to be a more suitable solution"):
+        result = weighter.transform(dm)
+    
+    assert np.isclose(np.sum(result.weights), 1.0, atol=1e-10)
+    assert np.all(result.weights >= 0)
+
+
+def test_RANCOM_weighter_weights_not_sum_to_one_error():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]],
+        objectives=[max, max, max, max, max],
+        weights=[0.1, 0.2, 0.3, 0.25, 0.1],  # Sum = 0.95, not 1
+    )
+    
+    weighter = RANCOM()
+    
+    with pytest.raises(ValueError, match="RANCOM expects normalized weights"):
+        weighter.transform(dm)
