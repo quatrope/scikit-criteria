@@ -488,11 +488,9 @@ def rancom_weights(weights):
 
     """
     # Convert weights to rankings (lower weight = higher rank/importance)
-    # Use scipy.stats.rankdata with method='dense' to handle ties properly
-    from scipy.stats import rankdata
     # Reverse weights so that lower weight values get higher ranks
     reversed_weights = -weights
-    rankings = rankdata(reversed_weights, method='dense')
+    rankings = scipy.stats.rankdata(reversed_weights, method='dense')
     
     # Build MAC matrix based on rankings
     rank_i = rankings.reshape(-1, 1)
