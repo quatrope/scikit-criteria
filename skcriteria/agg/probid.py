@@ -9,8 +9,12 @@
 # DOCS
 # =============================================================================
 
-"""PROBID (Preference Ranking On the Basis of Ideal-Average Distance) and
-sPROBID (simple variation of PROBID)."""
+"""
+Implementation of PROBID and sPROBID.
+
+PROBID (Preference Ranking On the Basis of Ideal-Average Distance) and
+sPROBID (simple variation of PROBID).
+"""
 
 # =============================================================================
 # IMPORTS
@@ -36,7 +40,9 @@ with hidden():
 
 
 class BasePROBID(SKCDecisionMakerABC):
-    """Base abstract class for PROBID variants.
+    """
+    Base abstract class for PROBID variants.
+
     Parameters
     ----------
     metric : str or callable, optional
@@ -153,9 +159,13 @@ def probid(matrix, objectives, weights, metric="euclidean", **kwargs):
 
 
 class PROBID(BasePROBID):
-    """The PROBID method considers a spectrum of ideal solutions and the
+    """
+    Executes the PROBID method.
+
+    The PROBID method considers a spectrum of ideal solutions and the
     average solution to determine the performance score of each optimal
-    solution."""
+    solution.
+    """
 
     _method_func = staticmethod(probid)
 
@@ -212,8 +222,12 @@ def sprobid(matrix, objectives, weights, metric="euclidean", **kwargs):
 
 
 class sPROBID(BasePROBID):
-    """The sPROBID method simplifies PROBID method by using only the top and
-    bottom quartiles of ideal solutions."""
+    """
+    Executes the sPROBID method.
+
+    The sPROBID method simplifies PROBID method by using only the top and
+    bottom quartiles of ideal solutions.
+    """
 
     _method_func = staticmethod(sprobid)
 
