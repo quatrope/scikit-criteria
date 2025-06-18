@@ -459,14 +459,17 @@ def gini_weights(matrix):
         } \right)
     """
     n = matrix.shape[0]
-
     sorted_columns = np.sort(matrix, axis=0)
+    column_sums = np.sum(sorted_columns, axis=0)
+
+    # sum_of_cumulatives is the nested sum described in the formula above:
+    # sum from i = 1 to n of (sum from j = 1 to i of x_j)
     cumulative_sums = np.cumsum(sorted_columns, axis=0)
-    column_totals = cumulative_sums[-1]
-    cumulative_totals = np.sum(cumulative_sums, axis=0)
+    sum_of_cumulatives = np.sum(cumulative_sums, axis=0)
 
-    gini = (n + 1 - 2 * cumulative_totals / column_totals) / n
+    gini = (n + 1 - 2 * sum_of_cumulatives / column_sums) / n
 
+    # weights are the normalized ginis of each column
     return gini / np.sum(gini)
 
 
