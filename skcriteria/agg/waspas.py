@@ -26,7 +26,7 @@ with hidden():
     from .simple import wsm, wpm
 
 
-def waspas(matrix, weights, lambda_value=0.5):
+def waspas(matrix, weights, lambda_value):
     """Execute WASPAS without any validation."""
     _, wsm_scores = wsm(matrix, weights)
 
