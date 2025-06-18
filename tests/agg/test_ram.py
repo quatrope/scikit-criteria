@@ -38,16 +38,14 @@ def test_RootAssessmentMethod():
         ["A0", "A1"],
         [1, 2],
         {
-            "sum_benefit": [4.0, 10.0],
-            "sum_cost": [2.0, 5.0],
-            "score": [1.56508458, 1.42616164],
+            "sum_benefit": np.array([4.0, 10.0]),
+            "sum_cost": np.array([2.0, 5.0]),
+            "score": np.array([1.56508458, 1.42616164]),
         },
     )
     ranker = RAM()
     result = ranker.evaluate(dm)
-    assert result.values_equals(expected)
-    assert result.method == expected.method
-    assert np.all(result.e_.score == expected.e_.score)
+    assert expected.aequals(result)
 
 
 def test_RootAssessmentMethod_sotoudehanvari2023138695():
@@ -83,7 +81,7 @@ def test_RootAssessmentMethod_sotoudehanvari2023138695():
         ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"],
         [4, 2, 3, 5, 10, 7, 1, 6, 8, 9],
         {
-            "sum_benefit": [
+            "sum_benefit": np.array([
                 0.07609,
                 0.090475,
                 0.08481,
@@ -94,8 +92,8 @@ def test_RootAssessmentMethod_sotoudehanvari2023138695():
                 0.06397,
                 0.05267,
                 0.05848,
-            ],
-            "sum_cost": [
+            ]),
+            "sum_cost": np.array([
                 0.029589,
                 0.025149,
                 0.03303,
@@ -106,8 +104,8 @@ def test_RootAssessmentMethod_sotoudehanvari2023138695():
                 0.02292,
                 0.01294,
                 0.02336,
-            ],
-            "score": [
+            ]),
+            "score": np.array([
                 1.433215,
                 1.439243,
                 1.435296,
@@ -118,7 +116,7 @@ def test_RootAssessmentMethod_sotoudehanvari2023138695():
                 1.430766,
                 1.429406,
                 1.428773,
-            ],
+            ]),
         },
     )
 
@@ -128,6 +126,4 @@ def test_RootAssessmentMethod_sotoudehanvari2023138695():
     ranker = RAM()
     result = ranker.evaluate(dm)
 
-    assert result.values_equals(expected)
-    assert result.method == expected.method
-    assert np.allclose(result.e_.score, expected.e_.score)
+    assert expected.aequals(result, rtol=1e-5, atol=1e-5)
