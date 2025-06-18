@@ -30,25 +30,29 @@ with hidden():
 # CoCoSo
 # =============================================================================
 
-def cocoso(matrix, objectives, weights, lamdba_value=0.5):
+def cocoso(matrix, weights, lamdba_value):
     """Execute COCOSO without any validation."""
-    # calculate ranking by inner product
-    # rank_wsm, score_wsm = wsm(matrix, weights)
-    # rank_wpm, score_wpm = wpm(matrix, weights)
-    score_wsm = np.inner(matrix, weights).round(4)
+
+    # _, score_wsm = wsm(matrix, weights).round(4)
+    # _, log10_score_wpm = wpm(matrix, weights)
+    # score_wpm = np.power(10, log10_score_wpm).round(4)
+
+    score_wsm = np.sum(matrix * weights, axis=1).round(4)
     score_wpm = np.sum(matrix ** weights, axis=1).round(4)
 
     # calculate the arithmetic mean of sums of WSM and WPM scores.
     sum_scores = score_wsm + score_wpm
     k_a = (sum_scores / np.sum(sum_scores)).round(3)    
+    
     # calculate the sum of relative scores of WSM and WPM compared to the best.
     k_b = (score_wsm / np.min(score_wsm) + score_wpm / np.min(score_wpm)).round(3)
+    
     # calculate the balanced compromise of WSM and WPM models scores.
     k_c = ((lamdba_value * score_wsm + (1 - lamdba_value) * score_wpm) / \
         (lamdba_value * np.max(score_wsm) + (1 - lamdba_value) * np.max(score_wpm))).round(3)
     
-    score = (k_a * k_b * k_c) ** (1/3) + (k_a + k_b + k_c) * (1/3)
-    score = score.round(3)
+    score = ((k_a * k_b * k_c) ** (1/3) + (k_a + k_b + k_c) * (1/3)).round(3)
+ 
     return rank.rank_values(score, reverse=True), score
 
 class CoCoSo(SKCDecisionMakerABC):
@@ -86,11 +90,11 @@ class CoCoSo(SKCDecisionMakerABC):
         return self._lambda_value
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+    def _evaluate_data(self, matrix, weights, **kwargs):
         if np.any(matrix < 0):
             raise ValueError("CoCoSoModel can't operate with values <= 0")
 
-        rank, score = cocoso(matrix, objectives, weights, self.lambda_value)
+        rank, score = cocoso(matrix, weights, self.lambda_value)
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
