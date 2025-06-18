@@ -533,7 +533,6 @@ class TransitivityChecker(SKCMethodABC):
 
         test_criterion_2 = self._test_criterion_2(trans_break_rate)
 
-        returned_ranks = []
         returned_ranks = self._get_ranks(graph, orank)
 
         test_criterion_3 = self._test_criterion_3(
