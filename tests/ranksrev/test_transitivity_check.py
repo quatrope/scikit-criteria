@@ -49,13 +49,13 @@ def test_TransitivityCheck_untie_first():
     first = np.array([1,2,3,4,5])
     second = np.array([0,0,0,0,0])
     actual = skcriteria.ranksrev.transitivity_check._untie_first(first,second)
-    assert actual == (first, second)
+    assert actual == [(first, second)]
 
 def test_TransitivityCheck_untie_second():
     first = np.array([1,2,3,4,5])
     second = np.array([0,0,0,0,0])
     actual = skcriteria.ranksrev.transitivity_check._untie_second(first,second)
-    assert actual == (second,first)
+    assert actual == [(second,first)]
 
 def test_TransitivityCheck_untie_both():
     first = np.array([1,1,1,1,1])
@@ -67,10 +67,10 @@ def test_TransitivityCheck_untie_dominance_first():
     first = np.array([1,2,3,4,3])
     second = np.array([1,2,3,4,4])
     actual = skcriteria.ranksrev.transitivity_check._untie_by_dominance(first,second)
-    assert actual == (first,second)
+    assert actual == [(first,second)]
 
 def test_TransitivityCheck_untie_dominance_second():
     first = np.array([42,0,0,42,42])
     second = np.array([1,2,3,4,4])
     actual = skcriteria.ranksrev.transitivity_check._untie_by_dominance(first,second)
-    assert actual == (second,first)
+    assert actual == [(second,first)]
