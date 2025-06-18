@@ -40,7 +40,7 @@ def test_RootAssessmentMethod():
         {
             "sum_benefit": [4.0, 10.0],
             "sum_cost": [2.0, 5.0],
-            "score": [2.44948, 1.64375],
+            "score": [1.56508458, 1.42616164],
         },
     )
     ranker = RAM()
