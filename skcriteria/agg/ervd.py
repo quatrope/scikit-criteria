@@ -29,39 +29,40 @@ with hidden():
 # =============================================================================
 
 
-def _increasing_value_function(reference_point, values, alpha, lambd):
-    gains = values > reference_point
+def _increasing_value_function(reference_points, matrix, alpha, lambd):
+    gains = matrix > reference_points
     losses = ~gains
 
-    result = np.empty_like(values, dtype=float)
-    result[gains] = (values[gains] - reference_point) ** alpha
-    result[losses] = -lambd * ((reference_point - values[losses]) ** alpha)
+    result = np.empty_like(matrix, dtype=float)
+    result[gains] = ((matrix - reference_points) ** alpha)[gains]
+    result[losses] = (-lambd * ((reference_points - matrix) ** alpha))[losses]
 
     return result
 
 
-def _decreasing_value_function(reference_point, values, alpha, lambd):
-    gains = values < reference_point
+def _decreasing_value_function(reference_points, matrix, alpha, lambd):
+    gains = matrix < reference_points
     losses = ~gains
 
-    result = np.empty_like(values, dtype=float)
-    result[gains] = (reference_point - values[gains]) ** alpha
-    result[losses] = -lambd * ((values[losses] - reference_point) ** alpha)
+    result = np.empty_like(matrix, dtype=float)
+    result[gains] = ((reference_points - matrix) ** alpha)[gains]
+    result[losses] = (-lambd * ((matrix - reference_points) ** alpha))[losses]
 
     return result
 
 
 def ervd(matrix, objectives, weights, reference_points, alpha, lambd):
     """Execute ERVD without any validation."""
-    for j in range(matrix.shape[1]):
-        if objectives[j] == Objective.MAX.value:
-            matrix[:, j] = _increasing_value_function(
-                reference_points[j], matrix[:, j], alpha, lambd
-            )
-        else:
-            matrix[:, j] = _decreasing_value_function(
-                reference_points[j], matrix[:, j], alpha, lambd
-            )
+    increasing_matrix = _increasing_value_function(
+        reference_points, matrix, alpha, lambd
+    )
+    decreasing_matrix = _decreasing_value_function(
+        reference_points, matrix, alpha, lambd
+    )
+
+    mask = np.vstack([np.array(objectives == Objective.MAX)] * matrix.shape[0])
+    matrix[mask] = increasing_matrix[mask]
+    matrix[~mask] = decreasing_matrix[~mask]
 
     # create the ideal and the anti ideal arrays
     ideal = np.max(matrix, axis=0)
