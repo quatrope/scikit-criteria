@@ -26,10 +26,10 @@ import numpy as np
 
 import pandas as pd
 
-from ..agg import RankResult
-from ..cmp import RanksComparator
-from ..core import SKCMethodABC
-from ..utils import Bunch, unique_names
+from skcriteria.agg import RankResult
+from skcriteria.cmp import RanksComparator
+from skcriteria.core import SKCMethodABC
+from skcriteria.utils import Bunch, unique_names
 
 # =============================================================================
 # CONSTANT
