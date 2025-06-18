@@ -84,9 +84,7 @@ def test_VIKOR():
 
     ranker = VIKOR()
     result = ranker.evaluate(dm)
-
-    diff = expected.diff(result)
-    assert not diff.has_differences, diff
+    assert expected.aequals(result)
 
 
 def test_VIKOR_tied():
@@ -119,9 +117,7 @@ def test_VIKOR_tied():
 
     ranker = VIKOR()
     result = ranker.evaluate(dm)
-
-    diff = expected.diff(result)
-    assert not diff.has_differences, diff
+    assert expected.aequals(result)
 
 
 def test_VIKOR_invalid_v():
@@ -176,8 +172,7 @@ def test_VIKOR_opricovic2004compromise(alt):
 
     ranker = VIKOR()
     result = ranker.evaluate(dm)
-
-    assert expected == result
+    assert expected.aequals(result)
 
 
 def test_VIKOR_opricovic2007extended():
@@ -238,11 +233,10 @@ def test_VIKOR_opricovic2007extended():
             "q_k": q_k,
             "acceptable_advantage": True,
             "acceptable_stability": True,
-            "compromise_set": np.array([4]), # A5
+            "compromise_set": np.array([4]),  # A5
         },
     )
 
     ranker = VIKOR()
     result = ranker.evaluate(dm)
-
     assert expected.aequals(result, rtol=1e-3, atol=1e-3, equal_nan=True)
