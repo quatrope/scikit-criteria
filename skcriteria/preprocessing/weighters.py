@@ -78,7 +78,9 @@ class SKCWeighterABC(SKCTransformerABC):
             matrix=matrix, objectives=objectives, weights=weights
         )
 
-        kwargs.update(matrix=matrix, objectives=objectives, weights=new_weights)
+        kwargs.update(
+            matrix=matrix, objectives=objectives, weights=new_weights
+        )
 
         return kwargs
 
@@ -333,7 +335,9 @@ def critic_weights(matrix, objectives, correlation="pearson", scale=True):
     dindex = np.std(matrix, axis=0)
     import pandas as pd
 
-    corr_m1 = 1 - pd.DataFrame(matrix).corr(method=correlation).to_numpy(copy=True)
+    corr_m1 = 1 - pd.DataFrame(matrix).corr(method=correlation).to_numpy(
+        copy=True
+    )
     uweights = dindex * np.sum(corr_m1, axis=0)
     weights = uweights / np.sum(uweights)
     return weights
