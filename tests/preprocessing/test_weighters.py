@@ -441,7 +441,7 @@ def test_spearman_correlation_with_deprecation_warning():
 # =============================================================================
 
 
-def test_rancom_weights_function2():
+def test_rancom_weights_function():
     weights = np.array([6.0, 6.0, 3.5, 0.5, 1.5, 2.5, 4.5])
     expected = np.array([0.2449, 0.2449, 0.1429, 0.0204, 0.0612, 0.1020, 0.1837])
     
