@@ -21,14 +21,9 @@ keep transitivity when grouped again.
 # =============================================================================
 
 import itertools as it
-
 import joblib
-
 import networkx as nx
-
 import numpy as np
-
-import pandas as pd
 
 from ..agg import RankResult
 from ..cmp import RanksComparator
@@ -39,8 +34,6 @@ from ..utils import Bunch, rank, generate_acyclic_graphs, unique_names
 # =============================================================================
 # INTERNAL FUNCTIONS
 # =============================================================================
-
-# TODO: discuss if this should move into a sepparate module
 
 
 def _untie_first(r1, r2):
@@ -353,7 +346,7 @@ class TransitivityChecker(SKCMethodABC):
     def _add_break_info_to_rank(self, rank, dag, removed_edges):
 
         method = str(rank.method)
-        if dag != None:
+        if dag:
             method = (
                 method
                 + ", Untie method: "
