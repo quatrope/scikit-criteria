@@ -193,3 +193,14 @@ def test_sPROBID_invalid_metric():
     with pytest.raises(ValueError):
         ranker = PROBID(metric="euuuclideann")
         ranker.evaluate(dm)
+
+
+def test_sPROBID_small_dataset_warning():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[max, min, max],
+    )
+
+    ranker = sPROBID()
+    with pytest.warns(UserWarning):
+        ranker.evaluate(dm)
