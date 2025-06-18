@@ -437,3 +437,59 @@ class CRITIC(SKCWeighterABC):
 @doc_inherit(CRITIC, warn_class=False)
 class Critic(CRITIC):
     pass
+
+
+def gini_weights(matrix):
+    r"""
+    Calculates weights using the Gini coefficient.
+
+    Computes the weights for each criterion (column) of the input matrix by
+    calculating the Gini coefficient of each column, then normalizing those
+    values to sum to 1.
+
+    The columns are sorted to use the more efficient formula for the
+    Gini coefficient:
+
+    .. math::
+
+        G = \frac{1}{n} \left( n + 1 - 2 \cdot \frac{
+        \sum_{i=1}^n \left( \sum_{j=1}^i x_j \right)
+        }{
+        \sum_{i=1}^n x_i
+        } \right)
+    """
+    n = matrix.shape[0]
+    sorted_columns = np.sort(matrix, axis=0)
+    column_sums = np.sum(sorted_columns, axis=0)
+
+    # sum_of_cumulatives is the nested sum described in the formula above:
+    # sum from i = 1 to n of (sum from j = 1 to i of x_j)
+    cumulative_sums = np.cumsum(sorted_columns, axis=0)
+    sum_of_cumulatives = np.sum(cumulative_sums, axis=0)
+
+    gini = (n + 1 - 2 * sum_of_cumulatives / column_sums) / n
+
+    # weights are the normalized ginis of each column
+    return gini / np.sum(gini)
+
+
+class GiniWeighter(SKCWeighterABC):
+    """
+    Calculates the weights with the Gini coefficient.
+
+    The method aims at the determination of objective weights of relative
+    importance in MCDM problems. It uses the Gini coefficient of the data of
+    each criterion to assign the weights, giving a higher weight to a more
+    unequal distribution. It takes the decision matrix as a parameter.
+    See:
+        G. Li and G. Chi, "A New Determining Objective Weights Method-Gini
+        Coefficient Weight," 2009 First International Conference on
+        Information Science and Engineering, Nanjing, China, 2009,
+        pp. 3726-3729, doi: 10.1109/ICISE.2009.84.
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCWeighterABC._weight_matrix)
+    def _weight_matrix(self, matrix, **kwargs):
+        return gini_weights(matrix)
