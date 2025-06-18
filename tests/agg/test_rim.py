@@ -216,3 +216,19 @@ def test_RIM_missing_ref_ideals_or_ranges():
 
     with pytest.raises(ValueError, match=error_spected):
         rim.evaluate(dm, ranges=[(0, 5), (0, 5)])  # without ref_ideals
+
+
+def test_RIM_invalid_ranges_shape():
+    matrix = [[1, 2]]
+    weights = [1, 1]
+    objectives = [max, max]
+
+    # Correct length (2 elements), but incorrect shape (flat list)
+    ranges = [0, 10]  # Should be [(0, 10), (0, 10)]
+    ref_ideals = [(1, 2), (1, 2)]
+
+    dm = skcriteria.mkdm(matrix=matrix, weights=weights, objectives=objectives)
+    rim = RIM()
+
+    with pytest.raises(ValueError, match=r"Invalid shape for ranges"):
+        rim.evaluate(dm, ref_ideals=ref_ideals, ranges=ranges)

@@ -29,58 +29,68 @@ with hidden():
 # =============================================================================
 
 
-def _rim_normalize_matrix(matrix, ref_ideals, ranges):
+def _rim_normalize_matrix(matrix, ref_intervals, bounds):
     norm_matrix = np.asarray(matrix, dtype=float)
-    ref_ideals = np.asarray(ref_ideals)
-    ranges = np.asarray(ranges)
+    ref_intervals = np.asarray(ref_intervals)
+    bounds = np.asarray(bounds)
 
-    A = ranges[:, 0]  # A
-    B = ranges[:, 1]  # B
-    C = ref_ideals[:, 0]  # C
-    D = ref_ideals[:, 1]  # D
+    min_vals = bounds[:, 0]  # A: Lower bound
+    max_vals = bounds[:, 1]  # B: Upper bound
+    ideal_min = ref_intervals[:, 0]  # C: Ideal lower bound
+    ideal_max = ref_intervals[:, 1]  # D: Ideal upper bound
 
     # Condition 1: C <= X <= D → 1.0
-    mask1 = (matrix >= C) & (matrix <= D)
-    norm_matrix[mask1] = 1.0
+    within_ideal = (matrix >= ideal_min) & (matrix <= ideal_max)
+    norm_matrix[within_ideal] = 1.0
 
     # Condition 2: A <= X < C and A != C
-    mask2 = (matrix >= A) & (matrix < C) & (A != C)
-    diff_C = np.abs(matrix - C)
-    diff_D = np.abs(matrix - D)
-    denom = np.abs(A - C)
+    left_side = (
+        (matrix >= min_vals) & (matrix < ideal_min) & (min_vals != ideal_min)
+    )
+    dist_to_ideal_min = np.abs(matrix - ideal_min)
+    dist_to_ideal_max = np.abs(matrix - ideal_max)
+    denom_left = np.abs(min_vals - ideal_min)
 
-    new_values = 1 - (np.minimum(diff_C, diff_D) / denom)
-    norm_matrix[mask2] = new_values[mask2]
+    left_values = 1 - (
+        np.minimum(dist_to_ideal_min, dist_to_ideal_max) / denom_left
+    )
+    norm_matrix[left_side] = left_values[left_side]
 
     # Condition 3: D < X <= B and D != B
-    mask3 = (matrix > D) & (matrix <= B) & (D != B)
-    diff_C = np.abs(matrix - C)
-    diff_D = np.abs(matrix - D)
-    denom = np.abs(D - B)
+    right_side = (
+        (matrix > ideal_max) & (matrix <= max_vals) & (ideal_max != max_vals)
+    )
+    dist_to_ideal_min = np.abs(matrix - ideal_min)
+    dist_to_ideal_max = np.abs(matrix - ideal_max)
+    denom_right = np.abs(ideal_max - max_vals)
 
-    new_values = 1 - (np.minimum(diff_C, diff_D) / denom)
-    norm_matrix[mask3] = new_values[mask3]
+    right_values = 1 - (
+        np.minimum(dist_to_ideal_min, dist_to_ideal_max) / denom_right
+    )
+    norm_matrix[right_side] = right_values[right_side]
 
     return norm_matrix
 
 
-def _rim(matrix, weights, ref_ideals, ranges):
+def _rim(matrix, weights, ref_intervals, bounds):
 
-    norm_matrix = _rim_normalize_matrix(matrix, ref_ideals, ranges)
+    norm_matrix = _rim_normalize_matrix(matrix, ref_intervals, bounds)
     weighted_matrix = norm_matrix * weights
 
-    i_plus = np.linalg.norm(weighted_matrix - weights, axis=1)
-    i_minus = np.linalg.norm(weighted_matrix, axis=1)
+    distance_to_ideal = np.linalg.norm(weighted_matrix - weights, axis=1)
+    distance_to_origin = np.linalg.norm(weighted_matrix, axis=1)
 
-    R = i_minus / (i_plus + i_minus)
-    ranking = rank.rank_values(R, reverse=True)
+    similarity_ratio = distance_to_origin / (
+        distance_to_ideal + distance_to_origin
+    )
+    ranking = rank.rank_values(similarity_ratio, reverse=True)
 
     return ranking, {
-        "score": R,
+        "score": similarity_ratio,
         "norm_matrix": norm_matrix,
         "weighted_matrix": weighted_matrix,
-        "i_plus": i_plus,
-        "i_minus": i_minus,
+        "i_plus": distance_to_ideal,
+        "i_minus": distance_to_origin,
     }
 
 
@@ -114,7 +124,11 @@ class RIM(SKCDecisionMakerABC):
 
         ranking, method_extra = _rim(matrix, weights, ref_ideals, ranges)
 
-        extra = {"ref_ideals": ref_ideals, "ranges": ranges, **method_extra}
+        extra = {
+            "ref_ideals": ref_ideals,
+            "ranges": ranges,
+            **method_extra,
+        }
 
         return ranking, extra
 
