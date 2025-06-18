@@ -212,8 +212,8 @@ def test_VIKOR_opricovic2007extended(W):
 
     if W == 1:
         weights = [1, 1, 1, 1, 1, 1, 1, 1]
-        expected_r_k = [0.125, 0.125, 0.121, 0.125, 0.067, 0.125]  
-        expected_s_k = [0.692, 0.7, 0.29, 0.423, 0.28, 0.346]  
+        expected_r_k = [0.125, 0.125, 0.121, 0.125, 0.067, 0.125]
+        expected_s_k = [0.692, 0.7, 0.29, 0.423, 0.28, 0.346]
         expected_q_k = [0.991, 1.0, 0.473, 0.670, 0.0, 0.578]
         expected_rank = [5, 6, 2, 4, 1, 3]
         expected_has_acceptable_advantage = True
@@ -236,7 +236,7 @@ def test_VIKOR_opricovic2007extended(W):
         expected_rank = [5, 6, 2, 4, 1, 3]
         expected_has_acceptable_advantage = False
         expected_has_acceptable_stability = True
-        expected_compromise_set = np.array([2,4,5])
+        expected_compromise_set = np.array([2, 4, 5])
     elif W == 4:
         weights = [1, 1, 1, 1, 3.2, 3.2, 3.2, 3.2]
         expected_r_k = [0.129, 0.190, 0.057, 0.139, 0.042, 0.060]
@@ -245,9 +245,9 @@ def test_VIKOR_opricovic2007extended(W):
         expected_rank = [5, 6, 1, 4, 2, 3]
         expected_has_acceptable_advantage = False
         expected_has_acceptable_stability = True
-        expected_compromise_set = np.array([2,4,5])
+        expected_compromise_set = np.array([2, 4, 5])
     weights /= np.sum(weights)
-    
+
     dm = skcriteria.mkdm(
         matrix=matrix,
         criteria=criteria,
@@ -261,39 +261,31 @@ def test_VIKOR_opricovic2007extended(W):
         ["A1", "A2", "A3", "A4", "A5", "A6"],
         expected_rank,
         {
-            "r_k": expected_r_k,
-            "s_k": expected_s_k,
-            "q_k": expected_q_k,
+            "r_k": np.array(expected_r_k),
+            "s_k": np.array(expected_s_k),
+            "q_k": np.array(expected_q_k),
             "acceptable_advantage": expected_has_acceptable_advantage,
             "acceptable_stability": expected_has_acceptable_stability,
-            "compromise_set": expected_compromise_set,  
+            "compromise_set": np.array(expected_compromise_set),
         },
     )
 
-    ranker = VIKOR(use_compromise_set = False)
+    ranker = VIKOR(use_compromise_set=False)
     result = ranker.evaluate(dm)
-    diff = np.abs(result.rank_ - expected_rank)
-    print(np.where(diff < 0.001, 0, diff))
-    diff = np.abs(result._extra.r_k - expected_r_k)
-    print(np.where(diff < 0.001, 0, diff))
-    diff = np.abs(result._extra.s_k - expected_s_k)
-    print(np.where(diff < 0.001, 0, diff))
-    diff = np.abs(result._extra.q_k - expected_q_k)
-    print(np.where(diff < 0.001, 0, diff))
-    print(result._extra.acceptable_advantage == expected_has_acceptable_advantage)
-    print(result._extra.acceptable_stability == expected_has_acceptable_stability)
-    print(result._extra.compromise_set == expected_compromise_set)
     assert expected.aequals(result, rtol=1e-3, atol=1e-3, equal_nan=True)
+
 
 @pytest.mark.parametrize("use_compromise_set", [True, False])
 def test_VIKOR_acceptable_advantage_but_not_stability(use_compromise_set):
-    matrix = np.array([
-        [1.0, 101.0, 1.0, 101.0, 1.00],
-        [101.0, 1.0, 101.0, 1.0, 101.0],
-        [1.0, 1.0, 1.0, 1.0, 101.0],
-        [11.0, 11.0, 11.0, 16.0, 61.0],
-        [56.0, 56.0, 56.0, 56.0, 56.0]
-    ])
+    matrix = np.array(
+        [
+            [1.0, 101.0, 1.0, 101.0, 1.00],
+            [101.0, 1.0, 101.0, 1.0, 101.0],
+            [1.0, 1.0, 1.0, 1.0, 101.0],
+            [11.0, 11.0, 11.0, 16.0, 61.0],
+            [56.0, 56.0, 56.0, 56.0, 56.0],
+        ]
+    )
 
     dm = skcriteria.mkdm(
         matrix=matrix,
@@ -303,8 +295,10 @@ def test_VIKOR_acceptable_advantage_but_not_stability(use_compromise_set):
         criteria=["C1", "C2", "C3", "C4", "C5"],
     )
 
-    if use_compromise_set: expected_rank = [3, 4, 2, 1, 1]
-    else: expected_rank = [4, 5, 3, 1, 2]
+    if use_compromise_set:
+        expected_rank = [3, 4, 2, 1, 1]
+    else:
+        expected_rank = [4, 5, 3, 1, 2]
     expected = RankResult(
         "VIKOR",
         ["A1", "A2", "A3", "A4", "A5"],
@@ -312,14 +306,13 @@ def test_VIKOR_acceptable_advantage_but_not_stability(use_compromise_set):
         {
             "r_k": np.array([0.2, 0.2, 0.2, 0.12, 0.11]),
             "s_k": np.array([0.4, 0.6, 0.2, 0.21, 0.55]),
-            "q_k": np.array([0.75, 1, 0.5, 0.068, 0.4375])  ,
+            "q_k": np.array([0.75, 1, 0.5, 0.068, 0.4375]),
             "acceptable_advantage": True,
             "acceptable_stability": False,
             "compromise_set": np.array([3, 4]),
         },
     )
 
-    ranker = VIKOR(use_compromise_set = use_compromise_set)
+    ranker = VIKOR(use_compromise_set=use_compromise_set)
     result = ranker.evaluate(dm)
-    assert expected.aequals(result, atol = 1e-3, rtol = 1e-3)
-
+    assert expected.aequals(result, atol=1e-3, rtol=1e-3)
