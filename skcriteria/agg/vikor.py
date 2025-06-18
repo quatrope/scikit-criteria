@@ -24,7 +24,7 @@ with hidden():
 
     from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..utils import doc_inherit, rank
-    from skcriteria.preprocessing.scalers import matrix_scale_by_cenit_distance
+    from ..preprocessing.scalers import matrix_scale_by_cenit_distance
 
 
 # =============================================================================
