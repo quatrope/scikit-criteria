@@ -160,36 +160,35 @@ class VIKOR(SKCDecisionMakerABC):
         )
         # Scaling to minimize distances
         distances_matrix_scaled = _scale(distances_matrix, [-1, -1])
+
         # (c): Compute Q: weighted sum of our distances with weights [v, 1-v]
         q_k = np.dot(distances_matrix_scaled, [self.v, 1 - self.v])
+
         # (d): Rank them
         rank_q_k = rank.rank_values(q_k, reverse=False)
 
         # (e): Check if solution is acceptable
-        has_rank1_qs = np.where(
-            rank_q_k == 1, 1, 0
-        )  # TODO: probably can delete this array
-        rank1_cnt = np.sum(has_rank1_qs == 1)
+        chosen_qs = np.where(rank_q_k == 1)[0]  # Possibly many qs with rank 1
 
-        best_q_value = np.min(q_k)
+        best_q_value = q_k[chosen_qs[0]]
         dq = 1 / (len(matrix) - 1)
-        qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)
-
-        # chosen_qs always have acc. adv., therefore same len <=> same qs
+        qs_with_acceptable_advantage = np.where(q_k - best_q_value < dq)[0]
         has_acceptable_advantage = (
-            len(qs_with_acceptable_advantage[0]) == rank1_cnt
+            # chosen_qs always have acc. adv., therefore same len <=> same qs
+            len(qs_with_acceptable_advantage)
+            == len(chosen_qs)
         )
+
         # They must also be the best solution of one of the original distances
-        chosen_qs = np.where(rank_q_k == 1)  # Possibly many qs with rank 1
-        bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()
-        has_acceptable_stability = set(chosen_qs[0]).issubset(set(bests[0]))
+        bests = np.any(distances_matrix_scaled == 0, axis=1).nonzero()[0]
+        has_acceptable_stability = set(chosen_qs).issubset(set(bests))
 
         if has_acceptable_stability and has_acceptable_advantage:
             # Our solution was good
-            compromise_set = np.where(rank_q_k == 1)
+            compromise_set = chosen_qs
         elif not has_acceptable_stability and has_acceptable_advantage:
             # When unstable, top 2 ranks are chosen
-            compromise_set = np.where(rank_q_k <= 2)
+            compromise_set = np.where(rank_q_k <= 2)[0]
         else:
             # If all fails, include all that would have acceptable advantage
             compromise_set = qs_with_acceptable_advantage
@@ -209,7 +208,7 @@ class VIKOR(SKCDecisionMakerABC):
             "q_k": q_k,
             "acceptable_advantage": bool(has_acceptable_advantage),
             "acceptable_stability": bool(has_acceptable_stability),
-            "compromise_set": compromise_set[0],
+            "compromise_set": compromise_set + 1,  # Alternatives 1-based index
         }
 
         return rank_q_k, extra
