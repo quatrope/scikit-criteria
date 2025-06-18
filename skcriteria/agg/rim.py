@@ -29,46 +29,49 @@ with hidden():
 # =============================================================================
 
 
-def _rim_normalize(value, value_range, ref_ideal):
-    """Normalization function based on the reference range and ideal."""
-    A, B = value_range
-    C, D = ref_ideal
+def _rim_normalize_matrix(matrix, ref_ideals, ranges):
+    norm_matrix = np.asarray(matrix, dtype=float)
+    ref_ideals = np.asarray(ref_ideals)
+    ranges = np.asarray(ranges)
 
-    if C <= value <= D:
-        return 1.0
-    elif A != C and A <= value < C:
-        return 1 - min(abs(value - C), abs(value - D)) / abs(A - C)
-    elif D != B and D < value <= B:
-        return 1 - min(abs(value - C), abs(value - D)) / abs(D - B)
-    else:
-        raise ValueError(
-            "Invalid value to normalize. Outside the accepted range."
-        )
+    A = ranges[:, 0]  # A
+    B = ranges[:, 1]  # B
+    C = ref_ideals[:, 0]  # C
+    D = ref_ideals[:, 1]  # D
+
+    # Condition 1: C <= X <= D → 1.0
+    mask1 = (matrix >= C) & (matrix <= D)
+    norm_matrix[mask1] = 1.0
+
+    # Condition 2: A <= X < C and A != C
+    mask2 = (matrix >= A) & (matrix < C) & (A != C)
+    diff_C = np.abs(matrix - C)
+    diff_D = np.abs(matrix - D)
+    denom = np.abs(A - C)
+
+    new_values = 1 - (np.minimum(diff_C, diff_D) / denom)
+    norm_matrix[mask2] = new_values[mask2]
+
+    # Condition 3: D < X <= B and D != B
+    mask3 = (matrix > D) & (matrix <= B) & (D != B)
+    diff_C = np.abs(matrix - C)
+    diff_D = np.abs(matrix - D)
+    denom = np.abs(D - B)
+
+    new_values = 1 - (np.minimum(diff_C, diff_D) / denom)
+    norm_matrix[mask3] = new_values[mask3]
+
+    return norm_matrix
 
 
 def _rim(matrix, weights, ref_ideals, ranges):
 
-    # Normalize the valuation matrix X
-    norm_matrix = np.empty_like(matrix, dtype=float)
-    for i in range(matrix.shape[0]):
-        for j in range(matrix.shape[1]):
-            norm_matrix[i, j] = _rim_normalize(
-                matrix[i, j],
-                ranges[j],
-                ref_ideals[j],
-            )
-
-    # Calculate the weighted normalized matrix
+    norm_matrix = _rim_normalize_matrix(matrix, ref_ideals, ranges)
     weighted_matrix = norm_matrix * weights
 
-    # Calculate the variation to the normalized
-    # reference ideal for each alternative
-    i_plus = np.linalg.norm(
-        weighted_matrix - weights, axis=1
-    )  # distance to ideal
-    i_minus = np.linalg.norm(weighted_matrix, axis=1)  # distance to origin
+    i_plus = np.linalg.norm(weighted_matrix - weights, axis=1)
+    i_minus = np.linalg.norm(weighted_matrix, axis=1)
 
-    # Calculate the relative index of each alternative
     R = i_minus / (i_plus + i_minus)
     ranking = rank.rank_values(R, reverse=True)
 
@@ -137,6 +140,9 @@ class RIM(SKCDecisionMakerABC):
         if ref_ideals is None or ranges is None:
             raise ValueError("Both `ref_ideals` and `ranges` are required.")
 
+        ref_ideals = np.asarray(ref_ideals)
+        ranges = np.asarray(ranges)
+
         self._validate_ranges(data["matrix"], ref_ideals, ranges)
 
         result_data, extra = self._evaluate_data(
@@ -168,10 +174,24 @@ class RIM(SKCDecisionMakerABC):
                 "ref_ideals length must match number of criteria."
             )
         if len(ranges) != n_criteria:
-            raise ValueError("ranges length must match number of criteria.")
+            raise ValueError("Ranges length must match number of criteria.")
 
-        for i, (ideal, valid_range) in enumerate(zip(ref_ideals, ranges)):
-            if not (valid_range[0] <= ideal[0] <= ideal[1] <= valid_range[1]):
-                raise ValueError(
-                    f"{ideal} must be within ranges[{i}] = {valid_range}"
-                )
+        if ranges.shape != (matrix.shape[1], 2):
+            raise ValueError(
+                f"Invalid shape for ranges. It must be (n_criteria, 2). \
+                Got: {ranges.shape}."
+            )
+
+        min_range, max_range = ranges[:, 0], ranges[:, 1]
+
+        ideals_within_ranges = (ref_ideals.T >= min_range) & (
+            ref_ideals.T <= max_range
+        )
+        if not np.all(ideals_within_ranges):
+            raise ValueError("Ideals must be within ranges")
+
+        values_within_ranges = (matrix >= min_range) & (matrix <= max_range)
+        if not np.all(values_within_ranges):
+            raise ValueError(
+                "Some values are outside the accepted normalization range."
+            )
