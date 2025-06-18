@@ -44,7 +44,7 @@ def waspas(matrix, weights, lambda_value=0.5):
     )
 
 
-class WASPASModel(SKCDecisionMakerABC):
+class WASPAS(SKCDecisionMakerABC):
     r"""The Weighted Aggregated Sum Product ASsessment method.
 
     WASPAS is a multicriteria decision analysis method that combines the
@@ -90,7 +90,7 @@ class WASPASModel(SKCDecisionMakerABC):
         lambda_value = float(lambda_value)
         if not (1 >= lambda_value >= 0):
             raise ValueError(
-                "WASPASModel requires 'lambda_value' to be "
+                "WASPAS requires 'lambda_value' to be "
                 f"between 0 and 1, but found {lambda_value}."
             )
         self._lambda_value = lambda_value
@@ -103,12 +103,10 @@ class WASPASModel(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if Objective.MIN.value in objectives:
-            raise ValueError(
-                "WASPASModel can't operate with minimize objective"
-            )
+            raise ValueError("WASPAS can't operate with minimize objective")
         if np.any(matrix <= 0):
 
-            raise ValueError("WASPASModel can't operate with values <= 0")
+            raise ValueError("WASPAS can't operate with values <= 0")
 
         (rank, wsm_scores, log10_wpm_scores, score) = waspas(
             matrix, weights, self.lambda_value
@@ -122,7 +120,7 @@ class WASPASModel(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "WASPASModel",
+            "WASPAS",
             alternatives=alternatives,
             values=values,
             extra=extra,
