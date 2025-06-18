@@ -19,12 +19,10 @@
 import numpy as np
 
 import pytest
-# TODO: limpiar imports
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.edas import EDAS
-from skcriteria.preprocessing.invert_objectives import InvertMinimize
-from skcriteria.preprocessing.scalers import SumScaler
+
 
 # TODO: terminar tests
 def test_EDAS():
