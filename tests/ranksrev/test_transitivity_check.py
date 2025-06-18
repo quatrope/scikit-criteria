@@ -101,7 +101,7 @@ def test_TransitivityCheck_assign_rankings():
     assert result == {'AA': 1, 'GN': 2, 'JN': 3, 'PE': 4}
 
 def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
-    dm = skc.datasets.load_simple_stock_selection()
+    dm = skc.datasets.load_non_rank_reversal_matrix()
     orank = ws_pipe.evaluate(dm)
     trans_checker = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
     graph = trans_checker._dominance_graph(dm, orank)
@@ -180,7 +180,7 @@ def test_TransitivityChecker_n_jobs_custom():
 # =============================================================================
 
 def test_TransitivityCheck_test_criterion_2_pass():
-    dm = skc.datasets.load_simple_stock_selection()
+    dm = skc.datasets.load_non_rank_reversal_matrix()
     trans_check = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
     assert rank_comparator._extra.transitivity_break_rate == 0
@@ -188,7 +188,7 @@ def test_TransitivityCheck_test_criterion_2_pass():
     assert trans_check._test_criterion_2(rank_comparator._extra.transitivity_break_rate) == True
 
 def test_TransitivityCheck_test_criterion_2_fail():
-    dm = skc.datasets.load_van2021evaluation()
+    dm = skc.datasets.load_wang2005()
     trans_check = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
     assert rank_comparator._extra.transitivity_break_rate == pytest.approx(0.13333,0.0001)
@@ -196,14 +196,14 @@ def test_TransitivityCheck_test_criterion_2_fail():
     assert trans_check._test_criterion_2(rank_comparator._extra.transitivity_break_rate) == False
 
 def test_TransitivityCheck_test_criterion_3_pass(): #TODO: no se si esto debería ser asi
-    dm = skc.datasets.load_simple_stock_selection()
+    dm = skc.datasets.load_non_rank_reversal_matrix()
     trans_check = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
     assert rank_comparator._extra.test_criterion_3 == True
     assert len(rank_comparator.ranks) == 0
 
-def test_TransitivityCheck_test_criterion_3():
-    dm = skc.datasets.load_van2021evaluation()
+def test_TransitivityCheck_test_criterion_3_fail():
+    dm = skc.datasets.load_wang2005()
     trans_check = skcriteria.ranksrev.transitivity_check.TransitivityChecker(ws_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
     assert rank_comparator._extra.test_criterion_3 == False
