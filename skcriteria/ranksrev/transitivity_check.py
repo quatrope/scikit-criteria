@@ -36,20 +36,23 @@ from ..utils import Bunch, rank, generate_acyclic_graphs, unique_names
 # =============================================================================
 
 
-def _untie_first(r1, r2):
-    return [(r1, r2)]
-
-
-def _untie_second(r1, r2):
-    return [(r2, r1)]
-
-
-def _untie_by_dominance(r1, r2):
-    dominance_result = rank.dominance(r1, r2)
-    winner_edge = (
-        (r1, r2) if dominance_result.aDb < dominance_result.bDa else (r2, r1)
-    )
-    return [winner_edge]
+def _untie_by_dominance(alt1, alt2, dm, strict):
+    crit1, crit2 = dm.alternatives[alt1], dm.alternatives[alt2]
+    dominance_result = rank.dominance(crit1, crit2)
+    if strict:
+        winner = (
+            (alt1, alt2)
+            if not len(dominance_result.eq)
+            and dominance_result.aDb > dominance_result.bDa
+            else (alt2, alt1)
+        )
+    else:
+        winner = (
+            (alt1, alt2)
+            if dominance_result.aDb > dominance_result.bDa
+            else (alt2, alt1)
+        )
+    return [winner]
 
 
 def _transitivity_break_bound(n):
@@ -79,7 +82,7 @@ def _transitivity_break_bound(n):
 
     References
     ----------
-    :cite:p:``
+    :cite:p:`moon2015topics`
     """
     if n % 2 == 0:
         return n * (n**2 - 4) // 24
@@ -153,25 +156,6 @@ def _format_transitivity_cycles(lst):
 
 
 # =============================================================================
-# INTERNAL VARIABLES
-# =============================================================================
-
-_PAIR_RANK_UNTIERS = {
-    "dominance": {
-        "edge_creation": _untie_by_dominance,
-        "untie_name": "DOMINANCE",
-    },
-    "first": {
-        "edge_creation": _untie_first,
-        "untie_name": "FIRST WINS",
-    },
-    "second": {
-        "edge_creation": _untie_second,
-        "untie_name": "SECOND WINS",
-    },
-}
-
-# =============================================================================
 # CLASS
 # =============================================================================
 
@@ -219,7 +203,7 @@ class TransitivityChecker(SKCMethodABC):
     _skcriteria_dm_type = "rank_reversal"
     _skcriteria_parameters = [
         "dmaker",
-        "pair_rank_untier",
+        "strict",
         "random_state",
         "make_transitive_strategy",
         "max_ranks",
@@ -231,7 +215,7 @@ class TransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
-        pair_rank_untier="dominance",
+        strict=False,
         random_state=None,
         make_transitive_strategy="random",
         max_ranks=50,
@@ -242,8 +226,8 @@ class TransitivityChecker(SKCMethodABC):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
 
-        # UNTIE EQUIVALENT RANKS
-        self._pair_rank_untier = pair_rank_untier
+        # STRICT DOMINANCE
+        self._strict = strict
 
         # PARALLEL BACKEND
         self._parallel_backend = parallel_backend
@@ -264,13 +248,12 @@ class TransitivityChecker(SKCMethodABC):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
-        # repeats = self.repeat
-        # ama = self._allow_missing_alternatives
-        # lds = self.last_diff_strategy
+        dom_strict = self._strict
+        trs = self._make_transitive_strategy
+        mr = self._max_ranks
         return (
-            f"<{name} {dm}>"
-            #   repeats={repeats}, "
-            # f"allow_missing_alternatives={ama} last_diff_strategy={lds!r}>"
+            f"<{name} {dm} strict={dom_strict}, "
+            f"make_transitive_strategy={trs}, max_ranks={mr}>"
         )
 
     # PROPERTIES ==============================================================
@@ -279,7 +262,12 @@ class TransitivityChecker(SKCMethodABC):
     def dmaker(self):
         """The MCDA method, or pipeline to evaluate."""
         return self._dmaker
-
+    
+    @property
+    def strict(self):
+        """If True, the strict dominance is used to break ties."""
+        return self._strict
+    
     @property
     def parallel_backend(self):
         return self._parallel_backend
@@ -304,16 +292,14 @@ class TransitivityChecker(SKCMethodABC):
 
     # LOGIC ===================================================================
 
-    def _evaluate_pairwise_submatrix(
-        self, decision_matrix, alternative_pair, pipeline
-    ):
+    def _evaluate_pairwise_submatrix(self, decision_matrix, alternative_pair):
         """
         Apply the MCDM pipeline to a sub-problem of two alternatives
         """
         sub_dm = decision_matrix.loc[alternative_pair]
-        return pipeline.evaluate(sub_dm)
+        return self._dmaker.evaluate(sub_dm)
 
-    def _get_graph_edges(self, results):
+    def _get_graph_edges(self, results, decision_matrix):
         """
         Generate directed graph edges from pairwise comparison results.
 
@@ -342,9 +328,6 @@ class TransitivityChecker(SKCMethodABC):
         edges = []
 
         # Get the rank untier strategy
-        pair_rank_untier = self._pair_rank_untier
-        tie_breaker = _PAIR_RANK_UNTIERS[pair_rank_untier]["edge_creation"]
-
         for rr in results:
             # Access the names of the compared alternatives
             alt_names = rr.alternatives
@@ -358,19 +341,19 @@ class TransitivityChecker(SKCMethodABC):
             elif ranks[1] < ranks[0]:
                 edges.append((alt_names[1], alt_names[0]))
             else:
-                untied_edges = tie_breaker(alt_names[0], alt_names[1])
+                untied_edges = _untie_by_dominance(
+                    alt_names[0], alt_names[1], decision_matrix, self._strict
+                )
                 edges.extend(untied_edges)
 
         return edges
 
     def _add_break_info_to_rank(self, rank, dag, removed_edges):
 
-        method = str(rank.method)
+        method = rank.method
         if dag:
             method = (
-                method
-                + ", Untie method: "
-                + _PAIR_RANK_UNTIERS[self._pair_rank_untier]["untie_name"]
+                f"{method} + RRT3 RECOMPOSITION"
             )
 
         extra = dict(rank.extra_.items())
@@ -440,8 +423,6 @@ class TransitivityChecker(SKCMethodABC):
             list, it.combinations(orank.alternatives, 2)
         )
 
-        dmaker = self._dmaker
-
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
         with joblib.Parallel(
@@ -451,11 +432,10 @@ class TransitivityChecker(SKCMethodABC):
                 self._evaluate_pairwise_submatrix
             )
             results = P(
-                delayed_evaluation(dm, pair, dmaker)
-                for pair in pairwise_combinations
+                delayed_evaluation(dm, pair) for pair in pairwise_combinations
             )
 
-        edges = self._get_graph_edges(results)
+        edges = self._get_graph_edges(results, dm)
 
         # Create directed graph
         return nx.DiGraph(edges)
@@ -484,18 +464,18 @@ class TransitivityChecker(SKCMethodABC):
 
     def _test_criterion_2(self, trans_break_rate):
         """Perform test criterion 2"""
-        return trans_break_rate == 0
+        return "Passed" if trans_break_rate == 0 else "Not Passed"
 
     def _test_criterion_3(self, test_criterion_2, orank, returned_ranks):
         """Perform test criterion 3"""
-        result = False
-        if (
-            test_criterion_2
-            and (orank.values == returned_ranks[0].values).all()
-        ):
-            result = True
-
-        return result
+        return (
+            "Passed"
+            if (
+                test_criterion_2 == "Passed"
+                and (orank.values == returned_ranks[0].values).all()
+            )
+            else "Not Passed"
+        )
 
     def evaluate(self, *, dm):
         """Executes the transitivity test.
@@ -523,16 +503,19 @@ class TransitivityChecker(SKCMethodABC):
         # we need a first reference ranking
         orank = dmaker.evaluate(dm)
 
+        # add epmty info to orank
         orank = self._add_break_info_to_rank(
             orank, dag=None, removed_edges=None
         )
 
+        # make the pairwise dominance graph and calculate transitivity metrics
         graph, trans_break, trans_break_rate = self._generate_graph_data(
             dm, orank
         )
 
         test_criterion_2 = self._test_criterion_2(trans_break_rate)
 
+        # get the ranks from the graph
         returned_ranks = self._get_ranks(graph, orank)
 
         test_criterion_3 = self._test_criterion_3(
