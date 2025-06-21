@@ -66,4 +66,4 @@ docs/source/_dynamic/*.rst
 **/.ipynb_checkpoints
 .venv/
 .envrc
-
+.python-version

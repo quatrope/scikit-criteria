@@ -29,48 +29,48 @@ with hidden():
 # =============================================================================
 
 
-def _increasing_value_function(reference_points, matrix, alpha, lambd):
-    gains = matrix > reference_points
-    losses = ~gains
+def _value_function(matrix, reference_points, alpha, lambd, objectives):
+    """Value function for ERVD."""
+    delta = matrix - reference_points  # Calculate the difference only one time
+
+    maximize_mask = np.broadcast_to(objectives == Objective.MAX, matrix.shape)
 
     result = np.empty_like(matrix, dtype=float)
-    result[gains] = ((matrix - reference_points) ** alpha)[gains]
-    result[losses] = (-lambd * ((reference_points - matrix) ** alpha))[losses]
 
-    return result
+    # MAX objectives
+    # masks
+    gains_min = (delta < 0) & ~maximize_mask
+    losses_min = ~gains_min & ~maximize_mask
+    gains_max = (delta > 0) & maximize_mask
+    losses_max = ~gains_max & maximize_mask
 
+    # apply the value function
+    result[gains_max] = delta[gains_max] ** alpha
+    result[losses_max] = -lambd * ((-delta[losses_max]) ** alpha)
 
-def _decreasing_value_function(reference_points, matrix, alpha, lambd):
-    gains = matrix < reference_points
-    losses = ~gains
-
-    result = np.empty_like(matrix, dtype=float)
-    result[gains] = ((reference_points - matrix) ** alpha)[gains]
-    result[losses] = (-lambd * ((matrix - reference_points) ** alpha))[losses]
+    # MIN objectives
+    result[gains_min] = (-delta[gains_min]) ** alpha
+    result[losses_min] = -lambd * (delta[losses_min] ** alpha)
 
     return result
 
 
 def ervd(matrix, objectives, weights, reference_points, alpha, lambd):
     """Execute ERVD without any validation."""
-    increasing_matrix = _increasing_value_function(
-        reference_points, matrix, alpha, lambd
-    )
-    decreasing_matrix = _decreasing_value_function(
-        reference_points, matrix, alpha, lambd
-    )
+    matrix = matrix.copy()
 
-    mask = np.vstack([np.array(objectives == Objective.MAX)] * matrix.shape[0])
-    matrix[mask] = increasing_matrix[mask]
-    matrix[~mask] = decreasing_matrix[~mask]
+    # apply the value function based on the maximize_mask
+    value_matrix = _value_function(
+        matrix, reference_points, alpha, lambd, objectives
+    )
 
     # create the ideal and the anti ideal arrays
-    ideal = np.max(matrix, axis=0)
-    anti_ideal = np.min(matrix, axis=0)
+    ideal = np.max(value_matrix, axis=0)
+    anti_ideal = np.min(value_matrix, axis=0)
 
     # calculate distances
-    s_plus = np.sum(weights * np.abs(matrix - ideal), axis=1)
-    s_minus = np.sum(weights * np.abs(matrix - anti_ideal), axis=1)
+    s_plus = np.sum(weights * np.abs(value_matrix - ideal), axis=1)
+    s_minus = np.sum(weights * np.abs(value_matrix - anti_ideal), axis=1)
 
     # relative closeness
     similarity = s_minus / (s_plus + s_minus)
