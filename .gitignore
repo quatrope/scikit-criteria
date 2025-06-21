@@ -64,6 +64,10 @@ setuptools-*.zip
 result_images/
 docs/source/_dynamic/*.rst
 **/.ipynb_checkpoints
+<<<<<<< HEAD
 .venv/
 .envrc
 .python-version
+=======
+.python-version
+>>>>>>> c58542e (vectorization of ERVD value function)
