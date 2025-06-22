@@ -29,6 +29,7 @@ from ..agg import RankResult
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
 from ..utils import Bunch, rank, generate_acyclic_graphs, unique_names
+from ..utils.cycle_removal import CYCLE_REMOVAL_STRATEGIES
 
 
 # =============================================================================
@@ -237,6 +238,12 @@ class TransitivityChecker(SKCMethodABC):
         self._random_state = np.random.default_rng(random_state)
 
         # STRATEGY FOR REMOVAL OF BREAKS IN TRANSITIVITY
+        if not callable(make_transitive_strategy) and \
+            make_transitive_strategy not in CYCLE_REMOVAL_STRATEGIES:
+            available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
+            raise ValueError(
+                f"Unknown strategy: {make_transitive_strategy}. Available strategies: {available_strategies}"
+            )
         self._make_transitive_strategy = (
             make_transitive_strategy  # TODO VERR CONDICION
         )
