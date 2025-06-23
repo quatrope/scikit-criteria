@@ -37,22 +37,17 @@ from ..utils.cycle_removal import CYCLE_REMOVAL_STRATEGIES
 # =============================================================================
 
 
-def _untie_by_dominance(alt1, alt2, dm, strict):
+def _untie_by_dominance(alt1, alt2, dm):
+
     crit1, crit2 = dm.alternatives[alt1], dm.alternatives[alt2]
     dominance_result = rank.dominance(crit1, crit2)
-    if strict:
-        winner = (
-            (alt1, alt2)
-            if not len(dominance_result.eq)
-            and dominance_result.aDb > dominance_result.bDa
-            else (alt2, alt1)
-        )
+    aDb, bDa = dominance_result.aDb, dominance_result.bDa
+
+    if aDb != bDa:
+        winner = (alt1, alt2) if aDb > bDa else (alt2, alt1)
     else:
-        winner = (
-            (alt1, alt2)
-            if dominance_result.aDb > dominance_result.bDa
-            else (alt2, alt1)
-        )
+        return []
+
     return [winner]
 
 
@@ -204,7 +199,6 @@ class TransitivityChecker(SKCMethodABC):
     _skcriteria_dm_type = "rank_reversal"
     _skcriteria_parameters = [
         "dmaker",
-        "strict",
         "random_state",
         "make_transitive_strategy",
         "max_ranks",
@@ -216,7 +210,6 @@ class TransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
-        strict=False,
         random_state=None,
         make_transitive_strategy="random",
         max_ranks=50,
@@ -227,9 +220,6 @@ class TransitivityChecker(SKCMethodABC):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
 
-        # STRICT DOMINANCE
-        self._strict = strict
-
         # PARALLEL BACKEND
         self._parallel_backend = parallel_backend
         self._n_jobs = n_jobs
@@ -238,8 +228,10 @@ class TransitivityChecker(SKCMethodABC):
         self._random_state = np.random.default_rng(random_state)
 
         # STRATEGY FOR REMOVAL OF BREAKS IN TRANSITIVITY
-        if not callable(make_transitive_strategy) and \
-            make_transitive_strategy not in CYCLE_REMOVAL_STRATEGIES:
+        if (
+            not callable(make_transitive_strategy)
+            and make_transitive_strategy not in CYCLE_REMOVAL_STRATEGIES
+        ):
             available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
             raise ValueError(
                 f"Unknown strategy: {make_transitive_strategy}. Available strategies: {available_strategies}"
@@ -255,11 +247,10 @@ class TransitivityChecker(SKCMethodABC):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
-        dom_strict = self._strict
         trs = self._make_transitive_strategy
         mr = self._max_ranks
         return (
-            f"<{name} {dm} strict={dom_strict}, "
+            f"<{name} {dm}, "
             f"make_transitive_strategy={trs}, max_ranks={mr}>"
         )
 
@@ -269,12 +260,7 @@ class TransitivityChecker(SKCMethodABC):
     def dmaker(self):
         """The MCDA method, or pipeline to evaluate."""
         return self._dmaker
-    
-    @property
-    def strict(self):
-        """If True, the strict dominance is used to break ties."""
-        return self._strict
-    
+
     @property
     def parallel_backend(self):
         return self._parallel_backend
@@ -349,19 +335,17 @@ class TransitivityChecker(SKCMethodABC):
                 edges.append((alt_names[1], alt_names[0]))
             else:
                 untied_edges = _untie_by_dominance(
-                    alt_names[0], alt_names[1], decision_matrix, self._strict
+                    alt_names[0], alt_names[1], decision_matrix
                 )
                 edges.extend(untied_edges)
 
         return edges
 
-    def _add_break_info_to_rank(self, rank, dag, removed_edges):
+    def _add_break_info_to_rank(self, rank, dag, removed_edges, iteration=1):
 
         method = rank.method
         if dag:
-            method = (
-                f"{method} + RRT3 RECOMPOSITION"
-            )
+            method = f"{method} + RRT3 RECOMPOSITION_{iteration}"
 
         extra = dict(rank.extra_.items())
 
@@ -381,7 +365,7 @@ class TransitivityChecker(SKCMethodABC):
         )
         return patched_rank
 
-    def _create_rank_from_dag(self, orank, dag, removed_edges):
+    def _create_rank_from_dag(self, orank, dag, removed_edges, iteration=1):
 
         alternative_rank_value = assign_rankings(in_degree_sort(dag))
 
@@ -394,7 +378,9 @@ class TransitivityChecker(SKCMethodABC):
             extra=orank.extra_,
         )
 
-        rank = self._add_break_info_to_rank(rank, dag, removed_edges)
+        rank = self._add_break_info_to_rank(
+            rank, dag, removed_edges, iteration
+        )
 
         return rank
 
@@ -414,11 +400,10 @@ class TransitivityChecker(SKCMethodABC):
                 seed=self._random_state,
             )
 
-            for (
-                dag,
-                removed_edges,
-            ) in acyclic_graphs:
-                rank = self._create_rank_from_dag(orank, dag, removed_edges)
+            for iteration, (dag, removed_edges) in enumerate(acyclic_graphs):
+                rank = self._create_rank_from_dag(
+                    orank, dag, removed_edges, iteration + 1
+                )
                 ranks.append(rank)
 
         return list(ranks)
@@ -445,7 +430,12 @@ class TransitivityChecker(SKCMethodABC):
         edges = self._get_graph_edges(results, dm)
 
         # Create directed graph
-        return nx.DiGraph(edges)
+        graph = nx.DiGraph(edges)
+
+        # Check if missing alternatives
+        if len(graph) < len(orank.alternatives):
+            graph.add_nodes_from(orank.alternatives)
+        return graph
 
     def _calculate_transitivity_break(self, graph):
 
