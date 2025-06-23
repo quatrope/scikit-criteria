@@ -80,7 +80,7 @@ def copras(matrix, weights, objectives):
     significances = determine_significances(s_max, s_min)
     utility_degrees = significances / max(significances) * 100
     ranking = rank.rank_values(utility_degrees, reverse=True)
-    return ranking, utility_degrees
+    return ranking, utility_degrees, significances, s_max, s_min
 
 
 class COPRAS(SKCDecisionMakerABC):
@@ -126,9 +126,16 @@ class COPRAS(SKCDecisionMakerABC):
                 "for values in all minimizing criteria"
             )
 
-        ranking, score = copras(matrix, weights, objectives)
+        ranking, score, significances, s_max, s_min = copras(
+            matrix, weights, objectives
+        )
 
-        return ranking, {"score": score}
+        return ranking, {
+            "score": score,
+            "significances": significances,
+            "S_max": s_max,
+            "S_min": s_min,
+        }
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
