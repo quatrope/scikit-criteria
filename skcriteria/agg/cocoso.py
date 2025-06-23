@@ -33,48 +33,52 @@ with hidden():
 def cocoso(matrix, weights, lamdba_value):
     """Execute COCOSO without any validation."""
 
-    # _, score_wsm = wsm(matrix, weights).round(4)
-    # _, log10_score_wpm = wpm(matrix, weights)
-    # score_wpm = np.power(10, log10_score_wpm).round(4)
-
-    score_wsm = np.sum(matrix * weights, axis=1).round(4)
-    score_wpm = np.sum(matrix ** weights, axis=1).round(4)
+    score_wsm = np.sum(matrix * weights, axis=1)
+    score_wpm = np.sum(matrix ** weights, axis=1)
 
     # calculate the arithmetic mean of sums of WSM and WPM scores.
     sum_scores = score_wsm + score_wpm
-    k_a = (sum_scores / np.sum(sum_scores)).round(3)    
+    k_a = (sum_scores / np.sum(sum_scores))
     
     # calculate the sum of relative scores of WSM and WPM compared to the best.
-    k_b = (score_wsm / np.min(score_wsm) + score_wpm / np.min(score_wpm)).round(3)
+    k_b = (score_wsm / np.min(score_wsm) + score_wpm / np.min(score_wpm))
     
     # calculate the balanced compromise of WSM and WPM models scores.
     k_c = ((lamdba_value * score_wsm + (1 - lamdba_value) * score_wpm) / \
-        (lamdba_value * np.max(score_wsm) + (1 - lamdba_value) * np.max(score_wpm))).round(3)
+        (lamdba_value * np.max(score_wsm) + (1 - lamdba_value) * np.max(score_wpm)))
     
-    score = ((k_a * k_b * k_c) ** (1/3) + (k_a + k_b + k_c) * (1/3)).round(3)
+    score = ((k_a * k_b * k_c) ** (1/3) + (k_a + k_b + k_c) * (1/3))
  
     return rank.rank_values(score, reverse=True), score
 
 class CoCoSo(SKCDecisionMakerABC):
     r"""Combined Compromise Solution (CoCoSo) method.
 
-    In CoCoSo the suggested approach is based on an integrated simple additive weighting and
-    exponentially weighted product model. It can be a compendium of compromise solutions.
+    The CoCoSo method combines the Weighted Sum Model (WSM) and Weighted Product 
+    Model (WPM) approaches to provide a comprehensive ranking solution for 
+    multi-criteria decision-making problems. It uses three different aggregation 
+    strategies to balance the advantages of both WSM and WPM methods.
     
+    The method calculates three compromise scores:
+    
+    - **k_a**: Arithmetic mean of normalized WSM and WPM scores
+    - **k_b**: Relative scores compared to the best alternatives
+    - **k_c**: Balanced compromise using the lambda parameter
+    
+    The final score combines these three measures using both geometric and 
+    arithmetic means to provide a robust ranking.
+
     Parameters
     ----------
-    TODO:
     lambda_value : float, optional (default=0.5)
         Aggregation parameter in [0, 1] that balances WSM and WPM.
+        When lambda_value = 0, the method relies more on WPM;
+        When lambda_value = 1, the method relies more on WSM;
+        When lambda_value = 0.5, both methods have equal influence.
 
     References
     ----------
-    :cite:p:
-    `Yazdani, Morteza and Zaraté, Pascale and Kazimieras Zavadskas,
-    Edmundas and Turskis, Zenonas A Combined Compromise Solution
-    (CoCoSo) method for multi-criteria decision-making problems.
-    (2019) Management Decision, 57 (9). 2501-2519. ISSN 0025-1747`
-
+    :cite:p:`yazdani2019cocoso`
     """
 
     _skcriteria_parameters = ["lambda_value"]
@@ -99,10 +103,7 @@ class CoCoSo(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
-        print(values)
         return RankResult(
             "CoCoso", alternatives=alternatives, values=values, extra=extra
         )
-
-
 

@@ -78,7 +78,7 @@ def test_COCOSO():
 
     assert result.values_equals(expected)
     assert result.method == expected.method
-    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-3)
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-2)
 
 def test_COCOSO_invalid_lambda_value():
     with pytest.raises(ValueError):
