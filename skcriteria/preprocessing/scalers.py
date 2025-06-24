@@ -487,6 +487,9 @@ def codas_normalization(matrix, weights, objectives):
     if Objective.MAX.value in objectives:
         max_columns = matrix[:, objectives == Objective.MAX.value]
         max_values = np.max(max_columns, axis=0)
+        # Caso 1: Si toda una columna es 0 y se busca maximizar esa columna, error
+        if np.any(max_values == 0):
+            raise ValueError("Max column value can't be zero")
         norm_matrix[:, objectives == Objective.MAX.value] = (
             max_columns / max_values
         )
@@ -494,6 +497,9 @@ def codas_normalization(matrix, weights, objectives):
     if Objective.MIN.value in objectives:
         min_columns = matrix[:, objectives == Objective.MIN.value]
         min_values = np.min(min_columns, axis=0)
+        # Caso 2: Si un valor de la columna es 0 y se buscar minimizar, error
+        if np.any(min_columns == 0):
+            raise ValueError("Min column value can't be zero")
         norm_matrix[:, objectives == Objective.MIN.value] = (
             min_values / min_columns
         )
@@ -510,13 +516,16 @@ class CodasTransformer(SKCTransformerABC):
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, weights, **kwargs):
-
-        # TODO Chequeo de casos
-        # Caso 0: Todos los valores deben ser mayores iguales a 0
-        # Caso 1: Si toda una columna es 0 y se busca maximizar esa columna, error
-        # Caso 2: Si un valor de la columna es 0 y se buscar minimizar, error
-        # Caso 3: Sumatoria de los pesos es igual 1 y estan entre 0 y 1
-        # Caso 4: Revisar objectives
+        if np.any(matrix < 0):        
+            raise ValueError(
+                "Error: CODAS can't operate with negative values on the DM Matrix"
+            )
+        if not np.isclose(np.sum(weights), 1.0, atol=1e-4):
+            raise ValueError("Weights must be normalized")
+        if np.any(weights < 0) or np.any(weights > 1):
+            raise ValueError("Weigths must be between 0 and 1")
+        if not Objective.MAX.value in objectives  and not Objective.MIN.value in objectives:
+            raise ValueError("Objectives must be set MAX:1 and MIN:-1")
         # Caso ?: Linealizar algo linearizado da lo mismo 
 
         matrix_transformation = codas_normalization(
