@@ -46,7 +46,7 @@ def _select_edge_weighted(cycle, edge_freq, rng):
     return tuple(rng.choice(edges, p=np.array(weights) / np.sum(weights)))
 
 
-_CYCLE_REMOVAL_STRATEGIES = {
+CYCLE_REMOVAL_STRATEGIES = {
     "random": {"selector": _select_edge_random, "needs_freq": False},
     "weighted": {"selector": _select_edge_weighted, "needs_freq": True},
 }
@@ -93,22 +93,29 @@ def generate_acyclic_graphs(
     cycles = list(nx.simple_cycles(graph))
     max_possible_attempts = 2 * max_graphs
 
+    # If the graph is already acyclic, return it with no edges removed
+    if nx.is_directed_acyclic_graph(graph):
+        return [(graph.copy(), set())]
+
     # Validate strategy
-    if strategy not in _CYCLE_REMOVAL_STRATEGIES:
-        available_strategies = list(_CYCLE_REMOVAL_STRATEGIES.keys())
+    if not callable(strategy) and strategy not in CYCLE_REMOVAL_STRATEGIES:
+        available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
         raise ValueError(
             f"Unknown strategy: {strategy}. Available strategies: {available_strategies}"
         )
 
     # Get strategy configuration
-    strategy_config = _CYCLE_REMOVAL_STRATEGIES[strategy]
-    select_edge = strategy_config["selector"]
+    # TODO: this will simplify greatly if we remove needs_freq
+    strategy_config = CYCLE_REMOVAL_STRATEGIES.get(strategy, strategy)
+    if callable(strategy_config):
+        select_edge = strategy_config
+        needs_freq = True
+    else:
+        select_edge = strategy_config["selector"]
+        needs_freq = strategy_config["needs_freq"]
 
     # Calculate edge frequencies if needed
-    if strategy_config["needs_freq"]:
-        edge_freq = _calculate_edge_frequencies(graph)
-    else:
-        edge_freq = Counter()  # Empty counter for consistency
+    edge_freq = _calculate_edge_frequencies(graph) if needs_freq else Counter()
 
     attempts = 0
     while (
