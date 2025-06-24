@@ -16,7 +16,7 @@
 # =============================================================================
 
 import networkx as nx
-import numpy as np
+
 import pytest
 
 from skcriteria.utils import cycle_removal
@@ -132,7 +132,8 @@ def test_generate_acyclic_graphs_invalid_strategy():
 
 
 def test_generate_acyclic_graphs_reproducibility():
-    """Test that generate_acyclic_graphs produces reproducible results with same seed."""
+    """Test that generate_acyclic_graphs produces reproducible results with \
+    same seed."""
     graph = nx.DiGraph([(1, 2), (2, 3), (3, 1)])
 
     result1 = cycle_removal.generate_acyclic_graphs(
