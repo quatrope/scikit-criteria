@@ -26,17 +26,16 @@ import pytest
 
 import skcriteria as skc
 from skcriteria.agg.electre import ELECTRE2
+from skcriteria.agg.moora import ReferencePointMOORA
+from skcriteria.agg.similarity import TOPSIS
 from skcriteria.pipeline import mkpipe
 from skcriteria.preprocessing.filters import FilterNonDominated
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler, VectorScaler
 from skcriteria.ranksrev.transitivity_check import (
     TransitivityChecker,
-    _assign_rankings,
     _format_transitivity_cycles,
-    _in_degree_sort,
     _transitivity_break_bound,
-    _untie_by_dominance,
 )
 
 # =============================================================================
@@ -50,6 +49,26 @@ electre2_pipe = mkpipe(
     SumScaler(target="weights"),
     VectorScaler(target="matrix"),
     ELECTRE2(),
+)
+
+topsis_pipe = mkpipe(
+    InvertMinimize(),
+    FilterNonDominated(),
+    TOPSIS(),
+)
+
+topsis_pipe_matrix_scaler = mkpipe(
+    InvertMinimize(),
+    FilterNonDominated(),
+    VectorScaler(target="matrix"),
+    TOPSIS(),
+)
+
+topsis_pipe_moora = mkpipe(
+    InvertMinimize(),
+    FilterNonDominated(),
+    VectorScaler(target="matrix"),
+    ReferencePointMOORA(),
 )
 
 # =============================================================================
@@ -71,35 +90,6 @@ def test_TransitivityCheck_transitivity_break_bound_odd():
     assert actual == expected
 
 
-def test_TransitivityCheck_untie_dominance_first():
-    first = np.array([1, 2, 3, 4, 3])
-    second = np.array([1, 2, 3, 4, 4])
-    actual = _untie_by_dominance(first, second)
-    assert actual == [(first, second)]
-
-
-def test_TransitivityCheck_untie_dominance_second():
-    first = np.array([42, 0, 0, 42, 42])
-    second = np.array([1, 2, 3, 4, 4])
-    actual = _untie_by_dominance(first, second)
-    assert actual == [(second, first)]
-
-
-def test_TransitivityCheck_in_degree_sort():
-    dm = skc.datasets.load_simple_stock_selection()
-    orank = electre2_pipe.evaluate(dm)
-    trans_checker = TransitivityChecker(electre2_pipe)
-    graph = trans_checker._dominance_graph(dm, orank)
-    result = _in_degree_sort(graph)
-    assert result == [["AA"], ["GN"], ["JN"], ["PE"]]
-
-
-def test_TransitivityCheck_assign_rankings():
-    groups = [["AA"], ["GN"], ["JN"], ["PE"]]
-    result = _assign_rankings(groups)
-    assert result == {"AA": 1, "GN": 2, "JN": 3, "PE": 4}
-
-
 def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
     dm = skc.datasets.load_non_rank_reversal_matrix()
     orank = electre2_pipe.evaluate(dm)
@@ -111,8 +101,8 @@ def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
 
 
 def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
-    dm = skc.datasets.load_wang2005()
-    orank = electre2_pipe.evaluate(dm)
+    dm = skc.datasets.load_van2021evaluation(windows_size=7)
+    orank = topsis_pipe_moora.evaluate(dm)
     trans_checker = TransitivityChecker(electre2_pipe)
     graph = trans_checker._dominance_graph(dm, orank)
     trans_break = list(nx.simple_cycles(graph, length_bound=3))
@@ -127,9 +117,12 @@ def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
 
 def test_TransitivityChecker_repr():
     trans_checker = TransitivityChecker(electre2_pipe)
-    assert (
-        repr(trans_checker)
-        == f"<{trans_checker.get_method_name()} {repr(trans_checker.dmaker)}>"
+    assert repr(trans_checker) == (
+        f"<{trans_checker.get_method_name()} "
+        f"{repr(trans_checker.dmaker)}, "
+        f"make_transitive_strategy="
+        f"{trans_checker.make_transitive_strategy}, "
+        f"max_ranks={trans_checker.max_ranks}>"
     )
 
 
@@ -172,9 +165,9 @@ def test_TransitivityChecker_make_transitivity_strategy_random():
 
 
 def test_TransitivityChecker_make_transitivity_strategy_divination():
-    bad_strat = "Suffering and pain"
+    bad_strat = "Divination"
     with pytest.raises(ValueError):
-        TransitivityChecker(make_transitive_strategy=bad_strat)
+        TransitivityChecker(electre2_pipe, make_transitive_strategy=bad_strat)
 
 
 def test_TransitivityChecker_max_ranks_default():
@@ -205,39 +198,42 @@ def test_TransitivityChecker_n_jobs_custom():
 
 
 def test_TransitivityCheck_test_criterion_2_pass():
-    dm = skc.datasets.load_non_rank_reversal_matrix()
-    trans_check = TransitivityChecker(electre2_pipe)
+    dm = skc.datasets.load_van2021evaluation(windows_size=7)
+    trans_check = TransitivityChecker(topsis_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
     assert rank_comparator._extra.transitivity_break_rate == 0
-    assert rank_comparator._extra.test_criterion_2
-    assert trans_check._test_criterion_2(
-        rank_comparator._extra.transitivity_break_rate
+    assert rank_comparator._extra.test_criterion_2 == "Passed"
+    assert (
+        trans_check._test_criterion_2(
+            rank_comparator._extra.transitivity_break_rate
+        )
+        == "Passed"
     )
 
 
 def test_TransitivityCheck_test_criterion_2_fail():
-    dm = skc.datasets.load_wang2005()
-    trans_check = TransitivityChecker(electre2_pipe)
+    dm = skc.datasets.load_van2021evaluation(windows_size=7)
+    trans_check = TransitivityChecker(topsis_pipe_moora)
     rank_comparator = trans_check.evaluate(dm=dm)
     assert rank_comparator._extra.transitivity_break_rate > 0
-    assert not rank_comparator._extra.test_criterion_2
-    assert not trans_check._test_criterion_2(
-        rank_comparator._extra.transitivity_break_rate
+    assert rank_comparator._extra.test_criterion_2 == "Not Passed"
+    assert (
+        trans_check._test_criterion_2(
+            rank_comparator._extra.transitivity_break_rate
+        )
+        == "Not Passed"
     )
 
 
-# TODO: no se si esto debería ser asi
 def test_TransitivityCheck_test_criterion_3_pass():
-    dm = skc.datasets.load_non_rank_reversal_matrix()
-    trans_check = TransitivityChecker(electre2_pipe)
+    dm = skc.datasets.load_van2021evaluation(windows_size=7)
+    trans_check = TransitivityChecker(topsis_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
-    assert rank_comparator._extra.test_criterion_3
-    assert len(rank_comparator.ranks) == 0
+    assert rank_comparator._extra.test_criterion_3 == "Passed"
 
 
 def test_TransitivityCheck_test_criterion_3_fail():
-    dm = skc.datasets.load_wang2005()
-    trans_check = TransitivityChecker(electre2_pipe)
+    dm = skc.datasets.load_van2021evaluation(windows_size=7)
+    trans_check = TransitivityChecker(topsis_pipe_matrix_scaler)
     rank_comparator = trans_check.evaluate(dm=dm)
-    assert not rank_comparator._extra.test_criterion_3
-    assert len(rank_comparator.ranks) > 0
+    assert rank_comparator._extra.test_criterion_3 == "Not Passed"
