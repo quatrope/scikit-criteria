@@ -24,30 +24,30 @@ import pytest
 import skcriteria as skc
 from skcriteria.agg import RankResult
 
-# TODO Eliminar sys, os 
-import sys
-import os
 
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
-)
 
 from skcriteria.agg.codas import CODAS
 from skcriteria.preprocessing.scalers import CodasTransformer
 
-# TODO Reveer test, haciendo que se verifique la guarda de la clase CODAS
-def test_codas_negative_coord_fail():
+
+def test_codas_validate_DM():
     dm = skc.mkdm(
-        matrix=[[1, 2, 3], [4, -1, 6]],
+        matrix=[[0.1, 0.2, 0.3], [0.4, -1, 0.6]],
         objectives=[max, max, max],
     )
-    transformer = CodasTransformer()
-    dm_transformed = transformer.transform(dm)
-
     ranker = CODAS()
 
     with pytest.raises(ValueError):
         ranker.evaluate(dm)
+    
+    dm2=skc.mkdm(
+        matrix=[[0.1, 0.2, 0.3], [0.4, 1.2, 0.6]],
+        objectives=[max, max, max],
+    )
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm2)
+    
+
 
 
 def test_codas_LISCO():
@@ -99,7 +99,6 @@ def test_codas_LISCO():
 
     transformer = CodasTransformer()
     dm_transformed = transformer.transform(dm)
-
     ranker = CODAS()
     result = ranker.evaluate(dm_transformed)
 

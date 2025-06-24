@@ -26,18 +26,16 @@ as the secondary measure
 # IMPORTS
 # =============================================================================
 
-# TODO Limpiar imports
-
 from ..utils import hidden
 
+import warnings
+
 with hidden():
-    import itertools as it
 
     import numpy as np
 
-    from scipy import stats
 
-    from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
+    from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..core import Objective
     from ..utils import doc_inherit, rank
 
@@ -47,25 +45,29 @@ with hidden():
 # =============================================================================
 
 
-def codas_relative_assessment(euclidian_d, taxicab_d, tau=0.02):
-    # TODO Documentar
-    # TODO: cambiar nombres de variables de una letra a algo mas descriptivo
-    n = len(euclidian_d)
-    Ra = np.zeros((n, n))
 
-    # TODO Revisar For Loop
-    for i in range(n):
-        for k in range(n):
-            diff_E = euclidian_d[i] - euclidian_d[k]
-            psi = 1 if abs(diff_E) >= tau else 0
-            diff_T = taxicab_d[i] - taxicab_d[k]
-            Ra[i, k] = diff_E + psi * diff_T
+def codas_relative_assessment(euclidian_d, taxicab_d, tau):
+    """Aux function to construct the relative assessment matrix, used for final ranking  """
+    E_i = euclidian_d[:, np.newaxis]  
+    E_k = euclidian_d[np.newaxis, :]  
 
-    return Ra
+    T_i = taxicab_d[:, np.newaxis]
+    T_k = taxicab_d[np.newaxis, :]
 
-# TODO sacar objectives y weights y agregar tau
-def codas(matrix, objectives, weights):
-    # TODO Documentar
+    # Diferencias
+    diff_E = E_i - E_k
+    diff_T = T_i - T_k
+
+    # Condición psi: |diff_E| >= tau --> 1, si no --> 0
+    psi = (np.abs(diff_E) >= tau).astype(int)
+
+    #Matriz final
+    Rel_ass_matrix = diff_E + psi * diff_T
+
+    return Rel_ass_matrix
+
+def codas(matrix, tau):
+    """Execute CODAS without any validation and assuming tau value."""
 
     # STEP4 Determinar la solucion negativa ideal
     ns_arr = np.min(matrix, axis=0)
@@ -77,7 +79,7 @@ def codas(matrix, objectives, weights):
 
     # STEP6 Construir matriz de evaluacion relativa
     rel_assessment_m = codas_relative_assessment(
-        euclidian_distances, taxicab_distances, tau=0.02
+        euclidian_distances, taxicab_distances, tau
     )
 
     # STEP 7 Evaluar score de cada alternativa
@@ -87,19 +89,54 @@ def codas(matrix, objectives, weights):
 
 
 class CODAS(SKCDecisionMakerABC):
-    # TODO Descripcion
-    # TODO: hacer tau un parametro especial
-    _skcriteria_parameters = []
+    """Rank alternatives using CODAS method.
+
+    COmbinative Distance-based ASsessment (CODAS) is a
+    method to handle MCDM problems and rank the alternatives
+
+    The concept of this method is based on computing the Euclidean distance
+    and the Taxicab distance in order to determine the desirability of an alternative
+    The Euclidean distance is used as a primary measure, 
+    while the Taxicab distance as a secondary one.
+
+
+    Parameters
+    ----------
+    tau : float, optional (default=0.02)
+        τ is the threshold parameter that can be set by the decision-maker.
+        used to construct the relative assessment matrix.
+        ψ is a threshold function that uses tau to recognize the equality
+        of the Euclidean distances
+
+    Warnings
+    --------
+    UserWarning:
+        If tau is not set between 0.02 and 0.05.
+    """
+
+    _skcriteria_parameters = ["tau"]
+
+    def __init__(self, tau=0.02):
+        self._tau = tau
+
+    @property
+    def tau(self):
+        """Which tau value will be used."""
+        return self._tau
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-        # TODO Los valores tienen que estar entre 0 y 1
-        # TODO: verificar que tau esta entre 0.01 y 0.05
-        if np.any(matrix <= 0):
+        if np.any(matrix > 1):
+            raise ValueError(
+                "Error: DM Matrix must be normalized (Use codas Transformer)"
+            )
+        if np.any(matrix < 0):
             raise ValueError(
                 "Error: CODAS can't operate with negative values on the DM Matrix"
             )
-        rank, score = codas(matrix, objectives, weights)
+        if self.tau < 0.01 or self.tau > 0.05:
+            warnings.warn("It is suggested to set tau at a value between 0.01 and 0.05")
+        rank, score = codas(matrix, tau=self.tau)
         return rank, {"score": score}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
