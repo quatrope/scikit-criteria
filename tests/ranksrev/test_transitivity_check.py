@@ -37,7 +37,10 @@ from skcriteria.ranksrev.transitivity_check import (
     _format_transitivity_cycles,
     _transitivity_break_bound,
 )
-from skcriteria.utils.cycle_removal import _select_edge_random, _select_edge_weighted
+from skcriteria.utils.cycle_removal import (
+    _select_edge_random,
+    _select_edge_weighted,
+)
 
 # =============================================================================
 # SHARED OBJECTS
@@ -166,7 +169,10 @@ def test_TransitivityChecker_make_transitivity_strategy_random():
 
 
 def test_TransitivityChecker_make_transitivity_strategy_weighted():
-    trans_checker = TransitivityChecker(electre2_pipe, make_transitive_strategy="weighted")
+    trans_checker = TransitivityChecker(
+        electre2_pipe, make_transitive_strategy="weighted"
+    )
+
     assert trans_checker.make_transitive_strategy == _select_edge_weighted
 
 
