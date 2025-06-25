@@ -475,12 +475,11 @@ class CenitDistanceMatrixScaler(SKCTransformerABC):
 
 
 # =============================================================================
-# CODAS NORMALIZATION # TODO Chequear con Juan el nombre
+# CODAS NORMALIZATION 
 # =============================================================================
 
 
 def codas_normalization(matrix, weights, objectives):
-    # TODO Documentar
     # Se hace el STEP 2 y STEP 3 de CODAS
 
     norm_matrix = np.zeros_like(matrix, dtype=float)
@@ -510,7 +509,23 @@ def codas_normalization(matrix, weights, objectives):
 
 
 class CodasTransformer(SKCTransformerABC):
-    # TODO Documentar
+    """Scaler used in Codas for linear normalization
+        and also weights the matrix
+
+        The matrix transformation N[i,j] is given by:
+        if the j column is a benefit critertia:
+            X[i,j] / X.max(axis=0)
+
+        if the j column is a cost criteria:
+            X.min(axis=0) / X[i,j]  
+    
+        and then:
+        result[i,j] = W[j]*N[i,j]
+
+        where each value of W[j] is between 0 and 1, and
+        the sum of all weigths equals 1 
+
+     """
 
     _skcriteria_parameters = []
 
@@ -524,9 +539,6 @@ class CodasTransformer(SKCTransformerABC):
             raise ValueError("Weights must be normalized")
         if np.any(weights < 0) or np.any(weights > 1):
             raise ValueError("Weigths must be between 0 and 1")
-        if not Objective.MAX.value in objectives  and not Objective.MIN.value in objectives:
-            raise ValueError("Objectives must be set MAX:1 and MIN:-1")
-        # Caso ?: Linealizar algo linearizado da lo mismo 
 
         matrix_transformation = codas_normalization(
             matrix, weights, objectives

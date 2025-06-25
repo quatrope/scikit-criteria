@@ -27,7 +27,9 @@ from skcriteria.preprocessing.scalers import (
     StandarScaler,
     SumScaler,
     VectorScaler,
+    CodasTransformer
 )
+import pytest
 
 # =============================================================================
 # TEST MIN MAX
@@ -961,3 +963,111 @@ def test_CenitDistanceMatrixScaler_no_change_original_dm():
 
     skct.assert_dmatrix_equals(dm, expected)
     assert not dmt.equals(expected) and dm is not expected
+
+# =============================================================================
+# TEST CODAS TRANSFORMATION
+# ============================================================================= 
+
+def test_codas_scaler_negative_value():
+
+    dm = skcriteria.mkdm(
+        matrix=[[-1, 0, 3], [0, 5, 6]],
+        objectives=[min, max, min],
+        weights=[0.5, 0.5, 0],
+    )
+    transformer = CodasTransformer()
+
+    with pytest.raises(ValueError):
+        dm_transformed = transformer.transform(dm)
+
+
+def test_codas_scaler_max_value_zero():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [3, 0, 6]],
+        objectives=[min, max, min],
+        weights=[0.5, 0.5, 0],
+    )
+    transformer = CodasTransformer()
+
+    with pytest.raises(ValueError):
+        dm_transformed = transformer.transform(dm)
+
+
+def test_codas_scaler_min_value_zero():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[min, max, min],
+        weights=[0.5, 0.5, 0],
+    )
+    transformer= CodasTransformer()
+
+    with pytest.raises(ValueError):
+        dm_transformed = transformer.transform(dm)
+
+
+def test_codas_scaler_norm_weights():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [1, 5, 6]],
+        objectives=[min, max, min],
+        weights=[1, 2, 0],
+    )
+    transformer= CodasTransformer()
+
+    with pytest.raises(ValueError):
+        dm_transformed = transformer.transform(dm)
+
+def test_codas_weigths_value():
+
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[min, max, min],
+        weights=[1.5, 0, -0.5],
+    )
+    transformer= CodasTransformer()
+
+    with pytest.raises(ValueError):
+        dm_transformed = transformer.transform(dm)
+
+
+def test_codas_scaler_real_case():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [45, 3600, 45, 0.9],
+            [25, 3800, 60, 0.8],
+            [23, 3100, 35, 0.9],
+            [14, 3400, 50, 0.7],
+            [15, 3300, 40, 0.8],
+            [28, 3000, 30, 0.6],
+        ],
+        objectives=[max, min, max, max],
+        weights=[0.2857, 0.3036, 0.2321, 0.1786],
+    )
+
+
+    
+    expected =skcriteria.mkdm(
+        matrix=[
+            [0.2857, 0.2530, 0.1741, 0.1786],
+            [0.1587, 0.2397, 0.2321, 0.1588],
+            [0.1460, 0.2938, 0.1354, 0.1786],
+            [0.0889, 0.2679, 0.1934, 0.1389],
+            [0.0952, 0.2760, 0.1547, 0.1588],
+            [0.1778, 0.3036, 0.116, 0.1191],
+        ],
+        objectives=[max, min, max, max],
+        weights=[0.2857, 0.3036, 0.2321, 0.1786],
+    )
+
+
+    transformer= CodasTransformer()
+    dm_transformed = transformer.transform(dm)
+
+
+
+
+    assert np.all(dm_transformed.matrix.to_numpy().round(4) == expected.matrix.to_numpy())
+
+
