@@ -389,18 +389,16 @@ class TransitivityChecker(SKCMethodABC):
         self._random_state = np.random.default_rng(random_state)
 
         # STRATEGY FOR REMOVAL OF BREAKS IN TRANSITIVITY
-        if (
-            not callable(make_transitive_strategy)
-            and make_transitive_strategy not in CYCLE_REMOVAL_STRATEGIES
-        ):
+        mk_transitive = CYCLE_REMOVAL_STRATEGIES.get(
+            make_transitive_strategy, make_transitive_strategy
+        )
+        if not callable(mk_transitive):
             available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
             raise ValueError(
                 f"Unknown strategy: {make_transitive_strategy}. \
                 Available strategies: {available_strategies}"
             )
-        self._make_transitive_strategy = (
-            make_transitive_strategy  # TODO VERR CONDICION
-        )
+        self._make_transitive_strategy = mk_transitive
 
         # MAXIMIMUM PERMITED RANKS TO BE GENERATED
         self._max_ranks = int(max_ranks)  # TODO VER CONDICIONN

@@ -125,8 +125,8 @@ def _select_edge_weighted(cycle, edge_freq, rng):
 
 
 CYCLE_REMOVAL_STRATEGIES = {
-    "random": {"selector": _select_edge_random, "needs_freq": False},
-    "weighted": {"selector": _select_edge_weighted, "needs_freq": True},
+    "random": _select_edge_random,
+    "weighted": _select_edge_weighted,
 }
 
 
@@ -292,25 +292,14 @@ def generate_acyclic_graphs(
         return [(graph.copy(), set())]
 
     # Validate strategy
-    if not callable(strategy) and strategy not in CYCLE_REMOVAL_STRATEGIES:
+    select_edge = CYCLE_REMOVAL_STRATEGIES.get(strategy, strategy)
+    if not callable(select_edge):
         available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
         raise ValueError(
             f"Unknown strategy: {strategy}. \
             Available strategies: {available_strategies}"
         )
-
-    # Get strategy configuration
-    # TODO: this will simplify greatly if we remove needs_freq
-    strategy_config = CYCLE_REMOVAL_STRATEGIES.get(strategy, strategy)
-    if callable(strategy_config):
-        select_edge = strategy_config
-        needs_freq = True
-    else:
-        select_edge = strategy_config["selector"]
-        needs_freq = strategy_config["needs_freq"]
-
-    # Calculate edge frequencies if needed
-    edge_freq = _calculate_edge_frequencies(graph) if needs_freq else Counter()
+    edge_freq = _calculate_edge_frequencies(graph)
 
     attempts = 0
     while (
