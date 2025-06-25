@@ -155,34 +155,3 @@ def load_van2021evaluation(windows_size=7):
         data = json.load(fp)
 
     return mkdm(**data)
-
-
-def load_wang2005():
-    dm = core.mkdm(
-        matrix=[
-            [1, 2, 1, 5, 2, 2, 4],
-            [3, 5, 3, 5, 3, 3, 3],
-            [3, 5, 3, 5, 3, 2, 2],
-            [1, 2, 2, 5, 1, 1, 1],
-            [1, 1, 3, 5, 4, 1, 5],
-        ],
-        objectives=[max, max, max, max, max, max, max],
-        weights=[0.0780, 0.1180, 0.1570, 0.3140, 0.2350, 0.0390, 0.0590],
-        alternatives=["A1", "A2", "A3", "A4", "A5"],
-        criteria=["C1", "C2", "C3", "C4", "C5", "C6", "C7"],
-    )
-    return dm
-
-
-def load_non_rank_reversal_matrix():
-    dm = core.mkdm(
-        matrix=[
-            [99, 99, 99],
-            [1, 1, 1],
-        ],
-        objectives=[max, max, max],
-        weights=[1, 1, 1],
-        alternatives=["GOOD", "BAD"],
-        criteria=["ADEQUACY", "GREATNESS", "IMPACT"],
-    )
-    return dm

@@ -9,11 +9,11 @@
 # DOCS
 # =============================================================================
 
-"""Tools for evaluating the stability of MCDA method's best alternative.
+"""
+Tools for evaluating the stability of MCDA method's best alternative.
 
 According to this criterion, dividing the alternatives by pair should
 keep transitivity when grouped again.
-
 """
 
 # =============================================================================
@@ -425,32 +425,37 @@ class TransitivityChecker(SKCMethodABC):
 
     @property
     def parallel_backend(self):
+        """The parallel backend used \
+        to generate all the alternatives."""
         return self._parallel_backend
 
     @property
     def random_state(self):
         """Controls the random state to generate variations in the \
-        sub-optimal alternatives."""
+        suboptimal alternatives."""
         return self._random_state
 
     @property
     def make_transitive_strategy(self):
+        """The untie Strategy."""
         return self._make_transitive_strategy
 
     @property
     def max_ranks(self):
+        """Maximum number of rankings to \
+        be generated."""
         return self._max_ranks
 
     @property
     def n_jobs(self):
+        """The number of parallel jobs used \
+        in the generation."""
         return self._n_jobs
 
     # LOGIC ===================================================================
 
     def _evaluate_pairwise_submatrix(self, decision_matrix, alternative_pair):
-        """
-        Apply the MCDM pipeline to a sub-problem of two alternatives
-        """
+        """Apply the MCDM pipeline to a sub-problem of two alternatives."""
         sub_dm = decision_matrix.loc[alternative_pair]
         return self._dmaker.evaluate(sub_dm)
 
@@ -543,7 +548,6 @@ class TransitivityChecker(SKCMethodABC):
                 - acyclic_graph: the resulting DAG
                 - removed_edges: edges removed during cycle breaking
         """
-
         method = rank.method
         if dag:
             method = f"{method} + RRT3 RECOMPOSITION_{iteration}"
@@ -622,7 +626,7 @@ class TransitivityChecker(SKCMethodABC):
 
     def _get_ranks(self, graph, orank):
         """
-        Generate ranking results from a graph
+        Generate ranking results from a graph.
 
         This method produces one or more ranking results based on the input
         graph structure. If the graph is already acyclic, it generates a single
@@ -887,7 +891,6 @@ class TransitivityChecker(SKCMethodABC):
                 - transitivity_break: List of transitivity violations
                 - transitivity_break_rate: Normalized violation rate
         """
-
         dmaker = self._dmaker
 
         orank = dmaker.evaluate(dm)
