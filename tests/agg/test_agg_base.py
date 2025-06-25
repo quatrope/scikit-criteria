@@ -236,7 +236,7 @@ def test_SKCDecisionMakerABC_evaluate_parameter_validation_valid():
             }
 
     # Should not raise any exception
-    valid_simple = ValidSimple()
+    ValidSimple()
 
     # Test valid signature - dm + keyword-only parameters with defaults
     class ValidWithParams(SKCDecisionMakerABC):
@@ -256,7 +256,7 @@ def test_SKCDecisionMakerABC_evaluate_parameter_validation_valid():
             }
 
     # Should not raise any exception
-    valid_with_params = ValidWithParams()
+    ValidWithParams()
 
 
 # =============================================================================
