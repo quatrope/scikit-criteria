@@ -102,7 +102,6 @@ class COPRAS(SKCDecisionMakerABC):
     References
     ----------
     :cite:p:`zavadskas1996new`
-    :cite:p:`organ2016performance`
     """
 
     _skcriteria_parameters = []

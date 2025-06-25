@@ -481,11 +481,10 @@ class GiniWeighter(SKCWeighterABC):
     importance in MCDM problems. It uses the Gini coefficient of the data of
     each criterion to assign the weights, giving a higher weight to a more
     unequal distribution. It takes the decision matrix as a parameter.
-    See:
-        G. Li and G. Chi, "A New Determining Objective Weights Method-Gini
-        Coefficient Weight," 2009 First International Conference on
-        Information Science and Engineering, Nanjing, China, 2009,
-        pp. 3726-3729, doi: 10.1109/ICISE.2009.84.
+
+    References
+    ----------
+    :cite:p:`li2009new`
     """
 
     _skcriteria_parameters = []
