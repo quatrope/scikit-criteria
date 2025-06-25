@@ -41,25 +41,42 @@ with hidden():
 # =============================================================================
 
 EPSILON = 1e-10
+MAXERROR = 1e-8
 
 def distance_from_avg(matrix, objectives, avg):
-    pda = np.zeros_like(matrix)
-    nda = np.zeros_like(matrix)
+    pda = np.zeros_like(matrix, dtype=float)
+    nda = np.zeros_like(matrix, dtype=float)
     
-    is_beneficial = np.array([obj == max for obj in objectives])
-    diff_from_avg = matrix - avg
+    is_beneficial = np.array([obj == Objective.MAX.value for obj in objectives])
+
+    divisor = np.where(avg != 0, avg, 1)
+    diff_from_avg = np.subtract(matrix.astype(np.float64), avg.astype(np.float64))
 
     pda_filtered = np.where(is_beneficial,
                        np.maximum(0, diff_from_avg),
-                       np.maximum(0, -diff_from_avg))
-    pda = pda_filtered / (avg + EPSILON)
+                       np.maximum(0, np.multiply(-1, diff_from_avg)))
+
+    pda = np.divide(pda_filtered,divisor)
 
     nda_filtered = np.where(is_beneficial,
-                      np.maximum(0, -diff_from_avg),
+                      np.maximum(0, np.multiply(-1,diff_from_avg)),
                       np.maximum(0, diff_from_avg))
-    nda = nda_filtered / (avg + EPSILON)
 
+    nda = np.divide(nda_filtered, divisor)
+ 
     return pda, nda
+
+def normalize_sum_pda_nda(pda, nda):
+    max_pda = np.max(pda)
+    max_nda = np.max(nda)
+
+    divisor = max_pda if max_pda != 0 else 1
+    result_pda = np.divide(pda, divisor)
+
+    divisor = max_nda if max_nda != 0 else 1
+    result_nda = np.subtract(1, np.divide(nda, divisor))
+
+    return result_pda, result_nda
 
 def edas(matrix, weights, objectives):
     """Execute edas without any validation"""
@@ -69,28 +86,28 @@ def edas(matrix, weights, objectives):
     """Step 3: Determine the average solution for each criteria"""
 
     average_solution = np.mean(matrix, axis=0)
-
+    
     """Step 4: Calculate the positive (PDA) and distance (NDA) from average"""
     
     pda , nda = distance_from_avg(matrix, objectives, average_solution)
 
     """Step 5: Determine the weighted sum of PDA and NDA for all alternatives"""
     
-    sum_pda = np.sum(pda * weights, axis=1)
-    sum_nda = np.sum(nda * weights, axis=1)
+    sum_pda = np.sum(np.multiply(pda, weights), axis=1)
+    sum_nda = np.sum(np.multiply(nda, weights), axis=1)
+    # print(f"\nsum_pda = {sum_pda}\n")
+    # print(f"\nsum_nda = {sum_nda}\n")
 
     """Step 6: Normalize the values of weighted sums for all alternatives"""
-    
-    normalized_sum_pda = sum_pda / (np.max(sum_pda) + EPSILON)
-    normalized_sum_nda = 1 - (sum_nda / (np.max(sum_nda) + EPSILON))
+    normalized_sum_pda, normalized_sum_nda = normalize_sum_pda_nda(sum_pda, sum_nda)
 
     """Step 7: Calculate the appraisal score for all alternatives"""
     
-    scores = 0.5 * (normalized_sum_pda + normalized_sum_nda)
+    score = np.multiply(0.5, (normalized_sum_pda + normalized_sum_nda))
 
     """Step 8: Rank the alternatives according to the decreasing values of the score"""
-
-    return rank.rank_values(scores, reverse=True), scores
+    
+    return rank.rank_values(score, reverse=True), score
 
 
 class EDAS(SKCDecisionMakerABC):
@@ -116,8 +133,8 @@ class EDAS(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
-        if np.sum(weights) != 1:
-            raise ValueError("Sum of weights other than zero")
+        if np.abs(1 - np.sum(weights)) > MAXERROR:
+            raise ValueError("Sum of weights other than 1")
         if np.any(weights) < 0 or np.any(weights) > 1:
             raise ValueError("Weights values must be between 0 and 1")
         rank, score = edas(matrix, weights, objectives)
