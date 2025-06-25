@@ -28,6 +28,8 @@ import seaborn as sns
 
 from skcriteria import agg
 from skcriteria.cmp import ranks_cmp
+from skcriteria.utils import Bunch
+
 
 # =============================================================================
 # TESTS
@@ -83,6 +85,14 @@ def test_RanksComparator_to_dataframe(untied):
     expected.index.name = "Alternatives"
 
     pd.testing.assert_frame_equal(df, expected)
+
+
+def test_RanksComparator_extra():
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
+    actual = rcmp.e_
+    assert actual == Bunch("extra", {})
 
 
 def test_RanksComparator_diff():

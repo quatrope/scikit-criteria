@@ -112,3 +112,9 @@ def test_Bunch_get():
     assert md.get("alfa") == 1
     assert md.get("bravo") is None
     assert md.get("bravo", 2) == 2
+
+
+def test_Bunch_to_dict():
+    md = bunch.Bunch("foo", {"alfa": 1})
+    actual = md.to_dict()
+    assert actual == {"alfa": 1}
