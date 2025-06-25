@@ -1,5 +1,5 @@
 ``skcriteria.ranksrev.transitivity_check`` module
-==============================================
+==================================================
 
 .. automodule:: skcriteria.ranksrev.transitivity_check
    :members:
