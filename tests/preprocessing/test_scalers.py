@@ -27,7 +27,7 @@ from skcriteria.preprocessing.scalers import (
     StandarScaler,
     SumScaler,
     VectorScaler,
-    CodasTransformer
+    CodasTransformer,
 )
 import pytest
 
@@ -964,9 +964,11 @@ def test_CenitDistanceMatrixScaler_no_change_original_dm():
     skct.assert_dmatrix_equals(dm, expected)
     assert not dmt.equals(expected) and dm is not expected
 
+
 # =============================================================================
 # TEST CODAS TRANSFORMATION
-# ============================================================================= 
+# =============================================================================
+
 
 def test_codas_scaler_negative_value():
 
@@ -1001,7 +1003,7 @@ def test_codas_scaler_min_value_zero():
         objectives=[min, max, min],
         weights=[0.5, 0.5, 0],
     )
-    transformer= CodasTransformer()
+    transformer = CodasTransformer()
 
     with pytest.raises(ValueError):
         dm_transformed = transformer.transform(dm)
@@ -1014,10 +1016,11 @@ def test_codas_scaler_norm_weights():
         objectives=[min, max, min],
         weights=[1, 2, 0],
     )
-    transformer= CodasTransformer()
+    transformer = CodasTransformer()
 
     with pytest.raises(ValueError):
         dm_transformed = transformer.transform(dm)
+
 
 def test_codas_weigths_value():
 
@@ -1026,7 +1029,7 @@ def test_codas_weigths_value():
         objectives=[min, max, min],
         weights=[1.5, 0, -0.5],
     )
-    transformer= CodasTransformer()
+    transformer = CodasTransformer()
 
     with pytest.raises(ValueError):
         dm_transformed = transformer.transform(dm)
@@ -1046,9 +1049,7 @@ def test_codas_scaler_real_case():
         weights=[0.2857, 0.3036, 0.2321, 0.1786],
     )
 
-
-    
-    expected =skcriteria.mkdm(
+    expected = skcriteria.mkdm(
         matrix=[
             [0.2857, 0.2530, 0.1741, 0.1786],
             [0.1587, 0.2397, 0.2321, 0.1588],
@@ -1061,13 +1062,9 @@ def test_codas_scaler_real_case():
         weights=[0.2857, 0.3036, 0.2321, 0.1786],
     )
 
-
-    transformer= CodasTransformer()
+    transformer = CodasTransformer()
     dm_transformed = transformer.transform(dm)
 
-
-
-
-    assert np.all(dm_transformed.matrix.to_numpy().round(4) == expected.matrix.to_numpy())
-
-
+    assert np.all(
+        dm_transformed.matrix.to_numpy().round(4) == expected.matrix.to_numpy()
+    )

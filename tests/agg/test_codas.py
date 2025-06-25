@@ -25,7 +25,6 @@ import skcriteria as skc
 from skcriteria.agg import RankResult
 
 
-
 from skcriteria.agg.codas import CODAS
 from skcriteria.preprocessing.scalers import CodasTransformer
 
@@ -39,15 +38,13 @@ def test_codas_validate_DM():
 
     with pytest.raises(ValueError):
         ranker.evaluate(dm)
-    
-    dm2=skc.mkdm(
+
+    dm2 = skc.mkdm(
         matrix=[[0.1, 0.2, 0.3], [0.4, 1.2, 0.6]],
         objectives=[max, max, max],
     )
     with pytest.raises(ValueError):
         ranker.evaluate(dm2)
-    
-
 
 
 def test_codas_LISCO():
