@@ -10,6 +10,7 @@
 # =============================================================================
 
 """Evaluation based on Distance from Average Solution.
+
 EDAS is introduced for multi-criteria inventory classification (MCIC)
 problems. In the method, we use positive and negative distances from
 the average solution for appraising alternatives.
@@ -41,7 +42,7 @@ with hidden():
 EPSILON = 1e-10
 
 
-def distance_from_avg(matrix, objectives, avg):
+def _distance_from_avg(matrix, objectives, avg):
     pda = np.zeros_like(matrix, dtype=float)
     nda = np.zeros_like(matrix, dtype=float)
 
@@ -56,6 +57,7 @@ def distance_from_avg(matrix, objectives, avg):
 
     max_zero_diff = np.maximum(0, diff_from_avg)
     neg_max_zero_diff = np.maximum(0, np.multiply(-1, diff_from_avg))
+
     pda_filtered = np.where(is_beneficial, max_zero_diff, neg_max_zero_diff)
 
     pda = np.divide(pda_filtered, divisor)
@@ -67,7 +69,7 @@ def distance_from_avg(matrix, objectives, avg):
     return pda, nda
 
 
-def normalize_sum_pda_nda(pda, nda):
+def _normalize_sum_pda_nda(pda, nda):
     max_pda = np.max(pda)
     max_nda = np.max(nda)
 
@@ -81,7 +83,7 @@ def normalize_sum_pda_nda(pda, nda):
 
 
 def edas(matrix, weights, objectives):
-    """Execute edas without any validation"""
+    """Execute edas without any validation."""
     """Step 1: Select criteria"""
     """Step 2: Construct the decision matrix"""
 
@@ -91,7 +93,7 @@ def edas(matrix, weights, objectives):
 
     """Step 4: Calculate the positive (PDA) and distance (NDA) from average"""
 
-    pda, nda = distance_from_avg(matrix, objectives, average_solution)
+    pda, nda = _distance_from_avg(matrix, objectives, average_solution)
 
     """Step 5: Determine the weighted sum of PDA and NDA
     for all alternatives"""
@@ -100,7 +102,7 @@ def edas(matrix, weights, objectives):
     sum_nda = np.sum(np.multiply(nda, weights), axis=1)
 
     """Step 6: Normalize the values of weighted sums for all alternatives"""
-    normal_sum_pda, normal_sum_nda = normalize_sum_pda_nda(sum_pda, sum_nda)
+    normal_sum_pda, normal_sum_nda = _normalize_sum_pda_nda(sum_pda, sum_nda)
 
     """Step 7: Calculate the appraisal score for all alternatives"""
 
@@ -113,7 +115,7 @@ def edas(matrix, weights, objectives):
 
 
 class EDAS(SKCDecisionMakerABC):
-    r"""EDAS Method
+    r"""EDAS Method.
 
     Evaluation Based on Distance from Average Solution (EDAS)
     In this method we have two measures dealing with desirability of the
