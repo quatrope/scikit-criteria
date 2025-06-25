@@ -725,9 +725,6 @@ class TransitivityChecker(SKCMethodABC):
         # Create directed graph
         graph = nx.DiGraph(edges)
 
-        # Check if missing alternatives
-        if len(graph) < len(orank.alternatives):
-            graph.add_nodes_from(orank.alternatives)
         return graph
 
     def _calculate_transitivity_break(self, graph):

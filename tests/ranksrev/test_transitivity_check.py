@@ -91,7 +91,7 @@ def test_TransitivityCheck_transitivity_break_bound_odd():
 
 
 def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
-    dm = skc.datasets.load_non_rank_reversal_matrix()
+    dm = skc.datasets.load_simple_stock_selection()
     orank = electre2_pipe.evaluate(dm)
     trans_checker = TransitivityChecker(electre2_pipe)
     graph = trans_checker._dominance_graph(dm, orank)
