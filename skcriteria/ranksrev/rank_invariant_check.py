@@ -300,7 +300,8 @@ class RankInvariantChecker(SKCMethodABC):
         # TODO: room for improvement: pandas to numpy
 
         # matrix with alternatives
-        df = dm.matrix
+        # we need all the matrix as float for the noise
+        df = dm.matrix.astype(float)
 
         noise = 0  # all noises == 0
         while np.all(noise == 0):  # at least we need one noise > 0
