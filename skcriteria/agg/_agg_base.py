@@ -153,7 +153,7 @@ class SKCDecisionMakerABC(SKCMethodABC):
             If the subclass is not well formed
 
         """
-        # super().__init_subclass__()
+        super().__init_subclass__()
 
         # Get the evaluate method from the subclass
         evaluate_method = getattr(cls, "evaluate")
