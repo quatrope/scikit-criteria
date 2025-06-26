@@ -61,14 +61,14 @@ def _validate_evaluate_dm_parameter(cls, dm_param):
     TypeError
         If any of the rules are not met
     """
-    # Verificar nombre
+    # Check decision matrix name
     if dm_param.name != "dm":
         raise TypeError(
             f"First parameter after 'self' in {cls.__name__}.evaluate() "
             f"must be named 'dm', got '{dm_param.name}'"
         )
 
-    # Verificar que sea posicional
+    # Check it is positional
     if dm_param.kind not in (
         inspect.Parameter.POSITIONAL_ONLY,
         inspect.Parameter.POSITIONAL_OR_KEYWORD,
@@ -78,7 +78,7 @@ def _validate_evaluate_dm_parameter(cls, dm_param):
             f"must be positional, got {dm_param.kind.name}"
         )
 
-    # Verificar que no tenga valor por defecto
+    # Check it has no default value
     if dm_param.default != inspect.Parameter.empty:
         raise TypeError(
             f"Parameter 'dm' in {cls.__name__}.evaluate() "
