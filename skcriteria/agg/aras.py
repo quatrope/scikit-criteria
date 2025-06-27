@@ -126,12 +126,17 @@ class ARAS(SKCDecisionMakerABC):
         return np.all(maxs <= ideal)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, ideal, **kwargs):
+    def _evaluate_data(
+        self, matrix, objectives, weights, **kwargs
+    ):
         if Objective.MIN.value in objectives:
             raise ValueError(
                 "ARAS can't operate with minimization objectives. "
                 "Consider reversing the weights."
             )
+
+        ideal = matrix[0]  # First row is the ideal
+        matrix = matrix[1:]  # Remove ideal from decision matrix
 
         if not self._check_ideal(matrix, ideal):
             raise ValueError(
@@ -141,26 +146,16 @@ class ARAS(SKCDecisionMakerABC):
             )
 
         ranking, scores, utility, ideal_score = aras(matrix, weights, ideal)
+
         return ranking, {
             "score": scores,
             "utility": utility,
             "ideal_score": ideal_score,
         }
 
-    def _prepare_data(self, **kwargs):
-        """
-        Preprocess the input data for the ARAS method.
-
-        This method assumes that the ideal alternative is the first row
-        of the decision matrix, and separates it accordingly.
-        """
-        kwargs["ideal"] = kwargs["matrix"][0]
-        kwargs["matrix"] = kwargs["matrix"][1:]
-        kwargs["alternatives"] = kwargs["alternatives"][1:]
-        return kwargs
-
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
+        alternatives = alternatives[1:]
         return RankResult(
             "ARAS", alternatives=alternatives, values=values, extra=extra
         )
