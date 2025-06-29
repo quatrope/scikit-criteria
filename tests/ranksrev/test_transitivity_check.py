@@ -217,7 +217,7 @@ def test_TransitivityCheck_test_criterion_2_pass():
     test_criterion_2 = trans_check._test_criterion_2(dm, orank)[0]
     assert rank_comparator._extra.transitivity_break_rate == 0
     assert rank_comparator._extra.test_criterion_2 == "Passed"
-    assert (test_criterion_2 == "Passed")
+    assert test_criterion_2 == "Passed"
 
 
 def test_TransitivityCheck_test_criterion_2_fail():
@@ -228,7 +228,7 @@ def test_TransitivityCheck_test_criterion_2_fail():
     test_criterion_2 = trans_check._test_criterion_2(dm, orank)[0]
     assert rank_comparator._extra.transitivity_break_rate > 0
     assert rank_comparator._extra.test_criterion_2 == "Not Passed"
-    assert (test_criterion_2 == "Not Passed")
+    assert test_criterion_2 == "Not Passed"
 
 
 def test_TransitivityCheck_test_criterion_3_pass():
