@@ -18,7 +18,6 @@
 
 import abc
 from collections import Counter
-from functools import partial
 
 import numpy as np
 
@@ -87,8 +86,8 @@ class SKCDecisionMakerABC(SKCMethodABC):
 class Result(DiffEqualityMixin):
     """Unified class for all types of decision-making results.
 
-    This class handles rankings of alternatives. All results are treated as rankings
-    with consecutive integer values starting from 1.
+    This class handles rankings of alternatives. All results are treated as
+    rankings with consecutive integer values starting from 1.
 
     Parameters
     ----------

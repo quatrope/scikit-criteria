@@ -17,9 +17,7 @@
 # =============================================================================
 
 from ._agg_base import (
-    KernelResult,
-    RankResult,
-    ResultABC,
+    Result,
     SKCDecisionMakerABC,
 )
 
@@ -28,8 +26,6 @@ from ._agg_base import (
 # =============================================================================
 
 __all__ = [
-    "KernelResult",
-    "RankResult",
-    "ResultABC",
+    "Result",
     "SKCDecisionMakerABC",
 ]
