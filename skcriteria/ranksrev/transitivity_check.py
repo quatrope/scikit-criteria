@@ -96,12 +96,7 @@ def _untie_by_dominance(alt1, alt2, dm):
     crit1, crit2 = dm.alternatives[alt1], dm.alternatives[alt2]
     dominance_result = rank.dominance(crit1, crit2)
     aDb, bDa = dominance_result.aDb, dominance_result.bDa
-
-    if aDb != bDa:
-        winner = (alt1, alt2) if aDb > bDa else (alt2, alt1)
-    else:
-        return []
-
+    winner = (alt1, alt2) if aDb >= bDa else (alt2, alt1)
     return [winner]
 
 
@@ -361,6 +356,7 @@ class TransitivityChecker(SKCMethodABC):
     _skcriteria_parameters = [
         "dmaker",
         "random_state",
+        "allow_missing_alternatives",
         "make_transitive_strategy",
         "max_ranks",
         "parallel_backend",
@@ -372,6 +368,7 @@ class TransitivityChecker(SKCMethodABC):
         dmaker,
         *,
         random_state=None,
+        allow_missing_alternatives=False,
         make_transitive_strategy="random",
         max_ranks=50,
         parallel_backend=None,
@@ -380,6 +377,9 @@ class TransitivityChecker(SKCMethodABC):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
+
+        # ALLOW MISSING ALTERNATIVES
+        self._allow_missing_alternatives = bool(allow_missing_alternatives)
 
         # PARALLEL BACKEND
         self._parallel_backend = parallel_backend
@@ -432,6 +432,12 @@ class TransitivityChecker(SKCMethodABC):
         """Controls the random state to generate variations in the \
         suboptimal alternatives."""
         return self._random_state
+
+    @property
+    def allow_missing_alternatives(self):
+        """True if a ranking is allowed that does not possess all the \
+        alternatives of the original decision matrix."""
+        return self._allow_missing_alternatives
 
     @property
     def make_transitive_strategy(self):
@@ -509,7 +515,9 @@ class TransitivityChecker(SKCMethodABC):
 
         return edges
 
-    def _add_break_info_to_rank(self, rank, dag, removed_edges, iteration=1):
+    def _add_break_info_to_rank(
+        self, rank, dag, removed_edges, full_alternatives, iteration=1
+    ):
         """
         Add cycle-breaking information to a ranking result.
 
@@ -546,9 +554,27 @@ class TransitivityChecker(SKCMethodABC):
                 - acyclic_graph: the resulting DAG
                 - removed_edges: edges removed during cycle breaking
         """
+        alternatives = rank.alternatives
+        values = rank.values
         method = rank.method
         if dag:
             method = f"{method} + RRT3 RECOMPOSITION_{iteration}"
+
+        # we check if the decision_maker did not eliminate any alternatives
+        alts_diff = np.setxor1d(alternatives, full_alternatives)
+        has_missing_alternatives = len(alts_diff) > 0
+
+        if has_missing_alternatives:
+            # if a missing alternative are not allowed must raise an error
+            if not self._allow_missing_alternatives:
+                raise ValueError(f"Missing alternative/s {set(alts_diff)!r}")
+
+            # add missing alternatives with the  worst ranking + 1
+            fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
+
+            # concatenate the missing alternatives and the new rankings
+            alternatives = np.concatenate((alternatives, alts_diff))
+            values = np.concatenate((values, fill_values))
 
         extra = dict(rank.extra_.items())
 
@@ -557,18 +583,21 @@ class TransitivityChecker(SKCMethodABC):
             {
                 "acyclic_graph": dag,
                 "removed_edges": removed_edges,
+                "missing_alternatives": alts_diff,
             },
         )
 
         patched_rank = RankResult(
             method=method,
-            alternatives=rank.alternatives,
-            values=rank.values,
+            alternatives=alternatives,
+            values=values,
             extra=extra,
         )
         return patched_rank
 
-    def _create_rank_from_dag(self, orank, dag, removed_edges, iteration=1):
+    def _create_rank_from_dag(
+        self, rrank, dag, removed_edges, full_alternatives, iteration=1
+    ):
         """
         Create a new ranking result from a directed acyclic graph (DAG).
 
@@ -579,7 +608,7 @@ class TransitivityChecker(SKCMethodABC):
 
         Parameters
         ----------
-        orank : RankResult
+        rrank : RankResult
             The original ranking result that serves as the base for creating
             the new ranking. Provides the method name, alternatives list, and
             extra information to be preserved in the new result.
@@ -600,29 +629,29 @@ class TransitivityChecker(SKCMethodABC):
         RankResult
             A new RankResult object containing:
 
-            - method: Original method name from orank
-            - alternatives: Same alternatives as in orank
+            - method: Original method name from rrank
+            - alternatives: Same alternatives as in rrank
             - values: New ranking values computed from DAG in-degree sorting
             - extra: Enhanced extra information
         """
         alternative_rank_value = _assign_rankings(_in_degree_sort(dag))
 
         rank = RankResult(
-            method=orank.method,
-            alternatives=orank.alternatives,
+            method=rrank.method,
+            alternatives=rrank.alternatives,
             values=np.array(
-                [alternative_rank_value[alt] for alt in orank.alternatives]
+                [alternative_rank_value[alt] for alt in rrank.alternatives]
             ),
-            extra=orank.extra_,
+            extra=rrank.extra_,
         )
 
         rank = self._add_break_info_to_rank(
-            rank, dag, removed_edges, iteration
+            rank, dag, removed_edges, full_alternatives, iteration
         )
 
         return rank
 
-    def _get_ranks(self, graph, orank):
+    def _get_ranks(self, graph, rrank, full_alternatives):
         """
         Generate ranking results from a graph.
 
@@ -636,7 +665,7 @@ class TransitivityChecker(SKCMethodABC):
         graph : networkx.DiGraph
             The input graph from which to generate rankings. Can be either
             acyclic (DAG) or contain cycles.
-        orank : RankResult
+        rrank : RankResult
             The original ranking result that serves as the template for
             creating new rankings. Provides method name, alternatives, and
             extra information to be preserved across all generated rankings.
@@ -655,7 +684,12 @@ class TransitivityChecker(SKCMethodABC):
         ranks = []
 
         if nx.is_directed_acyclic_graph(graph):
-            rank = self._create_rank_from_dag(orank, graph, removed_edges=None)
+            rank = self._create_rank_from_dag(
+                rrank,
+                graph,
+                removed_edges=None,
+                full_alternatives=full_alternatives,
+            )
             ranks.append(rank)
 
         else:
@@ -668,13 +702,13 @@ class TransitivityChecker(SKCMethodABC):
 
             for iteration, (dag, removed_edges) in enumerate(acyclic_graphs):
                 rank = self._create_rank_from_dag(
-                    orank, dag, removed_edges, iteration + 1
+                    rrank, dag, removed_edges, full_alternatives, iteration + 1
                 )
                 ranks.append(rank)
 
         return list(ranks)
 
-    def _dominance_graph(self, dm, orank):
+    def _dominance_graph(self, dm, rrank):
         """
         Create a directed dominance graph from pairwise alternative \
             comparisons.
@@ -689,7 +723,7 @@ class TransitivityChecker(SKCMethodABC):
         dm : DecisionMatrix
             The decision matrix containing alternatives and criteria values
             used for pairwise comparisons.
-        orank : RankResult
+        rrank : RankResult
             The original ranking result containing the list of alternatives to
             be compared pairwise.
 
@@ -697,7 +731,7 @@ class TransitivityChecker(SKCMethodABC):
         -------
         networkx.DiGraph
             A directed graph where:
-            - Nodes represent alternatives from orank.alternatives
+            - Nodes represent alternatives from rrank.alternatives
             - Edges represent dominance relationships
                 (A -> B means A dominates B)
             - All alternatives are guaranteed to be present as nodes, even if
@@ -705,7 +739,7 @@ class TransitivityChecker(SKCMethodABC):
         """
         # Generate all pairwise combinations of alternatives
         pairwise_combinations = map(
-            list, it.combinations(orank.alternatives, 2)
+            list, it.combinations(rrank.alternatives, 2)
         )
 
         # Parallel processing of all pairwise sub-matrices
@@ -762,7 +796,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return trans_break, trans_break_rate
 
-    def _generate_graph_data(self, dm, orank):
+    def _generate_graph_data(self, dm, rrank):
         """
         Generate dominance graph and calculate transitivity metrics.
 
@@ -775,7 +809,7 @@ class TransitivityChecker(SKCMethodABC):
         dm : DecisionMatrix
             The decision matrix containing alternatives and criteria for
             analysis.
-        orank : RankResult
+        rrank : RankResult
             The original ranking result containing alternatives to be analyzed.
 
         Returns
@@ -790,7 +824,7 @@ class TransitivityChecker(SKCMethodABC):
             (0.0 = perfect transitivity).
         """
         # Create pairwise dominance graph
-        graph = self._dominance_graph(dm, orank)
+        graph = self._dominance_graph(dm, rrank)
 
         # Calculate transitivity break, and it's rate
         trans_break, trans_break_rate = self._calculate_transitivity_break(
@@ -821,7 +855,7 @@ class TransitivityChecker(SKCMethodABC):
         """
         return "Passed" if trans_break_rate == 0 else "Not Passed"
 
-    def _test_criterion_3(self, test_criterion_2, orank, returned_ranks):
+    def _test_criterion_3(self, test_criterion_2, rrank, returned_ranks):
         """
         Perform test criterion 3: ranking stability check.
 
@@ -834,7 +868,7 @@ class TransitivityChecker(SKCMethodABC):
         test_criterion_2 : str
             Result of test criterion 2 ("Passed" or "Not Passed").
             Must be "Passed" for this test to potentially pass.
-        orank : RankResult
+        rrank : RankResult
             The original ranking result with baseline ranking values.
         returned_ranks : list of RankResult
             List of ranking results from graph recomposition. The first element
@@ -852,7 +886,7 @@ class TransitivityChecker(SKCMethodABC):
             "Passed"
             if (
                 test_criterion_2 == "Passed"
-                and (orank.values == returned_ranks[0].values).all()
+                and (rrank.values == returned_ranks[0].values).all()
             )
             else "Not Passed"
         )
@@ -887,26 +921,29 @@ class TransitivityChecker(SKCMethodABC):
                 - transitivity_break_rate: Normalized violation rate
         """
         dmaker = self._dmaker
+        full_alternatives = dm.alternatives
 
-        orank = dmaker.evaluate(dm)
-
-        # add epmty info to orank
-        orank = self._add_break_info_to_rank(
-            orank, dag=None, removed_edges=None
+        # we need a first reference ranking
+        rrank = dmaker.evaluate(dm)
+        patched_rrank = self._add_break_info_to_rank(
+            rrank,
+            dag=None,
+            removed_edges=None,
+            full_alternatives=full_alternatives,
         )
 
         # make the pairwise dominance graph and calculate transitivity metrics
         graph, trans_break, trans_break_rate = self._generate_graph_data(
-            dm, orank
+            dm, rrank
         )
 
         test_criterion_2 = self._test_criterion_2(trans_break_rate)
 
         # get the ranks from the graph
-        returned_ranks = self._get_ranks(graph, orank)
+        returned_ranks = self._get_ranks(graph, rrank, full_alternatives)
 
         test_criterion_3 = self._test_criterion_3(
-            test_criterion_2, orank, returned_ranks
+            test_criterion_2, patched_rrank, returned_ranks
         )
 
         names = ["Original"] + [
@@ -914,7 +951,7 @@ class TransitivityChecker(SKCMethodABC):
         ]
 
         named_ranks = unique_names(
-            names=names, elements=[orank] + returned_ranks
+            names=names, elements=[patched_rrank] + returned_ranks
         )
 
         return RanksComparator(
