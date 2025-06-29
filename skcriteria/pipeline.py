@@ -124,13 +124,15 @@ class SKCPipeline(SKCMethodABC):
 
     # API =====================================================================
 
-    def evaluate(self, dm):
+    def evaluate(self, dm, **kwargs):
         """Run the all the transformers and the decision maker.
 
         Parameters
         ----------
         dm: :py:class:`skcriteria.data.DecisionMatrix`
             Decision matrix on which the result will be calculated.
+        **kwargs
+            Keyword arguments to pass to the decision maker.
 
         Returns
         -------
@@ -141,7 +143,7 @@ class SKCPipeline(SKCMethodABC):
         """
         dm = self.transform(dm)
         _, dmaker = self.steps[-1]
-        result = dmaker.evaluate(dm)
+        result = dmaker.evaluate(dm, **kwargs)
         return result
 
     def transform(self, dm):
