@@ -401,7 +401,7 @@ class TransitivityChecker(SKCMethodABC):
         self._make_transitive_strategy = mk_transitive
 
         # MAXIMIMUM PERMITED RANKS TO BE GENERATED
-        self._max_ranks = int(max_ranks)  # TODO VER CONDICIONN
+        self._max_ranks = int(max_ranks)
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -560,13 +560,12 @@ class TransitivityChecker(SKCMethodABC):
             },
         )
 
-        patched_rank = RankResult(
+        return RankResult(
             method=method,
             alternatives=rank.alternatives,
             values=rank.values,
             extra=extra,
         )
-        return patched_rank
 
     def _create_rank_from_dag(self, orank, dag, removed_edges, iteration=1):
         """
@@ -658,19 +657,20 @@ class TransitivityChecker(SKCMethodABC):
             rank = self._create_rank_from_dag(orank, graph, removed_edges=None)
             ranks.append(rank)
 
-        else:
-            acyclic_graphs = generate_acyclic_graphs(
-                graph,
-                strategy=self._make_transitive_strategy,
-                max_graphs=self._max_ranks,
-                seed=self._random_state,
-            )
+            return list(ranks)
 
-            for iteration, (dag, removed_edges) in enumerate(acyclic_graphs):
-                rank = self._create_rank_from_dag(
-                    orank, dag, removed_edges, iteration + 1
-                )
-                ranks.append(rank)
+        acyclic_graphs = generate_acyclic_graphs(
+            graph,
+            strategy=self._make_transitive_strategy,
+            max_graphs=self._max_ranks,
+            seed=self._random_state,
+        )
+
+        for iteration, (dag, removed_edges) in enumerate(acyclic_graphs):
+            rank = self._create_rank_from_dag(
+                orank, dag, removed_edges, iteration + 1
+            )
+            ranks.append(rank)
 
         return list(ranks)
 
@@ -796,30 +796,56 @@ class TransitivityChecker(SKCMethodABC):
         trans_break, trans_break_rate = self._calculate_transitivity_break(
             graph
         )
+
         return graph, trans_break, trans_break_rate
 
-    def _test_criterion_2(self, trans_break_rate):
+    def _test_criterion_2(self, dm, orank):
         """
         Perform test criterion 2: transitivity consistency check.
 
         This method evaluates whether the decision problem satisfies perfect
         transitivity by checking if the transitivity break rate is zero.
+        It generates a pairwise dominance graph and calculates transitivity
+        metrics to assess the consistency of the decision-making process.
 
         Parameters
         ----------
-        trans_break_rate : float
-            The rate of transitivity violations in the dominance graph.
-            Should be 0.0 for perfect transitivity.
+        dm : array-like
+            Decision matrix containing the alternatives and criteria values.
+        orank : array-like
+            Ranking or ordering information for the alternatives.
 
         Returns
         -------
-        str
-            Test result status:
-            - "Passed": No transitivity violations (trans_break_rate == 0)
-            - "Not Passed": Transitivity violations detected
+        tuple
+            A tuple containing four elements:
+            - graph : object
+                The pairwise dominance graph structure.
+            - trans_break : int or float
+                The absolute number of transitivity violations detected.
+            - trans_break_rate : float
+                The rate of transitivity violations in the dominance graph.
+                Value of 0.0 indicates perfect transitivity.
+            - test_criterion_2 : str
+                Test result status:
+                - "Passed": No transitivity violations (trans_break_rate == 0)
+                - "Not Passed": Transitivity violations detected
                 (trans_break_rate > 0)
+
+        Notes
+        -----
+        This test is crucial for validating the logical consistency of decision
+        rankings. Perfect transitivity means that if alternative A dominates B
+        and B dominates C, then A must also dominate C.
         """
-        return "Passed" if trans_break_rate == 0 else "Not Passed"
+        # make the pairwise dominance graph and calculate transitivity metrics
+        graph, trans_break, trans_break_rate = self._generate_graph_data(
+            dm, orank
+        )
+
+        test_criterion_2 = "Passed" if trans_break_rate == 0 else "Not Passed"
+
+        return test_criterion_2, graph, trans_break, trans_break_rate
 
     def _test_criterion_3(self, test_criterion_2, orank, returned_ranks):
         """
@@ -890,31 +916,28 @@ class TransitivityChecker(SKCMethodABC):
 
         orank = dmaker.evaluate(dm)
 
-        # add epmty info to orank
+        # add empty info to orank
         orank = self._add_break_info_to_rank(
             orank, dag=None, removed_edges=None
         )
 
-        # make the pairwise dominance graph and calculate transitivity metrics
-        graph, trans_break, trans_break_rate = self._generate_graph_data(
-            dm, orank
+        test_criterion_2, graph, trans_break, trans_break_rate = (
+            self._test_criterion_2(dm, orank)
         )
 
-        test_criterion_2 = self._test_criterion_2(trans_break_rate)
-
         # get the ranks from the graph
-        returned_ranks = self._get_ranks(graph, orank)
+        reconstructed_ranks = self._get_ranks(graph, orank)
 
         test_criterion_3 = self._test_criterion_3(
-            test_criterion_2, orank, returned_ranks
+            test_criterion_2, orank, reconstructed_ranks
         )
 
         names = ["Original"] + [
-            f"Recomposition{i+1}" for i in range(len(returned_ranks))
+            f"Recomposition{i+1}" for i in range(len(reconstructed_ranks))
         ]
 
         named_ranks = unique_names(
-            names=names, elements=[orank] + returned_ranks
+            names=names, elements=[orank] + reconstructed_ranks
         )
 
         return RanksComparator(
