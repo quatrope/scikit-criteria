@@ -368,7 +368,7 @@ class TransitivityChecker(SKCMethodABC):
     It identifies ranking inconsistencies and provides alternative ranking
     reconstructions when transitivity violations occur.
 
-    The evaluation process consists of three main components:
+    The evaluation process is the following:
 
     1. **Pairwise Dominance Analysis**:
        Evaluates all possible pairs of alternatives using the provided MCDM
@@ -428,29 +428,6 @@ class TransitivityChecker(SKCMethodABC):
         Number of parallel jobs for pairwise evaluation. When None, uses all
         available processors. Set to 1 for sequential processing.
 
-    Attributes
-    ----------
-    dmaker : object
-        The MCDM method or pipeline being evaluated.
-
-    random_state : numpy.random.Generator
-        Random number generator for reproducible cycle-breaking.
-
-    allow_missing_alternatives : bool
-        Flag indicating whether missing alternatives are permitted.
-
-    make_transitive_strategy : callable
-        Function used for breaking transitivity cycles.
-
-    max_ranks : int
-        Maximum number of rankings to generate.
-
-    parallel_backend : str or None
-        Parallel processing backend configuration.
-
-    n_jobs : int or None
-        Number of parallel jobs configuration.
-
     Raises
     ------
     TypeError
@@ -493,23 +470,6 @@ class TransitivityChecker(SKCMethodABC):
     ...     parallel_backend="threading",
     ...     n_jobs=4
     ... )
-
-    Notes
-    -----
-    The transitivity property is fundamental to rational decision-making.
-    Violations indicate potential issues with the MCDM method's consistency or
-    the decision problem's structure. This checker helps identify such issues
-    and provides alternative rankings for comparison.
-
-    When transitivity violations are detected, the checker generates multiple
-    alternative rankings by removing different combinations of edges that break
-    cycles. These alternatives provide insights into ranking sensitivity.
-
-    References
-    ----------
-    The approach is based on robustness analysis techniques for MCDM methods,
-    particularly focusing on rank reversal and transitivity consistency
-    validation in multi-criteria decision analysis frameworks.
     """
 
     _skcriteria_dm_type = "rank_reversal"
