@@ -22,7 +22,7 @@ import networkx as nx
 import numpy as np
 
 # =============================================================================
-# CYCLE REMOVAL
+# INTERNAL FUNCTIONS
 # =============================================================================
 
 
@@ -122,6 +122,11 @@ def _select_edge_weighted(cycle, edge_freq, rng):
     edges = _cycle_to_edges(cycle)
     weights = [edge_freq[edge] + 1 for edge in edges]
     return tuple(rng.choice(edges, p=np.array(weights) / np.sum(weights)))
+
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
 
 
 CYCLE_REMOVAL_STRATEGIES = {
