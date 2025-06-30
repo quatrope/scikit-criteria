@@ -112,9 +112,7 @@ def _select_edge_weighted(cycle, edge_freq, rng):
     Notes
     -----
     This strategy prioritizes removal of edges that participate in many cycles,
-    potentially leading to more efficient cycle breaking. The weighting scheme
-    adds 1 to each frequency to ensure non-zero probabilities and avoid
-    division by zero.
+    potentially leading to more efficient cycle breaking.
 
     The selection probability for edge e is:
     P(e) = (freq(e) + 1) / sum(freq(all_edges) + 1)
@@ -176,7 +174,7 @@ def _calculate_edge_frequencies(graph):
 
 
 def generate_acyclic_graphs(
-    graph, strategy="random", max_graphs=10, seed=None
+    graph, *, strategy="random", max_graphs=10, seed=None
 ):
     """
     Generate multiple acyclic graphs by removing edges from cycles.
