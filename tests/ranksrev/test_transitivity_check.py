@@ -182,6 +182,18 @@ def test_TransitivityChecker_make_transitivity_strategy_divination():
         TransitivityChecker(electre2_pipe, make_transitive_strategy=bad_strat)
 
 
+def test_TransitivityChecker_allow_missing_alternatives_default():
+    trans_checker = TransitivityChecker(topsis_pipe)
+    assert trans_checker.allow_missing_alternatives is False
+
+
+def test_TransitivityChecker_allow_missing_alternatives_True():
+    trans_checker = TransitivityChecker(
+        topsis_pipe, allow_missing_alternatives=True
+    )
+    assert trans_checker.allow_missing_alternatives is True
+
+
 def test_TransitivityChecker_max_ranks_default():
     trans_checker = TransitivityChecker(electre2_pipe)
     assert trans_checker.max_ranks == 50
@@ -202,6 +214,38 @@ def test_TransitivityChecker_n_jobs_custom():
     jobs = 42
     trans_checker = TransitivityChecker(electre2_pipe, n_jobs=jobs)
     assert trans_checker.n_jobs == jobs
+
+
+# =============================================================================
+# TEST MISSING ALTERNATIVES
+# =============================================================================
+
+
+def test_TransitivityCheck_missing_alternative_forbidden():
+    dm = skc.datasets.load_simple_stock_selection()
+    trans_check = TransitivityChecker(
+        topsis_pipe, random_state=42, allow_missing_alternatives=False
+    )
+    with pytest.raises(ValueError):
+        trans_check.evaluate(dm=dm)
+
+
+def test_TransitivityCheck_missing_alternative():
+    dm = skc.datasets.load_simple_stock_selection()
+    trans_check = TransitivityChecker(
+        topsis_pipe, random_state=42, allow_missing_alternatives=True
+    )
+    result = trans_check.evaluate(dm=dm)
+
+    _, rank = result.ranks[1]
+
+    np.testing.assert_array_equal(
+        rank.e_.rrt23.missing_alternatives, ["FX", "MM"]
+    )
+
+    assert rank.to_series()["FX"] == 5
+    assert rank.to_series()["MM"] == 5
+    assert rank.has_ties_
 
 
 # ============================================================================
