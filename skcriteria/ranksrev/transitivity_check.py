@@ -10,10 +10,50 @@
 # =============================================================================
 
 """
-Tools for evaluating the stability of MCDA method's best alternative.
+Transitivity Checker for MCDM Robustness Evaluation.
 
-According to this criterion, dividing the alternatives by pair should
-keep transitivity when grouped again.
+This module evaluates the logical consistency and stability of Multi-Criteria 
+Decision Making (MCDM) methods through transitivity analysis. It decomposes 
+decision problems into pairwise comparisons and reconstructs global rankings 
+to assess method robustness.
+
+The module validates whether rankings satisfy the transitivity property 
+(if A > B and B > C, then A > C) and provides mechanisms to handle violations.
+
+Classes
+-------
+TransitivityChecker
+    Main robustness evaluator that performs transitivity analysis by 
+    decomposing problems into pairwise comparisons and checking for 
+    logical consistency.
+
+Key Features
+------------
+- Transitivity validation through pairwise decomposition
+- Ranking recomposition with cycle-breaking strategies
+- Comprehensive diagnostic reporting
+
+Algorithm
+---------
+1. Generate all pairwise alternative combinations
+2. Evaluate each pair using the MCDM method
+3. Construct dominance graph from pairwise results
+4. Detect transitivity violations (cycles)
+5. Generate consistent rankings via cycle removal
+
+Returns
+-------
+RanksComparator
+    Contains original ranking plus recomposed alternatives with diagnostic
+    information including transitivity test results and violation metrics.
+
+Examples
+--------
+>>> dmaker = WeightedSumModel()
+>>> checker = TransitivityChecker(dmaker=dmaker, max_ranks=10)
+>>> result = checker.evaluate(dm=decision_matrix)
+>>> print(f"Transitivity: {result.extra['test_criterion_2']}")
+>>> print(f"Break rate: {result.extra['transitivity_break_rate']:.3f}")
 """
 
 # =============================================================================
