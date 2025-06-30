@@ -290,7 +290,7 @@ def generate_acyclic_graphs(
     rng = np.random.default_rng(seed)
     acyclic_graphs = []
     cycles = list(nx.simple_cycles(graph))
-    max_possible_attempts = 2 * max_graphs
+    max_attempts = 2 * max_graphs
 
     # If the graph is already acyclic, return it with no edges removed
     if nx.is_directed_acyclic_graph(graph):
@@ -308,7 +308,7 @@ def generate_acyclic_graphs(
 
     attempts = 0
     while (
-        attempts < max_possible_attempts and len(acyclic_graphs) < max_graphs
+        attempts < max_attempts and len(acyclic_graphs) < max_graphs
     ):
         attempts += 1
         to_remove = set()
