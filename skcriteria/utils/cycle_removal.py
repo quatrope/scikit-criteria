@@ -305,9 +305,7 @@ def generate_acyclic_graphs(
     edge_freq = _calculate_edge_frequencies(graph)
 
     attempts = 0
-    while (
-        attempts < max_attempts and len(acyclic_graphs) < max_graphs
-    ):
+    while attempts < max_attempts and len(acyclic_graphs) < max_graphs:
         attempts += 1
         to_remove = set()
 

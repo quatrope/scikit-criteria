@@ -12,19 +12,19 @@
 """
 Transitivity Checker for MCDM Robustness Evaluation.
 
-This module evaluates the logical consistency and stability of Multi-Criteria 
-Decision Making (MCDM) methods through transitivity analysis. It decomposes 
-decision problems into pairwise comparisons and reconstructs global rankings 
+This module evaluates the logical consistency and stability of Multi-Criteria
+Decision Making (MCDM) methods through transitivity analysis. It decomposes
+decision problems into pairwise comparisons and reconstructs global rankings
 to assess method robustness.
 
-The module validates whether rankings satisfy the transitivity property 
+The module validates whether rankings satisfy the transitivity property
 (if A > B and B > C, then A > C) and provides mechanisms to handle violations.
 
 Classes
 -------
 TransitivityChecker
-    Main robustness evaluator that performs transitivity analysis by 
-    decomposing problems into pairwise comparisons and checking for 
+    Main robustness evaluator that performs transitivity analysis by
+    decomposing problems into pairwise comparisons and checking for
     logical consistency.
 
 Key Features
@@ -359,37 +359,157 @@ def _format_transitivity_cycles(cycles):
 
 
 class TransitivityChecker(SKCMethodABC):
-    """Robustness evaluator of an MCDM method.
+    """
+    Robustness evaluator for Multi-Criteria Decision Making (MCDM) methods.
 
-    This checker verifies whether a method produces logically consistent and
-    stable rankings when the original decision problem is decomposed into all
-    possible pairs of alternatives.
+    This class validates the logical consistency and stability of MCDM method
+    rankings by analyzing transitivity properties through pairwise alternative
+    comparisons.
+    It identifies ranking inconsistencies and provides alternative ranking
+    reconstructions when transitivity violations occur.
 
-    The evaluation is performed in two stages:
+    The evaluation process consists of three main components:
 
-    1. **Transitivity Validation**:
-    Check if the rankings derived from all two-alternative sub-problems follow
-    the transitivity property.
+    1. **Pairwise Dominance Analysis**:
+       Evaluates all possible pairs of alternatives using the provided MCDM
+       method to construct a directed dominance graph representing preference
+       relationships.
 
-    2. **Ranking Recomposition Consistency**:
-    The criterion attempts to reconstruct a global ranking by combining the
-    individual two-alternative rankings, offering various heuristics in case
-    the sub-problems don't follow the transitivity property. This reconstructed
-    ranking is then offered for comparrison as a `RanksComparator` for further
-    analysis.
+    2. **Transitivity Validation** (Test Criterion 2):
+       Detects cycles in the dominance graph that violate the transitivity
+       property. A transitive ranking requires that if A > B and B > C, then
+       A > C must hold.
+
+    3. **Ranking Stability Assessment** (Test Criterion 3):
+       Compares the original ranking with reconstructed rankings to evaluate
+       consistency when the decision problem is decomposed and recomposed.
+
+    4. **Ranking Reconstruction**:
+       When transitivity violations exist, applies cycle-breaking strategies to
+       generate alternative valid rankings through graph decomposition
+       techniques.
 
     Parameters
     ----------
-    dmaker: Decision maker - must implement the ``evaluate()`` method
-        The MCDA method, or pipeline to evaluate.
+    dmaker : object
+        Decision maker instance that must implement an ``evaluate(dm)`` method.
+        This represents the MCDM method or pipeline to be evaluated for
+        robustness.
 
-    parallel_backend: str or None (default: None)
-        Evaluate alternatives using multithreading, multiprocessing, or
-        sequential computation
+    random_state : int, numpy.random.Generator, or None, default=None
+        Controls randomization in cycle-breaking strategies and alternative
+        ranking generation. Ensures reproducible results when set to a
+        specific integer.
 
-    random_state: int, numpy.random.default_rng or None (default: None)
-        Controls the random state to generate variations in the sub-optimal
-        alternatives.
+    allow_missing_alternatives : bool, default=False
+        Whether to allow rankings that don't include all original alternatives
+        (using a pipeline that implements a filter, for example can remove
+        alternatives).
+        When False, raises ValueError if any alternative is missing from
+        results. When True, missing alternatives are assigned the worst
+        ranking + 1.
+
+    make_transitive_strategy : str or callable, default="random"
+        Strategy for breaking cycles in non-transitive dominance graphs.
+        Available built-in strategies include cycle removal heuristics.
+        Can also accept custom callable functions for specialized approaches.
+
+    max_ranks : int, default=50
+        Maximum number of alternative rankings to generate when breaking
+        cycles. Controls computational complexity by limiting the number of
+        decompositions.
+
+    parallel_backend : str or None, default=None
+        Backend for parallel computation of pairwise evaluations.
+        Options include 'threading', 'multiprocessing', or None for sequential.
+        Improves performance for large numbers of alternatives.
+
+    n_jobs : int or None, default=None
+        Number of parallel jobs for pairwise evaluation. When None, uses all
+        available processors. Set to 1 for sequential processing.
+
+    Attributes
+    ----------
+    dmaker : object
+        The MCDM method or pipeline being evaluated.
+
+    random_state : numpy.random.Generator
+        Random number generator for reproducible cycle-breaking.
+
+    allow_missing_alternatives : bool
+        Flag indicating whether missing alternatives are permitted.
+
+    make_transitive_strategy : callable
+        Function used for breaking transitivity cycles.
+
+    max_ranks : int
+        Maximum number of rankings to generate.
+
+    parallel_backend : str or None
+        Parallel processing backend configuration.
+
+    n_jobs : int or None
+        Number of parallel jobs configuration.
+
+    Raises
+    ------
+    TypeError
+        If ``dmaker`` doesn't implement the required ``evaluate()`` method.
+
+    ValueError
+        If ``make_transitive_strategy`` is not a valid strategy name or \
+            callable.
+        If ``allow_missing_alternatives=False`` and alternatives are missing \
+            from results.
+
+    Examples
+    --------
+    Basic usage with an MCDM method:
+
+    >>> from skcriteria.preprocessing import invert_objectives
+    >>> from skcriteria.madm import simple
+    >>>
+    >>> # Create a decision maker
+    >>> dm_method = simple.WeightedSum()
+    >>>
+    >>> # Initialize transitivity checker
+    >>> checker = TransitivityChecker(dm_method)
+    >>>
+    >>> # Evaluate a decision matrix
+    >>> result = checker.evaluate(dm=decision_matrix)
+    >>>
+    >>> # Check test results
+    >>> print(f"Test Criterion 2: {result.extra['test_criterion_2']}")
+    >>> print(f"Test Criterion 3: {result.extra['test_criterion_3']}")
+
+    Advanced configuration with custom parameters:
+
+    >>> checker = TransitivityChecker(
+    ...     dmaker=dm_method,
+    ...     random_state=42,
+    ...     allow_missing_alternatives=True,
+    ...     make_transitive_strategy="random",
+    ...     max_ranks=100,
+    ...     parallel_backend="threading",
+    ...     n_jobs=4
+    ... )
+
+    Notes
+    -----
+    The transitivity property is fundamental to rational decision-making.
+    Violations indicate potential issues with the MCDM method's consistency or
+    the decision problem's structure. This checker helps identify such issues
+    and provides alternative rankings for comparison.
+
+    When transitivity violations are detected, the checker generates multiple
+    alternative rankings by removing different combinations of edges that break
+    cycles. These alternatives provide insights into ranking sensitivity.
+
+    References
+    ----------
+    The approach is based on robustness analysis techniques for MCDM methods,
+    particularly focusing on rank reversal and transitivity consistency
+    validation in multi-criteria decision analysis frameworks.
     """
 
     _skcriteria_dm_type = "rank_reversal"
@@ -462,12 +582,6 @@ class TransitivityChecker(SKCMethodABC):
         return self._dmaker
 
     @property
-    def parallel_backend(self):
-        """The parallel backend used \
-        to generate all the alternatives."""
-        return self._parallel_backend
-
-    @property
     def random_state(self):
         """Controls the random state to generate variations in the \
         suboptimal alternatives."""
@@ -475,25 +589,28 @@ class TransitivityChecker(SKCMethodABC):
 
     @property
     def allow_missing_alternatives(self):
-        """True if a ranking is allowed that does not possess all the \
-        alternatives of the original decision matrix."""
+        """Whether rankings are allowed that don't contain all original \
+        alternatives."""
         return self._allow_missing_alternatives
 
     @property
     def make_transitive_strategy(self):
-        """The untie Strategy."""
+        """The strategy function used for breaking transitivity cycles."""
         return self._make_transitive_strategy
 
     @property
     def max_ranks(self):
-        """Maximum number of rankings to \
-        be generated."""
+        """Maximum number of rankings to be generated."""
         return self._max_ranks
 
     @property
+    def parallel_backend(self):
+        """The parallel backend used to generate all the alternatives."""
+        return self._parallel_backend
+
+    @property
     def n_jobs(self):
-        """The number of parallel jobs used \
-        in the generation."""
+        """The number of parallel jobs used in the pairwise evaluations."""
         return self._n_jobs
 
     # LOGIC ===================================================================
