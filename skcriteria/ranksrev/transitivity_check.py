@@ -578,16 +578,17 @@ class TransitivityChecker(SKCMethodABC):
     def _evaluate_pairwise_submatrix(self, decision_matrix, alternative_pair):
         """
         Apply the MCDM pipeline to a sub-problem of two alternatives.
-        
+
         This method extracts a submatrix containing only the specified pair of
-        alternatives from the decision matrix and evaluates it using the 
+        alternatives from the decision matrix and evaluates it using the
         configured decision maker.
-        
+
         Parameters
         ----------
         decision_matrix : pandas.DataFrame
             The complete decision matrix with alternatives as rows and criteria
-            as columns. Must contain the alternatives specified in alternative_pair.
+            as columns. Must contain the alternatives specified in
+            alternative_pair.
         alternative_pair : list, tuple, or array-like
             Collection of exactly two alternative identifiers/names that exist
             as row indices in the decision_matrix. These alternatives will be
@@ -598,12 +599,12 @@ class TransitivityChecker(SKCMethodABC):
         RankResult
             The result of applying the MCDM evaluation method to the submatrix
             containing only the two specified alternatives. The exact type and
-            structure depends on the specific decision maker (self._dmaker) 
+            structure depends on the specific decision maker (self._dmaker)
             being used.
-            
+
         Notes
         -----
-        This method is typically used internally for pairwise comparison 
+        This method is typically used internally for pairwise comparison
         approaches in multi-criteria decision making, where the overall
         problem is decomposed into smaller two-alternative subproblems.
         """
