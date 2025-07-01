@@ -107,11 +107,11 @@ def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
 def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
     dm = skc.datasets.load_van2021evaluation(windows_size=7)
     orank = topsis_pipe_moora.evaluate(dm)
-    trans_checker = RankTransitivityChecker(electre2_pipe)
+    trans_checker = RankTransitivityChecker(topsis_pipe_moora)
     graph = trans_checker._dominance_graph(dm, orank)
     trans_break = list(nx.simple_cycles(graph, length_bound=3))
     result = _format_transitivity_cycles(trans_break)
-    assert len(result) > 0
+    assert result != []
 
 
 # =============================================================================
@@ -156,7 +156,9 @@ def test_TransitivityChecker_parallell_backend():
 
 def test_TransitivityChecker_random_state():
     rnd_state = 42
-    trans_checker = RankTransitivityChecker(electre2_pipe, random_state=rnd_state)
+    trans_checker = RankTransitivityChecker(
+        electre2_pipe, random_state=rnd_state
+    )
     assert (
         trans_checker.random_state.random()
         == np.random.default_rng(rnd_state).random()
@@ -179,7 +181,9 @@ def test_TransitivityChecker_make_transitivity_strategy_weighted():
 def test_TransitivityChecker_make_transitivity_strategy_divination():
     bad_strat = "Divination"
     with pytest.raises(ValueError):
-        RankTransitivityChecker(electre2_pipe, make_transitive_strategy=bad_strat)
+        RankTransitivityChecker(
+            electre2_pipe, make_transitive_strategy=bad_strat
+        )
 
 
 def test_TransitivityChecker_allow_missing_alternatives_default():

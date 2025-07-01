@@ -1009,7 +1009,7 @@ class RankTransitivityChecker(SKCMethodABC):
             dag=None,
             removed_edges=None,
             full_alternatives=full_alternatives,
-            iteration=None
+            iteration=None,
         )
 
         # make the pairwise dominance graph and calculate transitivity metrics
