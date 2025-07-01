@@ -209,6 +209,12 @@ def test_TransitivityChecker_max_ranks_custom():
     assert trans_checker.max_ranks == ranks
 
 
+def test_TransitivityChecker_max_ranks_zero():
+    ranks = 0
+    with pytest.raises(ValueError):
+        RankTransitivityChecker(electre2_pipe, max_ranks=ranks)
+
+
 def test_TransitivityChecker_n_jobs_default():
     trans_checker = RankTransitivityChecker(electre2_pipe)
     assert trans_checker.n_jobs is None
