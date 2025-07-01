@@ -192,8 +192,8 @@ def generate_acyclic_graphs(
         Edge selection strategy for cycle breaking:
         - "random": Select edges uniformly at random
         - "weighted": Select edges proportional to their cycle frequency
-        - callable: Custom edge selection function with signature
-          func(cycle, edge_freq, rng) -> edge_tuple
+        - callable: Custom edge selection function with signature \
+            func(cycle, edge_freq, rng) -> edge_tuple
     max_graphs : int, default 10
         Maximum number of acyclic graphs to generate. The function may
         return fewer graphs if it cannot generate enough unique solutions.
