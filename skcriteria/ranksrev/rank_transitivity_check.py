@@ -922,10 +922,10 @@ class RankTransitivityChecker(SKCMethodABC):
             - trans_break_rate : float
                 The rate of transitivity violations in the dominance graph.
                 Value of 0.0 indicates perfect transitivity.
-            - test_criterion_2 : str
+            - test_criterion_2 : boolean
                 Test result status:
-                - "Passed": No transitivity violations (trans_break_rate == 0)
-                - "Not Passed": Transitivity violations detected
+                - True: No transitivity violations (trans_break_rate == 0)
+                - False: Transitivity violations detected
                 (trans_break_rate > 0)
 
         Notes
@@ -948,9 +948,9 @@ class RankTransitivityChecker(SKCMethodABC):
 
         Parameters
         ----------
-        test_criterion_2 : str
-            Result of test criterion 2 ("Passed" or "Not Passed").
-            Must be "Passed" for this test to potentially pass.
+        test_criterion_2 : bool
+            Result of test criterion 2.
+            Must be True for this test to potentially pass.
         rrank : RankResult
             The original ranking result with baseline ranking values.
         returned_ranks : list of RankResult
@@ -959,11 +959,11 @@ class RankTransitivityChecker(SKCMethodABC):
 
         Returns
         -------
-        str
+        bool
             Test result status:
-            - "Passed": Test criterion 2 passed AND original ranking equals
+            - True: Test criterion 2 passed AND original ranking equals
             first recomposed ranking
-            - "Not Passed": Either test criterion 2 failed OR rankings differ
+            - False: Either test criterion 2 failed OR rankings differ
         """
         return (
             test_criterion_2
