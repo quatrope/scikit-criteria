@@ -576,7 +576,37 @@ class TransitivityChecker(SKCMethodABC):
     # LOGIC ===================================================================
 
     def _evaluate_pairwise_submatrix(self, decision_matrix, alternative_pair):
-        """Apply the MCDM pipeline to a sub-problem of two alternatives."""
+        """
+        Apply the MCDM pipeline to a sub-problem of two alternatives.
+        
+        This method extracts a submatrix containing only the specified pair of
+        alternatives from the decision matrix and evaluates it using the 
+        configured decision maker.
+        
+        Parameters
+        ----------
+        decision_matrix : pandas.DataFrame
+            The complete decision matrix with alternatives as rows and criteria
+            as columns. Must contain the alternatives specified in alternative_pair.
+        alternative_pair : list, tuple, or array-like
+            Collection of exactly two alternative identifiers/names that exist
+            as row indices in the decision_matrix. These alternatives will be
+            extracted for pairwise comparison.
+
+        Returns
+        -------
+        RankResult
+            The result of applying the MCDM evaluation method to the submatrix
+            containing only the two specified alternatives. The exact type and
+            structure depends on the specific decision maker (self._dmaker) 
+            being used.
+            
+        Notes
+        -----
+        This method is typically used internally for pairwise comparison 
+        approaches in multi-criteria decision making, where the overall
+        problem is decomposed into smaller two-alternative subproblems.
+        """
         sub_dm = decision_matrix.loc[alternative_pair]
         return self._dmaker.evaluate(sub_dm)
 
@@ -832,8 +862,7 @@ class TransitivityChecker(SKCMethodABC):
 
         This method constructs a directed graph where nodes represent
         alternatives and edges represent dominance relationships. The graph is
-        built by evaluating all pairwise combinations of alternatives using
-        parallel processing for computational efficiency.
+        built by evaluating all pairwise combinations of alternatives.
 
         Parameters
         ----------
@@ -955,9 +984,8 @@ class TransitivityChecker(SKCMethodABC):
         Perform test criterion 2: transitivity consistency check.
 
         This method evaluates whether the decision problem satisfies perfect
-        transitivity by checking if the transitivity break rate is zero.
-        It generates a pairwise dominance graph and calculates transitivity
-        metrics to assess the consistency of the decision-making process.
+        transitivity. It generates a pairwise dominance graph and calculates
+        transitivity metrics to assess the consistency of the MCDM.
 
         Parameters
         ----------
@@ -1002,10 +1030,6 @@ class TransitivityChecker(SKCMethodABC):
         """
         Perform test criterion 3: ranking stability check.
 
-        This method evaluates whether the ranking remains stable when the graph
-        is perfectly transitive. It checks if the original ranking values match
-        the first recomposed ranking when no transitivity violations exist.
-
         Parameters
         ----------
         test_criterion_2 : str
@@ -1038,11 +1062,11 @@ class TransitivityChecker(SKCMethodABC):
         """
         Execute the complete transitivity test and ranking analysis.
 
-        This method performs a comprehensive transitivity analysis of a
-        decision matrix, including dominance graph construction, transitivity
-        testing, and ranking recomposition. It provides multiple ranking
-        perspectives when cycles are present and diagnostic information about
-        the decision problem's structure.
+        This method performs a comprehensive transitivity analysis,
+        including dominance graph construction, transitivity testing, and
+        ranking recomposition. It provides multiple ranking perspectives when
+        cycles are present and diagnostic information about the decision
+        problem's structure.
 
         Parameters
         ----------
