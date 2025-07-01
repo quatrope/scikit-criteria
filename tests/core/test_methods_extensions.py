@@ -31,7 +31,7 @@ from skcriteria.preprocessing.filters import (
     SKCSetFilterABC,
 )
 from skcriteria.ranksrev import RankInvariantChecker
-from skcriteria.ranksrev import TransitivityChecker
+from skcriteria.ranksrev import RankTransitivityChecker
 
 # =============================================================================
 # TEST UTILITES
@@ -109,7 +109,7 @@ def test_SLCMethodABC_concrete_subclass_copy():
         SKCArithmeticFilterABC: {"criteria_filters": {"foo": 1}},
         SKCSetFilterABC: {"criteria_filters": {"foo": [1]}},
         RankInvariantChecker: {"dmaker": _FakeDM()},
-        TransitivityChecker: {"dmaker": _FakeDM()},
+        RankTransitivityChecker: {"dmaker": _FakeDM()},
     }
 
     for scls in _get_subclasses(methods.SKCMethodABC):

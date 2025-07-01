@@ -18,14 +18,7 @@ decision problems into pairwise comparisons and reconstructs global rankings
 to assess method robustness.
 
 The module validates whether rankings satisfy the transitivity property
-(if A > B and B > C, then A > C) and provides mechanisms to handle violations.
-
-Classes
--------
-TransitivityChecker
-    Main robustness evaluator that performs transitivity analysis by
-    decomposing problems into pairwise comparisons and checking for
-    logical consistency.
+(if A ≻ B and B ≻ C, then A ≻ C) and provides mechanisms to handle violations.
 
 Key Features
 ------------
@@ -33,111 +26,36 @@ Key Features
 - Ranking recomposition with cycle-breaking strategies
 - Comprehensive diagnostic reporting
 
-Algorithm
----------
-1. Generate all pairwise alternative combinations
-2. Evaluate each pair using the MCDM method
-3. Construct dominance graph from pairwise results
-4. Detect transitivity violations (cycles)
-5. Generate consistent rankings via cycle removal
-
-Returns
--------
-RanksComparator
-    Contains original ranking plus recomposed alternatives with diagnostic
-    information including transitivity test results and violation metrics.
-
-Examples
---------
->>> dmaker = WeightedSumModel()
->>> checker = TransitivityChecker(dmaker=dmaker, max_ranks=10)
->>> result = checker.evaluate(dm=decision_matrix)
->>> print(f"Transitivity: {result.extra['test_criterion_2']}")
->>> print(f"Break rate: {result.extra['transitivity_break_rate']:.3f}")
 """
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import itertools as it
+from ..utils import hidden
 
-import joblib
+with hidden():
+    import itertools as it
 
-import networkx as nx
+    import joblib
 
-import numpy as np
+    import networkx as nx
 
-from ..agg import RankResult
-from ..cmp import RanksComparator
-from ..core import SKCMethodABC
-from ..utils import Bunch, generate_acyclic_graphs, rank, unique_names
-from ..utils.cycle_removal import CYCLE_REMOVAL_STRATEGIES
+    import numpy as np
+
+    from ..agg import RankResult
+    from ..cmp import RanksComparator
+    from ..core import SKCMethodABC
+    from ..utils import Bunch, unique_names
+    from ..utils.cycle_removal import (
+        CYCLE_REMOVAL_STRATEGIES,
+        generate_acyclic_graphs,
+    )
 
 
 # =============================================================================
 # INTERNAL FUNCTIONS
 # =============================================================================
-
-
-def _untie_by_dominance(alt1, alt2, dm):
-    """
-    Resolve ties between two alternatives using dominance analysis.
-
-    This function determines which of two alternatives dominates the other
-    by comparing their performance across all criteria using pairwise
-    dominance relationships. It helps resolve ties when alternatives have
-    equal scores but one clearly dominates the other.
-
-    Parameters
-    ----------
-    alt1 : hashable
-        Identifier for the first alternative to compare.
-    alt2 : hashable
-        Identifier for the second alternative to compare.
-    dm : DecisionMatrix
-        The decision matrix containing criteria values for both alternatives.
-        Must have both alt1 and alt2 as valid alternative indices.
-
-    Returns
-    -------
-    list
-        A list containing the dominance result:
-        - If one alternative dominates: [(winner, loser)] where winner
-          dominates loser
-        - If no clear dominance exists: [] (empty list)
-
-    Notes
-    -----
-    The function uses the dominance analysis framework to compare alternatives:
-
-    1. Extract criteria values for both alternatives from the decision matrix
-    2. Apply pairwise dominance analysis using `rank.dominance()`
-    3. Compare dominance scores (aDb vs bDa) to determine winner
-    4. Return the winning pair or empty list if tied
-
-    The dominance relationship is asymmetric: if A dominates B more than
-    B dominates A (aDb > bDa), then A is considered the winner.
-
-    This function is typically used in tie-breaking scenarios where
-    traditional scoring methods produce equal results but dominance
-    analysis can reveal a preference.
-
-    Examples
-    --------
-    >>> # Assuming a decision matrix with alternatives 'A' and 'B'
-    >>> result = _untie_by_dominance('A', 'B', decision_matrix)
-    >>> if result:
-    ...     winner, loser = result[0]
-    ...     print(f"{winner} dominates {loser}")
-    ... else:
-    ...     print("No clear dominance relationship")
-    """
-    crit1, crit2 = dm.alternatives[alt1], dm.alternatives[alt2]
-    dominance_result = rank.dominance(crit1, crit2)
-    aDb, bDa = dominance_result.aDb, dominance_result.bDa
-    winner = (alt1, alt2) if aDb >= bDa else (alt2, alt1)
-    return [winner]
 
 
 def _transitivity_break_bound(n):
@@ -170,10 +88,7 @@ def _transitivity_break_bound(n):
     ----------
     :cite:p:`moon2015topics`
     """
-    if n % 2 == 0:
-        return n * (n**2 - 4) // 24
-    else:
-        return n * (n**2 - 1) // 24
+    return n * (n**2 - 4) // 24 if n % 2 == 0 else n * (n**2 - 1) // 24
 
 
 def _in_degree_sort(dag):
@@ -358,7 +273,7 @@ def _format_transitivity_cycles(cycles):
 # =============================================================================
 
 
-class TransitivityChecker(SKCMethodABC):
+class RankTransitivityChecker(SKCMethodABC):
     """
     Robustness evaluator for Multi-Criteria Decision Making (MCDM) methods.
 
@@ -450,7 +365,7 @@ class TransitivityChecker(SKCMethodABC):
     >>> dm_method = simple.WeightedSum()
     >>>
     >>> # Initialize transitivity checker
-    >>> checker = TransitivityChecker(dm_method)
+    >>> checker = RankTransitivityChecker(dm_method)
     >>>
     >>> # Evaluate a decision matrix
     >>> result = checker.evaluate(dm=decision_matrix)
@@ -461,7 +376,7 @@ class TransitivityChecker(SKCMethodABC):
 
     Advanced configuration with custom parameters:
 
-    >>> checker = TransitivityChecker(
+    >>> checker = RankTransitivityChecker(
     ...     dmaker=dm_method,
     ...     random_state=42,
     ...     allow_missing_alternatives=True,
@@ -521,6 +436,11 @@ class TransitivityChecker(SKCMethodABC):
         self._make_transitive_strategy = mk_transitive
 
         # MAXIMIMUM PERMITED RANKS TO BE GENERATED
+        if max_ranks < 1:
+            raise ValueError(
+                f"max_ranks should be greater than zero, current \
+                    value {max_ranks}"
+            )
         self._max_ranks = int(max_ranks)
 
     def __repr__(self):
@@ -653,18 +573,13 @@ class TransitivityChecker(SKCMethodABC):
             # Identify which one is ranked better (lower number is better)
             if ranks[0] < ranks[1]:
                 edges.append((alt_names[0], alt_names[1]))
-            elif ranks[1] < ranks[0]:
-                edges.append((alt_names[1], alt_names[0]))
             else:
-                untied_edges = _untie_by_dominance(
-                    alt_names[0], alt_names[1], decision_matrix
-                )
-                edges.extend(untied_edges)
+                edges.append((alt_names[1], alt_names[0]))
 
         return edges
 
     def _add_break_info_to_rank(
-        self, rank, dag, removed_edges, full_alternatives, iteration=1
+        self, rank, dag, removed_edges, full_alternatives, iteration
     ):
         """
         Add cycle-breaking information to a ranking result.
@@ -798,7 +713,7 @@ class TransitivityChecker(SKCMethodABC):
 
         return rank
 
-    def _get_ranks(self, graph, rrank, full_alternatives):
+    def _generate_reconstructed_ranks(self, graph, rrank, full_alternatives):
         """
         Generate ranking results from a graph.
 
@@ -839,7 +754,7 @@ class TransitivityChecker(SKCMethodABC):
             )
             ranks.append(rank)
 
-            return list(ranks)
+            return ranks
 
         acyclic_graphs = generate_acyclic_graphs(
             graph,
@@ -854,7 +769,7 @@ class TransitivityChecker(SKCMethodABC):
             )
             ranks.append(rank)
 
-        return list(ranks)
+        return ranks
 
     def _dominance_graph(self, dm, rrank):
         """
@@ -891,6 +806,7 @@ class TransitivityChecker(SKCMethodABC):
 
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
+        # TODO: Probar sacar paralelismo
         with joblib.Parallel(
             prefer=self._parallel_backend, n_jobs=self._n_jobs
         ) as P:
@@ -1023,8 +939,7 @@ class TransitivityChecker(SKCMethodABC):
             dm, orank
         )
 
-        test_criterion_2 = "Passed" if trans_break_rate == 0 else "Not Passed"
-
+        test_criterion_2 = trans_break_rate == 0
         return test_criterion_2, graph, trans_break, trans_break_rate
 
     def _test_criterion_3(self, test_criterion_2, rrank, returned_ranks):
@@ -1051,12 +966,8 @@ class TransitivityChecker(SKCMethodABC):
             - "Not Passed": Either test criterion 2 failed OR rankings differ
         """
         return (
-            "Passed"
-            if (
-                test_criterion_2 == "Passed"
-                and (rrank.values == returned_ranks[0].values).all()
-            )
-            else "Not Passed"
+            test_criterion_2
+            and (rrank.values == returned_ranks[0].values).all()
         )
 
     def evaluate(self, *, dm):
@@ -1098,6 +1009,7 @@ class TransitivityChecker(SKCMethodABC):
             dag=None,
             removed_edges=None,
             full_alternatives=full_alternatives,
+            iteration=None
         )
 
         # make the pairwise dominance graph and calculate transitivity metrics
@@ -1106,7 +1018,9 @@ class TransitivityChecker(SKCMethodABC):
         )
 
         # get the ranks from the graph
-        reconstructed_ranks = self._get_ranks(graph, rrank, full_alternatives)
+        reconstructed_ranks = self._generate_reconstructed_ranks(
+            graph, rrank, full_alternatives
+        )
 
         test_criterion_3 = self._test_criterion_3(
             test_criterion_2, patched_rrank, reconstructed_ranks

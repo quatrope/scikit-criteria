@@ -1,7 +1,7 @@
-``skcriteria.ranksrev.transitivity_check`` module
+``skcriteria.ranksrev.rank_transitivity_check`` module
 ==================================================
 
-.. automodule:: skcriteria.ranksrev.transitivity_check
+.. automodule:: skcriteria.ranksrev.rank_transitivity_check
    :members:
    :undoc-members:
    :show-inheritance:
