@@ -9,17 +9,19 @@
 # DOCS
 # =============================================================================
 
-"""Evaluation based on Distance from Average Solution.
+"""Evaluation based on Distance from Average Solution - EDAS.
 
-EDAS is introduced for multi-criteria inventory classification (MCIC)
-problems. In the method, we use positive and negative distances from
-the average solution for appraising alternatives.
+The EDAS method evaluates alternatives by comparing them to an average solution
+benchmark. It calculates two key metrics: Positive Distance from Average (PDA)
+for performance exceeding the average, and Negative Distance from Average (NDA)
+for performance below average. These measures capture how each alternative
+deviates from the mean performance across all criteria.
 
-Although the proposed method is used for ABC classification of inventory items,
-this method can also be used for MCDM problems. The best alternative in the
-proposed method is related to the distance from average solution (AV).
+The final appraisal combines these deviations through a weighted, normalized
+scoring process. After computing weighted sums of PDA and NDA for each
+alternative, the method normalizes these values and averages them to produce
+a comprehensive evaluation score.
 
-This method is very useful when we have some conflicting criteria.
 """
 
 # =============================================================================
@@ -35,114 +37,106 @@ with hidden():
     from ..core import Objective
     from ..utils import doc_inherit, rank
 
+
 # =============================================================================
 # EDAS
 # =============================================================================
 
-EPSILON = 1e-10
-
 
 def _distance_from_avg(matrix, objectives, avg):
+    """Aux function to calculate PDA and NDA."""
     pda = np.zeros_like(matrix, dtype=float)
     nda = np.zeros_like(matrix, dtype=float)
 
-    skc_max = Objective.MAX.value
-    is_beneficial = np.array([obj == skc_max for obj in objectives])
+    # Determine if the objective is beneficial or not
+    is_beneficial = np.array(
+        [obj == Objective.MAX.value for obj in objectives]
+    )
 
-    divisor = np.where(avg != 0, avg, 1)
+    # Avoid division by zero
+    divisor = np.where(avg != 0, avg, 1e-10)
 
-    matrix_f64 = matrix.astype(np.float64)
-    avg_f64 = avg.astype(np.float64)
-    diff_from_avg = np.subtract(matrix_f64, avg_f64)
-
+    diff_from_avg = np.subtract(matrix, avg)
     max_zero_diff = np.maximum(0, diff_from_avg)
     neg_max_zero_diff = np.maximum(0, np.multiply(-1, diff_from_avg))
 
+    # Calculate PDA
     pda_filtered = np.where(is_beneficial, max_zero_diff, neg_max_zero_diff)
-
     pda = np.divide(pda_filtered, divisor)
 
+    # Calculate NDA
     nda_filtered = np.where(is_beneficial, neg_max_zero_diff, max_zero_diff)
-
     nda = np.divide(nda_filtered, divisor)
 
     return pda, nda
 
 
 def _normalize_sum_pda_nda(pda, nda):
+    """Normalize the sums of PDA and NDA."""
     max_pda = np.max(pda)
     max_nda = np.max(nda)
 
-    divisor = max_pda if max_pda != 0 else 1
+    # Avoid division by zero
+    divisor = max_pda if max_pda != 0 else 1e-10
     result_pda = np.divide(pda, divisor)
 
-    divisor = max_nda if max_nda != 0 else 1
+    # Avoid division by zero
+    divisor = max_nda if max_nda != 0 else 1e-10
     result_nda = np.subtract(1, np.divide(nda, divisor))
 
     return result_pda, result_nda
 
 
 def edas(matrix, weights, objectives):
-    """Execute edas without any validation."""
-    """Step 1: Select criteria"""
-    """Step 2: Construct the decision matrix"""
-
-    """Step 3: Determine the average solution for each criteria"""
-
+    """Execute EDAS without any validation."""
+    # Determine the average solution for each criteria
     average_solution = np.mean(matrix, axis=0)
 
-    """Step 4: Calculate the positive (PDA) and distance (NDA) from average"""
-
+    # Calculate the positive (PDA) and distance (NDA) from average
     pda, nda = _distance_from_avg(matrix, objectives, average_solution)
 
-    """Step 5: Determine the weighted sum of PDA and NDA
-    for all alternatives"""
-
+    # Determine the weighted sum of PDA and NDA for all alternatives
     sum_pda = np.sum(np.multiply(pda, weights), axis=1)
     sum_nda = np.sum(np.multiply(nda, weights), axis=1)
 
-    """Step 6: Normalize the values of weighted sums for all alternatives"""
+    # Normalize the values of weighted sums for all alternatives
     normal_sum_pda, normal_sum_nda = _normalize_sum_pda_nda(sum_pda, sum_nda)
 
-    """Step 7: Calculate the appraisal score for all alternatives"""
-
-    score = np.multiply(0.5, (normal_sum_pda + normal_sum_nda))
-
-    """Step 8: Rank the alternatives according to the decreasing
-    values of the score"""
+    # Calculate the appraisal score for all alternatives
+    score = np.multiply(0.5, np.add(normal_sum_pda, normal_sum_nda))
 
     return rank.rank_values(score, reverse=True), score
 
 
 class EDAS(SKCDecisionMakerABC):
-    r"""EDAS Method.
+    """Rank alternatives using EDAS method.
 
-    Evaluation Based on Distance from Average Solution (EDAS)
-    In this method we have two measures dealing with desirability of the
-    alternatives. The first measure is the positive distance from average
-    (PDA), and the second is the negative distance from average (NDA).
-    These measures can show the difference between each alternative and
-    the average solution. The evaluation of the alternatives is made
-    according to higher values of PDA and lower values of NDA. Higher
-    values of PDA and/or low values of NDA represent that the alternative
-    is better than the average solution. Let's  assume we have n
-    alternatives and m criteria.
+    The Evaluation based on Distance from Average Solution (EDAS) method ranks
+    alternatives by comparing their performance to the average solution across
+    all criteria. For each alternative, it calculates Positive (PDA) and
+    Negative (NDA) distances from average values, which are then weighted,
+    normalized, and combined into a final appraisal score.
 
     Raises
     ------
     ValueError:
-        If the sum of the weights is other than zero.
-        If any of the weights is less than zero or more than 1.
+        If the sum of the weights is not equal to 1.
+        If any weight is less than or equal to 0 or greater than or equal to 1.
+
+    References
+    ----------
+    :cite:p:`keshavarz2015multi`
+
     """
 
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
-        if np.any(weights) < 0 or np.any(weights) > 1:
-            raise ValueError("Weights values must be between 0 and 1")
-        if np.abs(1 - np.sum(weights)) > EPSILON:
-            raise ValueError("Sum of weights other than 1")
+        if not np.isclose(np.sum(weights), 1.0, atol=1e-4):
+            raise ValueError("Sum of weights must be 1")
+        if np.any(weights <= 0) or np.any(weights >= 1):
+            raise ValueError("Weigths must be between 0 and 1")
         rank, score = edas(matrix, weights, objectives)
         return rank, {"score": score}
 

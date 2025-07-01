@@ -18,18 +18,20 @@
 
 import numpy as np
 
+import pytest
+
 import skcriteria
 import skcriteria.testing as skct
 from skcriteria.preprocessing.scalers import (
     CenitDistanceMatrixScaler,
+    CodasTransformer,
     MaxAbsScaler,
     MinMaxScaler,
     StandarScaler,
     SumScaler,
     VectorScaler,
-    CodasTransformer,
 )
-import pytest
+
 
 # =============================================================================
 # TEST MIN MAX
@@ -971,71 +973,110 @@ def test_CenitDistanceMatrixScaler_no_change_original_dm():
 
 
 def test_codas_scaler_negative_value():
-
     dm = skcriteria.mkdm(
         matrix=[[-1, 0, 3], [0, 5, 6]],
         objectives=[min, max, min],
-        weights=[0.5, 0.5, 0],
+        weights=[0.5, 0.4, 0.1],
     )
+
     transformer = CodasTransformer()
 
     with pytest.raises(ValueError):
-        dm_transformed = transformer.transform(dm)
+        transformer.transform(dm)
 
 
 def test_codas_scaler_max_value_zero():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [3, 0, 6]],
         objectives=[min, max, min],
-        weights=[0.5, 0.5, 0],
+        weights=[0.5, 0.4, 0.1],
     )
+
+    expected = skcriteria.mkdm(
+        matrix=[[0.5, 0, 0.1], [0.1667, 0, 0.05]],
+        objectives=[min, max, min],
+        weights=[0.5, 0.4, 0.1],
+    )
+
     transformer = CodasTransformer()
 
-    with pytest.raises(ValueError):
-        dm_transformed = transformer.transform(dm)
+    dm_transformed = transformer.transform(dm)
+
+    assert np.allclose(
+        dm_transformed.matrix.to_numpy(), expected.matrix.to_numpy(), atol=1e-4
+    )
 
 
 def test_codas_scaler_min_value_zero():
-
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[min, max, min],
-        weights=[0.5, 0.5, 0],
+        weights=[0.5, 0.4, 0.1],
     )
+
+    expected = skcriteria.mkdm(
+        matrix=[[0, 0, 0.1], [0, 0.4, 0.05]],
+        objectives=[min, max, min],
+        weights=[0.5, 0.4, 0.1],
+    )
+
     transformer = CodasTransformer()
 
-    with pytest.raises(ValueError):
-        dm_transformed = transformer.transform(dm)
+    dm_transformed = transformer.transform(dm)
+
+    assert np.allclose(
+        dm_transformed.matrix.to_numpy(), expected.matrix.to_numpy(), atol=1e-4
+    )
 
 
-def test_codas_scaler_norm_weights():
-
+def test_codas_incorrect_weights_1():
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [1, 5, 6]],
         objectives=[min, max, min],
-        weights=[1, 2, 0],
+        weights=[1, 0, 1],
     )
+
     transformer = CodasTransformer()
 
     with pytest.raises(ValueError):
-        dm_transformed = transformer.transform(dm)
+        transformer.transform(dm)
 
 
-def test_codas_weigths_value():
-
+def test_codas_incorrect_weights_2():
     dm = skcriteria.mkdm(
-        matrix=[[1, 0, 3], [0, 5, 6]],
+        matrix=[[1, 0, 3], [1, 5, 6]],
         objectives=[min, max, min],
         weights=[1.5, 0, -0.5],
     )
+
     transformer = CodasTransformer()
 
     with pytest.raises(ValueError):
-        dm_transformed = transformer.transform(dm)
+        transformer.transform(dm)
 
 
-def test_codas_scaler_real_case():
+def test_codas_incorrect_weights_3():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 0, 3], [1, 5, 6]],
+        objectives=[min, max, min],
+        weights=[0.33, 0.33, 0.32],
+    )
+
+    transformer = CodasTransformer()
+
+    with pytest.raises(ValueError):
+        transformer.transform(dm)
+
+
+def test_codas_scaler_lisco():
+    """
+    Data From:
+        Badi, I., Shetwan, A. G., & Abdulshahed, A. M. (2017, September).
+        Supplier selection using COmbinative Distance-based
+        ASsessment (CODAS) method for multi-criteria decision-making.
+        In Proceedings of the 1st international conference on management,
+        engineering and environment (ICMNEE) (pp. 395-407).
+    """
     dm = skcriteria.mkdm(
         matrix=[
             [45, 3600, 45, 0.9],
@@ -1056,15 +1097,16 @@ def test_codas_scaler_real_case():
             [0.1460, 0.2938, 0.1354, 0.1786],
             [0.0889, 0.2679, 0.1934, 0.1389],
             [0.0952, 0.2760, 0.1547, 0.1588],
-            [0.1778, 0.3036, 0.116, 0.1191],
+            [0.1778, 0.3036, 0.1161, 0.1191],
         ],
         objectives=[max, min, max, max],
         weights=[0.2857, 0.3036, 0.2321, 0.1786],
     )
 
     transformer = CodasTransformer()
+
     dm_transformed = transformer.transform(dm)
 
-    assert np.all(
-        dm_transformed.matrix.to_numpy().round(4) == expected.matrix.to_numpy()
+    assert np.allclose(
+        dm_transformed.matrix.to_numpy(), expected.matrix.to_numpy(), atol=1e-4
     )

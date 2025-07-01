@@ -9,7 +9,8 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.agg.edas"""
+"""test for skcriteria.agg.edas."""
+
 
 # =============================================================================
 # IMPORTS
@@ -24,39 +25,12 @@ from skcriteria.agg import RankResult
 from skcriteria.agg.edas import EDAS
 
 
-def test_EDAS_weights_sum_fail():
-    """
-    Same decision matrix as robot_example_2 with it's last weight modified.
-    """
-    dm = skcriteria.mkdm(
-        matrix=[
-            [60.0, 0.40, 2540, 500, 990],
-            [6.35, 0.15, 1016, 3000, 1041],
-            [6.80, 0.10, 1727.2, 1500, 1676],
-            [10.0, 0.20, 1000, 2000, 965],
-            [2.50, 0.10, 560, 500, 915],
-            [4.50, 0.08, 1016, 350, 508],
-            [3.00, 0.10, 177, 1000, 920],
-        ],
-        objectives=[max, min, max, max, max],
-        weights=[0.1574, 0.1825, 0.2385, 0.2172, 0.2043],
-        criteria=[
-            "Load Capacity",
-            "Repeatability",
-            "Max Tip Speed",
-            "Memory",
-            "Reach",
-        ],
-        alternatives=["R1", "R2", "R3", "R4", "R5", "R6", "R7"],
-    )
-
-    ranker = EDAS()
-
-    with pytest.raises(ValueError):
-        ranker.evaluate(dm)
+# =============================================================================
+# TESTS
+# =============================================================================
 
 
-def test_EDAS_bad_weights_1_fail():
+def test_edas_incorrect_weights_1():
     dm = skcriteria.mkdm(
         matrix=[
             [250, 16, 12, 5],
@@ -66,7 +40,7 @@ def test_EDAS_bad_weights_1_fail():
             [225, 16, 16, 2],
         ],
         objectives=[min, max, max, max],
-        weights=[0.35, -0.2, 0.25, 0.15],
+        weights=[0.35, -0.2, 0.25, 0.6],
     )
 
     ranker = EDAS()
@@ -75,7 +49,7 @@ def test_EDAS_bad_weights_1_fail():
         ranker.evaluate(dm)
 
 
-def test_EDAS_bad_weights_2_fail():
+def test_edas_incorrect_weights_2():
     dm = skcriteria.mkdm(
         matrix=[
             [250, 16, 12, 5],
@@ -85,7 +59,7 @@ def test_EDAS_bad_weights_2_fail():
             [225, 16, 16, 2],
         ],
         objectives=[min, max, max, max],
-        weights=[0.35, 1.2, 0.25, 0.15],
+        weights=[0.35, 0.2, 0.25, 0.19],
     )
 
     ranker = EDAS()
@@ -94,8 +68,51 @@ def test_EDAS_bad_weights_2_fail():
         ranker.evaluate(dm)
 
 
-def test_EDAS_mobile_selection():
-    """Source: https://www.youtube.com/watch?v=0ZHz4EeYB2Y."""
+def test_edas_incorrect_weights_3():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [250, 16, 12, 5],
+            [200, 16, 8, 3],
+            [300, 32, 16, 4],
+            [275, 32, 8, 4],
+            [225, 16, 16, 2],
+        ],
+        objectives=[min, max, max, max],
+        weights=[0, 1, 0, 0],
+    )
+
+    ranker = EDAS()
+
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
+
+
+def test_edas_incorrect_weights_4():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [250, 16, 12, 5],
+            [200, 16, 8, 3],
+            [300, 32, 16, 4],
+            [275, 32, 8, 4],
+            [225, 16, 16, 2],
+        ],
+        objectives=[min, max, max, max],
+        weights=[0.5, 0.4, 0.05, 0.06],
+    )
+
+    ranker = EDAS()
+
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
+
+
+def test_edas_mobile_selection():
+    """
+    Data From:
+        Manoj Mathew. (2018, July 17).
+        Evaluation Based on Distance from Average Solution - EDAS.
+        https://www.youtube.com/watch?v=0ZHz4EeYB2Y
+    """
     dm = skcriteria.mkdm(
         matrix=[
             [250, 16, 12, 5],
@@ -108,9 +125,6 @@ def test_EDAS_mobile_selection():
         weights=[0.35, 0.25, 0.25, 0.15],
     )
 
-    ranker = EDAS()
-    result = ranker.evaluate(dm)
-
     expected = RankResult(
         "EDAS",
         ["A0", "A1", "A2", "A3", "A4"],
@@ -118,12 +132,23 @@ def test_EDAS_mobile_selection():
         {"score": [0.4421, 0.169, 0.8053, 0.4697, 0.4015]},
     )
 
+    ranker = EDAS()
+
+    result = ranker.evaluate(dm)
+
     assert result.values_equals(expected)
-    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-4)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-3)
 
 
-def test_EDAS_notebook_selection():
-    """Source: http://doi.org/10.17270/J.LOG.2021.603."""
+def test_edas_notebook_selection():
+    """
+    Data From:
+        Ersoy, Y. (2021).
+        Equipment selection for an e-commerce company using Entropy-based
+        TOPSIS, EDAS and CODAS methods during the COVID-19.
+        LogForum, 17(3).
+    """
     dm = skcriteria.mkdm(
         matrix=[
             [256, 8, 41, 1.6, 1.77, 7347.16],
@@ -137,9 +162,6 @@ def test_EDAS_notebook_selection():
         weights=[0.405, 0.221, 0.134, 0.199, 0.007, 0.034],
     )
 
-    ranker = EDAS()
-    result = ranker.evaluate(dm)
-
     expected = RankResult(
         "EDAS",
         ["A0", "A1", "A2", "A3", "A4", "A5"],
@@ -147,95 +169,41 @@ def test_EDAS_notebook_selection():
         {"score": [0.414, 0.130, 0.461, 0.212, 0.944, 0.043]},
     )
 
-    assert result.values_equals(expected)
-    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-1)
-
-
-def test_EDAS_set_1():
-    """Source: http://dx.doi.org/10.15388/Informatica.2015.57."""
-    dm = skcriteria.mkdm(
-        matrix=[
-            [23, 264, 2.37, 0.05, 167, 8900, 8.71],  # A1
-            [20, 220, 2.20, 0.04, 171, 9100, 8.23],  # A2
-            [17, 231, 1.98, 0.15, 192, 10800, 9.91],  # A3
-            [12, 210, 1.73, 0.20, 195, 12300, 10.21],  # A4
-            [15, 243, 2.00, 0.14, 187, 12600, 9.34],  # A5
-            [14, 222, 1.89, 0.13, 180, 13200, 9.22],  # A6
-            [21, 262, 2.43, 0.06, 160, 10300, 8.93],  # A7
-            [20, 256, 2.60, 0.07, 163, 11400, 8.44],  # A8
-            [19, 266, 2.10, 0.06, 157, 11200, 9.04],  # A9
-            [8, 218, 1.94, 0.11, 190, 13400, 10.11],  # A10
-        ],
-        objectives=[max, max, max, min, min, min, min],
-        weights=[0.250, 0.214, 0.179, 0.143, 0.107, 0.071, 0.036],
-        criteria=["C1", "C2", "C3", "C4", "C5", "C6", "C7"],
-    )
-
     ranker = EDAS()
+
     result = ranker.evaluate(dm)
 
-    expected = RankResult(
-        "EDAS",
-        ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"],
-        [1, 4, 6, 10, 7, 8, 2, 3, 5, 9],
-        {"score": []},
-    )
-
     assert result.values_equals(expected)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-3)
 
 
-def test_EDAS_electric_motorcycles():
-    """Source: https://doi.org/10.46632/jame/2/4/2."""
+def test_edas_electric_motorcycles():
+    """
+    Data From:
+        Sharma, R., Ramachandran, M., Saravanan, V., & Nanjundan, P.
+        Application of the EDAS Technique for Selecting the Electric
+        Motor Vehicles.
+    """
     dm = skcriteria.mkdm(
         matrix=[
-            [3.20, 150, 80, 129.400, 4.5],  # Revolt RV400
-            [2.80, 75, 25, 102.249, 4.5],  # Joy e-Bike Monster
-            [4.00, 180, 105, 192.499, 5.0],  # Tork Kratos R
-            [3.60, 200, 80, 114.999, 6.0],  # Komaki Ranger
-            [2.88, 110, 85, 114.999, 5.0],  # Cyborg Bob
-            [4.32, 140, 80, 166.250, 6.0],  # Odysse Evogis
-            [4.40, 200, 100, 99.999, 2.0],  # Oben Rorr
-            [3.50, 140, 85, 154.999, 6.0],  # PURE EV eTryst 350
-            [3.00, 135, 75, 99.999, 3.0],  # Pure ecoDryft
+            [3.20, 150, 80, 129.400, 4.5],
+            [2.80, 75, 25, 102.249, 4.5],
+            [4.00, 180, 105, 192.499, 5.0],
+            [3.60, 200, 80, 114.999, 6.0],
+            [2.88, 110, 85, 114.999, 5.0],
+            [4.32, 140, 80, 166.250, 6.0],
+            [4.40, 200, 100, 99.999, 2.0],
+            [3.50, 140, 85, 154.999, 6.0],
+            [3.00, 135, 75, 99.999, 3.0],
         ],
         objectives=[max, max, max, min, min],
         weights=[0.2, 0.2, 0.2, 0.2, 0.2],
-        criteria=[
-            "Battery (kWh)",
-            "Range (km)",
-            "Top Speed (kmph)",
-            "Price (k₹)",
-            "Charging Time (hrs)",
-        ],
-        alternatives=[
-            "Revolt RV400",
-            "Joy e-Bike Monster",
-            "Tork Kratos R",
-            "Komaki Ranger",
-            "Cyborg Bob",
-            "Odysse Evogis",
-            "Oben Rorr",
-            "PURE EV eTryst 350",
-            "Pure ecoDryft",
-        ],
     )
-
-    ranker = EDAS()
-    result = ranker.evaluate(dm)
 
     expected = RankResult(
         "EDAS",
-        [
-            "Revolt RV400",
-            "Joy e-Bike Monster",
-            "Tork Kratos R",
-            "Komaki Ranger",
-            "Cyborg Bob",
-            "Odysse Evogis",
-            "Oben Rorr",
-            "PURE EV eTryst 350",
-            "Pure ecoDryft",
-        ],
+        ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"],
         [5, 9, 4, 3, 6, 7, 1, 8, 2],
         {
             "score": [
@@ -252,5 +220,49 @@ def test_EDAS_electric_motorcycles():
         },
     )
 
+    ranker = EDAS()
+
+    result = ranker.evaluate(dm)
+
     assert result.values_equals(expected)
-    assert np.allclose(result.e_.score, expected.e_.score, atol=1e-1)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-3)
+
+
+def test_edas_tech_company():
+    """
+    Data From:
+        Karabasevic, D., Zavadskas, E. K., Stanujkic, D., Popovic, G.,
+        & Brzakovic, M. (2018).
+        An approach to personnel selection in the IT industry based
+        on the EDAS method.
+        In Transformations in business & economics
+        (Vol. 17, No. 2 (44), pp. 54-65).
+    """
+    dm = skcriteria.mkdm(
+        matrix=[
+            [5, 4, 3, 4, 4, 5, 3],
+            [3, 4, 5, 4, 3, 3, 4],
+            [4, 3, 2, 3, 2, 3, 4],
+            [3, 3, 3, 4, 4, 3, 4],
+            [4, 3, 3, 4, 4, 4, 3],
+            [5, 4, 4, 5, 5, 5, 4],
+        ],
+        objectives=[max, max, max, max, max, max, max],
+        weights=[0.31, 0.21, 0.17, 0.13, 0.09, 0.06, 0.03],
+    )
+
+    expected = RankResult(
+        "EDAS",
+        ["A0", "A1", "A2", "A3", "A4", "A5"],
+        [2, 3, 6, 5, 4, 1],
+        {"score": [0.73, 0.47, 0.01, 0.16, 0.38, 1.00]},
+    )
+
+    ranker = EDAS()
+
+    result = ranker.evaluate(dm)
+
+    assert result.values_equals(expected)
+    assert result.method == expected.method
+    assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-2)

@@ -475,32 +475,32 @@ class CenitDistanceMatrixScaler(SKCTransformerABC):
 
 
 # =============================================================================
-# CODAS NORMALIZATION 
+# CODAS NORMALIZATION
 # =============================================================================
 
 
 def codas_normalization(matrix, weights, objectives):
-    # Se hace el STEP 2 y STEP 3 de CODAS
-
+    """Normalize the matrix according the objectives and weights."""
     norm_matrix = np.zeros_like(matrix, dtype=float)
+
+    # Benefit Criteria
     if Objective.MAX.value in objectives:
         max_columns = matrix[:, objectives == Objective.MAX.value]
         max_values = np.max(max_columns, axis=0)
-        # Caso 1: Si toda una columna es 0 y se busca maximizar esa columna, error
-        if np.any(max_values == 0):
-            raise ValueError("Max column value can't be zero")
+        # Avoid division by zero
+        checked_max_value = np.where(max_values != 0, max_values, 1e-10)
         norm_matrix[:, objectives == Objective.MAX.value] = (
-            max_columns / max_values
+            max_columns / checked_max_value
         )
 
+    # Cost Criteria
     if Objective.MIN.value in objectives:
         min_columns = matrix[:, objectives == Objective.MIN.value]
         min_values = np.min(min_columns, axis=0)
-        # Caso 2: Si un valor de la columna es 0 y se buscar minimizar, error
-        if np.any(min_columns == 0):
-            raise ValueError("Min column value can't be zero")
+        # Avoid division by zero
+        checked_min_columns = np.where(min_columns != 0, min_columns, 1e-10)
         norm_matrix[:, objectives == Objective.MIN.value] = (
-            min_values / min_columns
+            min_values / checked_min_columns
         )
 
     w_norm_matrix = np.multiply(norm_matrix, weights)
@@ -509,35 +509,46 @@ def codas_normalization(matrix, weights, objectives):
 
 
 class CodasTransformer(SKCTransformerABC):
-    """Scaler used in Codas for linear normalization
-        and also weights the matrix
+    r"""Scaler used in Codas to normalize and weight the matrix.
 
-        The matrix transformation N[i,j] is given by:
-        if the j column is a benefit critertia:
-            X[i,j] / X.max(axis=0)
+    The matrix transformation is given by:
 
-        if the j column is a cost criteria:
-            X.min(axis=0) / X[i,j]  
-    
-        and then:
-        result[i,j] = W[j]*N[i,j]
+    .. math::
 
-        where each value of W[j] is between 0 and 1, and
-        the sum of all weigths equals 1 
+    For each criterion j, the normalized value is calculated as:
+        if j is a benefit criteria:
+            n_{ij} = \frac{x_{ij}}{\max_i x_{ij}}
 
-     """
+        if j is a cost criteria:
+            n_{ij} = \frac{\min_i x_{ij}}{x_{ij}}
+
+    Then the weighted matrix is calculated as:
+        r_{ij} = w_j \cdot n_{ij}
+
+        where w_j denotes the weight of the j-th criterion.
+
+    Raises
+    ------
+    ValueError:
+        If the decision matrix contains negative values.
+        If the sum of weights is not equal to 1.
+        If any weight is less than or equal to 0 or greater than or equal to 1.
+
+    References
+    ----------
+    :cite:p:`ghorabaee2016new`
+
+    """
 
     _skcriteria_parameters = []
 
     @doc_inherit(SKCTransformerABC._transform_data)
     def _transform_data(self, matrix, objectives, weights, **kwargs):
-        if np.any(matrix < 0):        
-            raise ValueError(
-                "Error: CODAS can't operate with negative values on the DM Matrix"
-            )
+        if np.any(matrix < 0):
+            raise ValueError("CODAS can not operate with negative values")
         if not np.isclose(np.sum(weights), 1.0, atol=1e-4):
-            raise ValueError("Weights must be normalized")
-        if np.any(weights < 0) or np.any(weights > 1):
+            raise ValueError("Sum of weights must be 1")
+        if np.any(weights <= 0) or np.any(weights >= 1):
             raise ValueError("Weigths must be between 0 and 1")
 
         matrix_transformation = codas_normalization(
