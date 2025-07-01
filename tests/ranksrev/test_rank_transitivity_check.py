@@ -279,7 +279,7 @@ def test_TransitivityCheck_test_criterion_3_pass():
     dm = skc.datasets.load_van2021evaluation(windows_size=7)
     trans_check = RankTransitivityChecker(topsis_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
-    assert rank_comparator._extra.test_criterion_3 == False
+    assert rank_comparator._extra.test_criterion_3
 
 
 def test_TransitivityCheck_test_criterion_3_fail():
