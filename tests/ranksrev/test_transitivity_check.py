@@ -260,8 +260,8 @@ def test_TransitivityCheck_test_criterion_2_pass():
     orank = topsis_pipe.evaluate(dm)
     test_criterion_2 = trans_check._test_criterion_2(dm, orank)[0]
     assert rank_comparator._extra.transitivity_break_rate == 0
-    assert rank_comparator._extra.test_criterion_2 == True
-    assert test_criterion_2 == True
+    assert rank_comparator._extra.test_criterion_2
+    assert test_criterion_2
 
 
 def test_TransitivityCheck_test_criterion_2_fail():
@@ -271,19 +271,19 @@ def test_TransitivityCheck_test_criterion_2_fail():
     orank = topsis_pipe.evaluate(dm)
     test_criterion_2 = trans_check._test_criterion_2(dm, orank)[0]
     assert rank_comparator._extra.transitivity_break_rate > 0
-    assert rank_comparator._extra.test_criterion_2 == False
-    assert test_criterion_2 == False
+    assert not rank_comparator._extra.test_criterion_2
+    assert not test_criterion_2
 
 
 def test_TransitivityCheck_test_criterion_3_pass():
     dm = skc.datasets.load_van2021evaluation(windows_size=7)
     trans_check = TransitivityChecker(topsis_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
-    assert rank_comparator._extra.test_criterion_3 == False
+    assert rank_comparator._extra.test_criterion_3
 
 
 def test_TransitivityCheck_test_criterion_3_fail():
     dm = skc.datasets.load_van2021evaluation(windows_size=7)
     trans_check = TransitivityChecker(topsis_pipe_matrix_scaler)
     rank_comparator = trans_check.evaluate(dm=dm)
-    assert rank_comparator._extra.test_criterion_3 == False
+    assert not rank_comparator._extra.test_criterion_3
