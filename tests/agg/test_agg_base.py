@@ -26,9 +26,7 @@ from pyquery import PyQuery
 import pytest
 
 from skcriteria.agg import (
-    KernelResult,
-    RankResult,
-    ResultABC,
+    SKCRankResult,
     SKCDecisionMakerABC,
 )
 
@@ -46,26 +44,19 @@ def test_SKCDecisionMakerABC_flow(decision_matrix):
         def _evaluate_data(self, alternatives, **kwargs):
             return np.arange(len(alternatives)) + 1, {}
 
-        def _make_result(self, alternatives, values, extra):
-            return {
-                "alternatives": alternatives,
-                "rank": values,
-                "extra": extra,
-            }
-
     ranker = Foo()
 
     result = ranker.evaluate(dm)
 
-    assert np.all(result["alternatives"] == dm.alternatives)
-    assert np.all(result["rank"] == np.arange(len(dm.alternatives)) + 1)
-    assert result["extra"] == {}
+    assert np.all(result.alternatives == dm.alternatives)
+    assert np.all(result.values == np.arange(len(dm.alternatives)) + 1)
+    assert result.extra_ == {}
 
 
-@pytest.mark.parametrize("not_redefine", ["_evaluate_data", "_make_result"])
+@pytest.mark.parametrize("not_redefine", ["_evaluate_data"])
 def test_SKCDecisionMakerABC_not_redefined(not_redefine):
     content = {"_skcriteria_parameters": []}
-    for method_name in ["_evaluate_data", "_make_result", "_validate_data"]:
+    for method_name in ["_evaluate_data"]:
         if method_name != not_redefine:
             content[method_name] = lambda **kws: None
 
@@ -84,31 +75,6 @@ def test_SKCDecisionMakerABC_evaluate_data_not_implemented(decision_matrix):
         def _evaluate_data(self, **kwargs):
             super()._evaluate_data(**kwargs)
 
-        def _make_result(self, alternatives, values, extra):
-            return {
-                "alternatives": alternatives,
-                "rank": values,
-                "extra": extra,
-            }
-
-    ranker = Foo()
-
-    with pytest.raises(NotImplementedError):
-        ranker.evaluate(dm)
-
-
-def test_SKCDecisionMakerABC_make_result_not_implemented(decision_matrix):
-    dm = decision_matrix(seed=42)
-
-    class Foo(SKCDecisionMakerABC):
-        _skcriteria_parameters = []
-
-        def _evaluate_data(self, alternatives, **kwargs):
-            return np.arange(len(alternatives)) + 1, {}
-
-        def _make_result(self, **kwargs):
-            super()._make_result(**kwargs)
-
     ranker = Foo()
 
     with pytest.raises(NotImplementedError):
@@ -116,73 +82,42 @@ def test_SKCDecisionMakerABC_make_result_not_implemented(decision_matrix):
 
 
 # =============================================================================
-# RESULT BASE
+# SKCRankResult
 # =============================================================================
 
 
-class test_ResultBase_skacriteria_result_series_no_defined:
-    with pytest.raises(TypeError):
-
-        class Foo(ResultABC):
-            def _validate_result(self, values):
-                pass
-
-
-class test_ResultBase_original_validare_result_fail:
-    class Foo(ResultABC):
-        _skcriteria_result_series = "foo"
-
-        def _validate_result(self, values):
-            return super()._validate_result(values)
-
-    with pytest.raises(NotImplementedError):
-        Foo("foo", ["abc"], [1, 2, 3], {})
-
-
-def test_ResultBase_repr():
-    class TestResult(ResultABC):
-        _skcriteria_result_series = "foo"
-
-        def _validate_result(self, values):
-            pass
-
+def test_SKCRankResult_repr():
     method = "test_method"
     alternatives = ["a", "b", "c"]
     rank = [1, 2, 3]
     extra = {"alfa": 1}
 
-    result = TestResult(
+    result = SKCRankResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
     )
 
     expected = (
-        "Alternatives  a  b  c\nfoo           1  2  3\n[Method: test_method]"
+        "Alternatives  a  b  c\nRank          1  2  3\n[Method: test_method]"
     )
 
     assert repr(result) == expected
 
 
-def test_ResultBase_repr_html():
-    class TestResult(ResultABC):
-        _skcriteria_result_series = "foo"
-
-        def _validate_result(self, values):
-            pass
-
+def test_SKCRankResult_repr_html():
     method = "test_method"
     alternatives = ["a", "b", "c"]
     rank = [1, 2, 3]
     extra = {"alfa": 1}
 
     result = PyQuery(
-        TestResult(
+        SKCRankResult(
             method=method, alternatives=alternatives, values=rank, extra=extra
         )._repr_html_()
     )
 
     expected = PyQuery(
         """
-        <div class='skcresult skcresult-foo'>
+        <div class='skcresult skcresult-rank'>
         <table id="T_cc7f5_" >
             <thead>
             <tr>
@@ -195,7 +130,7 @@ def test_ResultBase_repr_html():
             <tbody>
             <tr>
                 <th id="T_cc7f5_level0_row0" class="row_heading level0 row0" >
-                    foo
+                    Rank
                 </th>
                 <td id="T_cc7f5_row0_col0" class="data row0 col0" >1</td>
                 <td id="T_cc7f5_row0_col1" class="data row0 col1" >2</td>
@@ -213,19 +148,13 @@ def test_ResultBase_repr_html():
     assert result_html == expected_html
 
 
-def test_ResultBase_equals():
-    class TestResult(ResultABC):
-        _skcriteria_result_series = "foo"
-
-        def _validate_result(self, values):
-            pass
-
+def test_SKCRankResult_equals():
     method = "test_method"
     alternatives = ["a", "b", "c"]
     rank = [1, 2, 3]
     extra = {"alfa": 1, "beta": np.array([1.0, 2.0])}
 
-    result = TestResult(
+    result = SKCRankResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
     )
 
@@ -244,7 +173,7 @@ def test_ResultBase_equals():
     assert result.aequals(rcopy)
 
     # not equals
-    neq = TestResult(
+    neq = SKCRankResult(
         method=method, alternatives=alternatives, values=rank, extra={}
     )
 
@@ -254,7 +183,7 @@ def test_ResultBase_equals():
     assert not result.aequals(neq)
 
     # tolerance
-    slightly_off = TestResult(
+    slightly_off = SKCRankResult(
         method=method,
         alternatives=alternatives,
         values=rank,
@@ -269,7 +198,7 @@ def test_ResultBase_equals():
 
 
 # =============================================================================
-# RANK RESULT
+# RANK RESULT (using SKCRankResult)
 # =============================================================================
 
 
@@ -280,12 +209,12 @@ def test_ResultBase_equals():
         ([1, 2, 1], True, [1, 3, 2]),
     ],
 )
-def test_RankResult(rank, has_ties, untied_rank):
+def test_SKCRankResult_ranking_functionality(rank, has_ties, untied_rank):
     method = "foo"
     alternatives = ["a", "b", "c"]
     extra = {"alfa": 1}
 
-    result = RankResult(
+    result = SKCRankResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
     )
     assert result.has_ties_ == has_ties
@@ -299,27 +228,27 @@ def test_RankResult(rank, has_ties, untied_rank):
     result_as_series = result.to_series()
     assert np.all(result_as_series.index == alternatives)
     assert np.all(result_as_series.to_numpy() == rank)
-    assert np.all(result_as_series.name == "Rank")
+    assert np.all(result_as_series.name == "Result")
 
     result_as_series_untied = result.to_series(untied=True)
     assert np.all(result_as_series_untied.index == alternatives)
     assert np.all(result_as_series_untied.to_numpy() == untied_rank)
-    assert np.all(result_as_series_untied.name == "Untied rank")
+    assert np.all(result_as_series_untied.name == "Untied Rank")
 
 
 @pytest.mark.parametrize("rank", [[1, 2, 5], [1, 2]])
-def test_RankResult_invalid_rank(rank):
+def test_SKCRankResult_invalid_rank(rank):
     method = "foo"
     alternatives = ["a", "b", "c"]
     extra = {"alfa": 1}
 
     with pytest.raises(ValueError):
-        RankResult(
+        SKCRankResult(
             method=method, alternatives=alternatives, values=rank, extra=extra
         )
 
 
-def test_RankResult_shape():
+def test_SKCRankResult_shape():
     random = np.random.default_rng(seed=42)
     length = random.integers(10, 100)
 
@@ -328,14 +257,14 @@ def test_RankResult_shape():
     method = "foo"
     extra = {}
 
-    result = RankResult(
+    result = SKCRankResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
     )
 
     assert result.shape == (length,)
 
 
-def test_RankResult_len():
+def test_SKCRankResult_len():
     random = np.random.default_rng(seed=42)
     length = random.integers(10, 100)
 
@@ -344,7 +273,7 @@ def test_RankResult_len():
     method = "foo"
     extra = {}
 
-    result = RankResult(
+    result = SKCRankResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
     )
 
@@ -352,12 +281,12 @@ def test_RankResult_len():
 
 
 # =============================================================================
-# KERNEL
+# KERNEL FUNCTIONALITY (using SKCRankResult)
 # =============================================================================
 
 
 @pytest.mark.parametrize(
-    "kernel, kernel_size, kernel_where, kernel_alternatives",
+    "kernel_mask, kernel_size, kernel_where, kernel_alternatives",
     [
         ([False, False, False], 0, [], []),
         ([False, False, True], 1, [2], ["c"]),
@@ -365,42 +294,132 @@ def test_RankResult_len():
         ([True, True, True], 3, [0, 1, 2], ["a", "b", "c"]),
     ],
 )
-def test_KernelResult(kernel, kernel_size, kernel_where, kernel_alternatives):
+def test_SKCRankResult_kernel_functionality(
+    kernel_mask, kernel_size, kernel_where, kernel_alternatives
+):
     method = "foo"
     alternatives = ["a", "b", "c"]
     extra = {"alfa": 1}
 
-    result = KernelResult(
-        method=method, alternatives=alternatives, values=kernel, extra=extra
+    # Create result using from_kernel factory method
+    result = SKCRankResult.from_kernel(
+        method=method,
+        alternatives=alternatives,
+        values=kernel_mask,
+        extra=extra,
     )
 
     assert np.all(result.method == method)
     assert np.all(result.alternatives == alternatives)
     assert np.all(result.extra_ == result.e_ == extra)
-    assert np.all(result.kernel_ == kernel)
-    assert np.all(result.kernel_size_ == kernel_size)
-    assert np.all(result.kernel_where_ == kernel_where)
-    assert np.all(result.kernel_alternatives_ == kernel_alternatives)
 
-    result_as_series = result.to_series()
-    assert np.all(result_as_series.index == alternatives)
-    assert np.all(result_as_series.to_numpy() == kernel)
-    assert np.all(result_as_series.name == "Kernel")
+    # Test kernel methods
+    assert np.all(result.kernel() == kernel_mask)
+    assert result.kernel_size() == kernel_size
+    assert np.all(result.kernel_where() == kernel_where)
+    assert np.all(result.kernel_alternatives() == kernel_alternatives)
+
+    # Test deprecated properties with warnings
+    with pytest.deprecated_call():
+        assert np.all(result.kernel_ == kernel_mask)
+
+    with pytest.deprecated_call():
+        assert result.kernel_size_ == kernel_size
+
+    with pytest.deprecated_call():
+        assert np.all(result.kernel_where_ == kernel_where)
+
+    with pytest.deprecated_call():
+        assert np.all(result.kernel_alternatives_ == kernel_alternatives)
 
     with pytest.deprecated_call():
         assert np.all(result.kernelwhere_ == kernel_where)
 
 
-@pytest.mark.parametrize("values", [[1, 2, 5], [True, False, 1], [1, 2, 3]])
-def test_KernelResult_invalid_rank(values):
+def test_SKCRankResult_kernel_representation():
+    method = "foo"
+    alternatives = ["a", "b", "c"]
+    kernel_mask = [True, False, True]
+    extra = {"alfa": 1}
+
+    result = SKCRankResult.from_kernel(
+        method=method,
+        alternatives=alternatives,
+        values=kernel_mask,
+        extra=extra,
+    )
+
+    # Test kernel string representation
+    kernel_string = result.to_kernel_string()
+    expected_kernel_string = (
+        "Alternatives     a      b     c\n"
+        "Kernel        True  False  True\n"
+        "[Method: foo]"
+    )
+
+    assert kernel_string == expected_kernel_string
+
+    # Test kernel HTML representation
+    kernel_html = result.to_kernel_html()
+    assert "skcresult-kernel" in kernel_html
+    assert "Method: foo" in kernel_html
+
+
+def test_SKCRankResult_multi_level_kernel():
+    """Test kernel functionality with multi-level rankings."""
+    method = "foo"
+    alternatives = ["a", "b", "c", "d"]
+    rank = [1, 2, 3, 1]  # Two alternatives at rank 1
+    extra = {}
+
+    result = SKCRankResult(
+        method=method, alternatives=alternatives, values=rank, extra=extra
+    )
+
+    # Test with different kernel thresholds
+    kernel_1 = result.kernel(max_in_kernel=1)
+    expected_kernel_1 = [True, False, False, True]  # ranks 1
+    assert np.all(kernel_1 == expected_kernel_1)
+    assert result.kernel_size(max_in_kernel=1) == 2
+
+    kernel_2 = result.kernel(max_in_kernel=2)
+    expected_kernel_2 = [True, True, False, True]  # ranks 1 and 2
+    assert np.all(kernel_2 == expected_kernel_2)
+    assert result.kernel_size(max_in_kernel=2) == 3
+
+
+@pytest.mark.parametrize("values", [[1, 2, 5], ["a", "b", "c"]])
+def test_SKCRankResult_invalid_values(values):
     method = "foo"
     alternatives = ["a", "b", "c"]
     extra = {"alfa": 1}
 
     with pytest.raises(ValueError):
-        KernelResult(
+        SKCRankResult(
             method=method,
             alternatives=alternatives,
             values=values,
             extra=extra,
         )
+
+
+def test_SKCRankResult_from_kernel_validation():
+    """Test that from_kernel properly converts boolean masks."""
+    method = "foo"
+    alternatives = ["a", "b", "c"]
+    kernel_mask = [True, False, True]
+    extra = {}
+
+    result = SKCRankResult.from_kernel(
+        method=method,
+        alternatives=alternatives,
+        values=kernel_mask,
+        extra=extra,
+    )
+
+    # Should convert True->1, False->2
+    expected_values = [1, 2, 1]
+    assert np.all(result.values == expected_values)
+
+    # Original kernel should be recoverable
+    assert np.all(result.kernel() == kernel_mask)

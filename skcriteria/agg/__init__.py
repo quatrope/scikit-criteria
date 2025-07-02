@@ -17,7 +17,7 @@
 # =============================================================================
 
 from ._agg_base import (
-    Result,
+    SKCRankResult,
     SKCDecisionMakerABC,
 )
 
@@ -26,6 +26,6 @@ from ._agg_base import (
 # =============================================================================
 
 __all__ = [
-    "Result",
+    "SKCRankResult",
     "SKCDecisionMakerABC",
 ]

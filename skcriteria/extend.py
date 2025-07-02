@@ -197,15 +197,6 @@ def mkagg(maybe_func=None, **hparams):
                 rank, extra = agg_func(hparams=self, **kwargs)
                 return rank, extra
 
-            @doc_inherit(SKCDecisionMakerABC._make_result)
-            def _make_result(self, alternatives, values, extra):
-                return RankResult(
-                    agg_name,
-                    alternatives=alternatives,
-                    values=values,
-                    extra=extra,
-                )
-
         return type(agg_name, (_AutoAGG,), {"__module__": agg_func.__module__})
 
     return _agg_maker if maybe_func is None else _agg_maker(maybe_func)

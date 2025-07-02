@@ -24,7 +24,7 @@ with hidden():
 
     import numpy as np
 
-    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ._agg_base import SKCDecisionMakerABC
     from ..core import Objective
     from ..utils import doc_inherit, rank
 
@@ -81,12 +81,6 @@ class RatioMOORA(SKCDecisionMakerABC):
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, score = ratio(matrix, objectives, weights)
         return rank, {"score": score}
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "RatioMOORA", alternatives=alternatives, values=values, extra=extra
-        )
 
 
 # =============================================================================
@@ -146,15 +140,6 @@ class ReferencePointMOORA(SKCDecisionMakerABC):
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         rank, score, reference_point = refpoint(matrix, objectives, weights)
         return rank, {"score": score, "reference_point": reference_point}
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "ReferencePointMOORA",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )
 
 
 # =============================================================================
@@ -238,15 +223,6 @@ class FullMultiplicativeForm(SKCDecisionMakerABC):
             )
         rank, score = fmf(matrix, objectives, weights)
         return rank, {"score": score}
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "FullMultiplicativeForm",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )
 
 
 # =============================================================================
@@ -338,12 +314,3 @@ class MultiMOORA(SKCDecisionMakerABC):
             "fmf_score": fmf_score,
             "reference_point": reference_point,
         }
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "MultiMOORA",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )

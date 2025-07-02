@@ -20,7 +20,7 @@ from ..utils import hidden
 with hidden():
     import numpy as np
 
-    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ._agg_base import SKCDecisionMakerABC
     from ..core import Objective
     from ..utils import doc_inherit, rank
 
@@ -92,15 +92,6 @@ class WeightedSumModel(SKCDecisionMakerABC):
 
         rank, score = wsm(matrix, weights)
         return rank, {"score": score}
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "WeightedSumModel",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )
 
 
 # =============================================================================
@@ -184,12 +175,3 @@ class WeightedProductModel(SKCDecisionMakerABC):
 
         rank, score = wpm(matrix, weights)
         return rank, {"score": score}
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "WeightedProductModel",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )

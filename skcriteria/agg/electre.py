@@ -36,7 +36,7 @@ with hidden():
 
     from scipy import stats
 
-    from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
+    from ._agg_base import SKCRankResult, SKCDecisionMakerABC
     from ..core import Objective
     from ..utils import doc_inherit, will_change
 
@@ -190,8 +190,12 @@ class ELECTRE1(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
-        return KernelResult(
-            "ELECTRE1", alternatives=alternatives, values=values, extra=extra
+        method_name = self.get_method_name()
+        return SKCRankResult.from_kernel(
+            method_name,
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
         )
 
 
@@ -465,12 +469,3 @@ class ELECTRE2(SKCDecisionMakerABC):
             "outrank_w": outrank_w,
             "score": score,
         }
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "ELECTRE2",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )

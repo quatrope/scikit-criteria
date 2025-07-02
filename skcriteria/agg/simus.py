@@ -23,7 +23,7 @@ with hidden():
 
     import numpy as np
 
-    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ._agg_base import SKCDecisionMakerABC
     from ..core import Objective
     from ..preprocessing.scalers import scale_by_sum
     from ..utils import doc_inherit, lp, rank
@@ -310,12 +310,6 @@ class SIMUS(SKCDecisionMakerABC):
             "dominance": dominance,
             "dominance_by_criteria": dominance_by_criteria,
         }
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "SIMUS", alternatives=alternatives, values=values, extra=extra
-        )
 
     def evaluate(self, dm, *, b=None):
         """Validate the decision matrix and calculate a ranking.

@@ -24,7 +24,7 @@ with hidden():
 
     from scipy.spatial import distance
 
-    from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ._agg_base import SKCDecisionMakerABC
     from ..core import Objective
     from ..utils import doc_inherit, rank
 
@@ -140,9 +140,3 @@ class TOPSIS(SKCDecisionMakerABC):
             "anti_ideal": anti_ideal,
             "similarity": similarity,
         }
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "TOPSIS", alternatives=alternatives, values=values, extra=extra
-        )

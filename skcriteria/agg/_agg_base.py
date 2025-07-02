@@ -48,9 +48,14 @@ class SKCDecisionMakerABC(SKCMethodABC):
     def _evaluate_data(self, **kwargs):
         raise NotImplementedError()
 
-    @abc.abstractmethod
     def _make_result(self, alternatives, values, extra):
-        raise NotImplementedError()
+        method_name = self.get_method_name()
+        return SKCRankResult(
+            method=method_name,
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
+        )
 
     def evaluate(self, dm):
         """Validate the dm and calculate and evaluate the alternatives.
@@ -83,7 +88,7 @@ class SKCDecisionMakerABC(SKCMethodABC):
 # =============================================================================
 
 
-class Result(DiffEqualityMixin):
+class SKCRankResult(DiffEqualityMixin):
     """Unified class for all types of decision-making results.
 
     This class handles rankings of alternatives. All results are treated as
@@ -115,7 +120,7 @@ class Result(DiffEqualityMixin):
         )
 
     @classmethod
-    def from_kernel(cls, method, alternatives, mask, extra=None):
+    def from_kernel(cls, method, alternatives, values, extra=None):
         """Create a Result from a kernel mask.
 
         Parameters
@@ -124,7 +129,7 @@ class Result(DiffEqualityMixin):
             Name of the method that generated the result.
         alternatives: array-like
             Names of the alternatives evaluated.
-        mask: array-like of bool
+        values: array-like of bool
             Boolean mask where True indicates good alternatives (kernel)
             and False indicates bad alternatives.
         extra: dict-like, optional
@@ -136,7 +141,7 @@ class Result(DiffEqualityMixin):
             Result instance with kernel alternatives having value 1
             and non-kernel alternatives having value 2.
         """
-        mask = np.asarray(mask, dtype=bool)
+        mask = np.asarray(values, dtype=bool)
         # Convert True to 1 (good) and False to 2 (bad)
         values = np.where(mask, 1, 2)
         return cls(method, alternatives, values, extra)
