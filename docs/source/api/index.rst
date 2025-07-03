@@ -59,6 +59,11 @@
 
    testing
 
+.. toctree::
+   :maxdepth: 2
+
+   tiebreaker
+
 
 .. toctree::
    :maxdepth: 2
