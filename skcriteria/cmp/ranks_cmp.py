@@ -17,7 +17,7 @@
 
 import itertools as it
 from collections import defaultdict
-from collections.abc import Sequence, Mapping
+from collections.abc import Mapping, Sequence
 
 import matplotlib.pyplot as plt
 
@@ -91,7 +91,9 @@ class RanksComparator(Sequence, DiffEqualityMixin):
         self._ranks = ranks
 
         if not isinstance(extra, Mapping):
-            raise TypeError("extra must be a mapping (e.g., dict, defaultdict, etc.)")
+            raise TypeError(
+                "extra must be a mapping (e.g., dict, defaultdict, etc.)"
+            )
         self._extra = Bunch("extra", extra)
 
         self._validate_ranks()
