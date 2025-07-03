@@ -15,7 +15,6 @@
 # IMPORTS
 # =============================================================================
 
-from collections import defaultdict
 
 import numpy as np
 
@@ -24,7 +23,6 @@ import pandas as pd
 
 from .agg import RankResult
 from .core import SKCMethodABC
-from .utils import doc_inherit
 
 
 # =============================================================================
@@ -33,7 +31,8 @@ from .utils import doc_inherit
 
 
 class TieBreaker(SKCMethodABC):
-    """Decision maker that breaks ties in rankings using a secondary decision maker.
+    """Decision maker that breaks ties in rankings using a secondary \
+    decision maker.
 
     This class takes a primary decision maker that may produce tied rankings
     and uses a secondary decision maker to break those ties. If the secondary
