@@ -17,6 +17,7 @@
 
 import numpy as np
 
+import pytest
 
 import skcriteria as skc
 from skcriteria.agg import RankResult, SKCDecisionMakerABC
@@ -52,6 +53,25 @@ def test_TieBreaker_repr():
     )
 
     assert repr(tb) == expected
+
+
+def test_TieBreaker_bad_dmaker():
+    primary = "Despair"
+    secondary = WeightedProductModel()
+
+    with pytest.raises(TypeError) as ex:
+        tb = TieBreaker(primary, secondary, force=False)
+        assert "'dmaker' must implement 'evaluate()' method" in str(ex.value)
+
+
+
+def test_TieBreaker_bad_untier():
+    primary = WeightedSumModel()
+    secondary = "FIFA"
+
+    with pytest.raises(TypeError) as ex:
+        tb = TieBreaker(primary, secondary, force=False)
+        assert "'untier' must implement 'evaluate()' method" in str(ex.value)
 
 
 def test_TieBreaker():
@@ -96,6 +116,46 @@ def test_TieBreaker():
     np.testing.assert_array_equal(rank.alternatives, orank.alternatives)
     np.testing.assert_array_equal(rank.values, [2, 1, 3, 4, 5])
     assert not rank.extra_.tiebreaker.forced
+
+
+def test_TieBreaker_no_ties():
+    class Tier(SKCDecisionMakerABC):
+        """Decision maker que devuelve [1,1,2,2,3] hardcodeado."""
+
+        _skcriteria_parameters = []
+
+        def _evaluate_data(self, **kwargs):
+            return [5, 4, 3, 2, 1], {}
+
+        def _make_result(self, alternatives, values, extra):
+            return RankResult(
+                method="ExamplePrimary",
+                alternatives=alternatives,
+                values=values,
+                extra=extra,
+            )
+
+    # Crear la matriz de decisión
+    dm = skc.mkdm(
+        matrix=[
+            [100, 5, 5],  # A
+            [100, 10, 10],  # B
+            [100, 15, 15],  # C
+            [100, 20, 20],  # D
+            [100, 25, 25],  # E
+        ],
+        objectives=[max, max, max],
+    )
+
+    dmaker = Tier()
+    tb = TieBreaker(dmaker, WeightedSumModel(), force=False)
+
+    orank = dmaker.evaluate(dm)
+    rank = tb.evaluate(dm)
+
+    assert orank == rank
+    np.testing.assert_array_equal(rank.alternatives, orank.alternatives)
+    np.testing.assert_array_equal(rank.values, [5,4,3,2,1])
 
 
 def test_TieBreaker_forced():
