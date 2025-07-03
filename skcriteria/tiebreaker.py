@@ -23,7 +23,7 @@ import pandas as pd
 
 from .agg import RankResult
 from .core import SKCMethodABC
-
+from .utils.bunch import Bunch
 
 # =============================================================================
 # CLASS
@@ -259,12 +259,15 @@ class TieBreaker(SKCMethodABC):
         extra = orank.extra_.to_dict()
 
         # Add tie-breaking specific information
-        extra["tiebreaker"] = {
-            "original_method": orank.method,
-            "untier_method": untier.get_method_name(),
-            "original_values": orank.values,
-            "forced": forced,
-        }
+        extra["tiebreaker"] = Bunch(
+            "tiebreaker",
+            {
+                "original_method": orank.method,
+                "untier_method": untier.get_method_name(),
+                "original_values": orank.values,
+                "forced": forced,
+            },
+        )
         return extra
 
     def evaluate(self, dm):
