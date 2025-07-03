@@ -60,9 +60,8 @@ def test_TieBreaker_bad_dmaker():
     secondary = WeightedProductModel()
 
     with pytest.raises(TypeError) as ex:
-        tb = TieBreaker(primary, secondary, force=False)
+        TieBreaker(primary, secondary, force=False)
         assert "'dmaker' must implement 'evaluate()' method" in str(ex.value)
-
 
 
 def test_TieBreaker_bad_untier():
@@ -70,7 +69,7 @@ def test_TieBreaker_bad_untier():
     secondary = "FIFA"
 
     with pytest.raises(TypeError) as ex:
-        tb = TieBreaker(primary, secondary, force=False)
+        TieBreaker(primary, secondary, force=False)
         assert "'untier' must implement 'evaluate()' method" in str(ex.value)
 
 
@@ -155,7 +154,7 @@ def test_TieBreaker_no_ties():
 
     assert orank == rank
     np.testing.assert_array_equal(rank.alternatives, orank.alternatives)
-    np.testing.assert_array_equal(rank.values, [5,4,3,2,1])
+    np.testing.assert_array_equal(rank.values, [5, 4, 3, 2, 1])
 
 
 def test_TieBreaker_forced():
