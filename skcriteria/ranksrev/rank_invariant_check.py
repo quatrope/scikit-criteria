@@ -545,4 +545,4 @@ class RankInvariantChecker(SKCMethodABC):
 
         # manually creates a new RankComparator
         named_ranks = unique_names(names=names, elements=results)
-        return RanksComparator(named_ranks)
+        return RanksComparator(named_ranks, extra={})

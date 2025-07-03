@@ -35,24 +35,27 @@ from skcriteria.utils import Bunch
 # TESTS
 # =============================================================================
 
+def test_RanksComparator_extra_not_mapping():
+    rank = agg.RankResult("test", ["a"], [1], {})
+    with pytest.raises(TypeError):
+        ranks_cmp.RanksComparator([("a", rank), (1, rank)], extra=None)
 
 def test_RanksComparator_name_not_str():
     rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
-        ranks_cmp.RanksComparator([("a", rank), (1, rank)])
+        ranks_cmp.RanksComparator([("a", rank), (1, rank)], extra={})
 
 
 def test_RanksComparator_not_rank_result():
     rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(TypeError):
-        ranks_cmp.RanksComparator([("a", rank), ("b", None)])
+        ranks_cmp.RanksComparator([("a", rank), ("b", None)], extra={})
 
 
 def test_RanksComparator_duplicated_names():
     rank = agg.RankResult("test", ["a"], [1], {})
     with pytest.raises(ValueError):
-        ranks_cmp.RanksComparator([("a", rank), ("a", rank)])
-
+        ranks_cmp.RanksComparator([("a", rank), ("a", rank)], extra={})
 
 def test_RanksComparator_missing_alternatives():
     rank0 = agg.RankResult("test", ["a"], [1], {})
@@ -67,6 +70,10 @@ def test_RanksComparator_repr():
     rcmp = ranks_cmp.mkrank_cmp(rank0, rank1)
     assert repr(rcmp) == "<RanksComparator [ranks=['test_1', 'test_2']]>"
 
+def test_RanksComparator_extra_is_None():
+    rank0 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rank1 = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rcmp = ranks_cmp.mkrank_cmp(rank0, rank1, extra=None)
 
 @pytest.mark.parametrize("untied", [True, False])
 def test_RanksComparator_to_dataframe(untied):
@@ -113,13 +120,13 @@ def test_RanksComparator_diff_different_ranks_names():
         [
             ("r0", agg.RankResult("test", ["a", "b"], [1, 1], {})),
             ("r1", agg.RankResult("test", ["a", "b"], [1, 1], {})),
-        ]
+        ], extra={}
     )
     rcmp_different_rank = ranks_cmp.RanksComparator(
         [
             ("r0", agg.RankResult("test", ["a", "b"], [1, 1], {})),
             ("r2", agg.RankResult("test", ["a", "b"], [1, 1], {})),
-        ]
+        ], extra={}
     )
     diff = rcmp.diff(rcmp_different_rank)
     assert diff.has_differences
