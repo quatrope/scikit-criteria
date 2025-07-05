@@ -21,6 +21,7 @@ with hidden():
     import numpy as np
 
     from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ..core import Objective
     from ..utils import doc_inherit, rank
 
 
@@ -30,7 +31,10 @@ with hidden():
 
 
 def _rim_normalize(value, value_range, ref_ideal):
-    """Normalization function based on the reference range and ideal."""
+    """
+    Normalizes a single value to the valid range and the ideal
+    reference interval based on the paper's normalization direction.
+    """
     range_min, range_max = value_range
     ideal_min, ideal_max = ref_ideal
 
@@ -45,7 +49,7 @@ def _rim_normalize(value, value_range, ref_ideal):
             ideal_max - range_max
         )
     raise ValueError(
-        "Some values are outside the accepted normalization range."
+        f"Value {value} outside normalization range ({range_min}, {range_max})"
     )
 
 
@@ -87,21 +91,34 @@ def _rim(matrix, weights, ref_ideals, ranges):
 
 
 class RIM(SKCDecisionMakerABC):
-    """Reference Ideal Method (RIM).
+    """
+    Reference Ideal Method (RIM) for multi-criteria decision analysis.
 
-    RIM ranks alternatives based on their similarity
-    to a user-defined reference ideal region, rather
-    than the classical ideal/anti-ideal approach.
+    RIM ranks alternatives based on their similarity to a user-defined
+    *reference ideal region* instead of relying on classical ideal and
+    anti-ideal points. This method considers intervals as ideals, allowing
+    more flexible and realistic preference modeling.
+
+    The method normalizes the decision matrix values with respect to
+    the ideal intervals and the valid ranges of each criterion. Alternatives
+    closer to the ideal intervals receive higher scores.
 
     Parameters
     ----------
     ref_ideals : list of tuple
-        List of tuples specifying the ideal reference intervals for each
-        criterion (e.g., [(30, 35), (0, 0), (100, 120)]).
+        List of tuples specifying the ideal reference intervals for each criterion.
+        Each tuple should be of the form (ideal_min, ideal_max).
+        If not provided, the default ideal value for the criteria depends on
+        the desired objectives; if it is to be maximized, the highest value within
+        the matrix of that criterion will be set as the ideal value, and for
+        the criteria to be minimized, the minimum value will be used
+        (which generates intervals of length zero).
 
     ranges : list of tuple
         List of tuples specifying the min and max bounds of each criterion
-        (e.g., [(23, 60), (0, 15), (80, 130)]).
+        Each tuple should be of the form (range_min, range_max).
+        If not provided, they are calculated from the maximum and minimum values
+        of the decision matrix per criterion.
 
     References
     ----------
@@ -120,6 +137,43 @@ class RIM(SKCDecisionMakerABC):
 
         return ranking, extra
 
+    @doc_inherit(SKCDecisionMakerABC._make_result)
+    def _make_result(self, alternatives, values, extra):
+        return RankResult(
+            "RIM",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
+        )
+
+    def _validate_ranges(self, matrix, ref_ideals, ranges):
+        """Validates the consistency and format of ideal intervals and ranges."""
+        n_criteria = matrix.shape[1]
+
+        if len(ref_ideals) != n_criteria:
+            raise ValueError(
+                "ref_ideals length must match number of criteria."
+            )
+        if len(ranges) != n_criteria:
+            raise ValueError("Ranges length must match number of criteria.")
+
+        if not all(
+            isinstance(ideal, tuple) and len(ideal) == 2
+            for ideal in ref_ideals
+        ):
+            raise TypeError(
+                "Each ref_ideal must be a tuple or list of length 2."
+            )
+
+        if not all(isinstance(rng, tuple) and len(rng) == 2 for rng in ranges):
+            raise TypeError("Each range must be a tuple or list of length 2.")
+
+        for i, (ideal, valid_range) in enumerate(zip(ref_ideals, ranges)):
+            if not (valid_range[0] <= ideal[0] <= ideal[1] <= valid_range[1]):
+                raise ValueError(
+                    f"{ideal} must be within ranges[{i}] = {valid_range}"
+                )
+
     def evaluate(self, dm, *, ref_ideals=None, ranges=None):
         """Validate the decision matrix and calculate a ranking.
 
@@ -137,46 +191,20 @@ class RIM(SKCDecisionMakerABC):
         :py:class:`skcriteria.data.RankResult`
             Ranking.
         """
-        data = dm.to_dict()
 
-        if ref_ideals is None or ranges is None:
-            raise ValueError("Both `ref_ideals` and `ranges` are required.")
+        df_ranges = dm.matrix.agg(["min", "max"])
 
-        self._validate_ranges(data["matrix"], ref_ideals, ranges)
-
-        result_data, extra = self._evaluate_data(
-            **data,
-            ref_ideals=ref_ideals,
-            ranges=ranges,
-        )
-
-        return self._make_result(
-            alternatives=data["alternatives"],
-            values=result_data,
-            extra=extra,
-        )
-
-    @doc_inherit(SKCDecisionMakerABC._make_result)
-    def _make_result(self, alternatives, values, extra):
-        return RankResult(
-            "RIM",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
-        )
-
-    def _validate_ranges(self, matrix, ref_ideals, ranges):
-        n_criteria = matrix.shape[1]
-
-        if len(ref_ideals) != n_criteria:
-            raise ValueError(
-                "ref_ideals length must match number of criteria."
+        if ref_ideals is None:
+            where_max = np.equal(dm.objectives, Objective.MAX)
+            ideals = np.where(
+                where_max, df_ranges.loc["max"], df_ranges.loc["min"]
             )
-        if len(ranges) != n_criteria:
-            raise ValueError("ranges length must match number of criteria.")
+            ref_ideals = ref_ideals = list(
+                map(tuple, np.stack([ideals, ideals], axis=1))
+            )
+        if ranges is None:
+            ranges = list(map(tuple, df_ranges.T.to_numpy()))
 
-        for i, (ideal, valid_range) in enumerate(zip(ref_ideals, ranges)):
-            if not (valid_range[0] <= ideal[0] <= ideal[1] <= valid_range[1]):
-                raise ValueError(
-                    f"{ideal} must be within ranges[{i}] = {valid_range}"
-                )
+        self._validate_ranges(dm.matrix.to_numpy(), ref_ideals, ranges)
+
+        return self._evaluate_dm(dm, ref_ideals=ref_ideals, ranges=ranges)
