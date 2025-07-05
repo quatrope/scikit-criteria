@@ -32,8 +32,13 @@ with hidden():
 
 def _rim_normalize(value, value_range, ref_ideal):
     """
-    Normalizes a single value to the valid range and the ideal
-    reference interval based on the paper's normalization direction.
+    Normalize a value based on the ideal reference interval and valid range.
+
+    Based on the paper's normalization direction.
+    The normalization returns 1.0 if the value is inside
+    the reference interval, and decays toward 0.0 when it
+    deviates from the ideal, according to its relative distance
+    to the boundaries of the valid range.
     """
     range_min, range_max = value_range
     ideal_min, ideal_max = ref_ideal
@@ -106,19 +111,19 @@ class RIM(SKCDecisionMakerABC):
     Parameters
     ----------
     ref_ideals : list of tuple
-        List of tuples specifying the ideal reference intervals for each criterion.
+        Specifies the ideal reference intervals for each criterion.
         Each tuple should be of the form (ideal_min, ideal_max).
         If not provided, the default ideal value for the criteria depends on
-        the desired objectives; if it is to be maximized, the highest value within
-        the matrix of that criterion will be set as the ideal value, and for
-        the criteria to be minimized, the minimum value will be used
+        the desired objectives; if it is to be maximized, the highest value
+        within the matrix of that criterion will be set as the ideal value,
+        and for the criteria to be minimized, the minimum value will be used
         (which generates intervals of length zero).
 
     ranges : list of tuple
         List of tuples specifying the min and max bounds of each criterion
         Each tuple should be of the form (range_min, range_max).
-        If not provided, they are calculated from the maximum and minimum values
-        of the decision matrix per criterion.
+        If not provided, they are calculated from the maximum
+        and minimum values of the decision matrix per criterion.
 
     References
     ----------
@@ -147,7 +152,7 @@ class RIM(SKCDecisionMakerABC):
         )
 
     def _validate_ranges(self, matrix, ref_ideals, ranges):
-        """Validates the consistency and format of ideal intervals and ranges."""
+        """Validates the consistency and format of ref_ideals and ranges."""
         n_criteria = matrix.shape[1]
 
         if len(ref_ideals) != n_criteria:
@@ -191,7 +196,6 @@ class RIM(SKCDecisionMakerABC):
         :py:class:`skcriteria.data.RankResult`
             Ranking.
         """
-
         df_ranges = dm.matrix.agg(["min", "max"])
 
         if ref_ideals is None:

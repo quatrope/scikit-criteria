@@ -15,11 +15,11 @@
 # IMPORTS
 # =============================================================================
 
+import re
 
 import numpy as np
 
 import pytest
-import re
 
 import skcriteria
 from skcriteria.agg import RankResult
@@ -264,7 +264,6 @@ def test_RIM_default_ref_and_ranges():
 
 
 def test_rim_normalize():
-    from skcriteria.agg.rim import _rim_normalize
 
     # Define test cases with expected results
     cases = [
