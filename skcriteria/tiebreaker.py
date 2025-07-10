@@ -9,33 +9,45 @@
 # DOCS
 # =============================================================================
 
-"""Tie breaker decision maker for eliminating ties in rankings."""
+"""Tie breaker estrategies for eliminating ties in rankings."""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
+import warnings
 
 import numpy as np
 
 import pandas as pd
-
 
 from .agg import RankResult
 from .core import SKCMethodABC
 from .utils.bunch import Bunch
 
 # =============================================================================
+# WARNINGS
+# =============================================================================
+
+
+class TieUnresolvedWarning(UserWarning):
+    """Warning for when ties remain unresolved after a tie-breaker is \
+    applied."""
+
+    pass
+
+
+# =============================================================================
 # CLASS
 # =============================================================================
 
 
-class TieBreaker(SKCMethodABC):
-    """Decision maker that breaks ties in rankings using a secondary \
+class FallbackTieBreaker(SKCMethodABC):
+    """Decision maker that breaks ties in rankings using a fallback \
     decision maker.
 
     This class takes a primary decision maker that may produce tied rankings
-    and uses a secondary decision maker to break those ties. If the secondary
+    and uses a fallback decision maker to break those ties. If the fallback
     decision maker also produces ties and force=True, it uses the untied_rank_
     property to ensure a complete ranking without ties.
 
@@ -46,13 +58,13 @@ class TieBreaker(SKCMethodABC):
         This decision maker may produce rankings with ties.
 
     untier : decision maker
-        Secondary decision maker used to break ties. It will be applied only
+        Fallback decision maker used to break ties. It will be applied only
         to the tied alternatives from the primary decision maker.
 
     force : bool, default True
-        If True, when the untier decision maker also produces ties, uses
+        If True, when the fallback decision maker also produces ties, uses
         the untied_rank_ property to force a complete ranking without ties.
-        If False, allows the final ranking to have ties if the untier fails
+        If False, allows the final ranking to have ties if the fallback fails
         to break them completely.
 
     Examples
@@ -66,17 +78,17 @@ class TieBreaker(SKCMethodABC):
     >>> # Primary decision maker
     >>> primary = simple.WeightedSum()
     >>>
-    >>> # Secondary decision maker for tie breaking
-    >>> secondary = simple.WeightedProduct()
+    >>> # Fallback decision maker for tie breaking
+    >>> fallback = simple.WeightedProduct()
     >>>
-    >>> # Create tie breaker
-    >>> tie_breaker = TieBreaker(primary, secondary)
+    >>> # Create fallback tie breaker
+    >>> tie_breaker = FallbackTieBreaker(primary, fallback)
     >>>
     >>> # Evaluate
     >>> result = tie_breaker.evaluate(dm)
     """
 
-    _skcriteria_dm_type = "tie_breaker"
+    _skcriteria_dm_type = "fallback_tie_breaker"
     _skcriteria_parameters = ["dmaker", "untier", "force"]
 
     def __init__(self, dmaker, untier, *, force=True):
@@ -91,13 +103,13 @@ class TieBreaker(SKCMethodABC):
         self._force = bool(force)
 
     def __repr__(self):
-        """Return string representation of the TieBreaker instance.
+        """Return string representation of the FallbackTieBreaker instance.
 
         Returns
         -------
         str
             String representation showing the primary decision maker,
-            untier decision maker, and force parameter.
+            fallback decision maker, and force parameter.
         """
         name = self.get_method_name()
         dec_repr = repr(self._dmaker)
@@ -122,12 +134,12 @@ class TieBreaker(SKCMethodABC):
 
     @property
     def untier(self):
-        """Secondary decision maker for breaking ties.
+        """Fallback decision maker for breaking ties.
 
         Returns
         -------
         decision maker
-            The secondary decision maker instance used to break ties
+            The fallback decision maker instance used to break ties
             from the primary decision maker.
         """
         return self._untier
@@ -176,7 +188,7 @@ class TieBreaker(SKCMethodABC):
 
         For a given group of tied alternatives, this method either assigns
         the next sequential rank (if only one alternative) or uses the
-        untier decision maker to break ties within the group.
+        fallback decision maker to break ties within the group.
 
         Parameters
         ----------
@@ -185,7 +197,7 @@ class TieBreaker(SKCMethodABC):
         alts : list
             List of alternative indices that are tied.
         untier : decision maker
-            The untier decision maker to use for breaking ties.
+            The fallback decision maker to use for breaking ties.
         last_assigned_rank : int
             The last rank value that was assigned to maintain sequential
             ranking.
@@ -200,9 +212,9 @@ class TieBreaker(SKCMethodABC):
             # Single alternative, assign next sequential rank
             relative_rank_dict = {alts[0]: last_assigned_rank + 1}
         else:
-            # Multiple tied alternatives, use untier to break ties
+            # Multiple tied alternatives, use fallback to break ties
             sub_dm = dm.loc[alts]  # Extract submatrix for tied alternatives
-            sub_rank = untier.evaluate(sub_dm)  # Apply untier decision maker
+            sub_rank = untier.evaluate(sub_dm)  # Apply fallback decision maker
 
             # Adjust ranks to maintain sequential ordering
             relative_values = sub_rank.values + last_assigned_rank
@@ -215,14 +227,14 @@ class TieBreaker(SKCMethodABC):
         """Construct the method name for the tie-broken ranking.
 
         Creates a descriptive method name that shows both the original
-        ranking method and the untier method used for tie breaking.
+        ranking method and the fallback method used for tie breaking.
 
         Parameters
         ----------
         orank : RankResult
             Original ranking result containing the method name.
         untier : decision maker
-            The untier decision maker instance.
+            The fallback decision maker instance.
 
         Returns
         -------
@@ -231,7 +243,7 @@ class TieBreaker(SKCMethodABC):
         """
         omethod = orank.method
         untier_name = untier.get_method_name()
-        method_name = f"{omethod}+TieBreaker({untier_name})"
+        method_name = f"{omethod}+FallbackTieBreaker({untier_name})"
         return method_name
 
     def _patch_extra(self, orank, untier, forced):
@@ -245,7 +257,7 @@ class TieBreaker(SKCMethodABC):
         orank : RankResult
             Original ranking result containing existing metadata.
         untier : decision maker
-            The untier decision maker instance.
+            The fallback decision maker instance.
         forced : bool
             Whether forced untying was applied to eliminate remaining ties.
 
@@ -259,11 +271,11 @@ class TieBreaker(SKCMethodABC):
         extra = orank.extra_.to_dict()
 
         # Add tie-breaking specific information
-        extra["tiebreaker"] = Bunch(
-            "tiebreaker",
+        extra["fallback_tiebreaker"] = Bunch(
+            "fallback_tiebreaker",
             {
                 "original_method": orank.method,
-                "untier_method": untier.get_method_name(),
+                "fallback_method": untier.get_method_name(),
                 "original_values": orank.values,
                 "forced": forced,
             },
@@ -271,10 +283,11 @@ class TieBreaker(SKCMethodABC):
         return extra
 
     def evaluate(self, dm):
-        """Evaluate the decision matrix using the tie-breaking approach.
+        """Evaluate the decision matrix using the fallback tie-breaking \
+        approach.
 
         This method first applies the primary decision maker to get an initial
-        ranking. If ties exist, it systematically applies the untier decision
+        ranking. If ties exist, it systematically applies the fallback decision
         maker to each group of tied alternatives to break the ties.
 
         Parameters
@@ -285,7 +298,7 @@ class TieBreaker(SKCMethodABC):
         Returns
         -------
         result : RankResult
-            Ranking result with ties broken using the untier decision maker.
+            Ranking result with ties broken using the fallback decision maker.
             If force=True and ties still remain, uses untied_rank_ to ensure
             a complete ranking without any ties.
         """
@@ -337,9 +350,12 @@ class TieBreaker(SKCMethodABC):
 
         # Check if ties were successfully broken
         if not untied_rank.has_ties_:
+            # Success: All ties resolved by fallback decision maker
             return untied_rank
+
+        # Ties still remain after fallback decision maker
         elif force:
-            # Force complete untying if ties still remain and force=True
+            # Force complete untying using untied_rank_ property
             forced_values = untied_rank.untied_rank_
             extra = self._patch_extra(orank, untier, forced=True)
             untied_rank = RankResult(
@@ -348,5 +364,14 @@ class TieBreaker(SKCMethodABC):
                 values=forced_values,
                 extra=extra,
             )
-
-        return untied_rank
+            return untied_rank
+        else:
+            # Warning: Ties remain and force=False
+            warnings.warn(
+                f"Ties still remain after applying fallback decision maker "
+                f"'{untier.get_method_name()}'. Consider setting force=True "
+                f"or using a different fallback method.",
+                TieUnresolvedWarning,
+                stacklevel=2,
+            )
+            return untied_rank

@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""Tests for skcriteria.tiebreaker"""
+"""Tests for skcriteria.fallback_tiebreaker"""
 
 # =============================================================================
 # IMPORTS
@@ -22,7 +22,10 @@ import pytest
 import skcriteria as skc
 from skcriteria.agg import RankResult, SKCDecisionMakerABC
 from skcriteria.agg.simple import WeightedProductModel, WeightedSumModel
-from skcriteria.tiebreaker import TieBreaker
+from skcriteria.tiebreaker import (
+    FallbackTieBreaker,
+    TieUnresolvedWarning,
+)
 
 
 # =============================================================================
@@ -30,50 +33,50 @@ from skcriteria.tiebreaker import TieBreaker
 # =============================================================================
 
 
-def test_TieBreaker_properties():
+def test_FallbackTieBreaker_properties():
     primary = WeightedSumModel()
-    secondary = WeightedProductModel()
+    fallback = WeightedProductModel()
 
-    tb = TieBreaker(primary, secondary, force=False)
+    tb = FallbackTieBreaker(primary, fallback, force=False)
 
     assert tb.dmaker is primary
-    assert tb.untier is secondary
+    assert tb.untier is fallback
     assert tb.force is False
 
 
-def test_TieBreaker_repr():
+def test_FallbackTieBreaker_repr():
     primary = WeightedSumModel()
-    secondary = WeightedProductModel()
+    fallback = WeightedProductModel()
 
-    tb = TieBreaker(primary, secondary, force=False)
+    tb = FallbackTieBreaker(primary, fallback, force=False)
 
     expected = (
-        "<TieBreaker dmaker=<WeightedSumModel []>, "
+        "<FallbackTieBreaker dmaker=<WeightedSumModel []>, "
         "untier=<WeightedProductModel []>, force=False>"
     )
 
     assert repr(tb) == expected
 
 
-def test_TieBreaker_bad_dmaker():
+def test_FallbackTieBreaker_bad_dmaker():
     primary = "Despair"
-    secondary = WeightedProductModel()
+    fallback = WeightedProductModel()
 
     with pytest.raises(TypeError) as ex:
-        TieBreaker(primary, secondary, force=False)
+        FallbackTieBreaker(primary, fallback, force=False)
         assert "'dmaker' must implement 'evaluate()' method" in str(ex.value)
 
 
-def test_TieBreaker_bad_untier():
+def test_FallbackTieBreaker_bad_untier():
     primary = WeightedSumModel()
-    secondary = "FIFA"
+    fallback = "FIFA"
 
     with pytest.raises(TypeError) as ex:
-        TieBreaker(primary, secondary, force=False)
+        FallbackTieBreaker(primary, fallback, force=False)
         assert "'untier' must implement 'evaluate()' method" in str(ex.value)
 
 
-def test_TieBreaker():
+def test_FallbackTieBreaker():
     class Tier(SKCDecisionMakerABC):
         """Decision maker que devuelve [1,1,2,2,3] hardcodeado."""
 
@@ -103,23 +106,23 @@ def test_TieBreaker():
     )
 
     dmaker = Tier()
-    tb = TieBreaker(dmaker, WeightedSumModel(), force=False)
+    tb = FallbackTieBreaker(dmaker, WeightedSumModel(), force=False)
 
     orank = dmaker.evaluate(dm)
     rank = tb.evaluate(dm)
 
     np.testing.assert_array_equal(
-        rank.extra_.tiebreaker.original_values, orank.values
+        rank.extra_.fallback_tiebreaker.original_values, orank.values
     )
 
     np.testing.assert_array_equal(rank.alternatives, orank.alternatives)
     np.testing.assert_array_equal(rank.values, [2, 1, 3, 4, 5])
-    assert not rank.extra_.tiebreaker.forced
+    assert not rank.extra_.fallback_tiebreaker.forced
 
 
-def test_TieBreaker_no_ties():
+def test_FallbackTieBreaker_no_ties():
     class Tier(SKCDecisionMakerABC):
-        """Decision maker que devuelve [1,1,2,2,3] hardcodeado."""
+        """Decision maker que devuelve [5,4,3,2,1] hardcodeado."""
 
         _skcriteria_parameters = []
 
@@ -147,7 +150,7 @@ def test_TieBreaker_no_ties():
     )
 
     dmaker = Tier()
-    tb = TieBreaker(dmaker, WeightedSumModel(), force=False)
+    tb = FallbackTieBreaker(dmaker, WeightedSumModel(), force=False)
 
     orank = dmaker.evaluate(dm)
     rank = tb.evaluate(dm)
@@ -157,9 +160,9 @@ def test_TieBreaker_no_ties():
     np.testing.assert_array_equal(rank.values, [5, 4, 3, 2, 1])
 
 
-def test_TieBreaker_forced():
+def test_FallbackTieBreaker_forced():
     class Tier(SKCDecisionMakerABC):
-        """Decision maker que devuelve [1,1,2,2,3] hardcodeado."""
+        """Decision maker que devuelve todos 1s (empate total)."""
 
         _skcriteria_parameters = []
 
@@ -187,15 +190,58 @@ def test_TieBreaker_forced():
     )
 
     dmaker = Tier()
-    tb = TieBreaker(dmaker, dmaker, force=True)
+    tb = FallbackTieBreaker(dmaker, dmaker, force=True)
 
     orank = dmaker.evaluate(dm)
     rank = tb.evaluate(dm)
 
     np.testing.assert_array_equal(
-        rank.extra_.tiebreaker.original_values, orank.values
+        rank.extra_.fallback_tiebreaker.original_values, orank.values
     )
 
     np.testing.assert_array_equal(rank.alternatives, orank.alternatives)
     np.testing.assert_array_equal(rank.values, [1, 2, 3, 4, 5])
-    assert rank.extra_.tiebreaker.forced
+    assert rank.extra_.fallback_tiebreaker.forced
+
+
+def test_FallbackTieBreaker_warning():
+    class TierAll(SKCDecisionMakerABC):
+        """Decision maker que devuelve todos 1s (empate total)."""
+
+        _skcriteria_parameters = []
+
+        def _evaluate_data(self, alternatives, **kwargs):
+            return np.ones_like(alternatives), {}
+
+        def _make_result(self, alternatives, values, extra):
+            return RankResult(
+                method="TierAll",
+                alternatives=alternatives,
+                values=values,
+                extra=extra,
+            )
+
+    # Crear la matriz de decisión
+    dm = skc.mkdm(
+        matrix=[
+            [100, 8.5, 7.2],  # A
+            [120, 8.5, 6.8],  # B
+            [150, 9.2, 8.1],  # C
+        ],
+        objectives=[max, max, max],
+    )
+
+    dmaker = TierAll()
+    tb = FallbackTieBreaker(dmaker, dmaker, force=False)
+
+    # Verificar que se emite el warning
+    with pytest.warns(
+        TieUnresolvedWarning,
+        match="Ties still remain after applying fallback",
+    ):
+        rank = tb.evaluate(dm)
+
+    # Verificar que los empates permanecen
+    assert rank.has_ties_
+    np.testing.assert_array_equal(rank.values, [1, 1, 1])
+    assert not rank.extra_.fallback_tiebreaker.forced
