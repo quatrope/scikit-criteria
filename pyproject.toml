@@ -70,6 +70,7 @@ dependencies = [
     "scikit-learn>=1.6",
     "matplotlib>=3.8.2,<3.9",
     "methodtools",
+    "pyyaml>=6.0"
 ]
 
 [tool.setuptools]
