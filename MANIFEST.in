@@ -4,7 +4,7 @@ include CHANGELOG.md
 include pyproject.toml
 
 recursive-include skcriteria *.py
-recursive-include skcriteria *.json
+recursive-include skcriteria *.dmsy
 
 exclude tox.ini
 exclude requirements_dev.txt

@@ -10,6 +10,7 @@ readability and editing of multi-criteria decision analysis data.
 
 import datetime as dt
 import importlib.metadata
+import pathlib
 import platform
 import sys
 
@@ -31,7 +32,8 @@ DEFAULT_DM_TYPE = "discrete-dm"
 #: Version 1 is the current stable format specification.
 DEFAULT_DMSY_VERSION = 1
 
-#: Template for DMSY file metadata containing software and environment information.
+#: Template for DMSY file metadata containing software and environment
+#: information.
 #:
 #: This dictionary contains default metadata fields that are automatically
 #: included in DMSY files when saving DecisionMatrix objects. The metadata
@@ -104,15 +106,21 @@ NUMPY_TO_PYTHON_DTYPE_MAP = {
 
 
 class CustomYAMLDumper(yaml.SafeDumper):
-    """Custom YAML Dumper that handles numpy arrays and uses flow style for lists.
+    """Custom YAML Dumper that handles numpy arrays and uses flow style \
+    for lists.
 
     This dumper automatically converts numpy arrays to Python lists and formats
     all lists using flow style (e.g., [1, 2, 3] instead of block style).
+
     """
 
 
 def list_flow_representer(dumper, data):
-    """Represent lists using flow style format.
+    """Represent lists with smart flow style based on dimensionality.
+
+    Uses np.ndim() to determine if the list structure has multiple dimensions.
+    Lists with ndim >= 2 use block style for the outer dimension, while
+    1D lists use flow style throughout.
 
     Parameters
     ----------
@@ -124,15 +132,37 @@ def list_flow_representer(dumper, data):
     Returns
     -------
     yaml.SequenceNode
-        YAML sequence node with flow_style=True.
+        YAML sequence node with appropriate flow_style setting.
+
+    Examples
+    --------
+    1D list (flow style):
+        [1, 2, 3]
+
+    2D+ list (block style for outer, flow for inner):
+        - [1, 2, 3]
+        - [4, 5, 6]
+        - [7, 8, 9]
     """
+    # Use np.ndim to determine dimensionality for any iterable
+    dimensions = np.ndim(data)
+
+    # Use block style for multi-dimensional structures (ndim >= 2)
+    # Use flow style for 1D structures
+    flow_style = dimensions < 2
+
     return dumper.represent_sequence(
-        "tag:yaml.org,2002:seq", data, flow_style=True
+        'tag:yaml.org,2002:seq',
+        data,
+        flow_style=flow_style
     )
 
 
 def numpy_array_representer(dumper, obj):
-    """Convert numpy arrays to Python lists using dtype mapping.
+    """Convert numpy arrays to Python lists with smart flow style.
+
+    Uses np.ndim() to determine flow style: arrays with ndim >= 2 use block
+    style for the outer dimension, while 1D arrays use flow style throughout.
 
     Parameters
     ----------
@@ -144,16 +174,34 @@ def numpy_array_representer(dumper, obj):
     Returns
     -------
     yaml.SequenceNode
-        YAML sequence node representing the array as a list with flow_style=True.
+        YAML sequence node representing the array as a list with appropriate
+        flow_style.
+
+    Examples
+    --------
+    1D array (flow style):
+        [1.0, 2.0, 3.0]
+
+    2D+ array (block style for outer, flow for inner):
+        - [1.0, 2.0, 3.0]
+        - [4.0, 5.0, 6.0]
     """
     target_type = NUMPY_TO_PYTHON_DTYPE_MAP.get(obj.dtype.kind)
 
     if target_type:
         obj = obj.astype(target_type)
 
-    # Use flow_style for the resulting list
+    # Convert to Python list
+    python_list = obj.tolist()
+
+    # Use np.ndim() to determine flow style consistently
+    dimensions = np.ndim(obj)
+    flow_style = dimensions < 2
+
     return dumper.represent_sequence(
-        "tag:yaml.org,2002:seq", obj.tolist(), flow_style=True
+        'tag:yaml.org,2002:seq',
+        python_list,
+        flow_style=flow_style
     )
 
 
@@ -177,7 +225,12 @@ def numpy_scalar_representer(dumper, data):
 
 
 def iterable_not_list_representer(dumper, data):
-    """Represent iterables (tuple, set, frozenset) as lists with flow style.
+    """Represent iterables (tuple, set, frozenset) as lists with smart flow
+    style.
+
+    Uses np.ndim() to determine flow style consistently with other
+    epresenters.
+    Multi-dimensional structures use block style, 1D structures use flow style.
 
     Parameters
     ----------
@@ -189,10 +242,18 @@ def iterable_not_list_representer(dumper, data):
     Returns
     -------
     yaml.SequenceNode
-        YAML sequence node with flow_style=True.
+        YAML sequence node with appropriate flow_style.
     """
+    python_list = list(data)
+
+    # Use np.ndim() for consistent dimensionality checking
+    dimensions = np.ndim(python_list)
+    flow_style = dimensions < 2
+
     return dumper.represent_sequence(
-        "tag:yaml.org,2002:seq", list(data), flow_style=True
+        'tag:yaml.org,2002:seq',
+        python_list,
+        flow_style=flow_style
     )
 
 
@@ -348,7 +409,7 @@ def read_dmsy(filepath_or_buffer):
     >>> import skcriteria as skc
     >>> dm = skc.io.read_dmsy("dataset.dmsy")
     """
-    if isinstance(filepath_or_buffer, str):
+    if isinstance(filepath_or_buffer, (str, pathlib.Path)):
         with open(filepath_or_buffer, "rb") as fp:
             return _read_dmsy_buffer(fp)
     return _read_dmsy_buffer(filepath_or_buffer)
@@ -365,7 +426,9 @@ def _get_metadata():
     Returns
     -------
     dict
-        Dictionary containing metadata information including creation timestamp.
+        Dictionary containing metadata information including creation
+        timestamp.
+
     """
     metadata = DMSY_METADATA_DEFAULT_TEMPLATE.copy()
     metadata["created_at"] = dt.datetime.utcnow()
@@ -406,7 +469,8 @@ def _save_dmsy_buffer(dm, fp):
         fp,
         Dumper=CustomYAMLDumper,
         sort_keys=False,
-        default_flow_style=False,  # Only for dictionaries, lists use flow_style=True
+        indent=2,
+        default_flow_style=False,  # Only for dictionaries
     )
     return fp
 
@@ -427,7 +491,7 @@ def to_dmsy(dm, filepath_or_buffer):
     >>> dm = skc.mkdm([[1, 2], [3, 4]], [max, min])
     >>> skc.io.to_dmsy(dm, "output.dmsy")
     """
-    if isinstance(filepath_or_buffer, str):
+    if isinstance(filepath_or_buffer, (str, pathlib.Path)):
         with open(filepath_or_buffer, "w") as fp:
             return _save_dmsy_buffer(dm, fp)
     return _save_dmsy_buffer(dm, filepath_or_buffer)

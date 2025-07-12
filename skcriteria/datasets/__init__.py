@@ -24,7 +24,7 @@ with hidden():
 
     from skcriteria.core.data import mkdm
 
-    from .. import core
+    from .. import core, io
 
 # =============================================================================
 # CONSTANTS
@@ -140,8 +140,8 @@ def load_van2021evaluation(windows_size=7):
 
     """
     paths = {
-        7: _PATH / "van2021evaluation" / "windows_size_7.json",
-        15: _PATH / "van2021evaluation" / "windows_size_15.json",
+        7: _PATH / "van2021evaluation" / "windows_size_7.dmsy",
+        15: _PATH / "van2021evaluation" / "windows_size_15.dmsy",
     }
 
     path = paths.get(windows_size)
@@ -150,7 +150,7 @@ def load_van2021evaluation(windows_size=7):
             f"Windows size must be '7' or '15'. Found {windows_size!r}"
         )
 
-    with open(path) as fp:
-        data = json.load(fp)
+    dm = io.read_dmsy(path)
 
-    return mkdm(**data)
+    return dm
+
