@@ -99,9 +99,19 @@ def test_ARAS_balezentiene2012reducing():
     scaler = SumScaler(target="matrix")
     dm = scaler.transform(dm)
 
+    dm_dict = dm.to_dict()
+
+    ideal = dm_dict["matrix"][0]
+
+    dm = skcriteria.mkdm(
+        matrix=dm_dict["matrix"][1:],
+        objectives=dm_dict["objectives"],
+        weights=dm_dict["weights"],
+    )
+
     expected = RankResult(
         "ARAS",
-        ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10"],
+        ["A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"],
         [4, 7, 5, 8, 10, 6, 9, 3, 2, 1],
         {
             "score": [
@@ -132,7 +142,7 @@ def test_ARAS_balezentiene2012reducing():
         },
     )
 
-    ranker = ARAS()
+    ranker = ARAS(ideal=ideal)
     result = ranker.evaluate(dm)
 
     assert result.values_equals(expected)
@@ -159,10 +169,21 @@ def test_ARAS_invalid_min_objective():
 
 def test_ARAS_bad_ideal_valueError():
     dm = skcriteria.mkdm(
-        matrix=[[1, 3, 2], [1, 0, 3], [0, 5, 6]],  # ideal
+        matrix=[[1, 0, 3], [0, 5, 6]],
+        objectives=[max, max, max],
+    )
+
+    ranker = ARAS(ideal=[1, 3, 2])
+    with pytest.raises(ValueError, match="Invalid ideal vector"):
+        ranker.evaluate(dm)
+
+
+def test_ARAS_ideal_not_supplied_warning():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[max, max, max],
     )
 
     ranker = ARAS()
-    with pytest.raises(ValueError, match="Invalid ideal vector"):
+    with pytest.warns(Warning, match="No ideal alternative was provided. "):
         ranker.evaluate(dm)

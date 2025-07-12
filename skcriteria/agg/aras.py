@@ -21,6 +21,7 @@ from ..utils import hidden
 with hidden():
 
     import numpy as np
+    import warnings
 
     from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..core import Objective
@@ -69,35 +70,55 @@ def aras(matrix, weights, ideal):
 
 
 class ARAS(SKCDecisionMakerABC):
-    """Additive Ratio Assessment (ARAS).
+    """Additive Ratio Assessment (ARAS) method.
 
-    ARAS is a multi-criteria decision-making (MCDM) method that ranks
-    alternatives based on their aggregated performance with respect to an
-    explicitly provided ideal alternative.
+    ARAS is a multi-criteria decision-making method that ranks alternatives
+    based on the ratio of each alternative's weighted score to that of an ideal
+    alternative.
 
     Each alternative's score is computed by summing its weighted values across
     all criteria. The utility of an alternative is then defined as the ratio of
-    its score to the score of the ideal alternative. The higher this utility,
-    the better the alternative ranks.
+    its score to the score of the ideal alternative. A higher utility value
+    indicates a better alternative.
 
-    This implementation requires a user-supplied ideal vector, taken as the
-    first row of the decision matrix. All objectives must be of maximization
-    type; minimization is not supported and will raise an error.
+    This implementation allows the user to explicitly provide an ideal
+    alternative through the `ideal` parameter. If no ideal is provided, the
+    method automatically assumes the ideal as the maximum value in each
+    criterion column of the decision matrix and emits a warning.
+
+    Parameters
+    ----------
+    ideal : ndarray of shape (n_criteria,), optional
+        The ideal alternative to compare against. If not provided, the ideal is
+        automatically set to the maximum value per criterion.
 
     Raises
     ------
     ValueError
         If any objective is set to `Objective.MIN`.
     ValueError
-        If the ideal is not coherent with the maximization objective
-        (i.e., is lower than the observed maximum in the matrix).
+        If the ideal is not greater than or equal to the maximum observed value
+        for each corresponding criterion.
+
+    Warnings
+    --------
+    UserWarning:
+        If the `ideal` parameter is not provided.
 
     References
     ----------
     :cite:p:`zavadskas2010new`
     """
 
-    _skcriteria_parameters = []
+    _skcriteria_parameters = ["ideal"]
+
+    def __init__(self, *, ideal=None):
+        self._ideal = ideal
+
+    @property
+    def ideal(self):
+        """Which ideal alternative will be used."""
+        return self._ideal
 
     def _check_ideal(self, matrix, ideal):
         """
@@ -126,26 +147,30 @@ class ARAS(SKCDecisionMakerABC):
         return np.all(maxs <= ideal)
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(
-        self, matrix, objectives, weights, **kwargs
-    ):
+    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         if Objective.MIN.value in objectives:
             raise ValueError(
                 "ARAS can't operate with minimization objectives. "
                 "Consider reversing the weights."
             )
 
-        ideal = matrix[0]  # First row is the ideal
-        matrix = matrix[1:]  # Remove ideal from decision matrix
+        if self.ideal is None:
+            warnings.warn(
+                "No ideal alternative was provided. "
+                "Using the maximum value of each column in the decision matrix"
+                "as the default ideal."
+            )
+            self._ideal = np.max(matrix, axis=0)
 
-        if not self._check_ideal(matrix, ideal):
+        if not self._check_ideal(matrix, ideal=self.ideal):
             raise ValueError(
                 "Invalid ideal vector: all ideal values must be greater than"
                 "or equal to the maximum observed value for each corresponding"
                 "criterion (ARAS assumes maximization objectives only)."
             )
-
-        ranking, scores, utility, ideal_score = aras(matrix, weights, ideal)
+        (ranking, scores, utility, ideal_score) = aras(
+            matrix, weights, ideal=self.ideal
+        )
 
         return ranking, {
             "score": scores,
@@ -155,7 +180,6 @@ class ARAS(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
-        alternatives = alternatives[1:]
         return RankResult(
             "ARAS", alternatives=alternatives, values=values, extra=extra
         )
