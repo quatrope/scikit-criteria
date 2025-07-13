@@ -31,8 +31,6 @@ question, try the mailing list first)
 
 ## Support
 
-This project is completely free of charge and open source. If you find it useful in your work or simply want to support us, you can buy us a coffee:
-
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/leliel12)
 
 
