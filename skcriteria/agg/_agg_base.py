@@ -175,7 +175,7 @@ class SKCDecisionMakerABC(SKCMethodABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def _make_result(self, alternatives, values, extra, **kwargs):
+    def _make_result(self, alternatives, values, extra):
         raise NotImplementedError()
 
     def _evaluate_dm(self, dm, **kwargs):
