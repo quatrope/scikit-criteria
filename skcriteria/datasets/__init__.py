@@ -18,11 +18,8 @@ datasets."""
 from ..utils import hidden
 
 with hidden():
-    import json
     import os
     import pathlib
-
-    from skcriteria.core.data import mkdm
 
     from .. import core, io
 
@@ -153,4 +150,3 @@ def load_van2021evaluation(windows_size=7):
     dm = io.read_dmsy(path)
 
     return dm
-

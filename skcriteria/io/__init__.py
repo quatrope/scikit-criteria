@@ -9,6 +9,9 @@
 # DOCS
 # =============================================================================
 
+# A005 the module is shadowing a Python builtin module "io"
+# flake8: noqa: A005
+
 """Input/Output utilities for scikit-criteria.
 
 This module provides functions for reading and writing DecisionMatrix objects.

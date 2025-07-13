@@ -1,12 +1,34 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+# License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
+# Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022-2025 QuatroPe
+# All rights reserved.
+
+# =============================================================================
+# DOCS
+# =============================================================================
 
 """DMSY (Decision Matrix Simple YAML) format support.
 
 This module provides functions to read and write DecisionMatrix objects
 in DMSY format, a simple YAML-based format designed for easy human
 readability and editing of multi-criteria decision analysis data.
+
+The DMSY format generates YAML files optimized for human readability
+through intelligent use of flow and block styles. One-dimensional arrays are
+represented in compact flow style (e.g., [1, 2, 3]), while multi-dimensional
+structures use block style for the outer dimension with flow style for inner
+dimensions (e.g., - [1, 2, 3] on separate lines). This combination allows
+complex decision matrices to maintain a clear and navigable structure,
+facilitating both manual inspection and direct file editing, without
+sacrificing compactness when appropriate.
+
 """
+
+# =============================================================================
+# Imports
+# =============================================================================
 
 import datetime as dt
 import importlib.metadata
@@ -14,11 +36,12 @@ import pathlib
 import platform
 import sys
 
+import numpy as np
+
 import yaml
 
 from ..core import mkdm
 
-import numpy as np
 
 # =============================================================================
 # Constants
@@ -39,30 +62,7 @@ DEFAULT_DMSY_VERSION = 1
 #: included in DMSY files when saving DecisionMatrix objects. The metadata
 #: provides information about the software version, authors, platform, and
 #: creation context.
-#:
-#: Fields
-#: ------
-#: description : str
-#:     Human-readable description of the DMSY format
-#: skcriteria : str
-#:     Version of scikit-criteria used to create the file
-#: authors : str
-#:     Primary authors of the scikit-criteria library
-#: author_email : str
-#:     Contact email for the primary author
-#: url : str
-#:     GitHub repository URL for scikit-criteria
-#: documentation : str
-#:     URL to the official documentation
-#: platform : str
-#:     Platform information from platform.platform()
-#: system_encoding : str
-#:     File system encoding of the system
-#: python_version : str
-#:     Python version information
-#: created_at : None
-#:     Placeholder for creation timestamp (filled at save time)
-DMSY_METADATA_DEFAULT_TEMPLATE = {
+_DMSY_METADATA_DEFAULT_TEMPLATE = {
     "description": "Decision Matrix Simple YAML format",
     "skcriteria": importlib.metadata.version("scikit-criteria"),
     "authors": "Cabral, Luczywo & QuatroPe",
@@ -97,7 +97,7 @@ DMSY_METADATA_DEFAULT_TEMPLATE = {
 #:     Unsigned integer types (uint8, uint16, uint32, uint64, etc.)
 #: "b" : bool
 #:     Boolean type (bool_)
-NUMPY_TO_PYTHON_DTYPE_MAP = {
+_NUMPY_TO_PYTHON_DTYPE_MAP = {
     "f": float,  # floating
     "i": int,  # signed integer
     "u": int,  # unsigned integer
@@ -105,7 +105,7 @@ NUMPY_TO_PYTHON_DTYPE_MAP = {
 }
 
 
-class CustomYAMLDumper(yaml.SafeDumper):
+class _CustomYAMLDumper(yaml.SafeDumper):
     """Custom YAML Dumper that handles numpy arrays and uses flow style \
     for lists.
 
@@ -115,7 +115,7 @@ class CustomYAMLDumper(yaml.SafeDumper):
     """
 
 
-def list_flow_representer(dumper, data):
+def _list_flow_representer(dumper, data):
     """Represent lists with smart flow style based on dimensionality.
 
     Uses np.ndim() to determine if the list structure has multiple dimensions.
@@ -152,13 +152,13 @@ def list_flow_representer(dumper, data):
     flow_style = dimensions < 2
 
     return dumper.represent_sequence(
-        'tag:yaml.org,2002:seq',
+        "tag:yaml.org,2002:seq",
         data,
-        flow_style=flow_style
+        flow_style=flow_style,
     )
 
 
-def numpy_array_representer(dumper, obj):
+def _numpy_array_representer(dumper, obj):
     """Convert numpy arrays to Python lists with smart flow style.
 
     Uses np.ndim() to determine flow style: arrays with ndim >= 2 use block
@@ -186,7 +186,7 @@ def numpy_array_representer(dumper, obj):
         - [1.0, 2.0, 3.0]
         - [4.0, 5.0, 6.0]
     """
-    target_type = NUMPY_TO_PYTHON_DTYPE_MAP.get(obj.dtype.kind)
+    target_type = _NUMPY_TO_PYTHON_DTYPE_MAP.get(obj.dtype.kind)
 
     if target_type:
         obj = obj.astype(target_type)
@@ -199,13 +199,13 @@ def numpy_array_representer(dumper, obj):
     flow_style = dimensions < 2
 
     return dumper.represent_sequence(
-        'tag:yaml.org,2002:seq',
+        "tag:yaml.org,2002:seq",
         python_list,
-        flow_style=flow_style
+        flow_style=flow_style,
     )
 
 
-def numpy_scalar_representer(dumper, data):
+def _numpy_scalar_representer(dumper, data):
     """Represent numpy scalars as Python native types.
 
     Parameters
@@ -224,8 +224,8 @@ def numpy_scalar_representer(dumper, data):
     return dumper.represent_data(item)
 
 
-def iterable_not_list_representer(dumper, data):
-    """Represent iterables (tuple, set, frozenset) as lists with smart flow
+def _iterable_not_list_representer(dumper, data):
+    """Represent iterables (tuple, set, frozenset) as lists with smart flow \
     style.
 
     Uses np.ndim() to determine flow style consistently with other
@@ -251,19 +251,17 @@ def iterable_not_list_representer(dumper, data):
     flow_style = dimensions < 2
 
     return dumper.represent_sequence(
-        'tag:yaml.org,2002:seq',
-        python_list,
-        flow_style=flow_style
+        "tag:yaml.org,2002:seq", python_list, flow_style=flow_style
     )
 
 
 # Register representers in the custom dumper
-CustomYAMLDumper.add_representer(list, list_flow_representer)
-CustomYAMLDumper.add_representer(np.ndarray, numpy_array_representer)
-CustomYAMLDumper.add_representer(np.generic, numpy_scalar_representer)
-for cls in [tuple, set, frozenset]:
-    CustomYAMLDumper.add_representer(cls, iterable_not_list_representer)
+_CustomYAMLDumper.add_representer(np.ndarray, _numpy_array_representer)
+_CustomYAMLDumper.add_representer(np.generic, _numpy_scalar_representer)
+for cls in [list, tuple, set, frozenset]:
+    _CustomYAMLDumper.add_representer(cls, _iterable_not_list_representer)
 
+del cls  # cleanup
 
 # =============================================================================
 # DMSY HANDLERS
@@ -430,7 +428,7 @@ def _get_metadata():
         timestamp.
 
     """
-    metadata = DMSY_METADATA_DEFAULT_TEMPLATE.copy()
+    metadata = _DMSY_METADATA_DEFAULT_TEMPLATE.copy()
     metadata["created_at"] = dt.datetime.utcnow()
     return metadata
 
@@ -467,7 +465,7 @@ def _save_dmsy_buffer(dm, fp):
     yaml.dump(
         dmsy_data,
         fp,
-        Dumper=CustomYAMLDumper,
+        Dumper=_CustomYAMLDumper,
         sort_keys=False,
         indent=2,
         default_flow_style=False,  # Only for dictionaries
