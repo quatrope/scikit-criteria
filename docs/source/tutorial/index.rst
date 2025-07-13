@@ -12,6 +12,7 @@ Contents:
    quickstart.ipynb
    sufdom.ipynb
    rankcmp.ipynb
+   rankrev.ipynb
    extend.ipynb
 
 

@@ -17,13 +17,15 @@
 # =============================================================================
 
 import abc
+import inspect
 from collections import Counter
+from functools import partial
 
 import numpy as np
 
 import pandas as pd
 
-from ..core import SKCMethodABC
+from ..core import SKCMethodABC, mkdm
 from ..utils import (
     Bunch,
     DiffEqualityMixin,
@@ -38,11 +40,135 @@ from ..utils import (
 # =============================================================================
 
 
+def _validate_evaluate_dm_parameter(cls, dm_param):
+    """
+    Validate that the 'dm' parameter meets the required rules.
+
+    Rules:
+    1. Must be named 'dm'
+    2. Must be positional
+    3. Must not have a default value
+
+    Parameters
+    ----------
+    cls : class
+        The class containing the method
+    dm_param : inspect.Parameter
+        The 'dm' parameter to validate
+
+    Raises
+    ------
+    TypeError
+        If any of the rules are not met
+    """
+    # Check decision matrix name
+    if dm_param.name != "dm":
+        raise TypeError(
+            f"First parameter after 'self' in {cls.__name__}.evaluate() "
+            f"must be named 'dm', got '{dm_param.name}'"
+        )
+
+    # Check it is positional
+    if dm_param.kind not in (
+        inspect.Parameter.POSITIONAL_ONLY,
+        inspect.Parameter.POSITIONAL_OR_KEYWORD,
+    ):
+        raise TypeError(
+            f"Parameter 'dm' in {cls.__name__}.evaluate() "
+            f"must be positional, got {dm_param.kind.name}"
+        )
+
+    # Check it has no default value
+    if dm_param.default != inspect.Parameter.empty:
+        raise TypeError(
+            f"Parameter 'dm' in {cls.__name__}.evaluate() "
+            f"must not have a default value"
+        )
+
+
+#: Parameters that are not allowed in the evaluate method
+_FORBIDEN_EVALUATE_EXTRA_PARAMS = tuple(
+    sorted(inspect.signature(mkdm).parameters)
+)
+
+
+def _validate_evaluate_additional_parameters(cls, params):
+    """
+    Validate that all additional parameters meet the required rules.
+
+    Rules for additional parameters:
+    1. Must have default values
+    2. Must be keyword-only parameters
+
+    Parameters
+    ----------
+    cls : class
+        The class containing the method
+    params : list of inspect.Parameter
+        List of additional parameters to validate
+
+    Raises
+    ------
+    TypeError
+        If any parameter doesn't meet the requirements
+    """
+    for param in params:
+        # Check that parameter has a default value
+        if param.default == inspect.Parameter.empty:
+            raise TypeError(
+                f"Parameter '{param.name}' in {cls.__name__}.evaluate() "
+                f"must have a default value"
+            )
+
+        # Check that parameter is keyword-only
+        if param.kind != inspect.Parameter.KEYWORD_ONLY:
+            raise TypeError(
+                f"Parameter '{param.name}' in {cls.__name__}.evaluate() "
+                f"must be keyword-only, got {param.kind.name}"
+            )
+
+        # Check that parameter name is not in mkdm function parameters
+        if param.name in _FORBIDEN_EVALUATE_EXTRA_PARAMS:
+            raise TypeError(
+                f"Parameter '{param.name}' in {cls.__name__}.evaluate() "
+                "is forbidden. Forbidden names: "
+                f"{_FORBIDEN_EVALUATE_EXTRA_PARAMS}"
+            )
+
+
 class SKCDecisionMakerABC(SKCMethodABC):
     """Abstract class for all decisor based methods in scikit-criteria."""
 
     _skcriteria_abstract_class = True
     _skcriteria_dm_type = "decision_maker"
+
+    def __init_subclass__(cls):
+        """Validate if the subclass are well formed.
+
+        This method is called by the metaclass when a subclass is created.
+
+        Raises
+        ------
+        TypeError
+            If the subclass is not well formed
+
+        """
+        super().__init_subclass__()
+
+        # Get the evaluate method from the subclass
+        evaluate_method = getattr(cls, "evaluate")
+
+        if evaluate_method is not SKCDecisionMakerABC.evaluate:
+
+            sig = inspect.signature(evaluate_method)
+            params = list(sig.parameters.values())
+
+            # Skip 'self'
+            dm, *additional_params = params[1:]
+
+            # validate the parameters
+            _validate_evaluate_dm_parameter(cls, dm)
+            _validate_evaluate_additional_parameters(cls, additional_params)
 
     @abc.abstractmethod
     def _evaluate_data(self, **kwargs):
@@ -52,7 +178,36 @@ class SKCDecisionMakerABC(SKCMethodABC):
     def _make_result(self, alternatives, values, extra, **kwargs):
         raise NotImplementedError()
 
-    def evaluate(self, dm, **kwargs):
+    def _evaluate_dm(self, dm, **kwargs):
+        """Internal method that contains the core evaluation logic.
+
+        Parameters
+        ----------
+        dm: :py:class:`skcriteria.data.DecisionMatrix`
+            Decision matrix on which the ranking will be calculated.
+        **kwargs:
+            Additional parameters
+
+        Returns
+        -------
+        :py:class:`skcriteria.data.RankResult`
+            Ranking.
+
+        """
+        data = dm.to_dict()
+
+        result_data, extra = self._evaluate_data(**data, **kwargs)
+
+        alternatives = data["alternatives"]
+        result = self._make_result(
+            alternatives=alternatives,
+            values=result_data,
+            extra=extra,
+        )
+
+        return result
+
+    def evaluate(self, dm):
         """Validate the dm and calculate and evaluate the alternatives.
 
         Parameters
@@ -66,18 +221,7 @@ class SKCDecisionMakerABC(SKCMethodABC):
             Ranking.
 
         """
-        data = dm.to_dict()
-
-        result_data, extra = self._evaluate_data(**data)
-
-        alternatives = data["alternatives"]
-        result = self._make_result(
-            alternatives=alternatives,
-            values=result_data,
-            extra=extra,
-        )
-
-        return result
+        return self._evaluate_dm(dm)
 
 
 # =============================================================================
@@ -211,7 +355,9 @@ class ResultABC(DiffEqualityMixin, metaclass=abc.ABCMeta):
             "method": np.array_equal,
             "alternatives": np.array_equal,
             "values": array_allclose,
-            "extra_": dict_allclose,
+            "extra_": partial(
+                dict_allclose, rtol=rtol, atol=atol, equal_nan=equal_nan
+            ),
         }
 
         the_diff = diff(self, other, **members)

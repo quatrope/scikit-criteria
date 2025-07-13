@@ -17,7 +17,9 @@
 # =============================================================================
 
 import functools
-
+import inspect
+import os
+from pathlib import Path
 
 import matplotlib as mpl
 
@@ -188,3 +190,24 @@ def pytest_collection_modifyitems(items):
 
 
 mpl.use("Agg")
+
+
+def _patched_image_directories(func):
+    """Patch _image_directories so tests don't collide on tox run-parallel
+
+    Matplotlib's check_figures_equal decorator uses this to determine where to
+    save images.
+    """
+    wdir = os.environ.get("TOX_ENV_DIR", ".")  # current dir if no tox
+    module_path = Path(inspect.getfile(func))
+    baseline_dir = module_path.parent / "baseline_images" / module_path.stem
+    result_dir = Path(wdir).resolve() / "result_images" / module_path.stem
+    result_dir.mkdir(parents=True, exist_ok=True)
+    print(baseline_dir, result_dir)
+    return baseline_dir, result_dir
+
+
+pytest.MonkeyPatch().setattr(
+    "matplotlib.testing.decorators._image_directories",
+    _patched_image_directories,
+)
