@@ -444,18 +444,38 @@ class Critic(CRITIC):
 # =============================================================================
 
 
-def merec_weights(matrix):
+def _merec_norm(matrix, objectives):
+    """
+    Simple linear normalization of the decision matrix using MEREC logic.
+
+    For benefit criteria, divide by the column maximum.
+    For cost criteria, divide the column minimum by each value.
+    """
+    where_max = np.equal(objectives, Objective.MAX.value)
+
+    maxs = matrix.max(axis=0)
+    mins = matrix.min(axis=0)
+
+    normalized_matrix = np.where(where_max, mins / matrix, matrix / maxs)
+
+    return normalized_matrix
+
+
+def merec_weights(matrix, objectives):
     """Execute the MEREC method without any validation."""
     matrix = np.asarray(matrix, dtype=float)
     n_criteria = matrix.shape[1]
 
+    # Apply MEREC normalization based on each criterion's objective.
+    normalized_matrix = _merec_norm(matrix, objectives=objectives)
+
     # overall performance of each alternative using all criteria.
     performance = np.log(
-        1 + np.mean(np.abs(np.log(matrix)), axis=1, keepdims=True)
+        1 + np.mean(np.abs(np.log(normalized_matrix)), axis=1, keepdims=True)
     )
 
     # performance of each alternative after removing each criterion.
-    log_matrix = np.abs(np.log(matrix))
+    log_matrix = np.abs(np.log(normalized_matrix))
     exclusion_mask = np.ones((n_criteria, n_criteria)) - np.eye(
         n_criteria
     )  # mask to exclude one criterion at a time
@@ -478,6 +498,8 @@ class MEREC(SKCWeighterABC):
     when removed. The idea is that the more a criterion affects the
     total evaluation when excluded, the more important it is.
 
+    This implementation includes a simple linear normalization.
+
     Reference
     ---------
     :cite:p:`keshavarz2021determination`
@@ -486,5 +508,5 @@ class MEREC(SKCWeighterABC):
     _skcriteria_parameters = []
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
-    def _weight_matrix(self, matrix, **kwargs):
-        return merec_weights(matrix)
+    def _weight_matrix(self, matrix, objectives, **kwargs):
+        return merec_weights(matrix, objectives=objectives)
