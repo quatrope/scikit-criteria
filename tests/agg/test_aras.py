@@ -142,8 +142,8 @@ def test_ARAS_balezentiene2012reducing():
         },
     )
 
-    ranker = ARAS(ideal=ideal)
-    result = ranker.evaluate(dm)
+    ranker = ARAS()
+    result = ranker.evaluate(dm, ideal=ideal)
 
     assert result.values_equals(expected)
     assert result.method == expected.method
@@ -167,17 +167,6 @@ def test_ARAS_invalid_min_objective():
         ranker.evaluate(dm)
 
 
-def test_ARAS_bad_ideal_valueError():
-    dm = skcriteria.mkdm(
-        matrix=[[1, 0, 3], [0, 5, 6]],
-        objectives=[max, max, max],
-    )
-
-    ranker = ARAS(ideal=[1, 3, 2])
-    with pytest.raises(ValueError, match="Invalid ideal vector"):
-        ranker.evaluate(dm)
-
-
 def test_ARAS_ideal_not_supplied_warning():
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
@@ -187,3 +176,30 @@ def test_ARAS_ideal_not_supplied_warning():
     ranker = ARAS()
     with pytest.warns(Warning, match="No ideal alternative was provided. "):
         ranker.evaluate(dm)
+
+
+def test_ARAS_ideal_wrong_length_raises():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6]],
+        objectives=[max, max, max],
+    )
+
+    ideal = [1, 2]
+
+    ranker = ARAS()
+
+    with pytest.raises(
+        ValueError, match="The ideal alternative must have the same number of "
+    ):
+        ranker.evaluate(dm, ideal=ideal)
+
+
+def test_ARAS_exceed_scores():
+    dm = skcriteria.mkdm(matrix=[[10, 10], [9, 8]], objectives=[max, max])
+
+    ideal = [8, 8]
+
+    ranker = ARAS()
+
+    with pytest.warns(Warning, match="Some computed scores are greater than"):
+        ranker.evaluate(dm, ideal=ideal)

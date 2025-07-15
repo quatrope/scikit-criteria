@@ -24,7 +24,6 @@ with hidden():
     import warnings
 
     from ._agg_base import RankResult, SKCDecisionMakerABC
-    from ..core import Objective
     from ..utils import doc_inherit, rank
 
 # =============================================================================
@@ -86,91 +85,39 @@ class ARAS(SKCDecisionMakerABC):
     method automatically assumes the ideal as the maximum value in each
     criterion column of the decision matrix and emits a warning.
 
-    Parameters
-    ----------
-    ideal : ndarray of shape (n_criteria,), optional
-        The ideal alternative to compare against. If not provided, the ideal is
-        automatically set to the maximum value per criterion.
-
-    Raises
-    ------
-    ValueError
-        If any objective is set to `Objective.MIN`.
-    ValueError
-        If the ideal is not greater than or equal to the maximum observed value
-        for each corresponding criterion.
-
     Warnings
     --------
-    UserWarning:
-        If the `ideal` parameter is not provided.
+    UserWarning
+        If the provided ideal alternative is not greater than or equal to the
+        maximum value for each criterion, some utility scores may exceed 1.
 
     References
     ----------
     :cite:p:`zavadskas2010new`
     """
 
-    _skcriteria_parameters = ["ideal"]
-
-    def __init__(self, *, ideal=None):
-        self._ideal = ideal
-
-    @property
-    def ideal(self):
-        """Which ideal alternative will be used."""
-        return self._ideal
-
-    def _check_ideal(self, matrix, ideal):
-        """
-        Validate that the ideal vector is coherent with ARAS assumptions.
-
-        This method checks whether each value in the provided `ideal` vector is
-        greater than or equal to the maximum value observed in the
-        corresponding column (criterion) of the decision matrix.
-
-        ARAS assumes all objectives are to be maximized, so the ideal must
-        fulfill the above. This ensures that the utility of each alternative
-        (relative to the ideal) is a value in [0, 1].
-
-        Parameters
-        ----------
-        matrix : array_like
-            The decision matrix excluding the ideal alternative.
-
-        ideal : ndarray of shape (n_criteria,)
-            The ideal alternative.
-        """
-        # extract the maxima of each column of the matrix
-        maxs = np.max(matrix, axis=0)
-
-        # check if the ideal is greater than or equal to the maxs
-        return np.all(maxs <= ideal)
+    _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-        if Objective.MIN.value in objectives:
-            raise ValueError(
-                "ARAS can't operate with minimization objectives. "
-                "Consider reversing the weights."
-            )
+    def _evaluate_data(self, matrix, weights, ideal, **kwargs):
 
-        if self.ideal is None:
+        (ranking, scores, utility, ideal_score) = aras(matrix, weights, ideal)
+
+        if np.any(scores > 1):
+            invalid_scores_indexes = np.where(scores > 1)[0]
+            desc_warn = "\n".join(
+                f"  - Index: {idx}, Value: {scores[idx]:.4f}"
+                for idx in invalid_scores_indexes
+            )
             warnings.warn(
-                "No ideal alternative was provided. "
-                "Using the maximum value of each column in the decision matrix"
-                "as the default ideal."
+                "Some computed scores are greater than 1, "
+                "which suggests the provided ideal alternative may not be "
+                "greater than or equal to the maximum values "
+                "of the decision matrix.\n\n"
+                "Details of scores > 1:\n"
+                f"{desc_warn}\n"
+                "Please ensure the ideal alternative is valid."
             )
-            self._ideal = np.max(matrix, axis=0)
-
-        if not self._check_ideal(matrix, ideal=self.ideal):
-            raise ValueError(
-                "Invalid ideal vector: all ideal values must be greater than"
-                "or equal to the maximum observed value for each corresponding"
-                "criterion (ARAS assumes maximization objectives only)."
-            )
-        (ranking, scores, utility, ideal_score) = aras(
-            matrix, weights, ideal=self.ideal
-        )
 
         return ranking, {
             "score": scores,
@@ -183,3 +130,55 @@ class ARAS(SKCDecisionMakerABC):
         return RankResult(
             "ARAS", alternatives=alternatives, values=values, extra=extra
         )
+
+    def evaluate(self, dm, *, ideal=None):
+        """Evaluate the alternatives in the given decision matrix using ARAS.
+
+        Parameters
+        ----------
+        dm: :py:class:`skcriteria.data.DecisionMatrix`
+            Decision matrix on which the ranking will be calculated.
+        ideal : ndarray of shape (n_criteria,), optional
+            The ideal alternative. If not provided, it will be
+            computed as the column-wise maximum of the decision matrix.
+
+        Raises
+        ------
+        ValueError
+            If any objective in the decision matrix is set to minimization.
+        ValueError
+            If the number of criteria in the ideal alternative does not match
+            the number in the decision matrix.
+
+        Warnings
+        --------
+        UserWarning
+            If no ideal alternative is provided, the method will use the
+            column-wise maxima of the decision matrix as the default ideal.
+
+        Returns
+        -------
+        :py:class:`skcriteria.data.RankResult`
+            Ranking.
+        """
+        if np.any(dm.minwhere):
+            raise ValueError(
+                "ARAS can't operate with minimization objectives. "
+                "Consider reversing the weights."
+            )
+
+        if ideal is None:
+            warnings.warn(
+                "No ideal alternative was provided. "
+                "Using the maximum value of each column in the decision "
+                "matrix as the default ideal."
+            )
+            ideal = np.max(dm.matrix.to_numpy(), axis=0)
+
+        if dm.matrix.shape[1] != len(ideal):
+            raise ValueError(
+                "The ideal alternative must have the same number of "
+                "criteria as the decision matrix."
+            )
+
+        return self._evaluate_dm(dm, ideal=ideal)
