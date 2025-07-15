@@ -105,7 +105,8 @@ _NUMPY_TO_PYTHON_DTYPE_MAP = {
 }
 
 
-class _CustomYAMLDumper(yaml.SafeDumper):
+# this dumper is made public for easy testing
+class CustomYAMLDumper(yaml.SafeDumper):
     """Custom YAML Dumper that handles numpy arrays and uses flow style \
     for lists.
 
@@ -113,49 +114,6 @@ class _CustomYAMLDumper(yaml.SafeDumper):
     all lists using flow style (e.g., [1, 2, 3] instead of block style).
 
     """
-
-
-def _list_flow_representer(dumper, data):
-    """Represent lists with smart flow style based on dimensionality.
-
-    Uses np.ndim() to determine if the list structure has multiple dimensions.
-    Lists with ndim >= 2 use block style for the outer dimension, while
-    1D lists use flow style throughout.
-
-    Parameters
-    ----------
-    dumper : yaml.SafeDumper
-        The YAML dumper instance.
-    data : list
-        The list to be represented.
-
-    Returns
-    -------
-    yaml.SequenceNode
-        YAML sequence node with appropriate flow_style setting.
-
-    Examples
-    --------
-    1D list (flow style):
-        [1, 2, 3]
-
-    2D+ list (block style for outer, flow for inner):
-        - [1, 2, 3]
-        - [4, 5, 6]
-        - [7, 8, 9]
-    """
-    # Use np.ndim to determine dimensionality for any iterable
-    dimensions = np.ndim(data)
-
-    # Use block style for multi-dimensional structures (ndim >= 2)
-    # Use flow style for 1D structures
-    flow_style = dimensions < 2
-
-    return dumper.represent_sequence(
-        "tag:yaml.org,2002:seq",
-        data,
-        flow_style=flow_style,
-    )
 
 
 def _numpy_array_representer(dumper, obj):
@@ -221,12 +179,16 @@ def _numpy_scalar_representer(dumper, data):
         YAML node representing the scalar value.
     """
     item = data.item()
+    if isinstance(item, np.generic):  # longdouble fix
+        target_type = _NUMPY_TO_PYTHON_DTYPE_MAP.get(item.dtype.kind)
+        item = target_type(item)
+
     return dumper.represent_data(item)
 
 
-def _iterable_not_list_representer(dumper, data):
-    """Represent iterables (tuple, set, frozenset) as lists with smart flow \
-    style.
+def _iterable_not_ndarray_representer(dumper, data):
+    """Represent iterables (list,tuple, set, frozenset) as lists with smart \
+    flow style.
 
     Uses np.ndim() to determine flow style consistently with other
     epresenters.
@@ -256,10 +218,10 @@ def _iterable_not_list_representer(dumper, data):
 
 
 # Register representers in the custom dumper
-_CustomYAMLDumper.add_representer(np.ndarray, _numpy_array_representer)
-_CustomYAMLDumper.add_representer(np.generic, _numpy_scalar_representer)
+CustomYAMLDumper.add_representer(np.ndarray, _numpy_array_representer)
+CustomYAMLDumper.add_multi_representer(np.generic, _numpy_scalar_representer)
 for cls in [list, tuple, set, frozenset]:
-    _CustomYAMLDumper.add_representer(cls, _iterable_not_list_representer)
+    CustomYAMLDumper.add_representer(cls, _iterable_not_ndarray_representer)
 
 del cls  # cleanup
 
@@ -408,7 +370,7 @@ def read_dmsy(filepath_or_buffer):
     >>> dm = skc.io.read_dmsy("dataset.dmsy")
     """
     if isinstance(filepath_or_buffer, (str, pathlib.Path)):
-        with open(filepath_or_buffer, "rb") as fp:
+        with open(filepath_or_buffer, "r") as fp:
             return _read_dmsy_buffer(fp)
     return _read_dmsy_buffer(filepath_or_buffer)
 
@@ -465,7 +427,7 @@ def _save_dmsy_buffer(dm, fp):
     yaml.dump(
         dmsy_data,
         fp,
-        Dumper=_CustomYAMLDumper,
+        Dumper=CustomYAMLDumper,
         sort_keys=False,
         indent=2,
         default_flow_style=False,  # Only for dictionaries
