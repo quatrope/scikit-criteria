@@ -37,9 +37,6 @@ def aras(matrix, weights, ideal):
     This function assumes that the ideal alternative has already been extracted
     from the decision matrix and provided separately.
 
-    The results returned by this function do not include the ideal alternative
-    itself.
-
     Parameters
     ----------
     matrix : ndarray of shape (n_alternatives, n_criteria)
@@ -80,10 +77,8 @@ class ARAS(SKCDecisionMakerABC):
     its score to the score of the ideal alternative. A higher utility value
     indicates a better alternative.
 
-    This implementation allows the user to explicitly provide an ideal
-    alternative through the `ideal` parameter. If no ideal is provided, the
-    method automatically assumes the ideal as the maximum value in each
-    criterion column of the decision matrix and emits a warning.
+    The ideal alternative is provided through the `ideal` parameter in the
+    `evaluate` method, not at instantiation time.
 
     Warnings
     --------
@@ -101,20 +96,20 @@ class ARAS(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, ideal, **kwargs):
 
-        (ranking, scores, utility, ideal_score) = aras(matrix, weights, ideal)
+        ranking, scores, utility, ideal_score = aras(matrix, weights, ideal)
 
-        if np.any(scores > 1):
-            invalid_scores_indexes = np.where(scores > 1)[0]
+        if np.any(utility > 1):
+            invalid_utility_indexes = np.where(utility > 1)[0]
             desc_warn = "\n".join(
-                f"  - Index: {idx}, Value: {scores[idx]:.4f}"
-                for idx in invalid_scores_indexes
+                f"  - Index: {idx}, Value of utility: {utility[idx]:.4f}"
+                for idx in invalid_utility_indexes
             )
             warnings.warn(
-                "Some computed scores are greater than 1, "
+                "Some computed utility are greater than 1, "
                 "which suggests the provided ideal alternative may not be "
                 "greater than or equal to the maximum values "
                 "of the decision matrix.\n\n"
-                "Details of scores > 1:\n"
+                "Details of utilities > 1:\n"
                 f"{desc_warn}\n"
                 "Please ensure the ideal alternative is valid."
             )
@@ -134,13 +129,16 @@ class ARAS(SKCDecisionMakerABC):
     def evaluate(self, dm, *, ideal=None):
         """Evaluate the alternatives in the given decision matrix using ARAS.
 
+        If no ideal is provided when calling `evaluate`, the method
+        automatically assumes the ideal as the maximum value in each criterion
+        column of the decision matrix and emits a warning.
+
         Parameters
         ----------
         dm: :py:class:`skcriteria.data.DecisionMatrix`
             Decision matrix on which the ranking will be calculated.
         ideal : ndarray of shape (n_criteria,), optional
-            The ideal alternative. If not provided, it will be
-            computed as the column-wise maximum of the decision matrix.
+            The ideal alternative.
 
         Raises
         ------

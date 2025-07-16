@@ -99,14 +99,12 @@ def test_ARAS_balezentiene2012reducing():
     scaler = SumScaler(target="matrix")
     dm = scaler.transform(dm)
 
-    dm_dict = dm.to_dict()
-
-    ideal = dm_dict["matrix"][0]
+    ideal = dm.matrix.to_numpy()[0]
 
     dm = skcriteria.mkdm(
-        matrix=dm_dict["matrix"][1:],
-        objectives=dm_dict["objectives"],
-        weights=dm_dict["weights"],
+        matrix=dm.matrix.to_numpy()[1:],
+        objectives=dm.objectives,
+        weights=dm.weights,
     )
 
     expected = RankResult(
@@ -194,12 +192,12 @@ def test_ARAS_ideal_wrong_length_raises():
         ranker.evaluate(dm, ideal=ideal)
 
 
-def test_ARAS_exceed_scores():
+def test_ARAS_exceed_utilities():
     dm = skcriteria.mkdm(matrix=[[10, 10], [9, 8]], objectives=[max, max])
 
     ideal = [8, 8]
 
     ranker = ARAS()
 
-    with pytest.warns(Warning, match="Some computed scores are greater than"):
+    with pytest.warns(Warning, match="Some computed utility are greater than"):
         ranker.evaluate(dm, ideal=ideal)
