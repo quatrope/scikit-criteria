@@ -105,10 +105,9 @@ class ARAS(SKCDecisionMakerABC):
                 for idx in invalid_utility_indexes
             )
             warnings.warn(
-                "Some computed utility are greater than 1, "
-                "which suggests the provided ideal alternative may not be "
-                "greater than or equal to the maximum values "
-                "of the decision matrix.\n\n"
+                "Some computed utility are greater than 1, which suggests the "
+                "provided ideal alternative may not be greater than or equal "
+                "to the maximum values of the decision matrix.\n\n"
                 "Details of utilities > 1:\n"
                 f"{desc_warn}\n"
                 "Please ensure the ideal alternative is valid."
