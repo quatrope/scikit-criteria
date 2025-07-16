@@ -154,3 +154,45 @@ class MinimizeToMaximize(InvertMinimize):
     ones thar are converted to ``numpy.float64``.
 
     """
+class MinMaxInverter(SKCObjectivesInverterABC):
+    r"""Transform all minimization criteria  into maximization ones.
+
+    The transformations are made by calculating the inverse value of
+    the minimization criteria. :math:`\min{C} \equiv \max{\frac{1}{C}}`
+
+    Notes
+    -----
+    All the dtypes of the decision matrix are preserved except the inverted
+    ones thar are converted to ``numpy.float64``.
+
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCObjectivesInverterABC._invert)
+    def _invert(self, matrix, minimize_mask):
+        """Apply min-max normalization that inverts minimization criteria."""
+        
+        def normalize_column(col):
+            """Normalize a single column, inverting if it's a cost criterion."""
+            max_val = np.max(col)
+            min_val = np.min(col)
+            
+            # Get the current column index
+            col_idx = normalize_column.counter
+            normalize_column.counter += 1
+            
+            if minimize_mask[col_idx]:
+                # Cost criterion (minimize): inverted normalization
+                return (col - max_val) / (min_val - max_val)
+            else:
+                # Benefit criterion (maximize): standard normalization
+                return (col - min_val) / (max_val - min_val)
+        
+        # Initialize counter for tracking column index
+        normalize_column.counter = 0
+        
+        # Apply normalization along columns (axis=0)
+        normalized_matrix = np.apply_along_axis(normalize_column, 0, matrix)
+        
+        return normalized_matrix

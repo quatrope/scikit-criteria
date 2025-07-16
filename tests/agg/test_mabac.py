@@ -17,8 +17,11 @@
 
 import numpy as np
 
+import pytest
+
 from skcriteria import DecisionMatrix
 from skcriteria.agg import MABAC
+from skcriteria.preprocessing.invert_objectives import MinMaxInverter
 
 
 # =============================================================================
@@ -26,7 +29,7 @@ from skcriteria.agg import MABAC
 # =============================================================================
 
 
-def test_mabac_from_dragan_2014():
+def test_MABAC_dragan_2014():
     """Data from
     The selection of transport and handling resources in logistics centers
     using Multi-Attributive Border Approximation area Comparison
@@ -48,7 +51,7 @@ def test_mabac_from_dragan_2014():
                 3.5,
                 2.8,
                 24.5,
-                6.5,
+                6.5
             ],  # Forklift 1
             [
                 19500,
@@ -60,7 +63,7 @@ def test_mabac_from_dragan_2014():
                 3.4,
                 2.2,
                 24.0,
-                7.0,
+                7.0
             ],  # Forklift 2
             [
                 21700,
@@ -72,7 +75,7 @@ def test_mabac_from_dragan_2014():
                 3.3,
                 2.5,
                 24.5,
-                7.3,
+                7.3
             ],  # Forklift 3
             [
                 20600,
@@ -84,7 +87,7 @@ def test_mabac_from_dragan_2014():
                 3.2,
                 2.0,
                 22.5,
-                11.0,
+                11.0
             ],  # Forklift 4
             [
                 22500,
@@ -96,7 +99,7 @@ def test_mabac_from_dragan_2014():
                 3.7,
                 2.1,
                 23.0,
-                6.3,
+                6.3
             ],  # Forklift 5
             [
                 23250,
@@ -108,7 +111,7 @@ def test_mabac_from_dragan_2014():
                 3.5,
                 2.8,
                 23.5,
-                7.0,
+                7.0
             ],  # Forklift 6
             [
                 20300,
@@ -120,7 +123,7 @@ def test_mabac_from_dragan_2014():
                 3.0,
                 2.6,
                 21.5,
-                6.0,
+                6.0
             ],  # Forklift 7
         ]
     )
@@ -140,7 +143,7 @@ def test_mabac_from_dragan_2014():
             0.088,  # C7
             0.068,  # C8
             0.050,  # C9
-            0.048,  # C10
+            0.048  # C10
         ]
     )
 
@@ -154,7 +157,7 @@ def test_mabac_from_dragan_2014():
         0.1319,
         0.1010,
         0.0789,
-        0.0590,
+        0.0590
     ]
 
     expected_score = [
@@ -164,7 +167,7 @@ def test_mabac_from_dragan_2014():
         0.0246,
         -0.0704,
         0.0465,
-        0.0464,
+        0.0464
     ]
 
     expected_rank = [
@@ -174,7 +177,7 @@ def test_mabac_from_dragan_2014():
         5,
         7,
         3,
-        4,
+        4
     ]
 
     dm = DecisionMatrix.from_mcda_data(
@@ -192,11 +195,12 @@ def test_mabac_from_dragan_2014():
             "C7",
             "C8",
             "C9",
-            "C10",
+            "C10"
         ],
     )
 
-    result = MABAC().evaluate(dm)
+    rdm = MinMaxInverter().transform(dm)
+    result = MABAC().evaluate(rdm)
     baa_result = result.extra_["border_approximation_area"]
     score_result = result.extra_["score"]
     rank_result = result.rank_
@@ -204,3 +208,24 @@ def test_mabac_from_dragan_2014():
     assert np.allclose(baa_result, expected_baa, atol=1.0e-3)
     assert (rank_result == expected_rank).all()
     assert np.allclose(score_result, expected_score, atol=1.0e-3)
+
+
+
+def test_MABAC_minimize_value_error():
+    """Test that MABAC raises an error for minimization objectives."""
+    
+    # Create a decision matrix with at least one minimization objective
+    matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+    objectives = np.array([1, -1, 1])  # Second criterion is minimize
+    weights = np.array([0.3, 0.4, 0.3])
+    
+    dm = DecisionMatrix.from_mcda_data(
+        matrix=matrix,
+        objectives=objectives,
+        weights=weights
+    )
+    
+    # This should raise ValueError
+    mabac = MABAC()
+    with pytest.raises(ValueError):
+        mabac.evaluate(dm)

@@ -31,29 +31,11 @@ with hidden():
 # =============================================================================
 
 
-def mabac(matrix, objectives, weights):
+def mabac(matrix, weights):
     """Execute MABAC without any validation."""
     # Create normalized matrix maintaining original column order
-    normalized_matrix = np.zeros_like(matrix, dtype=float)
 
-    # Normalize each criterion
-    for j in range(matrix.shape[1]):
-        if objectives[j] == Objective.MAX.value:
-            # Benefit criteria
-            max_val = np.max(matrix[:, j])
-            min_val = np.min(matrix[:, j])
-            normalized_matrix[:, j] = (matrix[:, j] - min_val) / (
-                max_val - min_val
-            )
-        else:
-            # Cost criteria
-            max_val = np.max(matrix[:, j])
-            min_val = np.min(matrix[:, j])
-            normalized_matrix[:, j] = (matrix[:, j] - max_val) / (
-                min_val - max_val
-            )
-
-    weighted_matrix = (normalized_matrix + 1) * weights
+    weighted_matrix = (matrix + 1) * weights
 
     # border approximation area (BAA)
     m = matrix.shape[0]  # number of alternatives
@@ -89,30 +71,6 @@ class MABAC(SKCDecisionMakerABC):
         4. Calculation of the distance from BAA
         5. Calculation of the final score
 
-    Parameters
-    ----------
-    matrix : ndarray
-        Decision matrix where each row is an alternative and each
-        column is a criterion.
-
-    objectives : ndarray
-        Array indicating if each criterion is to be maximized (1) or
-        minimized (-1).
-
-    weights : ndarray
-        Array of weights for each criterion.
-
-    Returns
-    -------
-    tuple
-        A tuple containing:
-            - rank : ndarray
-                Ranking of the alternatives according to MABAC (1 is best)
-            - score : ndarray
-                Score for each alternative
-            - border_approximation_area : ndarray
-                Border approximation area values
-
     References
     ----------
     :cite:p:`pamucar20153016`
@@ -123,13 +81,18 @@ class MABAC(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
+        if np.any(objectives == Objective.MIN):
+            raise ValueError(
+                "MABAC does not support minimization objectives."
+            )
         rank, score, border_approximation_area = mabac(
-            matrix, objectives, weights
+            matrix, weights
         )
         return rank, {
             "score": score,
             "border_approximation_area": border_approximation_area,
         }
+        
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
