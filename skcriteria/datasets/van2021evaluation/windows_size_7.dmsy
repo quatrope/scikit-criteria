@@ -1,0 +1,46 @@
+dmsy:
+  dm_type: discrete-dm
+  version: 1
+  meta:
+    description: Decision Matrix Simple YAML format
+    skcriteria: 0.9.dev0
+    authors: Cabral, Luczywo & QuatroPe
+    author_email: jbcabral@unc.edu.ar
+    url: https://github.com/quatrope/scikit-criteria
+    documentation: https://scikit-criteria.quatrope.org/
+    platform: Linux-6.12.10-76061203-generic-x86_64-with-glibc2.35
+    system_encoding: utf-8
+    python_version: 3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]
+    created_at: 2025-07-12 20:31:32.055906
+data:
+  matrix:
+  - [0.029, 0.156, 8144000000.0, 15860000000.0, 0.312, 1.821e-11]
+  - [0.033, 0.167, 6141000000.0, 11180000000.0, 0.396, 9.167e-09]
+  - [0.015, 0.097, 209500000000.0, 138800000000.0, 0.281, 1.254e-08]
+  - [0.057, 0.399, 8287000000.0, 27260000000.0, 0.327, 1.459e-12]
+  - [0.023, 0.127, 100000000000.0, 80540000000.0, 0.313, 1.737e-09]
+  - [0.04, 0.179, 6707000000.0, 16650000000.0, 0.319, 1.582e-09]
+  - [0.015, 0.134, 25130000000.0, 17310000000.0, 0.32, 1.816e-09]
+  - [0.013, 0.176, 4157000000.0, 5469000000.0, 0.321, 1.876e-11]
+  - [0.014, 0.164, 23080000000.0, 29240000000.0, 0.322, 7.996e-12]
+  objectives: [1, -1, 1, -1, 1, 1]
+  weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  dtypes: [float64, float64, float64, float64, float64, float64]
+  alternatives: [ADA, BNB, BTC, DOGE, ETH, LINK, LTC, XLM, XRP]
+  criteria: [xRV, sRV, xVV, sVV, xR2, xm]
+  extra:
+    dataset: "van2021evaluation_windows_size_7"
+    description: "Multi-criteria evaluation of 9 major
+                  cryptocurrencies using 6 financial and technical indicators
+                  over a 7-day analysis window."
+    window_size: 7
+    source:
+      title: "Evaluación De La Importancia De Criterios Para La Selección De Criptomonedas"
+      authors: ["Natalia A. Van Heerden", "Juan B. Cabral", "Nadia A. Luczywo"]
+      booktitle: "Anales del XXXIV Encuentro Nacional de Docentes en Investigación Operativa"
+      publisher: "Escuela de Perfeccionamiento en Investigación Operativa"
+      year: 2021
+      pages: "257-262"
+      isbn: "978-987-47251-2-7"
+      address: "Córdoba"
+      volume: 1

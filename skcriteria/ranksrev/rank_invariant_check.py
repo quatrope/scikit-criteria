@@ -64,7 +64,7 @@ class RankInvariantChecker(SKCMethodABC):
 
     The current implementation worsens each non-optimal alternative ``repeat``
     times, and stores each resulting output in a collection for comparison with
-    the original  ranking. In essence, the test is run once for each suboptimal
+    the reference ranking. In essence, the test is run once for each suboptimal
     alternative.
 
     This class assumes that there is another suboptimal alternative :math:`A_j`
@@ -273,8 +273,8 @@ class RankInvariantChecker(SKCMethodABC):
               ('mutated').
 
         This algorithm is designed in such a way that the 'worsened'
-        alternative is not worse than the immediately worse one in the original
-        ranking
+        alternative is not worse than the immediately worse one in the
+        reference ranking.
 
         Parameters
         ----------
@@ -300,7 +300,8 @@ class RankInvariantChecker(SKCMethodABC):
         # TODO: room for improvement: pandas to numpy
 
         # matrix with alternatives
-        df = dm.matrix
+        # we need all the matrix as float for the noise
+        df = dm.matrix.astype(float)
 
         noise = 0  # all noises == 0
         while np.all(noise == 0):  # at least we need one noise > 0
@@ -321,7 +322,7 @@ class RankInvariantChecker(SKCMethodABC):
 
         return mutated_dm, noise
 
-    def _generate_mutations(self, *, dm, orank, repeat, random):
+    def _generate_mutations(self, *, dm, rrank, repeat, random):
         """Generate all experiments data.
 
         This method yields all the data needed to run the underlying
@@ -331,8 +332,8 @@ class RankInvariantChecker(SKCMethodABC):
         ----------
         dm : ``skcriteria.core.data.DecisionMatrix``
             The decision matrix to mutate in every experiment.
-        orank : ``skcriteria.agg.Rank``
-            The original ranking without mutations.
+        rrank : ``skcriteria.agg.Rank``
+            The reference ranking without mutations.
         repeat : int
             How many times an suboptimal alternative must be mutated.
         random: `numpy.random.default_rng`
@@ -355,7 +356,7 @@ class RankInvariantChecker(SKCMethodABC):
         """
         # check the maximum absolute difference between any alternative and
         # the next one in the ranking to establish a worse-limit
-        maximum_abs_noises = self._maximum_abs_noises(dm=dm, rank=orank)
+        maximum_abs_noises = self._maximum_abs_noises(dm=dm, rank=rrank)
 
         # we repeat the experiment _repeats time
         for iteration in range(repeat):
@@ -429,9 +430,14 @@ class RankInvariantChecker(SKCMethodABC):
         if has_missing_alternatives:
             # if a missing alternative are not allowed must raise an error
             if not allow_missing_alternatives:
+                missing_alts = set(alts_diff)
+                where_error = (
+                    f"mutation {mutated!r} of iteration {iteration}"
+                    if mutated is not None
+                    else "Reference run"
+                )
                 raise ValueError(
-                    f"Missing alternative/s {set(alts_diff)!r} in mutation "
-                    f"{mutated!r} of iteration {iteration}"
+                    f"Missing alternative/s {missing_alts!r} in {where_error}"
                 )
 
             # add missing alternatives with the  worst ranking + 1
@@ -498,9 +504,9 @@ class RankInvariantChecker(SKCMethodABC):
         full_alternatives = dm.alternatives
 
         # we need a first reference ranking
-        orank = dmaker.evaluate(dm)
-        patched_orank = self._add_mutation_info_to_rank(
-            rank=orank,
+        rrank = dmaker.evaluate(dm)
+        patched_rrank = self._add_mutation_info_to_rank(
+            rank=rrank,
             mutated=None,
             noise=None,
             iteration=None,
@@ -509,13 +515,13 @@ class RankInvariantChecker(SKCMethodABC):
         )
 
         # Here we create a containers for the rank comparator starting with
-        # the original rank
-        names, results = ["Original"], [patched_orank]
+        # the reference rank
+        names, results = ["Reference"], [patched_rrank]
 
         # START EXPERIMENTS ===================================================
         mutants_generator = self._generate_mutations(
             dm=dm,
-            orank=patched_orank,
+            rrank=patched_rrank,
             repeat=repeat,
             random=random,
         )
@@ -539,4 +545,4 @@ class RankInvariantChecker(SKCMethodABC):
 
         # manually creates a new RankComparator
         named_ranks = unique_names(names=names, elements=results)
-        return RanksComparator(named_ranks)
+        return RanksComparator(named_ranks, extra={})

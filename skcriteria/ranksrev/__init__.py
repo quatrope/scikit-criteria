@@ -32,6 +32,7 @@ available options.
 # =============================================================================
 
 from .rank_invariant_check import RankInvariantChecker
+from .rank_transitivity_check import RankTransitivityChecker
 
 # =============================================================================
 # ALL
@@ -39,4 +40,5 @@ from .rank_invariant_check import RankInvariantChecker
 
 __all__ = [
     "RankInvariantChecker",
+    "RankTransitivityChecker",
 ]

@@ -1,0 +1,46 @@
+dmsy:
+  dm_type: discrete-dm
+  version: 1
+  meta:
+    description: Decision Matrix Simple YAML format
+    skcriteria: 0.9.dev0
+    authors: Cabral, Luczywo & QuatroPe
+    author_email: jbcabral@unc.edu.ar
+    url: https://github.com/quatrope/scikit-criteria
+    documentation: https://scikit-criteria.quatrope.org/
+    platform: Linux-6.12.10-76061203-generic-x86_64-with-glibc2.35
+    system_encoding: utf-8
+    python_version: 3.10.12 (main, May 27 2025, 17:12:29) [GCC 11.4.0]
+    created_at: 2025-07-12 20:31:32.055906
+data:
+  matrix:
+  - [0.072, 0.274, 17440000000.0, 32880000000.0, 0.281, 3.806e-11]
+  - [0.087, 0.348, 13160000000.0, 23330000000.0, 0.339, 1.195e-8]
+  - [0.036, 0.159, 450200000000.0, 289400000000.0, 0.237, 2.192e-8]
+  - [0.153, 0.805, 17770000000.0, 52850000000.0, 0.314, 2.441e-12]
+  - [0.055, 0.213, 214500000000.0, 169500000000.0, 0.239, 2.52e-9]
+  - [0.097, 0.302, 14440000000.0, 27920000000.0, 0.277, 2.544e-9]
+  - [0.034, 0.207, 54150000000.0, 35570000000.0, 0.28, 2.679e-9]
+  - [0.031, 0.275, 8951000000.0, 11040000000.0, 0.276, 2.454e-11]
+  - [0.037, 0.292, 49660000000.0, 59500000000.0, 0.26, 9.236e-12]
+  objectives: [1, -1, 1, -1, 1, 1]
+  weights: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+  dtypes: [float64, float64, float64, float64, float64, float64]
+  alternatives: [ADA, BNB, BTC, DOGE, ETH, LINK, LTC, XLM, XRP]
+  criteria: [xRV, sRV, xVV, sVV, xR2, xm]
+  extra:
+    dataset: "van2021evaluation_windows_size_15"
+    description: "Multi-criteria evaluation of 9 major
+                  cryptocurrencies using 6 financial and technical indicators
+                  over a 15-day analysis window."
+    window_size: 15
+    source:
+      title: "Evaluación De La Importancia De Criterios Para La Selección De Criptomonedas"
+      authors: ["Natalia A. Van Heerden", "Juan B. Cabral", "Nadia A. Luczywo"]
+      booktitle: "Anales del XXXIV Encuentro Nacional de Docentes en Investigación Operativa"
+      publisher: "Escuela de Perfeccionamiento en Investigación Operativa"
+      year: 2021
+      pages: "257-262"
+      isbn: "978-987-47251-2-7"
+      address: "Córdoba"
+      volume: 1

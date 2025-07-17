@@ -48,3 +48,24 @@ def test_dict_allclose_different_types():
     left = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": 1}
     right = {"a": np.array([1, 2, 3]), "b": np.array([4, 5, 6]), "c": 1.0}
     assert dict_cmp.dict_allclose(left, right) is False
+
+
+def test_dict_allclose_rtol():
+    left_rtol = {"a": np.array([100.0, 200.0])}
+    right_rtol = {"a": np.array([101.0, 202.0])}  # 1% difference
+    assert dict_cmp.dict_allclose(left_rtol, right_rtol) is False
+    assert dict_cmp.dict_allclose(left_rtol, right_rtol, rtol=1e-2) is True
+
+
+def test_dict_allclose_atol():
+    left_atol = {"a": np.array([0.0, 1.0])}
+    right_atol = {"a": np.array([1e-7, 1.0])}
+    assert dict_cmp.dict_allclose(left_atol, right_atol) is False
+    assert dict_cmp.dict_allclose(left_atol, right_atol, atol=1e-6) is True
+
+
+def test_dict_allclose_equal_nan():
+    left_nan = {"a": np.array([1.0, np.nan])}
+    right_nan = {"a": np.array([1.0, np.nan])}
+    assert dict_cmp.dict_allclose(left_nan, right_nan) is False
+    assert dict_cmp.dict_allclose(left_nan, right_nan, equal_nan=True) is True

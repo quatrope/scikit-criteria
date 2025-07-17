@@ -17,7 +17,7 @@
 
 import itertools as it
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 import matplotlib.pyplot as plt
 
@@ -86,17 +86,21 @@ class RanksComparator(Sequence, DiffEqualityMixin):
     _skcriteria_dm_type = "ranks_comparator"
     _skcriteria_parameters = ["ranks"]
 
-    def __init__(self, ranks):
+    def __init__(self, ranks, extra):
         ranks = list(ranks)
         self._ranks = ranks
+
+        if not isinstance(extra, Mapping):
+            raise TypeError(
+                "extra must be a mapping (e.g., dict, defaultdict, etc.)"
+            )
+        self._extra = Bunch("extra", extra)
+
         self._validate_ranks()
 
     # INTERNALS ===============================================================
     def _validate_ranks(self):
         ranks = self._ranks
-
-        if len(ranks) <= 1:
-            raise ValueError("Please provide more than one ranking")
 
         used_names = set()
         first_alternatives = set(ranks[0][1].alternatives)
@@ -133,6 +137,19 @@ class RanksComparator(Sequence, DiffEqualityMixin):
 
         """
         return Bunch("ranks", dict(self.ranks))
+
+    @property
+    def extra_(self):
+        """Additional information about the comparison.
+
+        Note
+        ----
+        ``e_`` is an alias for this property.
+
+        """
+        return self._extra
+
+    e_ = extra_  # shortcut to extra_
 
     # DIFF! ===================================================================
 
@@ -187,7 +204,7 @@ class RanksComparator(Sequence, DiffEqualityMixin):
             if ind.step not in (1, None):
                 cname = type(self).__qualname__
                 raise ValueError(f"{cname} slicing only supports a step of 1")
-            return self.__class__(self.ranks[ind])
+            return self.__class__(self.ranks[ind], extra={})
         elif isinstance(ind, int):
             return self._ranks[ind][-1]
         elif isinstance(ind, str):
@@ -829,7 +846,7 @@ class RanksComparatorPlotter(AccessorABC):
 # =============================================================================
 
 
-def mkrank_cmp(*ranks):
+def mkrank_cmp(*ranks, extra=None):
     """Construct a RankComparator from the given rankings.
 
     This is a shorthand for the RankComparator constructor; it does not
@@ -849,4 +866,8 @@ def mkrank_cmp(*ranks):
     """
     names = [r.method for r in ranks]
     named_ranks = unique_names(names=names, elements=ranks)
-    return RanksComparator(named_ranks)
+
+    if extra is None:
+        extra = {}
+
+    return RanksComparator(named_ranks, extra)
