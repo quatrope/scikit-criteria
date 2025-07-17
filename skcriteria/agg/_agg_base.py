@@ -200,7 +200,9 @@ class SKCDecisionMakerABC(SKCMethodABC):
 
         alternatives = data["alternatives"]
         result = self._make_result(
-            alternatives=alternatives, values=result_data, extra=extra
+            alternatives=alternatives,
+            values=result_data,
+            extra=extra,
         )
 
         return result
