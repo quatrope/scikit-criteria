@@ -18,7 +18,9 @@
 from ..utils import hidden
 
 with hidden():
+
     import numpy as np
+    import warnings
 
     from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..core import Objective
@@ -182,14 +184,33 @@ class RIM(SKCDecisionMakerABC):
     def evaluate(self, dm, *, ref_ideals=None, ranges=None):
         """Validate the decision matrix and calculate a ranking.
 
+        If `ref_ideals` or `ranges` are not provided, default values will be
+        automatically inferred:
+
+        - If `ref_ideals` is None, an interval of length zero is created using
+          the column-wise maximum (for MAX objectives) or minimum (for MIN
+          objectives) from the decision matrix.
+
+        - If `ranges` is None, the valid range for each criterion is set to
+          the minimum and maximum values of the corresponding column.
+
         Parameters
         ----------
         dm : DecisionMatrix
             Decision matrix to evaluate.
-        ref_ideals : array-like
-            Reference ideal intervals (per criterion).
-        ranges : array-like
-            Ranges (min, max) for each criterion.
+        ref_ideals : array-like of tuple, optional
+            Reference ideal intervals (per criterion), where each tuple
+            defines (ideal_min, ideal_max). If None, a degenerate interval
+            is used based on the objectives.
+        ranges : array-like of tuple, optional
+            Ranges (min, max) for each criterion. If None, calculated
+            from column-wise min and max values.
+
+        Warnings
+        --------
+        UserWarning
+            If `ref_ideals` or `ranges` are not provided, default values are
+            inferred from the decision matrix.
 
         Returns
         -------
@@ -206,8 +227,20 @@ class RIM(SKCDecisionMakerABC):
             ref_ideals = ref_ideals = list(
                 map(tuple, np.stack([ideals, ideals], axis=1))
             )
+            warnings.warn(
+                "No `ref_ideals` were provided. Using default values based "
+                "on the objectives of the decision matrix."
+                "For MAX objectives, the column maximum is used; "
+                "for MIN objectives, the minimum is used. "
+                "This produces reference intervals of length zero."
+            )
         if ranges is None:
             ranges = list(map(tuple, df_ranges.T.to_numpy()))
+            warnings.warn(
+                "No `ranges` were provided. "
+                "Using the minimum and maximum values of each column"
+                "in the decision matrix as default bounds."
+            )
 
         self._validate_ranges(dm.matrix.to_numpy(), ref_ideals, ranges)
 
