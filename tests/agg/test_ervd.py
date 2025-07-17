@@ -30,6 +30,11 @@ from skcriteria.preprocessing.scalers import SumScaler
 # =============================================================================
 
 
+def test_ervd_invalid_metric():
+    with pytest.raises(ValueError):
+        ERVD(metric="foo")
+
+
 def test_ervd_reference_points_none():
     alternatives_matrix = np.array(
         [
@@ -47,7 +52,7 @@ def test_ervd_reference_points_none():
         weights=weights,
     )
 
-    ranker = ERVD(lambd=2.25, alpha=0.88)
+    ranker = ERVD()
 
     with pytest.raises(
         ValueError,
@@ -73,7 +78,7 @@ def test_ervd_reference_points_invalid_legth():
         weights=weights,
     )
 
-    ranker = ERVD(lambd=2.25, alpha=0.88)
+    ranker = ERVD()
 
     with pytest.raises(
         ValueError,
@@ -133,7 +138,7 @@ def test_ERVD_shyur2015multiple():
     # Scale the reference points
     n_reference_points = reference_points / np.sum(alternatives_matrix, axis=0)
 
-    ranker = ERVD(lambd=2.25, alpha=0.88)
+    ranker = ERVD()
     result: RankResult = ranker.evaluate(
         n_dm, reference_points=n_reference_points
     )
