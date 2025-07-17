@@ -21,6 +21,7 @@ import pytest
 
 from skcriteria import DecisionMatrix
 from skcriteria.agg import MABAC
+from skcriteria.agg import RankResult
 from skcriteria.preprocessing.invert_objectives import MinMaxInverter
 
 
@@ -180,6 +181,8 @@ def test_MABAC_dragan_2014():
         4
     ]
 
+
+
     dm = DecisionMatrix.from_mcda_data(
         forklift_matrix,
         objectives,
@@ -199,14 +202,25 @@ def test_MABAC_dragan_2014():
         ],
     )
 
+    expected = RankResult(
+        "MABAC",
+        [f"Forklift {i}" for i in range(1, 8)],
+        expected_rank,
+        {
+            "border_approximation_area": expected_baa,
+            "score": expected_score
+        }
+    )
+    
+
     rdm = MinMaxInverter().transform(dm)
     result = MABAC().evaluate(rdm)
     baa_result = result.extra_["border_approximation_area"]
     score_result = result.extra_["score"]
-    rank_result = result.rank_
 
+    
+    assert result.values_equals(expected)
     assert np.allclose(baa_result, expected_baa, atol=1.0e-3)
-    assert (rank_result == expected_rank).all()
     assert np.allclose(score_result, expected_score, atol=1.0e-3)
 
 

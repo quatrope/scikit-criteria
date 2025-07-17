@@ -154,6 +154,10 @@ class MinimizeToMaximize(InvertMinimize):
     ones thar are converted to ``numpy.float64``.
 
     """
+
+# =============================================================================
+# MIN-MAX INVERSION
+# =============================================================================
 class MinMaxInverter(SKCObjectivesInverterABC):
     r"""Transform all minimization criteria  into maximization ones.
 
