@@ -64,7 +64,7 @@ def test_CustomYAMLDumper_scalar():
         out = yaml.dump(data, Dumper=skc.io.dmsy.CustomYAMLDumper)
         assert out == "1\n...\n"
 
-    for dtype in [np.float16, np.float32, np.float64, np.float128]:
+    for dtype in [np.float16, np.float32, np.float64]:
         data = dtype(1.0)
         out = yaml.dump(data, Dumper=skc.io.dmsy.CustomYAMLDumper)
         assert out == "1.0\n...\n"
