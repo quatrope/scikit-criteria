@@ -25,6 +25,10 @@ with hidden():
     from ..utils import doc_inherit, rank
     from .simple import wsm, wpm
 
+# =============================================================================
+# WASPAS
+# =============================================================================
+
 
 def waspas(matrix, weights, lambda_value):
     """Execute WASPAS without any validation."""
@@ -86,7 +90,7 @@ class WASPAS(SKCDecisionMakerABC):
 
     _skcriteria_parameters = ["lambda_value"]
 
-    def __init__(self, lambda_value=0.5):
+    def __init__(self, *, lambda_value=0.5):
         lambda_value = float(lambda_value)
         if not (1 >= lambda_value >= 0):
             raise ValueError(
@@ -102,10 +106,9 @@ class WASPAS(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
-        if Objective.MIN.value in objectives:
+        if Objective.MIN in objectives:
             raise ValueError("WASPAS can't operate with minimize objective")
         if np.any(matrix <= 0):
-
             raise ValueError("WASPAS can't operate with values <= 0")
 
         (rank, wsm_scores, log10_wpm_scores, score) = waspas(

@@ -61,9 +61,7 @@ class SPOTIS(SKCDecisionMakerABC):
     _skcriteria_parameters = []
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(
-        self, matrix, weights, objectives, bounds, isp, **kwargs
-    ):
+    def _evaluate_data(self, matrix, weights, bounds, isp, **kwargs):
         extra = {"bounds": bounds, "isp": isp}
 
         rank, method_extra = spotis(matrix, weights, bounds, isp)
@@ -98,32 +96,22 @@ class SPOTIS(SKCDecisionMakerABC):
             Ranking.
 
         """
-        data = dm.to_dict()
-
+        numpy_matrix = dm.matrix.to_numpy()
         bounds = (
-            self._bounds_from_matrix(data["matrix"])
+            self._bounds_from_matrix(numpy_matrix)
             if bounds is None
             else np.asarray(bounds)
         )
-        self._validate_bounds(bounds, data["matrix"])
+        self._validate_bounds(bounds, numpy_matrix)
 
         isp = (
-            self._isp_from_bounds(bounds, data["objectives"])
+            self._isp_from_bounds(bounds, dm.iobjectives.to_numpy())
             if isp is None
             else np.asarray(isp)
         )
         self._validate_isp(isp, bounds)
 
-        result_data, extra = self._evaluate_data(
-            **data, bounds=bounds, isp=isp
-        )
-
-        alternatives = data["alternatives"]
-        result = self._make_result(
-            alternatives=alternatives, values=result_data, extra=extra
-        )
-
-        return result
+        return self._evaluate_dm(dm, bounds=bounds, isp=isp)
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
