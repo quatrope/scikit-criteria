@@ -28,6 +28,7 @@ with hidden():
 # FUNCTIONS
 # =============================================================================
 
+
 def sum_indexes(matrix: np.ndarray, objectives: np.ndarray):
     """
     Determine the sums of the minimizing and maximizing indexes.
@@ -81,13 +82,15 @@ def copras(matrix, weights, objectives):
     weighted_dm = matrix * weights
     s_max, s_min = sum_indexes(weighted_dm, objectives)
     significances = determine_significances(s_max, s_min)
-    utility_degrees = significances / max(significances) * 100.
+    utility_degrees = significances / max(significances) * 100.0
     ranking = rank.rank_values(utility_degrees, reverse=True)
     return ranking, utility_degrees, significances, s_max, s_min
+
 
 # =============================================================================
 # COPRAS
 # =============================================================================
+
 
 class COPRAS(SKCDecisionMakerABC):
     """

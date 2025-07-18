@@ -22,14 +22,14 @@ import pytest
 
 import skcriteria
 from skcriteria.agg import RankResult
-from skcriteria.agg.probid import PROBID, sPROBID
+from skcriteria.agg.probid import PROBID, SimplifiedPROBID
 
 # =============================================================================
 # TESTS
 # =============================================================================
 
 
-def test_sPROBID_Wang2021Original():
+def test_SimplifiedPROBID_Wang2021Original():
     """
     Data from:
         Wang, Z., Rangaiah, G. P., & Wang, X. (2021).
@@ -55,11 +55,11 @@ def test_sPROBID_Wang2021Original():
         weights=[0.1819, 0.2131, 0.1838, 0.1832, 0.2379],
     )
 
-    ranker = sPROBID()
+    ranker = SimplifiedPROBID()
     result = ranker.evaluate(dm)
 
     expected = RankResult(
-        "sPROBID",
+        "SimplifiedPROBID",
         [
             "A0",
             "A1",
@@ -184,7 +184,7 @@ def test_PROBID_invalid_metric():
         ranker.evaluate(dm)
 
 
-def test_sPROBID_invalid_metric():
+def test_SimplifiedPROBID_invalid_metric():
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, min, max],
@@ -195,12 +195,12 @@ def test_sPROBID_invalid_metric():
         ranker.evaluate(dm)
 
 
-def test_sPROBID_small_dataset_warning():
+def test_SimplifiedPROBID_small_dataset_warning():
     dm = skcriteria.mkdm(
         matrix=[[1, 0, 3], [0, 5, 6]],
         objectives=[max, min, max],
     )
 
-    ranker = sPROBID()
+    ranker = SimplifiedPROBID()
     with pytest.warns(UserWarning):
         ranker.evaluate(dm)

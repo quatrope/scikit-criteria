@@ -10,10 +10,10 @@
 # =============================================================================
 
 """
-Implementation of PROBID and sPROBID.
+Implementation of PROBID and SimplifiedPROBID.
 
 PROBID (Preference Ranking On the Basis of Ideal-Average Distance) and
-sPROBID (simple variation of PROBID).
+SimplifiedPROBID (simple variation of PROBID).
 """
 
 # =============================================================================
@@ -180,12 +180,14 @@ class PROBID(BasePROBID):
 
 
 # =============================================================================
-# sPROBID
+# SimplifiedPROBID
 # =============================================================================
 
 
-def sprobid(matrix, objectives, weights, metric="euclidean", **kwargs):
-    """Execute sPROBID without any validation."""
+def simplifiedprobid(
+    matrix, objectives, weights, metric="euclidean", **kwargs
+):
+    """Execute SimplifiedPROBID without any validation."""
     # apply weights
     wmtx = np.multiply(matrix, weights)
 
@@ -228,20 +230,20 @@ def sprobid(matrix, objectives, weights, metric="euclidean", **kwargs):
 
 class SimplifiedPROBID(BasePROBID):
     """
-    Executes the sPROBID method.
+    Executes the SimplifiedPROBID method.
 
-    The sPROBID method simplifies PROBID method by using only the top and
-    bottom quartiles of ideal solutions.
+    The SimplifiedPROBID method simplifies PROBID method by using only
+    the top and bottom quartiles of ideal solutions.
     """
 
-    _method_func = staticmethod(sprobid)
+    _method_func = staticmethod(simplifiedprobid)
 
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         if len(matrix) < 4:
             warnings.warn(
-                "sPROBID works best with 4 or more alternatives since it"
-                "uses quartiles. Consider using PROBID instead for small"
-                "datasets."
+                "SimplifiedPROBID works best with 4 or more alternatives"
+                "since it uses quartiles. Consider using PROBID instead"
+                "for small datasets."
             )
 
         return super()._evaluate_data(matrix, objectives, weights, **kwargs)
@@ -249,7 +251,7 @@ class SimplifiedPROBID(BasePROBID):
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "sPROBID",
+            "SimplifiedPROBID",
             alternatives=alternatives,
             values=values,
             extra=extra,

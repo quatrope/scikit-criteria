@@ -510,13 +510,13 @@ class MEREC(SKCWeighterABC):
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, objectives, **kwargs):
         return merec_weights(matrix, objectives=objectives)
-      
-      
+
+
 # =============================================================================
 # GINI
 # =============================================================================
-      
-      
+
+
 def gini_weights(matrix):
     r"""
     Calculates weights using the Gini coefficient.
