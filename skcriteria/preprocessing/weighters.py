@@ -8,13 +8,10 @@
 # =============================================================================
 # DOCS
 # =============================================================================
-
 """Functionalities for weight the criteria.
 
-In addition to the main functionality, an MCDA agnostic function is offered
-to calculate weights to a matrix along an arbitrary axis.
-
-
+In addition to the main functionality, an MCDA agnostic function is offered to
+calculate weights to a matrix along an arbitrary axis.
 """
 
 # =============================================================================
@@ -46,7 +43,6 @@ class SKCWeighterABC(SKCTransformerABC):
 
     This abstract class require to redefine ``_weight_matrix``, instead of
     ``_transform_data``.
-
     """
 
     _skcriteria_abstract_class = True
@@ -68,7 +64,6 @@ class SKCWeighterABC(SKCTransformerABC):
         -------
         :py:class:`numpy.ndarray`
             An array of weights.
-
         """
         raise NotImplementedError()
 
@@ -123,7 +118,6 @@ def equal_weights(matrix, base_value=1):
 
         >>> equal_weights(mtx)
         array([0.5, 0.5])
-
     """
     ncriteria = np.shape(matrix)[1]
     weights = base_value / ncriteria
@@ -135,7 +129,6 @@ class EqualWeighter(SKCWeighterABC):
 
     The algorithm calculates the weights as the ratio of ``base_value`` by the
     total criteria.
-
     """
 
     _skcriteria_parameters = ["base_value"]
@@ -188,7 +181,6 @@ def std_weights(matrix):
 
         >>> std_weights(mtx)
          array([0.5, 0.5])
-
     """
     std = np.std(matrix, axis=0, ddof=1)
     return std / np.sum(std)
@@ -225,7 +217,6 @@ def entropy_weights(matrix):
     --------
     scipy.stats.entropy :
         Calculate the entropy of a distribution for given probability values.
-
     """
     base = len(matrix)
     entropy = scipy.stats.entropy(matrix, base=base, axis=0)
@@ -248,7 +239,6 @@ class EntropyWeighter(SKCWeighterABC):
     --------
     scipy.stats.entropy :
         Calculate the entropy of a distribution for given probability values.
-
     """
 
     _skcriteria_parameters = []
@@ -288,7 +278,6 @@ def pearson_correlation(arr):
     --------
     numpy.corrcoef :
         Return Pearson product-moment correlation coefficients.
-
     """
     return np.corrcoef(arr)
 
@@ -318,7 +307,6 @@ def spearman_correlation(arr):
     --------
     scipy.stats.spearmanr :
         Calculate a Spearman correlation coefficient with associated p-value.
-
     """
     return scipy.stats.spearmanr(arr.T, axis=0).correlation
 
@@ -379,7 +367,6 @@ class CRITIC(SKCWeighterABC):
     References
     ----------
     :cite:p:`diakoulaki1995determining`
-
     """
 
     CORRELATION = ("pearson", "spearman", "kendall")
@@ -431,14 +418,16 @@ class Critic(CRITIC):
 #
 # =============================================================================
 
+
 def rancom_weights(weights):
     """RANCOM (RANking COMparison) weighting method.
 
-    The RANCOM method is designed to handle expert inaccuracies in multi-criteria
-    decision making by transforming initial weight values through ranking comparison.
-    The method builds a Matrix of Ranking Comparison (MAC) where all weights are
-    compared pairwise, then calculates Summed Criteria Weights (SWC) to derive
-    final normalized weights.
+    The RANCOM method is designed to handle expert inaccuracies in
+    multi-criteria decision making by transforming initial weight
+    values through ranking comparison.
+    The method builds a Matrix of Ranking Comparison(MAC) where all weights
+    are compared pairwise, then calculates Summed Criteria Weights (SWC) to
+    derive final normalized weights.
 
     The method operates under the following assumptions:
     - The sum of input weights equals 1
@@ -447,10 +436,10 @@ def rancom_weights(weights):
 
     Algorithm Steps:
     1. Convert weights to rankings (lower weight = higher rank/importance)
-    2. Build MAC (Matrix of Ranking Comparison): An n×n matrix where rankings are
-       compared pairwise with values:
+    2. Build MAC (Matrix of Ranking Comparison): An n×n matrix where rankings
+    are compared pairwise with values:
        - aij = 1 if rank_i < rank_j (criterion i is more important than j)
-       - aij = 0.5 if rank_i = rank_j (criteria i and j have equal importance)  
+       - aij = 0.5 if rank_i = rank_j (criteria i and j have equal importance)
        - aij = 0 if rank_i > rank_j (criterion i is less important than j)
     3. Calculate SWC (Summed Criteria Weights): Sum each row of the MAC matrix
     4. Normalize final weights: wi = SWCi / sum(SWC)
@@ -462,18 +451,19 @@ def rancom_weights(weights):
 
     Notes
     -----
-    - RANCOM is particularly useful when dealing with subjective weight assignments
-      from experts where small inaccuracies in weight specification can significantly
-      impact results
+    - RANCOM is particularly useful when dealing with subjective weight
+      assignments from experts where small inaccuracies in weight
+      specification can significantly impact results
     - The method provides a systematic way to handle ranking inconsistencies
     - Unlike other weighting methods, RANCOM transforms existing weights rather
       than deriving weights from the decision matrix
 
     References
     ----------
-    .. [1] Stojić, G., Pamučar, D., Milošević, M., & others (2023). RANCOM: A novel 
-        approach to identifying criteria relevance based on inaccuracy expert 
-        judgments. Engineering Applications of Artificial Intelligence, 122, 
+    .. [1] Stojić, G., Pamučar, D., Milošević, M., & others (2023).
+        RANCOM: A novel approach to identifying criteria relevance
+        based on inaccuracy expert judgments.
+        Engineering Applications of Artificial Intelligence, 122,
         106114. https://doi.org/10.1016/j.engappai.2023.106114
 
     Examples
@@ -485,17 +475,18 @@ def rancom_weights(weights):
 
         >>> rancom_weights(weights)
         >>> array([0.4375, 0.1875, 0.3125, 0.0625])
-
     """
     # Convert weights to rankings (lower weight = higher rank/importance)
     # Reverse weights so that lower weight values get higher ranks
     reversed_weights = -weights
-    rankings = scipy.stats.rankdata(reversed_weights, method='dense')
-    
+    rankings = scipy.stats.rankdata(reversed_weights, method="dense")
+
     # Build MAC matrix based on rankings
     rank_i = rankings.reshape(-1, 1)
     rank_j = rankings.reshape(1, -1)
-    rancom_matrix = np.where(rank_i < rank_j, 1, np.where(rank_i == rank_j, 0.5, 0))
+    rancom_matrix = np.where(
+        rank_i < rank_j, 1, np.where(rank_i == rank_j, 0.5, 0)
+    )
 
     summed_criteria_weights = np.sum(rancom_matrix, axis=1)
     total_swc = np.sum(summed_criteria_weights)
@@ -506,11 +497,14 @@ def rancom_weights(weights):
 
 class RANCOM(SKCWeighterABC):
     """
-    The RANCOM method is designed to handle expert inaccuracies in multi-criteria
-    decision making by transforming initial weight values through ranking comparison.
-    The method builds a Matrix of Ranking Comparison (MAC) where all weights are
-    compared pairwise, then calculates Summed Criteria Weights (SWC) to derive
-    final normalized weights.
+    Ranking Comparison (RANCOM) method.
+
+    The RANCOM method is designed to handle expert inaccuracies in
+    multi-criteria decision making by transforming initial weight values
+    through ranking comparison.
+    The method builds a Matrix of Ranking Comparison (MAC) where all weights
+    are compared pairwise, then calculates Summed Criteria Weights (SWC) to
+    derive final normalized weights.
 
     Parameters
     ----------
@@ -521,30 +515,31 @@ class RANCOM(SKCWeighterABC):
     Warnings
     --------
     UserWarning
-        If there are fewer than five weights. The original paper suggests that RANCOM
-        works better with five or more criteria, though nothing prevents its use
-        with four or fewer criteria.
+        If there are fewer than five weights. The original paper suggests
+        that RANCOM works better with five or more criteria, though nothing
+        prevents its use with four or fewer criteria.
 
     References
     ----------
-    .. [1] Stojić, G., Pamučar, D., Milošević, M., & others (2023). RANCOM: A novel 
-       approach to identifying criteria relevance based on inaccuracy expert 
-       judgments. Engineering Applications of Artificial Intelligence, 122, 
-       106114. https://doi.org/10.1016/j.engappai.2023.106114
-
+    .. [1] Stojić, G., Pamučar, D., Milošević, M., & others (2023). RANCOM:
+       A novel approach to identifying criteria relevance based on inaccuracy
+       expert judgments. Engineering Applications of Artificial Intelligence,
+       122, 106114. https://doi.org/10.1016/j.engappai.2023.106114
     """
-
 
     _skcriteria_parameters = []
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, objectives, weights):
         if sum(weights) != 1:
-            raise ValueError("RANCOM expects normalized weights. i.e. its sum equals 1.")
+            raise ValueError(
+                "RANCOM expects normalized weights. i.e. its sum equals 1."
+            )
         if len(weights) < 5:
             warnings.warn(
-                "RANCOM method proves to be a more suitable solution to handle "
-                "the expert inaccuracies for the problems with 5 or more criteria. "
+                "RANCOM method proves to be a more suitable solution to handle"
+                "the expert inaccuracies for the problems with 5 or more "
+                "criteria."
                 "Despite this, nothing prevents its use with four or fewer."
             )
 
