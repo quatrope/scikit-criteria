@@ -82,17 +82,12 @@ class MABAC(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
         if np.any(objectives == Objective.MIN):
-            raise ValueError(
-                "MABAC does not support minimization objectives."
-            )
-        rank, score, border_approximation_area = mabac(
-            matrix, weights
-        )
+            raise ValueError("MABAC does not support minimization objectives.")
+        rank, score, border_approximation_area = mabac(matrix, weights)
         return rank, {
             "score": score,
             "border_approximation_area": border_approximation_area,
         }
-        
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):

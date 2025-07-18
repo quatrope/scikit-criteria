@@ -42,42 +42,9 @@ def test_MABAC_dragan_2014():
     # Simple 3x3 decision matrix
     forklift_matrix = np.array(
         [
-            [
-                22600,
-                3800,
-                2,
-                5,
-                1.06,
-                3.00,
-                3.5,
-                2.8,
-                24.5,
-                6.5
-            ],  # Forklift 1
-            [
-                19500,
-                4200,
-                3,
-                2,
-                0.95,
-                3.00,
-                3.4,
-                2.2,
-                24.0,
-                7.0
-            ],  # Forklift 2
-            [
-                21700,
-                4000,
-                1,
-                3,
-                1.25,
-                3.20,
-                3.3,
-                2.5,
-                24.5,
-                7.3
-            ],  # Forklift 3
+            [22600, 3800, 2, 5, 1.06, 3.00, 3.5, 2.8, 24.5, 6.5],  # Forklift 1
+            [19500, 4200, 3, 2, 0.95, 3.00, 3.4, 2.2, 24.0, 7.0],  # Forklift 2
+            [21700, 4000, 1, 3, 1.25, 3.20, 3.3, 2.5, 24.5, 7.3],  # Forklift 3
             [
                 20600,
                 3800,
@@ -88,44 +55,11 @@ def test_MABAC_dragan_2014():
                 3.2,
                 2.0,
                 22.5,
-                11.0
+                11.0,
             ],  # Forklift 4
-            [
-                22500,
-                3800,
-                4,
-                3,
-                1.35,
-                3.20,
-                3.7,
-                2.1,
-                23.0,
-                6.3
-            ],  # Forklift 5
-            [
-                23250,
-                4210,
-                3,
-                5,
-                1.45,
-                3.60,
-                3.5,
-                2.8,
-                23.5,
-                7.0
-            ],  # Forklift 6
-            [
-                20300,
-                3850,
-                2,
-                5,
-                0.90,
-                3.25,
-                3.0,
-                2.6,
-                21.5,
-                6.0
-            ],  # Forklift 7
+            [22500, 3800, 4, 3, 1.35, 3.20, 3.7, 2.1, 23.0, 6.3],  # Forklift 5
+            [23250, 4210, 3, 5, 1.45, 3.60, 3.5, 2.8, 23.5, 7.0],  # Forklift 6
+            [20300, 3850, 2, 5, 0.90, 3.25, 3.0, 2.6, 21.5, 6.0],  # Forklift 7
         ]
     )
 
@@ -144,7 +78,7 @@ def test_MABAC_dragan_2014():
             0.088,  # C7
             0.068,  # C8
             0.050,  # C9
-            0.048  # C10
+            0.048,  # C10
         ]
     )
 
@@ -158,88 +92,49 @@ def test_MABAC_dragan_2014():
         0.1319,
         0.1010,
         0.0789,
-        0.0590
+        0.0590,
     ]
 
-    expected_score = [
-        0.0826,
-        0.2183,
-        -0.0488,
-        0.0246,
-        -0.0704,
-        0.0465,
-        0.0464
-    ]
+    expected_score = [0.0826, 0.2183, -0.0488, 0.0246, -0.0704, 0.0465, 0.0464]
 
-    expected_rank = [
-        2,
-        1,
-        6,
-        5,
-        7,
-        3,
-        4
-    ]
-
-
+    expected_rank = [2, 1, 6, 5, 7, 3, 4]
 
     dm = DecisionMatrix.from_mcda_data(
         forklift_matrix,
         objectives,
         weights=weights,
         alternatives=[f"Forklift {i}" for i in range(1, 8)],
-        criteria=[
-            "C1",
-            "C2",
-            "C3",
-            "C4",
-            "C5",
-            "C6",
-            "C7",
-            "C8",
-            "C9",
-            "C10"
-        ],
+        criteria=["C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10"],
     )
 
     expected = RankResult(
         "MABAC",
         [f"Forklift {i}" for i in range(1, 8)],
         expected_rank,
-        {
-            "border_approximation_area": expected_baa,
-            "score": expected_score
-        }
+        {"border_approximation_area": expected_baa, "score": expected_score},
     )
-    
 
     rdm = MinMaxInverter().transform(dm)
     result = MABAC().evaluate(rdm)
     baa_result = result.extra_["border_approximation_area"]
     score_result = result.extra_["score"]
 
-    
     assert result.values_equals(expected)
     assert np.allclose(baa_result, expected_baa, atol=1.0e-3)
     assert np.allclose(score_result, expected_score, atol=1.0e-3)
 
 
-
 def test_MABAC_minimize_value_error():
     """Test that MABAC raises an error for minimization objectives."""
-    
-    # Create a decision matrix with at least one minimization objective
+
     matrix = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    objectives = np.array([1, -1, 1])  # Second criterion is minimize
+    objectives = np.array([1, -1, 1])
     weights = np.array([0.3, 0.4, 0.3])
-    
+
     dm = DecisionMatrix.from_mcda_data(
-        matrix=matrix,
-        objectives=objectives,
-        weights=weights
+        matrix=matrix, objectives=objectives, weights=weights
     )
-    
-    # This should raise ValueError
+
     mabac = MABAC()
     with pytest.raises(ValueError):
         mabac.evaluate(dm)
