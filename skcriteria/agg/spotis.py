@@ -77,9 +77,11 @@ class SPOTIS(SKCDecisionMakerABC):
         dm: :py:class:`skcriteria.data.DecisionMatrix`
             Decision matrix on which the ranking will be calculated.
         bounds: array-like, optional
-            The bounds of the problem.
+            The bounds of the problem. If not provided, they will be calculated
+            from the matrix.
         isp: array-like, optional
-            The ideal solution point (ISP).
+            The ideal solution point (ISP), if not provided, it will be
+            calculated from the bounds.
 
         Raises
         ------
@@ -97,19 +99,17 @@ class SPOTIS(SKCDecisionMakerABC):
 
         """
         numpy_matrix = dm.matrix.to_numpy()
-        bounds = (
-            self._bounds_from_matrix(numpy_matrix)
-            if bounds is None
-            else np.asarray(bounds)
-        )
-        self._validate_bounds(bounds, numpy_matrix)
+        if bounds is None:
+            bounds = self._bounds_from_matrix(numpy_matrix)
+        else:
+            bounds = np.asarray(bounds)
+            self._validate_bounds(bounds, numpy_matrix)
 
-        isp = (
-            self._isp_from_bounds(bounds, dm.iobjectives.to_numpy())
-            if isp is None
-            else np.asarray(isp)
-        )
-        self._validate_isp(isp, bounds)
+        if isp is None:
+            isp = self._isp_from_bounds(bounds, dm.iobjectives.to_numpy())
+        else:
+            isp = np.asarray(isp)
+            self._validate_isp(isp, bounds)
 
         return self._evaluate_dm(dm, bounds=bounds, isp=isp)
 

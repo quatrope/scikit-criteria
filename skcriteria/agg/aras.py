@@ -137,7 +137,8 @@ class ARAS(SKCDecisionMakerABC):
         dm: :py:class:`skcriteria.data.DecisionMatrix`
             Decision matrix on which the ranking will be calculated.
         ideal : ndarray of shape (n_criteria,), optional
-            The ideal alternative.
+            The ideal alternative, if the ideal is None, the method will
+            automatically calculate as the maximum value in each criterion.
 
         Raises
         ------
@@ -163,16 +164,9 @@ class ARAS(SKCDecisionMakerABC):
                 "ARAS can't operate with minimization objectives. "
                 "Consider reversing the weights."
             )
-
         if ideal is None:
-            warnings.warn(
-                "No ideal alternative was provided. "
-                "Using the maximum value of each column in the decision "
-                "matrix as the default ideal."
-            )
             ideal = np.max(dm.matrix.to_numpy(), axis=0)
-
-        if dm.matrix.shape[1] != len(ideal):
+        elif dm.matrix.shape[1] != len(ideal):
             raise ValueError(
                 "The ideal alternative must have the same number of "
                 "criteria as the decision matrix."
