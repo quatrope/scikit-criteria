@@ -155,9 +155,12 @@ class MinimizeToMaximize(InvertMinimize):
 
     """
 
+
 # =============================================================================
 # MIN-MAX INVERSION
 # =============================================================================
+
+
 class MinMaxInverter(SKCObjectivesInverterABC):
     r"""Transform all minimization criteria  into maximization ones.
 
@@ -177,15 +180,19 @@ class MinMaxInverter(SKCObjectivesInverterABC):
     def _invert(self, matrix, minimize_mask):
         """Apply min-max normalization that inverts minimization criteria."""
 
-        matrix = np.array(matrix, dtype=float)
+        cost = minimize_mask
+        benefit = ~cost
 
-        max_vals = matrix.max(axis=0)
-        min_vals = matrix.min(axis=0)
-        ranges = max_vals - min_vals
-        ranges[ranges == 0] = 1
+        inverted_matrix = np.empty_like(matrix)
 
-        normalized = (matrix - min_vals) / ranges
+        maxs = np.max(matrix, axis=0)
+        mins = np.min(matrix, axis=0)
 
-        normalized[:, minimize_mask] = 1 - normalized[:, minimize_mask]
+        inverted_matrix[:, cost] = (matrix[:, cost] - maxs[cost]) / (
+            mins[cost] - maxs[cost]
+        )
+        inverted_matrix[:, benefit] = (matrix[:, benefit] - mins[benefit]) / (
+            maxs[benefit] - mins[benefit]
+        )
 
-        return normalized
+        return inverted_matrix
