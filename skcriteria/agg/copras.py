@@ -24,6 +24,9 @@ with hidden():
     from ..core import Objective
     from ..utils import doc_inherit, rank
 
+# =============================================================================
+# FUNCTIONS
+# =============================================================================
 
 def sum_indexes(matrix: np.ndarray, objectives: np.ndarray):
     """
@@ -34,10 +37,10 @@ def sum_indexes(matrix: np.ndarray, objectives: np.ndarray):
     accordingly for each alternative.
     """
     criteria_max = np.compress(
-        Objective.MAX.value == objectives, matrix, axis=1
+        objectives == Objective.MAX.value, matrix, axis=1
     )
     criteria_min = np.compress(
-        Objective.MIN.value == objectives, matrix, axis=1
+        objectives == Objective.MIN.value, matrix, axis=1
     )
 
     s_max = np.sum(criteria_max, axis=1)
@@ -78,10 +81,13 @@ def copras(matrix, weights, objectives):
     weighted_dm = matrix * weights
     s_max, s_min = sum_indexes(weighted_dm, objectives)
     significances = determine_significances(s_max, s_min)
-    utility_degrees = significances / max(significances) * 100
+    utility_degrees = significances / max(significances) * 100.
     ranking = rank.rank_values(utility_degrees, reverse=True)
     return ranking, utility_degrees, significances, s_max, s_min
 
+# =============================================================================
+# COPRAS
+# =============================================================================
 
 class COPRAS(SKCDecisionMakerABC):
     """

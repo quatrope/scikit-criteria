@@ -116,7 +116,9 @@ def probid(matrix, objectives, weights, metric="euclidean", **kwargs):
     # sort from most PIS to most NIS
     where_max = np.equal(objectives, Objective.MAX.value)
     ideals = np.where(
-        where_max, np.sort(wmtx, axis=0)[::-1], np.sort(wmtx, axis=0)
+        where_max,
+        np.sort(wmtx, axis=0)[::-1],
+        np.sort(wmtx, axis=0),
     )
 
     # calculate averages
@@ -190,7 +192,9 @@ def sprobid(matrix, objectives, weights, metric="euclidean", **kwargs):
     # sort from most PIS to most NIS
     where_max = np.equal(objectives, Objective.MAX.value)
     ideals = np.where(
-        where_max, np.sort(wmtx, axis=0)[::-1], np.sort(wmtx, axis=0)
+        where_max,
+        np.sort(wmtx, axis=0)[::-1],
+        np.sort(wmtx, axis=0),
     )
 
     # calculate distances
@@ -222,7 +226,7 @@ def sprobid(matrix, objectives, weights, metric="euclidean", **kwargs):
     )
 
 
-class sPROBID(BasePROBID):
+class SimplifiedPROBID(BasePROBID):
     """
     Executes the sPROBID method.
 
@@ -245,5 +249,8 @@ class sPROBID(BasePROBID):
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "sPROBID", alternatives=alternatives, values=values, extra=extra
+            "sPROBID",
+            alternatives=alternatives,
+            values=values,
+            extra=extra,
         )
