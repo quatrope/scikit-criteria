@@ -30,6 +30,7 @@ from skcriteria.preprocessing.weighters import (
     Critic,
     EntropyWeighter,
     EqualWeighter,
+    MEREC,
     SKCWeighterABC,
     StdWeighter,
     critic_weights,
@@ -430,3 +431,47 @@ def test_spearman_correlation_with_deprecation_warning():
         result = spearman_correlation(mtx.T)
 
     np.testing.assert_allclose(result, expected)
+
+
+# =============================================================================
+# MEREC
+# =============================================================================
+
+
+def test_MEREC_keshavarz2021determination():
+    """
+    Data from:
+        Keshavarz-Ghorabaee, M., Amiri, M., Zavadskas, E. K., Turskis, Z.,
+        & Antucheviciene, J. (2021).
+        Determination of objective weights using a new method based on the
+        removal effects of criteria (MEREC).
+        Symmetry, 13(4), 525.
+    """
+
+    dm = skcriteria.mkdm(
+        matrix=[
+            [450, 8000, 54, 145],
+            [10, 9100, 2, 160],
+            [100, 8200, 31, 153],
+            [220, 9300, 1, 162],
+            [5, 8400, 23, 158],
+        ],
+        objectives=[max, max, min, min],
+    )
+
+    expected = skcriteria.mkdm(
+        matrix=[
+            [450, 8000, 54, 145],
+            [10, 9100, 2, 160],
+            [100, 8200, 31, 153],
+            [220, 9300, 1, 162],
+            [5, 8400, 23, 158],
+        ],
+        objectives=[max, max, min, min],
+        weights=[0.5752, 0.0141, 0.4016, 0.0091],
+    )
+
+    weighter = MEREC()
+
+    result = weighter.transform(dm)
+    assert result.aequals(expected, atol=1e-3)

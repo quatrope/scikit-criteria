@@ -85,12 +85,7 @@ class DecisionMatrixDominanceAccessor(AccessorABC):
     # FRAME ALT VS ALT ========================================================
 
     def _create_frame(self, compute_cell, iname, cname):
-        """Create a data frame comparing two alternatives.
-
-        The value of each cell is calculated with the "compute_cell"
-        function.
-
-        """
+        """Create a data frame comparing two alternatives."""
         alternatives = self._dm.alternatives
         rows = []
         for a0 in alternatives:

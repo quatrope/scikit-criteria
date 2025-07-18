@@ -348,14 +348,5 @@ class SIMUS(SKCDecisionMakerABC):
             Ranking.
 
         """
-        data = dm.to_dict()
         b = b if b is None else np.asarray(b)
-
-        rank, extra = self._evaluate_data(b=b, **data)
-
-        alternatives = data["alternatives"]
-        result = self._make_result(
-            alternatives=alternatives, values=rank, extra=extra
-        )
-
-        return result
+        return self._evaluate_dm(dm, b=b)

@@ -116,6 +116,150 @@ def test_SKCDecisionMakerABC_make_result_not_implemented(decision_matrix):
 
 
 # =============================================================================
+# VALIDATION TESTS
+# =============================================================================
+
+
+def test_SKCDecisionMakerABC_evaluate_parameter_validation():
+    """Test validation of evaluate method parameters."""
+
+    # Test 1: Parameter must be named 'dm'
+    with pytest.raises(TypeError, match="must be named 'dm'"):
+
+        class BadName(SKCDecisionMakerABC):
+            _skcriteria_parameters = []
+
+            def evaluate(self, decision_matrix):  # Wrong name
+                pass
+
+            def _evaluate_data(self, **kwargs):
+                return [], {}
+
+            def _make_result(self, alternatives, values, extra):
+                return {}
+
+    # Test 2: Parameter 'dm' must be positional
+    with pytest.raises(TypeError, match="must be positional"):
+
+        class BadPositional(SKCDecisionMakerABC):
+            _skcriteria_parameters = []
+
+            def evaluate(self, *, dm):  # Keyword-only
+                pass
+
+            def _evaluate_data(self, **kwargs):
+                return [], {}
+
+            def _make_result(self, alternatives, values, extra):
+                return {}
+
+    # Test 3: Parameter 'dm' must not have default value
+    with pytest.raises(TypeError, match="must not have a default value"):
+
+        class BadDefault(SKCDecisionMakerABC):
+            _skcriteria_parameters = []
+
+            def evaluate(self, dm=None):  # Has default
+                pass
+
+            def _evaluate_data(self, **kwargs):
+                return [], {}
+
+            def _make_result(self, alternatives, values, extra):
+                return {}
+
+    # Test 4: Additional parameters must have default values
+    with pytest.raises(TypeError, match="must have a default value"):
+
+        class BadAdditionalNoDefault(SKCDecisionMakerABC):
+            _skcriteria_parameters = []
+
+            def evaluate(self, dm, *, param1):  # No default
+                pass
+
+            def _evaluate_data(self, **kwargs):
+                return [], {}
+
+            def _make_result(self, alternatives, values, extra):
+                return {}
+
+    # Test 5: Additional parameters must be keyword-only
+    with pytest.raises(TypeError, match="must be keyword-only"):
+
+        class BadAdditionalPositional(SKCDecisionMakerABC):
+            _skcriteria_parameters = []
+
+            def evaluate(self, dm, param1=1):  # Positional with default
+                pass
+
+            def _evaluate_data(self, **kwargs):
+                return [], {}
+
+            def _make_result(self, alternatives, values, extra):
+                return {}
+
+    # Test 6: Forbidden parameter names
+    with pytest.raises(TypeError, match="is forbidden"):
+
+        class BadForbiddenName(SKCDecisionMakerABC):
+            _skcriteria_parameters = []
+
+            # 'matrix' is forbidden (part of mkdm signature)
+            def evaluate(self, dm, *, matrix=None):
+                pass
+
+            def _evaluate_data(self, **kwargs):
+                return [], {}
+
+            def _make_result(self, alternatives, values, extra):
+                return {}
+
+
+def test_SKCDecisionMakerABC_evaluate_parameter_validation_valid():
+    """Test that valid evaluate method signatures pass validation."""
+
+    # Test valid signature - only dm parameter
+    class ValidSimple(SKCDecisionMakerABC):
+        _skcriteria_parameters = []
+
+        def evaluate(self, dm):
+            return super().evaluate(dm)
+
+        def _evaluate_data(self, **kwargs):
+            return np.array([1, 2, 3]), {}
+
+        def _make_result(self, alternatives, values, extra):
+            return {
+                "alternatives": alternatives,
+                "values": values,
+                "extra": extra,
+            }
+
+    # Should not raise any exception
+    ValidSimple()
+
+    # Test valid signature - dm + keyword-only parameters with defaults
+    class ValidWithParams(SKCDecisionMakerABC):
+        _skcriteria_parameters = []
+
+        def evaluate(self, dm, *, param1=1, param2="default"):
+            return super().evaluate(dm)
+
+        def _evaluate_data(self, **kwargs):
+            return np.array([1, 2, 3]), {}
+
+        def _make_result(self, alternatives, values, extra):
+            return {
+                "alternatives": alternatives,
+                "values": values,
+                "extra": extra,
+            }
+
+    # Should not raise any exception
+    ValidWithParams()
+
+
+# =============================================================================
 # RESULT BASE
 # =============================================================================
 
@@ -223,7 +367,7 @@ def test_ResultBase_equals():
     method = "test_method"
     alternatives = ["a", "b", "c"]
     rank = [1, 2, 3]
-    extra = {"alfa": 1, "beta": np.array([1, 2])}
+    extra = {"alfa": 1, "beta": np.array([1.0, 2.0])}
 
     result = TestResult(
         method=method, alternatives=alternatives, values=rank, extra=extra
@@ -252,6 +396,20 @@ def test_ResultBase_equals():
     assert result != neq
     assert not result.equals(neq)
     assert not result.aequals(neq)
+
+    # tolerance
+    slightly_off = TestResult(
+        method=method,
+        alternatives=alternatives,
+        values=rank,
+        extra={
+            "alfa": extra["alfa"],
+            "beta": np.array([1.01, 2.01]),
+        },
+    )
+
+    assert not result.aequals(slightly_off)
+    assert result.aequals(slightly_off, rtol=1e-01, atol=1e-01)
 
 
 # =============================================================================

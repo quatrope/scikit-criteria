@@ -116,3 +116,25 @@ class Bunch(Mapping):
     def get(self, key, default=None):
         """Get item from bunch."""
         return self._data.get(key, default)
+
+    def to_dict(self):
+        """
+        Convert the Bunch object to a dictionary.
+
+        This method performs a deep copy of the _data attribute, ensuring that
+        the original data remains unchanged.
+
+        Returns
+        -------
+        dict
+            A deep copy of the _data attribute.
+
+        Example
+        -------
+        >>> bunch = Bunch()
+        >>> bunch._data = {'key1': 'value1', 'key2': 'value2'}
+        >>> dict_data = bunch.to_dict()
+        >>> print(dict_data)
+        {'key1': 'value1', 'key2': 'value2'}
+        """
+        return copy.deepcopy(self._data)

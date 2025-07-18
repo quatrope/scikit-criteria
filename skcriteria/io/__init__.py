@@ -9,22 +9,27 @@
 # DOCS
 # =============================================================================
 
-"""Utilities for a-posteriori analysis of experiments."""
+# A005 the module is shadowing a Python builtin module "io"
+# flake8: noqa: A005
+
+"""Input/Output utilities for scikit-criteria.
+
+This module provides functions for reading and writing DecisionMatrix objects.
+
+"""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from .ranks_cmp import RanksComparator, mkrank_cmp
+from .dmsy import read_dmsy, to_dmsy
 
-# from .ranks_rev import RankInvariantChecker
 
 # =============================================================================
-# ALL
+# EXPORTS
 # =============================================================================
 
 __all__ = [
-    "RanksComparator",
-    "RankInvariantChecker",
-    "mkrank_cmp",
+    "read_dmsy",
+    "to_dmsy",
 ]
