@@ -23,7 +23,6 @@ import pytest
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.cocoso import CoCoSo
-from skcriteria.preprocessing.scalers import VectorScaler
 
 
 # =============================================================================
@@ -36,7 +35,8 @@ def test_COCOSO():
     Data From:
         Yazdani, Morteza and Zaraté, Pascale and Kazimieras Zavadskas,
         Edmundas and Turskis, Zenonas
-        A Combined Compromise Solution (CoCoSo) method for multi-criteria decision-making problems.
+        A Combined Compromise Solution (CoCoSo) method for multi-criteria
+        decision-making problems.
         (2019) Management Decision, 57 (9). 2501-2519. ISSN 0025-1747
     """
 
@@ -69,7 +69,7 @@ def test_COCOSO():
                 1.3,
                 1.443,
                 2.52,
-            ], 
+            ],
         },
     )
 
@@ -79,6 +79,7 @@ def test_COCOSO():
     assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-2)
+
 
 def test_COCOSO_invalid_lambda_value():
     with pytest.raises(ValueError):
@@ -90,8 +91,7 @@ def test_COCOSO_invalid_lambda_value():
 
 def test_COCOSO_negative_values_fail():
     dm = skcriteria.mkdm(
-        matrix=[[1, 2, 3], 
-                [4, -1, 6]],
+        matrix=[[1, 2, 3], [4, -1, 6]],
         objectives=[max, max, max],
         weights=[0.036, 0.192, 0.326],
     )
@@ -100,4 +100,3 @@ def test_COCOSO_negative_values_fail():
 
     with pytest.raises(ValueError):
         ranker.evaluate(dm)
-
