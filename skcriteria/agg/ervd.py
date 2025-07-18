@@ -83,9 +83,6 @@ def ervd(
     anti_ideal = np.min(value_matrix, axis=0)
 
     # calculate distances
-    # s_plus = np.sum(weights * np.abs(value_matrix - ideal), axis=1)
-    # s_minus = np.sum(weights * np.abs(value_matrix - anti_ideal), axis=1)
-
     weight_or_none = weights if w_metric else None
     s_plus = distance.cdist(
         value_matrix, [ideal], metric=metric, w=weight_or_none, **kwargs
