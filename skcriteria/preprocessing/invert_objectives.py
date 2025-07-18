@@ -176,27 +176,16 @@ class MinMaxInverter(SKCObjectivesInverterABC):
     @doc_inherit(SKCObjectivesInverterABC._invert)
     def _invert(self, matrix, minimize_mask):
         """Apply min-max normalization that inverts minimization criteria."""
-        
-        def normalize_column(col):
-            """Normalize a single column, inverting if it's a cost criterion."""
-            max_val = np.max(col)
-            min_val = np.min(col)
-            
-            # Get the current column index
-            col_idx = normalize_column.counter
-            normalize_column.counter += 1
-            
-            if minimize_mask[col_idx]:
-                # Cost criterion (minimize): inverted normalization
-                return (col - max_val) / (min_val - max_val)
-            else:
-                # Benefit criterion (maximize): standard normalization
-                return (col - min_val) / (max_val - min_val)
-        
-        # Initialize counter for tracking column index
-        normalize_column.counter = 0
-        
-        # Apply normalization along columns (axis=0)
-        normalized_matrix = np.apply_along_axis(normalize_column, 0, matrix)
-        
-        return normalized_matrix
+
+        matrix = np.array(matrix, dtype=float)
+
+        max_vals = matrix.max(axis=0)
+        min_vals = matrix.min(axis=0)
+        ranges = max_vals - min_vals
+        ranges[ranges == 0] = 1
+
+        normalized = (matrix - min_vals) / ranges
+
+        normalized[:, minimize_mask] = 1 - normalized[:, minimize_mask]
+
+        return normalized
