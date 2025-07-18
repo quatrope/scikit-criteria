@@ -26,6 +26,7 @@ from skcriteria.agg.similarity import TOPSIS
 from skcriteria.ranksrev.rank_invariant_check import RankInvariantChecker
 from skcriteria.utils import rank
 
+
 # =============================================================================
 # TESTS
 # =============================================================================

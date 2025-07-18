@@ -439,6 +439,84 @@ class Critic(CRITIC):
     pass
 
 
+# =============================================================================
+# MEREC
+# =============================================================================
+
+
+def _merec_norm(matrix, objectives):
+    """
+    Simple linear normalization of the decision matrix using MEREC logic.
+
+    For benefit criteria, divide by the column maximum.
+    For cost criteria, divide the column minimum by each value.
+    """
+    where_max = np.equal(objectives, Objective.MAX.value)
+
+    maxs = matrix.max(axis=0)
+    mins = matrix.min(axis=0)
+
+    normalized_matrix = np.where(where_max, mins / matrix, matrix / maxs)
+
+    return normalized_matrix
+
+
+def merec_weights(matrix, objectives):
+    """Execute the MEREC method without any validation."""
+    matrix = np.asarray(matrix, dtype=float)
+    n_criteria = matrix.shape[1]
+
+    # Apply MEREC normalization based on each criterion's objective.
+    normalized_matrix = _merec_norm(matrix, objectives=objectives)
+
+    # overall performance of each alternative using all criteria.
+    performance = np.log(
+        1 + np.mean(np.abs(np.log(normalized_matrix)), axis=1, keepdims=True)
+    )
+
+    # performance of each alternative after removing each criterion.
+    log_matrix = np.abs(np.log(normalized_matrix))
+    exclusion_mask = np.ones((n_criteria, n_criteria)) - np.eye(
+        n_criteria
+    )  # mask to exclude one criterion at a time
+    performance_reduce = np.log(1 + (log_matrix @ exclusion_mask) / n_criteria)
+
+    # deviations between full and reduced performance.
+    deviations = np.sum(np.abs(performance_reduce - performance), axis=0)
+
+    # normalize the deviations to obtain criterion weights.
+    weights = deviations / np.sum(deviations)
+
+    return weights
+
+
+class MEREC(SKCWeighterABC):
+    """MEREC: Method based on the Removal Effects of Criteria.
+
+    The MEREC method computes objective weights for each criterion
+    based on its impact on the overall performance of alternatives
+    when removed. The idea is that the more a criterion affects the
+    total evaluation when excluded, the more important it is.
+
+    This implementation includes a simple linear normalization.
+
+    Reference
+    ---------
+    :cite:p:`keshavarz2021determination`
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCWeighterABC._weight_matrix)
+    def _weight_matrix(self, matrix, objectives, **kwargs):
+        return merec_weights(matrix, objectives=objectives)
+      
+      
+# =============================================================================
+# GINI
+# =============================================================================
+      
+      
 def gini_weights(matrix):
     r"""
     Calculates weights using the Gini coefficient.

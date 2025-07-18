@@ -20,6 +20,7 @@ import importlib.metadata
 
 from . import datasets
 from .core import DecisionMatrix, Objective, mkdm
+from .io import read_dmsy, to_dmsy
 from .utils.ondemand_import import mk_ondemand_importer_for
 
 
@@ -27,7 +28,14 @@ from .utils.ondemand_import import mk_ondemand_importer_for
 # CONSTANTS
 # =============================================================================
 
-__all__ = ["mkdm", "DecisionMatrix", "Objective", "datasets"]
+__all__ = [
+    "mkdm",
+    "DecisionMatrix",
+    "Objective",
+    "datasets",
+    "read_dmsy",
+    "to_dmsy",
+]
 
 
 NAME = "scikit-criteria"
