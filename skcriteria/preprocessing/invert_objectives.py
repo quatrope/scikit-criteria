@@ -162,15 +162,17 @@ class MinimizeToMaximize(InvertMinimize):
 
 
 class MinMaxInverter(SKCObjectivesInverterABC):
-    r"""Transform all minimization criteria  into maximization ones.
+    r"""Normalize and invert minimization criteria using min-max scaling.
 
-    The transformations are made by calculating the inverse value of
-    the minimization criteria. :math:`\min{C} \equiv \max{\frac{1}{C}}`
+    For minimization criteria, values are inverted by normalizing with:
 
-    Notes
-    -----
-    All the dtypes of the decision matrix are preserved except the inverted
-    ones thar are converted to ``numpy.float64``.
+        (x - max) / (min - max)
+
+    which converts the minimization problem into a maximization one.
+
+    For maximization criteria, values are normalized with:
+
+        (x - min) / (max - min)
 
     """
 
