@@ -154,3 +154,47 @@ class MinimizeToMaximize(InvertMinimize):
     ones thar are converted to ``numpy.float64``.
 
     """
+
+
+# =============================================================================
+# MIN-MAX INVERSION
+# =============================================================================
+
+
+class MinMaxInverter(SKCObjectivesInverterABC):
+    r"""Normalize and invert minimization criteria using min-max scaling.
+
+    For minimization criteria, values are inverted by normalizing with:
+
+        (x - max) / (min - max)
+
+    which converts the minimization problem into a maximization one.
+
+    For maximization criteria, values are normalized with:
+
+        (x - min) / (max - min)
+
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCObjectivesInverterABC._invert)
+    def _invert(self, matrix, minimize_mask):
+        """Apply min-max normalization that inverts minimization criteria."""
+
+        cost = minimize_mask
+        benefit = ~cost
+
+        inverted_matrix = np.empty_like(matrix)
+
+        maxs = np.max(matrix, axis=0)
+        mins = np.min(matrix, axis=0)
+
+        inverted_matrix[:, cost] = (matrix[:, cost] - maxs[cost]) / (
+            mins[cost] - maxs[cost]
+        )
+        inverted_matrix[:, benefit] = (matrix[:, benefit] - mins[benefit]) / (
+            maxs[benefit] - mins[benefit]
+        )
+
+        return inverted_matrix
