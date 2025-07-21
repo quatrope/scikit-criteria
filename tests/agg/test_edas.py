@@ -18,8 +18,6 @@
 
 import numpy as np
 
-import pytest
-
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.edas import EDAS
@@ -28,82 +26,6 @@ from skcriteria.agg.edas import EDAS
 # =============================================================================
 # TESTS
 # =============================================================================
-
-
-def test_edas_incorrect_weights_1():
-    dm = skcriteria.mkdm(
-        matrix=[
-            [250, 16, 12, 5],
-            [200, 16, 8, 3],
-            [300, 32, 16, 4],
-            [275, 32, 8, 4],
-            [225, 16, 16, 2],
-        ],
-        objectives=[min, max, max, max],
-        weights=[0.35, -0.2, 0.25, 0.6],
-    )
-
-    ranker = EDAS()
-
-    with pytest.raises(ValueError):
-        ranker.evaluate(dm)
-
-
-def test_edas_incorrect_weights_2():
-    dm = skcriteria.mkdm(
-        matrix=[
-            [250, 16, 12, 5],
-            [200, 16, 8, 3],
-            [300, 32, 16, 4],
-            [275, 32, 8, 4],
-            [225, 16, 16, 2],
-        ],
-        objectives=[min, max, max, max],
-        weights=[0.35, 0.2, 0.25, 0.19],
-    )
-
-    ranker = EDAS()
-
-    with pytest.raises(ValueError):
-        ranker.evaluate(dm)
-
-
-def test_edas_incorrect_weights_3():
-    dm = skcriteria.mkdm(
-        matrix=[
-            [250, 16, 12, 5],
-            [200, 16, 8, 3],
-            [300, 32, 16, 4],
-            [275, 32, 8, 4],
-            [225, 16, 16, 2],
-        ],
-        objectives=[min, max, max, max],
-        weights=[0, 1, 0, 0],
-    )
-
-    ranker = EDAS()
-
-    with pytest.raises(ValueError):
-        ranker.evaluate(dm)
-
-
-def test_edas_incorrect_weights_4():
-    dm = skcriteria.mkdm(
-        matrix=[
-            [250, 16, 12, 5],
-            [200, 16, 8, 3],
-            [300, 32, 16, 4],
-            [275, 32, 8, 4],
-            [225, 16, 16, 2],
-        ],
-        objectives=[min, max, max, max],
-        weights=[0.5, 0.4, 0.05, 0.06],
-    )
-
-    ranker = EDAS()
-
-    with pytest.raises(ValueError):
-        ranker.evaluate(dm)
 
 
 def test_edas_mobile_selection():

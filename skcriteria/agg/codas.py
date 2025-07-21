@@ -37,6 +37,7 @@ with hidden():
 
     from ._agg_base import RankResult, SKCDecisionMakerABC
     from ..utils import doc_inherit, rank
+    from ..core import Objective
 
 
 # =============================================================================
@@ -62,11 +63,14 @@ def _codas_relative_assessment(euclidian_d, taxicab_d, tau):
     # Final relative assessment matrix
     rel_assessment_m = np.add(diff_euclidian, np.multiply(psi, diff_taxicab))
 
-    return rel_assessment_m
+    return rel_assessment_m, psi
 
 
-def codas(matrix, tau):
+def codas(matrix, weights, tau):
     """Execute CODAS without any validation and assuming tau value."""
+    # Weight the decision matrix
+    matrix = np.multiply(matrix, weights)
+
     # Determine the negative-ideal solution (anti-ideal)
     neg_sol_arr = np.min(matrix, axis=0)
 
@@ -79,14 +83,14 @@ def codas(matrix, tau):
     )
 
     # Build relative assessment matrix
-    rel_assessment_m = _codas_relative_assessment(
+    rel_assessment_m, psi = _codas_relative_assessment(
         euclidian_distances, taxicab_distances, tau
     )
 
     # Rank alternatives
     score = np.sum(rel_assessment_m, axis=1)
 
-    return rank.rank_values(score, reverse=True), score
+    return rank.rank_values(score, reverse=True), score, psi
 
 
 class CODAS(SKCDecisionMakerABC):
@@ -108,6 +112,7 @@ class CODAS(SKCDecisionMakerABC):
     Raises
     ------
     ValueError:
+        If the objectives contain a minimize objective.
         If the decision matrix is not normalized.
     UserWarning:
         If tau is not set between 0.01 and 0.05.
@@ -130,22 +135,21 @@ class CODAS(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, objectives, weights, **kwargs):
-        if np.any(matrix > 1) or np.any(matrix < 0):
+        if Objective.MIN.value in objectives:
+            raise ValueError("CODAS can't operate with minimize objective")
+        if np.any((matrix > 1) | (matrix < 0)):
             raise ValueError(
-                "Decision matrix must be normalized (Use CodasTransformer)"
+                "DM must be normalized (Suggested to use BenefitCostInverter)"
             )
-        if self.tau < 0.01 or self.tau > 0.05:
+        if (self.tau < 0.01) | (self.tau > 0.05):
             warnings.warn(
                 "It is suggested to set tau at a value between 0.01 and 0.05"
             )
-        rank, score = codas(matrix, tau=self.tau)
-        return rank, {"score": score}
+        rank, score, psi = codas(matrix, weights, tau=self.tau)
+        return rank, {"score": score, "psi": psi}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
         return RankResult(
-            "CODAS",
-            alternatives=alternatives,
-            values=values,
-            extra=extra,
+            "CODAS", alternatives=alternatives, values=values, extra=extra
         )

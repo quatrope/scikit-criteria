@@ -23,7 +23,7 @@ import pytest
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.codas import CODAS
-from skcriteria.preprocessing.scalers import CodasTransformer
+from skcriteria.preprocessing.invert_objectives import BenefitCostInverter
 
 
 # =============================================================================
@@ -33,8 +33,9 @@ from skcriteria.preprocessing.scalers import CodasTransformer
 
 def test_codas_incorrect_dm_1():
     dm = skcriteria.mkdm(
-        matrix=[[0.1, 0.2, 0.3], [0.4, -1, 0.6]],
+        matrix=[[0.1, 1.2, 0.3], [0.4, -1, 0.6]],
         objectives=[max, max, max],
+        weights=[0.5, 0.3, 0.2],
     )
 
     ranker = CODAS()
@@ -45,8 +46,9 @@ def test_codas_incorrect_dm_1():
 
 def test_codas_incorrect_dm_2():
     dm = skcriteria.mkdm(
-        matrix=[[0.1, 0.2, 0.3], [0.4, 1.2, 0.6]],
-        objectives=[max, max, max],
+        matrix=[[0.1, 0.2, 0.3], [0.4, 0.9, 0.6]],
+        objectives=[max, min, max],
+        weights=[0.5, 0.3, 0.2],
     )
 
     ranker = CODAS()
@@ -84,7 +86,7 @@ def test_codas_lisco():
         {"score": [1.3914, 0.3411, -0.2170, -0.5381, -0.7292, -0.2481]},
     )
 
-    transformer = CodasTransformer()
+    transformer = BenefitCostInverter()
     ranker = CODAS()
 
     dm_transformed = transformer.transform(dm)
@@ -122,7 +124,7 @@ def test_codas_libya():
         {"score": [0.4463, 0.1658, -0.2544, -0.4618, 0.1041]},
     )
 
-    transformer = CodasTransformer()
+    transformer = BenefitCostInverter()
     dm_transformed = transformer.transform(dm)
 
     ranker = CODAS()
@@ -180,7 +182,7 @@ def test_codas_bakir_atalik_2018():
         },
     )
 
-    transformer = CodasTransformer()
+    transformer = BenefitCostInverter()
     ranker = CODAS()
 
     dm_transformed = transformer.transform(dm)
@@ -218,7 +220,7 @@ def test_codas_cloud_service():
         {"score": [0.476, -0.536, 0.924, -0.864]},
     )
 
-    transformer = CodasTransformer()
+    transformer = BenefitCostInverter()
     ranker = CODAS()
 
     dm_transformed = transformer.transform(dm)
@@ -311,7 +313,7 @@ def test_codas_zavadaskas_turskis_2010():
         },
     )
 
-    transformer = CodasTransformer()
+    transformer = BenefitCostInverter()
     ranker = CODAS()
 
     dm_transformed = transformer.transform(dm)

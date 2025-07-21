@@ -43,18 +43,25 @@ with hidden():
 # =============================================================================
 
 
+def _any_zeroes(matrix):
+    """Aux function to avoid division by zero."""
+    result = matrix
+    if np.any(result == 0):
+        result = np.add(result, 1e-5)
+    result = np.where(np.equal(result, 0), -1e-6, result)
+    return result
+
+
 def _distance_from_avg(matrix, objectives, avg):
     """Aux function to calculate PDA and NDA."""
     pda = np.zeros_like(matrix, dtype=float)
     nda = np.zeros_like(matrix, dtype=float)
 
     # Determine if the objective is beneficial or not
-    is_beneficial = np.array(
-        [obj == Objective.MAX.value for obj in objectives]
-    )
+    is_beneficial = np.equal(objectives, Objective.MAX.value)
 
     # Avoid division by zero
-    divisor = np.where(avg != 0, avg, 1e-10)
+    divisor = _any_zeroes(avg)
 
     diff_from_avg = np.subtract(matrix, avg)
     max_zero_diff = np.maximum(0, diff_from_avg)
@@ -77,11 +84,11 @@ def _normalize_sum_pda_nda(pda, nda):
     max_nda = np.max(nda)
 
     # Avoid division by zero
-    divisor = max_pda if max_pda != 0 else 1e-10
+    divisor = max_pda if max_pda != 0 else 1e-5
     result_pda = np.divide(pda, divisor)
 
     # Avoid division by zero
-    divisor = max_nda if max_nda != 0 else 1e-10
+    divisor = max_nda if max_nda != 0 else 1e-5
     result_nda = np.subtract(1, np.divide(nda, divisor))
 
     return result_pda, result_nda
@@ -117,12 +124,6 @@ class EDAS(SKCDecisionMakerABC):
     Negative (NDA) distances from average values, which are then weighted,
     normalized, and combined into a final appraisal score.
 
-    Raises
-    ------
-    ValueError:
-        If the sum of the weights is not equal to 1.
-        If any weight is less than or equal to 0 or greater than or equal to 1.
-
     References
     ----------
     :cite:p:`keshavarz2015multi`
@@ -133,10 +134,6 @@ class EDAS(SKCDecisionMakerABC):
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
-        if not np.isclose(np.sum(weights), 1.0, atol=1e-4):
-            raise ValueError("Sum of weights must be 1")
-        if np.any(weights <= 0) or np.any(weights >= 1):
-            raise ValueError("Weigths must be between 0 and 1")
         rank, score = edas(matrix, weights, objectives)
         return rank, {"score": score}
 
