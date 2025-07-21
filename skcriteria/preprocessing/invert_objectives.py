@@ -72,8 +72,9 @@ class SKCObjectivesInverterABC(SKCTransformerABC):
         )
 
         # we are trying to preserve the original dtype as much as possible
-        # only the minimize criteria are changed.
-        inv_dtypes = np.where(minimize_mask, inv_mtx.dtype, dtypes)
+        # only the changed columns are changed
+        columns_changes = np.all(inv_mtx != matrix, axis=0)
+        inv_dtypes = np.where(columns_changes, inv_mtx.dtype, dtypes)
 
         kwargs.update(
             matrix=inv_mtx, objectives=inv_objectives, dtypes=inv_dtypes
