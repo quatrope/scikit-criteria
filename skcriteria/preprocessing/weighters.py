@@ -458,14 +458,6 @@ def rancom_weights(weights):
     - Unlike other weighting methods, RANCOM transforms existing weights rather
       than deriving weights from the decision matrix
 
-    References
-    ----------
-    .. [1] Stojić, G., Pamučar, D., Milošević, M., & others (2023).
-        RANCOM: A novel approach to identifying criteria relevance
-        based on inaccuracy expert judgments.
-        Engineering Applications of Artificial Intelligence, 122,
-        106114. https://doi.org/10.1016/j.engappai.2023.106114
-
     Examples
     --------
     .. code-block:: pycon
@@ -478,7 +470,7 @@ def rancom_weights(weights):
     """
     # Convert weights to rankings (lower weight = higher rank/importance)
     # Reverse weights so that lower weight values get higher ranks
-    reversed_weights = -weights
+    reversed_weights = -weights ### ACA
     rankings = scipy.stats.rankdata(reversed_weights, method="dense")
 
     # Build MAC matrix based on rankings
@@ -521,10 +513,7 @@ class RANCOM(SKCWeighterABC):
 
     References
     ----------
-    .. [1] Stojić, G., Pamučar, D., Milošević, M., & others (2023). RANCOM:
-       A novel approach to identifying criteria relevance based on inaccuracy
-       expert judgments. Engineering Applications of Artificial Intelligence,
-       122, 106114. https://doi.org/10.1016/j.engappai.2023.106114
+    :cite:p:`WIECKOWSKI2023106114`
     """
 
     _skcriteria_parameters = []
