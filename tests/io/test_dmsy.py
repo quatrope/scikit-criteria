@@ -83,6 +83,7 @@ def test_CustomYAMLDumper_scalar():
 # =============================================================================
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("alternatives", [1, 10, 100])
 @pytest.mark.parametrize("criteria", [1, 10, 100])
 def test_read_write_dmsy_buffer(decision_matrix, alternatives, criteria):
@@ -102,6 +103,7 @@ def test_read_write_dmsy_buffer(decision_matrix, alternatives, criteria):
     skc.testing.assert_dmatrix_equals(dm, dm2)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("path", [pathlib.Path("test.dmsy"), "test.dmsy"])
 @pytest.mark.parametrize("alternatives", [1, 10, 100])
 @pytest.mark.parametrize("criteria", [1, 10, 100])
@@ -133,7 +135,7 @@ def test_read_write_dmsy_path(decision_matrix, path, alternatives, criteria):
     skc.testing.assert_dmatrix_equals(dm, dm2)
 
 
-def test_DMSY_coso():
+def test_DMSY_YAML_format():
     dm = skc.mkdm(
         matrix=[[1, 2], [3, 4]],
         objectives=[1, -1],
