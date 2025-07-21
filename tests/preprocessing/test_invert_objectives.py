@@ -23,6 +23,7 @@ import pytest
 import skcriteria
 from skcriteria.preprocessing.invert_objectives import (
     InvertMinimize,
+    MinMaxInverter,
     NegateMinimize,
     SKCObjectivesInverterABC,
 )
@@ -201,6 +202,106 @@ def test_InvertMinimize_no_change_original_dm(decision_matrix):
     expected = dm.copy()
 
     inv = InvertMinimize()
+    dmt = inv.transform(dm)
+
+    assert (
+        dm.equals(expected) and not dmt.equals(expected) and dm is not expected
+    )
+
+
+# =============================================================================
+# MIN-MAX INVERT
+# =============================================================================
+
+
+def test_MinMaxInverter_all_min(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=1.0,
+    )
+
+    matrix = np.array(dm.matrix, dtype=float)
+    maxs = np.max(matrix, axis=0)
+    mins = np.min(matrix, axis=0)
+
+    expected_mtx = (matrix - maxs) / (mins - maxs)
+
+    expected = skcriteria.mkdm(
+        matrix=expected_mtx,
+        objectives=np.full(20, 1, dtype=int),
+        weights=dm.weights,
+        alternatives=dm.alternatives,
+        criteria=dm.criteria,
+        dtypes=np.full(20, float),
+    )
+
+    inv = MinMaxInverter()
+
+    result = inv.transform(dm)
+
+    assert result.equals(expected)
+
+
+def test_MinMaxInverter_50percent_min(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    minimize_mask = dm.iobjectives == -1
+    benefit_mask = ~minimize_mask
+
+    matrix = np.array(dm.matrix, dtype=float)
+    expected_mtx = np.empty_like(matrix)
+
+    maxs = np.max(matrix, axis=0)
+    mins = np.min(matrix, axis=0)
+
+    expected_mtx[:, minimize_mask] = (
+        matrix[:, minimize_mask] - maxs[minimize_mask]
+    ) / (mins[minimize_mask] - maxs[minimize_mask])
+
+    expected_mtx[:, benefit_mask] = (
+        matrix[:, benefit_mask] - mins[benefit_mask]
+    ) / (maxs[benefit_mask] - mins[benefit_mask])
+
+    expected = skcriteria.mkdm(
+        matrix=expected_mtx,
+        objectives=np.full(20, 1, dtype=int),
+        weights=dm.weights,
+        alternatives=dm.alternatives,
+        criteria=dm.criteria,
+        dtypes=np.full(20, float),
+    )
+
+    inv = MinMaxInverter()
+
+    result = inv.transform(dm)
+
+    assert result.equals(expected)
+
+
+def test_MinMaxInverter_no_change_original_dm(decision_matrix):
+    dm = decision_matrix(
+        seed=42,
+        min_alternatives=10,
+        max_alternatives=10,
+        min_criteria=20,
+        max_criteria=20,
+        min_objectives_proportion=0.5,
+    )
+
+    expected = dm.copy()
+
+    inv = MinMaxInverter()
     dmt = inv.transform(dm)
 
     assert (

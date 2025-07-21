@@ -20,8 +20,8 @@ the alternative matrix, weights and objectives (MIN, MAX) of the criteria.
 # IMPORTS
 # =============================================================================
 
-
 import functools
+import io
 from collections import abc
 
 import methodtools
@@ -668,6 +668,38 @@ class DecisionMatrix(DiffEqualityMixin):
 
         """
         return self._data_df.describe(**kwargs)
+
+    # IO ======================================================================
+
+    def to_dmsy(self, filepath_or_buffer=None):
+        """Save a DecisionMatrix to a DMSY format file or buffer.
+
+        Parameters
+        ----------
+        filepath_or_buffer : str or file-like object or None
+            Path where to save the DMSY file or a file-like object to write to.
+            if None, return the DMSY data as a string
+
+        Returns
+        -------
+        str
+            DMSY data as a string if filepath_or_buffer is None else None
+
+        Examples
+        --------
+        >>> import skcriteria as skc
+        >>> dm = skc.mkdm([[1, 2], [3, 4]], [max, min])
+        >>> skc.io.to_dmsy(dm, "output.dmsy")
+
+        """
+        from skcriteria.io.dmsy import to_dmsy
+
+        return_str = filepath_or_buffer is None
+        filepath_or_buffer = (
+            io.StringIO() if return_str else filepath_or_buffer
+        )
+        to_dmsy(dm=self, filepath_or_buffer=filepath_or_buffer)
+        return filepath_or_buffer.getvalue() if return_str else None
 
     # CMP =====================================================================
 

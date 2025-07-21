@@ -4,7 +4,7 @@
 
 ## Version 0.9
 
-- **New**: The `has_loops`method of the `DecisionMatrix` class now uses the networkx library to compute the dominance graph and check if it is a DAG.
+- **New**: The `has_loops` method of the `DecisionMatrix` class now uses the networkx library to compute the dominance graph and check if it is a DAG.
 - **New**: Added the `to_latex` method to `DecisionMatrix` to generate a LaTeX table representation of the decision matrix.
 - **Changed Behavior**: Corrected the functionality of the PushNegatives transformation. The transformer now appropriately manages negative values by identifying the lowest negative value in the matrix and adding its absolute value to all matrix elements.
 
@@ -25,7 +25,8 @@
 
 - The `utils.deprecate` module has been streamlined for better usability. The warning system now uses a simpler implementation that emits warnings only once per call location. The raising functionality has been moved to module level configuration.
 
-- ***Dependencies:** Added requirements for NumPy 2.0, Network-X 3.4 and scikit-learn 1.6
+- **New**: Added support for Python 3.12 and 3.13
+- ***Dependencies:** Added requirements for NumPy 2.0, Network-X 3.2 and scikit-learn 1.6
 
 
 ## Version 0.8.7

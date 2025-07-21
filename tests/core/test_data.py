@@ -16,6 +16,7 @@
 # IMPORTS
 # =============================================================================
 
+import io
 import warnings
 
 import numpy as np
@@ -26,6 +27,7 @@ import pyquery
 
 import pytest
 
+import skcriteria as skc
 from skcriteria.core import data, dominance, plot, stats
 
 
@@ -411,6 +413,52 @@ def test_DecisionMatrix_describe(data_values):
         result = dm.describe()
 
     assert result.equals(expected)
+
+
+# =============================================================================
+# IO
+# =============================================================================
+
+
+def test_DecisionMatrix_to_dmsy(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+
+    buff = io.StringIO()
+    dm.to_dmsy(buff)
+
+    buff.seek(0)
+    dm2 = skc.io.read_dmsy(buff)
+
+    assert dm is not dm2
+    skc.testing.assert_dmatrix_equals(dm, dm2)
+
+
+def test_DecisionMatrix_to_dmsy_filepath_or_buffer_None(data_values):
+    mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
+
+    dm = data.mkdm(
+        matrix=mtx,
+        objectives=objectives,
+        weights=weights,
+        alternatives=alternatives,
+        criteria=criteria,
+    )
+
+    code = dm.to_dmsy()
+    buff = io.StringIO(code)
+
+    dm2 = skc.io.read_dmsy(buff)
+
+    assert dm is not dm2
+    skc.testing.assert_dmatrix_equals(dm, dm2)
 
 
 # =============================================================================

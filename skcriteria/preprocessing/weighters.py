@@ -437,3 +437,136 @@ class CRITIC(SKCWeighterABC):
 @doc_inherit(CRITIC, warn_class=False)
 class Critic(CRITIC):
     pass
+
+
+# =============================================================================
+# MEREC
+# =============================================================================
+
+
+def _merec_norm(matrix, objectives):
+    """
+    Simple linear normalization of the decision matrix using MEREC logic.
+
+    For benefit criteria, divide by the column maximum.
+    For cost criteria, divide the column minimum by each value.
+    """
+    where_max = np.equal(objectives, Objective.MAX.value)
+
+    maxs = matrix.max(axis=0)
+    mins = matrix.min(axis=0)
+
+    normalized_matrix = np.where(where_max, mins / matrix, matrix / maxs)
+
+    return normalized_matrix
+
+
+def merec_weights(matrix, objectives):
+    """Execute the MEREC method without any validation."""
+    matrix = np.asarray(matrix, dtype=float)
+    n_criteria = matrix.shape[1]
+
+    # Apply MEREC normalization based on each criterion's objective.
+    normalized_matrix = _merec_norm(matrix, objectives=objectives)
+
+    # overall performance of each alternative using all criteria.
+    performance = np.log(
+        1 + np.mean(np.abs(np.log(normalized_matrix)), axis=1, keepdims=True)
+    )
+
+    # performance of each alternative after removing each criterion.
+    log_matrix = np.abs(np.log(normalized_matrix))
+    exclusion_mask = np.ones((n_criteria, n_criteria)) - np.eye(
+        n_criteria
+    )  # mask to exclude one criterion at a time
+    performance_reduce = np.log(1 + (log_matrix @ exclusion_mask) / n_criteria)
+
+    # deviations between full and reduced performance.
+    deviations = np.sum(np.abs(performance_reduce - performance), axis=0)
+
+    # normalize the deviations to obtain criterion weights.
+    weights = deviations / np.sum(deviations)
+
+    return weights
+
+
+class MEREC(SKCWeighterABC):
+    """MEREC: Method based on the Removal Effects of Criteria.
+
+    The MEREC method computes objective weights for each criterion
+    based on its impact on the overall performance of alternatives
+    when removed. The idea is that the more a criterion affects the
+    total evaluation when excluded, the more important it is.
+
+    This implementation includes a simple linear normalization.
+
+    Reference
+    ---------
+    :cite:p:`keshavarz2021determination`
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCWeighterABC._weight_matrix)
+    def _weight_matrix(self, matrix, objectives, **kwargs):
+        return merec_weights(matrix, objectives=objectives)
+
+
+# =============================================================================
+# GINI
+# =============================================================================
+
+
+def gini_weights(matrix):
+    r"""
+    Calculates weights using the Gini coefficient.
+
+    Computes the weights for each criterion (column) of the input matrix by
+    calculating the Gini coefficient of each column, then normalizing those
+    values to sum to 1.
+
+    The columns are sorted to use the more efficient formula for the
+    Gini coefficient:
+
+    .. math::
+
+        G = \frac{1}{n} \left( n + 1 - 2 \cdot \frac{
+        \sum_{i=1}^n \left( \sum_{j=1}^i x_j \right)
+        }{
+        \sum_{i=1}^n x_i
+        } \right)
+    """
+    n = matrix.shape[0]
+    sorted_columns = np.sort(matrix, axis=0)
+    column_sums = np.sum(sorted_columns, axis=0)
+
+    # sum_of_cumulatives is the nested sum described in the formula above:
+    # sum from i = 1 to n of (sum from j = 1 to i of x_j)
+    cumulative_sums = np.cumsum(sorted_columns, axis=0)
+    sum_of_cumulatives = np.sum(cumulative_sums, axis=0)
+
+    gini = (n + 1 - 2 * sum_of_cumulatives / column_sums) / n
+
+    # weights are the normalized ginis of each column
+    return gini / np.sum(gini)
+
+
+class GiniWeighter(SKCWeighterABC):
+    """
+    Calculates the weights with the Gini coefficient.
+
+    The method aims at the determination of objective weights of relative
+    importance in MCDM problems. It uses the Gini coefficient of the data of
+    each criterion to assign the weights, giving a higher weight to a more
+    unequal distribution. It takes the decision matrix as a parameter.
+
+    References
+    ----------
+    :cite:p:`li2009new`
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCWeighterABC._weight_matrix)
+    def _weight_matrix(self, matrix, **kwargs):
+        return gini_weights(matrix)

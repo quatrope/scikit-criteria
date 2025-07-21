@@ -408,9 +408,9 @@ def matrix_scale_by_cenit_distance(matrix, objectives):
 
     For every criterion :math:`f` of this multicriteria problem we define a
     membership function :math:`x_j` mapping the values of :math:`f_j` to the
-    interval [0, 1].
+    interval [0, 1], where 1 corresponds to the ideal value.
 
-    The result score :math:`x_{aj}`expresses the degree to which the
+    The result score :math:`x_{aj}` expresses the degree to which the
     alternative  :math:`a` is close to the ideal value :math:`f_{j}^*`, which
     is the best performance in criterion , and  far from the anti-ideal value
     :math:`f_{j^*}`, which is the worst performance in  criterion :math:`j`.
@@ -440,9 +440,9 @@ class CenitDistanceMatrixScaler(SKCTransformerABC):
 
     For every criterion :math:`f` of this multicriteria problem we define a
     membership function :math:`x_j` mapping the values of :math:`f_j` to the
-    interval [0, 1].
+    interval [0, 1], where 1 corresponds to the ideal value.
 
-    The result score :math:`x_{aj}`expresses the degree to which the
+    The result score :math:`x_{aj}` expresses the degree to which the
     alternative  :math:`a` is close to the ideal value :math:`f_{j}^*`, which
     is the best performance in criterion , and  far from the anti-ideal value
     :math:`f_{j^*}`, which is the worst performance in  criterion :math:`j`.
