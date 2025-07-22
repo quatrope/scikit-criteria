@@ -73,7 +73,7 @@ class SKCObjectivesInverterABC(SKCTransformerABC):
 
         # we are trying to preserve the original dtype as much as possible
         # only the changed columns are changed
-        columns_changes = np.all(inv_mtx != matrix, axis=0)
+        columns_changes = np.any(inv_mtx != matrix, axis=0)
         inv_dtypes = np.where(columns_changes, inv_mtx.dtype, dtypes)
 
         kwargs.update(
@@ -199,3 +199,56 @@ class MinMaxInverter(SKCObjectivesInverterABC):
         )
 
         return inverted_matrix
+
+
+# =============================================================================
+# BENEFIT-COST INVERSION
+# =============================================================================
+
+
+class BenefitCostInverter(SKCObjectivesInverterABC):
+    r"""Inverts using ratios based on criterion type.
+
+    The matrix transformation is given by:
+
+    .. math::
+
+    For each criterion j, the normalized value is calculated as:
+        if j is a benefit criteria:
+            n_{ij} = \frac{x_{ij}}{\max_i x_{ij}}
+
+        if j is a cost criteria:
+            n_{ij} = \frac{\min_i x_{ij}}{x_{ij}}
+
+    Raises
+    ------
+    ValueError:
+        If the decision matrix contains negative values.
+
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCObjectivesInverterABC._invert)
+    def _invert(self, matrix, minimize_mask):
+        if np.any(matrix < 0):
+            raise ValueError("Inverter can not operate with negative values")
+
+        inv_mtx = np.zeros_like(matrix, dtype=float)
+
+        # Benefit Criteria
+        maximize_mask = ~minimize_mask
+        max_columns = matrix[:, maximize_mask]
+        max_values = np.max(max_columns, axis=0)
+        # Avoid division by zero
+        checked_max_values = np.where(max_values != 0, max_values, 1e-5)
+        inv_mtx[:, maximize_mask] = max_columns / checked_max_values
+
+        # Cost Criteria
+        min_columns = matrix[:, minimize_mask]
+        min_values = np.min(min_columns, axis=0)
+        # Avoid division by zero
+        checked_min_columns = np.where(min_columns != 0, min_columns, 1e-5)
+        inv_mtx[:, minimize_mask] = min_values / checked_min_columns
+
+        return inv_mtx
