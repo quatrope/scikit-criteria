@@ -578,22 +578,26 @@ def rancom_weights(weights):
     The RANCOM method is designed to handle expert inaccuracies in
     multi-criteria decision making by transforming initial weight
     values through ranking comparison.
-    The method builds a Matrix of Ranking Comparison(MAC) where all weights
+    The method builds a Matrix of Ranking Comparison (MAC) where all weights
     are compared pairwise, then calculates Summed Criteria Weights (SWC) to
     derive final normalized weights.
 
     The method operates under the following assumptions:
+
     - The sum of input weights equals 1
     - Lower weight values correspond to higher importance
     - Ties between criteria are allowed
 
     Algorithm Steps:
+
     1. Convert weights to rankings (lower weight = higher rank/importance)
     2. Build MAC (Matrix of Ranking Comparison): An nxn matrix where rankings
-    are compared pairwise with values:
+       are compared pairwise with values:
+
        - aij = 1 if rank_i < rank_j (criterion i is more important than j)
        - aij = 0.5 if rank_i = rank_j (criteria i and j have equal importance)
        - aij = 0 if rank_i > rank_j (criterion i is less important than j)
+
     3. Calculate SWC (Summed Criteria Weights): Sum each row of the MAC matrix
     4. Normalize final weights: wi = SWCi / sum(SWC)
 
@@ -606,10 +610,10 @@ def rancom_weights(weights):
     -----
     - RANCOM is particularly useful when dealing with subjective weight
       assignments from experts where small inaccuracies in weight
-      specification can significantly impact results
-    - The method provides a systematic way to handle ranking inconsistencies
+      specification can significantly impact results.
+    - The method provides a systematic way to handle ranking inconsistencies.
     - Unlike other weighting methods, RANCOM transforms existing weights rather
-      than deriving weights from the decision matrix
+      than deriving weights from the decision matrix.
 
     Examples
     --------
@@ -617,13 +621,12 @@ def rancom_weights(weights):
 
         >>> from skcriteria.preprocessing import rancom_weights
         >>> weights = [0.4, 0.2, 0.25, 0.05]
-
         >>> rancom_weights(weights)
-        >>> array([0.4375, 0.1875, 0.3125, 0.0625])
+        array([0.4375, 0.1875, 0.3125, 0.0625])
     """
     # Convert weights to rankings (lower weight = higher rank/importance)
     # Reverse weights so that lower weight values get higher ranks
-    reversed_weights = -weights ### ACA
+    reversed_weights = -weights
     rankings = scipy.stats.rankdata(reversed_weights, method="dense")
 
     # Build MAC matrix based on rankings
