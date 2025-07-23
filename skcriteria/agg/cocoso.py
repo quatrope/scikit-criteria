@@ -32,7 +32,7 @@ with hidden():
 
 
 def cocoso(matrix, weights, lambda_value):
-    """Execute COCOSO without any validation."""
+    """Execute CoCoSo without any validation."""
     score_wsm = np.sum(matrix * weights, axis=1)
     score_wpm = np.sum(matrix**weights, axis=1)
 

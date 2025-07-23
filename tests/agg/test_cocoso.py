@@ -30,7 +30,7 @@ from skcriteria.agg.cocoso import CoCoSo
 # =============================================================================
 
 
-def test_COCOSO():
+def test_CoCoSo():
     """
     Data From:
         Yazdani, Morteza and Zaraté, Pascale and Kazimieras Zavadskas,
@@ -108,7 +108,7 @@ def test_COCOSO():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1e-2)
 
 
-def test_COCOSO_invalid_lambda_value():
+def test_CoCoSo_invalid_lambda_value():
     with pytest.raises(ValueError):
         CoCoSo(lambda_value=1.5)
 
@@ -116,7 +116,7 @@ def test_COCOSO_invalid_lambda_value():
         CoCoSo(lambda_value=-1)
 
 
-def test_COCOSO_invalid_objectives_value():
+def test_CoCoSo_invalid_objectives_value():
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6]],
         objectives=[max, max, min],
@@ -129,7 +129,7 @@ def test_COCOSO_invalid_objectives_value():
         ranker.evaluate(dm)
 
 
-def test_COCOSO_negative_values_fail():
+def test_CoCoSo_negative_values_fail():
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3], [4, -1, 6]],
         objectives=[max, max, max],
