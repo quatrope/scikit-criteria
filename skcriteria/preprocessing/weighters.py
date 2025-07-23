@@ -660,15 +660,13 @@ class RANCOM(SKCWeighterABC):
     The RANCOM method is designed to handle expert inaccuracies in
     multi-criteria decision making by transforming initial weight values
     through ranking comparison.
+
     The method builds a Matrix of Ranking Comparison (MAC) where all weights
     are compared pairwise, then calculates Summed Criteria Weights (SWC) to
     derive final normalized weights.
 
-    Parameters
-    ----------
-    None
-        RANCOM uses predefined weights provided through the weighting process
-        and does not require additional configuration parameters.
+    RANCOM uses predefined weights provided through the weighting process
+    and does not require additional configuration parameters.
 
     Warnings
     --------
