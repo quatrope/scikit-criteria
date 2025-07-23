@@ -572,6 +572,11 @@ class GiniWeighter(SKCWeighterABC):
         return gini_weights(matrix)
 
 
+# =============================================================================
+# RANCOM
+# =============================================================================
+
+
 def rancom_weights(weights):
     """RANCOM (RANking COMparison) weighting method.
 

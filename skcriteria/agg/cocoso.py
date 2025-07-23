@@ -103,11 +103,11 @@ class CoCoSo(SKCDecisionMakerABC):
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
     def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if np.any(matrix < 0):
-            raise ValueError("CoCoSoModel can't operate with values <= 0")
+            raise ValueError("CoCoSo can't operate with values <= 0")
 
         if Objective.MIN.value in objectives:
             raise ValueError(
-                "CoCoSoModel cannot operate on minimising criteria"
+                "CoCoSo cannot operate on minimising criteria"
             )
 
         rank, score, k_a, k_b, k_c = cocoso(matrix, weights, self.lambda_value)
