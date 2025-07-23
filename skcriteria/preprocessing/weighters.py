@@ -684,8 +684,8 @@ class RANCOM(SKCWeighterABC):
                 "Despite this, nothing prevents its use with four or fewer."
             )
 
-        weight_sum = np.sum(weights)
-        if weight_sum != 1:
-            weights /= weight_sum
+        weights_sum = np.sum(weights)
+        if weights_sum != 1:
+            weights /= weights_sum
 
         return rancom_weights(weights)
