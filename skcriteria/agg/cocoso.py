@@ -22,6 +22,7 @@ with hidden():
     import numpy as np
 
     from ._agg_base import RankResult, SKCDecisionMakerABC
+    from ..core import Objective
     from ..utils import doc_inherit, rank
 
 
@@ -50,7 +51,7 @@ def cocoso(matrix, weights, lambda_value):
 
     score = (k_a * k_b * k_c) ** (1 / 3) + (k_a + k_b + k_c) * (1 / 3)
 
-    return rank.rank_values(score, reverse=True), score
+    return rank.rank_values(score, reverse=True), score, k_a, k_b, k_c
 
 
 class CoCoSo(SKCDecisionMakerABC):
@@ -100,12 +101,17 @@ class CoCoSo(SKCDecisionMakerABC):
         return self._lambda_value
 
     @doc_inherit(SKCDecisionMakerABC._evaluate_data)
-    def _evaluate_data(self, matrix, weights, **kwargs):
+    def _evaluate_data(self, matrix, weights, objectives, **kwargs):
         if np.any(matrix < 0):
             raise ValueError("CoCoSoModel can't operate with values <= 0")
 
-        rank, score = cocoso(matrix, weights, self.lambda_value)
-        return rank, {"score": score}
+        if Objective.MIN.value in objectives:
+            raise ValueError(
+                "CoCoSoModel cannot operate on minimising criteria"
+            )
+
+        rank, score, k_a, k_b, k_c = cocoso(matrix, weights, self.lambda_value)
+        return rank, {"score": score, "k_a": k_a, "k_b": k_b, "k_c": k_c}
 
     @doc_inherit(SKCDecisionMakerABC._make_result)
     def _make_result(self, alternatives, values, extra):
