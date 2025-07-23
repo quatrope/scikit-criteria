@@ -571,7 +571,7 @@ def test_Gini_WomenVulnerabilityIndex():
 # =============================================================================
 
 
-def test_rancom_weights_function():
+def test_RANCOM_weights_function():
     weights = np.array([6.0, 6.0, 3.5, 0.5, 1.5, 2.5, 4.5])
     expected = np.array(
         [0.2449, 0.2449, 0.1429, 0.0204, 0.0612, 0.1020, 0.1837]
@@ -582,7 +582,7 @@ def test_rancom_weights_function():
     np.testing.assert_allclose(result, expected, atol=1e-3)
 
 
-def test_rancom_weights_with_ties():
+def test_RANCOM_weights_with_ties():
     weights = np.array([0.3, 0.3, 0.2, 0.2])
 
     result = rancom_weights(weights)
@@ -593,7 +593,7 @@ def test_rancom_weights_with_ties():
     assert np.all(result >= 0)
 
 
-def test_RANCOM_weighter_correct_functionality():
+def test_RANCOM_weighter_ideal_inputs():
     dm = skcriteria.mkdm(
         matrix=[[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]],
         objectives=[max, max, max, max, max],

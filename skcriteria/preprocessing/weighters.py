@@ -624,6 +624,11 @@ def rancom_weights(weights):
         >>> rancom_weights(weights)
         array([0.4375, 0.1875, 0.3125, 0.0625])
     """
+    # Normalize weights if necessary
+    weights_sum = np.sum(weights)
+    if weights_sum != 1:
+        weights /= weights_sum
+
     # Convert weights to rankings (lower weight = higher rank/importance)
     # Reverse weights so that lower weight values get higher ranks
     reversed_weights = -weights
@@ -683,9 +688,5 @@ class RANCOM(SKCWeighterABC):
                 "criteria."
                 "Despite this, nothing prevents its use with four or fewer."
             )
-
-        weights_sum = np.sum(weights)
-        if weights_sum != 1:
-            weights /= weights_sum
 
         return rancom_weights(weights)
