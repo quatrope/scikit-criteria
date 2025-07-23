@@ -50,7 +50,7 @@ def test_COCOSO():
             [0.0348, 1, 0.2303, 0, 0],
             [0.0087, 0.9375, 0.6152, 0.2453, 0.3527],
         ],
-        objectives=[max, min, max, max, max],
+        objectives=[max, max, max, max, max],
         weights=[0.036, 0.192, 0.326, 0.326, 0.12],
     )
 
@@ -70,6 +70,33 @@ def test_COCOSO():
                 1.443,
                 2.52,
             ],
+            "k_a": [
+                0.131,
+                0.175,
+                0.18,
+                0.163,
+                0.088,
+                0.097,
+                0.165,
+            ],
+            "k_b": [
+                3.245,
+                4.473,
+                4.64,
+                3.682,
+                2.0,
+                2.225,
+                3.951,
+            ],
+            "k_c": [
+                0.724,
+                0.973,
+                1.0,
+                0.906,
+                0.487,
+                0.54,
+                0.915,
+            ],
         },
     )
 
@@ -87,6 +114,19 @@ def test_COCOSO_invalid_lambda_value():
 
     with pytest.raises(ValueError):
         CoCoSo(lambda_value=-1)
+
+
+def test_COCOSO_invalid_objectives_value():
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6]],
+        objectives=[max, max, min],
+        weights=[0.036, 0.192, 0.326],
+    )
+
+    ranker = CoCoSo()
+
+    with pytest.raises(ValueError):
+        ranker.evaluate(dm)
 
 
 def test_COCOSO_negative_values_fail():
