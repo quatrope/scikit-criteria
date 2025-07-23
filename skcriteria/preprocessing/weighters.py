@@ -570,3 +570,123 @@ class GiniWeighter(SKCWeighterABC):
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, **kwargs):
         return gini_weights(matrix)
+
+
+def rancom_weights(weights):
+    """RANCOM (RANking COMparison) weighting method.
+
+    The RANCOM method is designed to handle expert inaccuracies in
+    multi-criteria decision making by transforming initial weight
+    values through ranking comparison.
+    The method builds a Matrix of Ranking Comparison (MAC) where all weights
+    are compared pairwise, then calculates Summed Criteria Weights (SWC) to
+    derive final normalized weights.
+
+    The method operates under the following assumptions:
+
+    - The sum of input weights equals 1
+    - Lower weight values correspond to higher importance
+    - Ties between criteria are allowed
+
+    Algorithm Steps:
+
+    1. Convert weights to rankings (lower weight = higher rank/importance)
+    2. Build MAC (Matrix of Ranking Comparison): An nxn matrix where rankings
+       are compared pairwise with values:
+
+       - aij = 1 if rank_i < rank_j (criteria i is more important than j)
+       - aij = 0.5 if rank_i = rank_j (criteria i and j have equal importance)
+       - aij = 0 if rank_i > rank_j (criteria i is less important than j)
+
+    3. Calculate SWC (Summed Criteria Weights): Sum each row of the MAC matrix
+    4. Normalize final weights: wi = SWCi / sum(SWC)
+
+    Parameters
+    ----------
+    weights: array-like
+        Input weights. Lower values correspond to higher importance.
+
+    Notes
+    -----
+    - RANCOM is particularly useful when dealing with subjective weight
+      assignments from experts where small inaccuracies in weight
+      specification can significantly impact results.
+    - The method provides a systematic way to handle ranking inconsistencies.
+    - Unlike other weighting methods, RANCOM transforms existing weights rather
+      than deriving weights from the decision matrix.
+
+    Examples
+    --------
+    .. code-block:: pycon
+
+        >>> from skcriteria.preprocessing import rancom_weights
+        >>> weights = [0.4, 0.2, 0.25, 0.05]
+        >>> rancom_weights(weights)
+        array([0.4375, 0.1875, 0.3125, 0.0625])
+    """
+    # Normalize weights if necessary
+    weights_sum = np.sum(weights)
+    if weights_sum != 1:
+        weights /= weights_sum
+
+    # Convert weights to rankings (lower weight = higher rank/importance)
+    # Reverse weights so that lower weight values get higher ranks
+    reversed_weights = -weights
+    rankings = scipy.stats.rankdata(reversed_weights, method="dense")
+
+    # Build MAC matrix based on rankings
+    rank_i = rankings.reshape(-1, 1)
+    rank_j = rankings.reshape(1, -1)
+    rancom_matrix = np.where(
+        rank_i < rank_j, 1, np.where(rank_i == rank_j, 0.5, 0)
+    )
+
+    summed_criteria_weights = np.sum(rancom_matrix, axis=1)
+    total_swc = np.sum(summed_criteria_weights)
+    result = summed_criteria_weights / total_swc
+
+    return result
+
+
+class RANCOM(SKCWeighterABC):
+    """
+    Ranking Comparison (RANCOM) method.
+
+    The RANCOM method is designed to handle expert inaccuracies in
+    multi-criteria decision making by transforming initial weight values
+    through ranking comparison.
+    The method builds a Matrix of Ranking Comparison (MAC) where all weights
+    are compared pairwise, then calculates Summed Criteria Weights (SWC) to
+    derive final normalized weights.
+
+    Parameters
+    ----------
+    None
+        RANCOM uses predefined weights provided through the weighting process
+        and does not require additional configuration parameters.
+
+    Warnings
+    --------
+    UserWarning
+        If there are fewer than five weights. The original paper suggests
+        that RANCOM works better with five or more criteria, though nothing
+        prevents its use with four or fewer criteria.
+
+    References
+    ----------
+    :cite:p:`WIECKOWSKI2023106114`
+    """
+
+    _skcriteria_parameters = []
+
+    @doc_inherit(SKCWeighterABC._weight_matrix)
+    def _weight_matrix(self, matrix, objectives, weights):
+        if len(weights) < 5:
+            warnings.warn(
+                "RANCOM method proves to be a more suitable solution to handle"
+                "the expert inaccuracies for the problems with 5 or more "
+                "criteria."
+                "Despite this, nothing prevents its use with four or fewer."
+            )
+
+        return rancom_weights(weights)
