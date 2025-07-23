@@ -594,9 +594,9 @@ def rancom_weights(weights):
     2. Build MAC (Matrix of Ranking Comparison): An nxn matrix where rankings
        are compared pairwise with values:
 
-       - aij = 1 if rank_i < rank_j (criterion i is more important than j)
+       - aij = 1 if rank_i < rank_j (criteria i is more important than j)
        - aij = 0.5 if rank_i = rank_j (criteria i and j have equal importance)
-       - aij = 0 if rank_i > rank_j (criterion i is less important than j)
+       - aij = 0 if rank_i > rank_j (criteria i is less important than j)
 
     3. Calculate SWC (Summed Criteria Weights): Sum each row of the MAC matrix
     4. Normalize final weights: wi = SWCi / sum(SWC)
@@ -676,10 +676,6 @@ class RANCOM(SKCWeighterABC):
 
     @doc_inherit(SKCWeighterABC._weight_matrix)
     def _weight_matrix(self, matrix, objectives, weights):
-        if sum(weights) != 1:
-            raise ValueError(
-                "RANCOM expects normalized weights. i.e. its sum equals 1."
-            )
         if len(weights) < 5:
             warnings.warn(
                 "RANCOM method proves to be a more suitable solution to handle"
@@ -687,5 +683,9 @@ class RANCOM(SKCWeighterABC):
                 "criteria."
                 "Despite this, nothing prevents its use with four or fewer."
             )
+
+        weight_sum = np.sum(weights)
+        if weight_sum != 1:
+            weights /= weight_sum
 
         return rancom_weights(weights)

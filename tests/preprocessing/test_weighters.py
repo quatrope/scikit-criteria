@@ -626,16 +626,3 @@ def test_RANCOM_weighter_fewer_than_five_weights_warning():
 
     assert np.isclose(np.sum(result.weights), 1.0, atol=1e-10)
     assert np.all(result.weights >= 0)
-
-
-def test_RANCOM_weighter_weights_not_sum_to_one_error():
-    dm = skcriteria.mkdm(
-        matrix=[[1, 2, 3, 4, 5], [2, 3, 4, 5, 6]],
-        objectives=[max, max, max, max, max],
-        weights=[0.1, 0.2, 0.3, 0.25, 0.1],  # Sum = 0.95, not 1
-    )
-
-    weighter = RANCOM()
-
-    with pytest.raises(ValueError, match="RANCOM expects normalized weights"):
-        weighter.transform(dm)
