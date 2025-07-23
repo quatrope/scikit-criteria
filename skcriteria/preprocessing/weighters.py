@@ -690,8 +690,8 @@ class RANCOM(SKCWeighterABC):
             warnings.warn(
                 "RANCOM method proves to be a more suitable solution to handle"
                 "the expert inaccuracies for the problems with 5 or more "
-                "criteria."
-                "Despite this, nothing prevents its use with four or fewer."
+                "criteria. Despite this, nothing prevents its use with "
+                "four or fewer."
             )
 
         return rancom_weights(weights)

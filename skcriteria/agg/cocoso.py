@@ -106,9 +106,7 @@ class CoCoSo(SKCDecisionMakerABC):
             raise ValueError("CoCoSo can't operate with values <= 0")
 
         if Objective.MIN.value in objectives:
-            raise ValueError(
-                "CoCoSo cannot operate on minimising criteria"
-            )
+            raise ValueError("CoCoSo cannot operate on minimising criteria")
 
         rank, score, k_a, k_b, k_c = cocoso(matrix, weights, self.lambda_value)
         return rank, {"score": score, "k_a": k_a, "k_b": k_b, "k_c": k_c}
