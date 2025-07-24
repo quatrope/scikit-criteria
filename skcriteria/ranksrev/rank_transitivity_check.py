@@ -324,7 +324,7 @@ class RankTransitivityChecker(SKCMethodABC):
         results. When True, missing alternatives are assigned the worst
         ranking + 1.
 
-    make_transitive_strategy : str or callable, default="random"
+    cycle_removal_strategy : str or callable, default="random"
         Strategy for breaking cycles in non-transitive dominance graphs.
         Available built-in strategies include cycle removal heuristics.
         Can also accept custom callable functions for specialized approaches.
@@ -349,7 +349,7 @@ class RankTransitivityChecker(SKCMethodABC):
         If ``dmaker`` doesn't implement the required ``evaluate()`` method.
 
     ValueError
-        If ``make_transitive_strategy`` is not a valid strategy name or \
+        If ``cycle_removal_strategy`` is not a valid strategy name or \
             callable.
         If ``allow_missing_alternatives=False`` and alternatives are missing \
             from results.
@@ -380,7 +380,7 @@ class RankTransitivityChecker(SKCMethodABC):
     ...     dmaker=dm_method,
     ...     random_state=42,
     ...     allow_missing_alternatives=True,
-    ...     make_transitive_strategy="random",
+    ...     cycle_removal_strategy="random",
     ...     max_ranks=100,
     ...     parallel_backend="threading",
     ...     n_jobs=4
@@ -392,7 +392,7 @@ class RankTransitivityChecker(SKCMethodABC):
         "dmaker",
         "random_state",
         "allow_missing_alternatives",
-        "make_transitive_strategy",
+        "cycle_removal_strategy",
         "max_ranks",
         "parallel_backend",
         "n_jobs",
@@ -404,7 +404,7 @@ class RankTransitivityChecker(SKCMethodABC):
         *,
         random_state=None,
         allow_missing_alternatives=False,
-        make_transitive_strategy="random",
+        cycle_removal_strategy="random",
         max_ranks=50,
         parallel_backend=None,
         n_jobs=None,
@@ -425,15 +425,15 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # STRATEGY FOR REMOVAL OF BREAKS IN TRANSITIVITY
         mk_transitive = CYCLE_REMOVAL_STRATEGIES.get(
-            make_transitive_strategy, make_transitive_strategy
+            cycle_removal_strategy, cycle_removal_strategy
         )
         if not callable(mk_transitive):
             available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
             raise ValueError(
-                f"Unknown strategy: {make_transitive_strategy}. \
+                f"Unknown strategy: {cycle_removal_strategy}. \
                 Available strategies: {available_strategies}"
             )
-        self._make_transitive_strategy = mk_transitive
+        self._cycle_removal_strategy = mk_transitive
 
         # MAXIMIMUM PERMITED RANKS TO BE GENERATED
         if max_ranks < 1:
@@ -447,11 +447,10 @@ class RankTransitivityChecker(SKCMethodABC):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
-        trs = self._make_transitive_strategy
+        trs = self._cycle_removal_strategy
         mr = self._max_ranks
         return (
-            f"<{name} {dm}, "
-            f"make_transitive_strategy={trs}, max_ranks={mr}>"
+            f"<{name} {dm}, " f"cycle_removal_strategy={trs}, max_ranks={mr}>"
         )
 
     # PROPERTIES ==============================================================
@@ -474,9 +473,9 @@ class RankTransitivityChecker(SKCMethodABC):
         return self._allow_missing_alternatives
 
     @property
-    def make_transitive_strategy(self):
+    def cycle_removal_strategy(self):
         """The strategy function used for breaking transitivity cycles."""
-        return self._make_transitive_strategy
+        return self._cycle_removal_strategy
 
     @property
     def max_ranks(self):
@@ -758,7 +757,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         acyclic_graphs = generate_acyclic_graphs(
             graph,
-            strategy=self._make_transitive_strategy,
+            strategy=self._cycle_removal_strategy,
             max_graphs=self._max_ranks,
             seed=self._random_state,
         )

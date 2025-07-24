@@ -124,8 +124,8 @@ def test_TransitivityChecker_repr():
     assert repr(trans_checker) == (
         f"<{trans_checker.get_method_name()} "
         f"{repr(trans_checker.dmaker)}, "
-        f"make_transitive_strategy="
-        f"{trans_checker.make_transitive_strategy}, "
+        f"cycle_removal_strategy="
+        f"{trans_checker.cycle_removal_strategy}, "
         f"max_ranks={trans_checker.max_ranks}>"
     )
 
@@ -167,22 +167,22 @@ def test_TransitivityChecker_random_state():
 
 def test_TransitivityChecker_make_transitivity_strategy_random():
     trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.make_transitive_strategy == _select_edge_random
+    assert trans_checker.cycle_removal_strategy == _select_edge_random
 
 
 def test_TransitivityChecker_make_transitivity_strategy_weighted():
     trans_checker = RankTransitivityChecker(
-        electre2_pipe, make_transitive_strategy="weighted"
+        electre2_pipe, cycle_removal_strategy="weighted"
     )
 
-    assert trans_checker.make_transitive_strategy == _select_edge_weighted
+    assert trans_checker.cycle_removal_strategy == _select_edge_weighted
 
 
 def test_TransitivityChecker_make_transitivity_strategy_divination():
     bad_strat = "Divination"
     with pytest.raises(ValueError):
         RankTransitivityChecker(
-            electre2_pipe, make_transitive_strategy=bad_strat
+            electre2_pipe, cycle_removal_strategy=bad_strat
         )
 
 
