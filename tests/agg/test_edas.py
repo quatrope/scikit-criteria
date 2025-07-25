@@ -188,3 +188,22 @@ def test_edas_tech_company():
     assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-2)
+
+
+def test_edas_zero_in_matrix():
+    dm = skcriteria.mkdm(
+        matrix=[
+            [1, 0, 3],
+            [2, 0, 4],
+            [3, 0, 5],
+        ],
+        objectives=[max, max, max],
+        weights=[0.3, 0.4, 0.3],
+    )
+
+    ranker = EDAS()
+    result = ranker.evaluate(dm)
+
+    # Assert that the evaluation completes without errors and produces a RankResult
+    assert isinstance(result, RankResult)
+    assert len(result.alternatives) == 3
