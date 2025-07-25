@@ -31,7 +31,7 @@ from skcriteria.preprocessing.invert_objectives import BenefitCostInverter
 # =============================================================================
 
 
-def test_codas_incorrect_dm_1():
+def test_CODAS_incorrect_dm_1():
     dm = skcriteria.mkdm(
         matrix=[[0.1, 1.2, 0.3], [0.4, -1, 0.6]],
         objectives=[max, max, max],
@@ -44,7 +44,7 @@ def test_codas_incorrect_dm_1():
         ranker.evaluate(dm)
 
 
-def test_codas_incorrect_dm_2():
+def test_CODAS_incorrect_dm_2():
     dm = skcriteria.mkdm(
         matrix=[[0.1, 0.2, 0.3], [0.4, 0.9, 0.6]],
         objectives=[max, min, max],
@@ -57,7 +57,7 @@ def test_codas_incorrect_dm_2():
         ranker.evaluate(dm)
 
 
-def test_codas_lisco():
+def test_CODAS_lisco():
     """
     Data From:
         Badi, I., Shetwan, A. G., & Abdulshahed, A. M. (2017, September).
@@ -97,7 +97,7 @@ def test_codas_lisco():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-3)
 
 
-def test_codas_libya():
+def test_CODAS_libya():
     """
     Data From:
         Badi, I., Ballem, M., & Shetwan, A. (2018).
@@ -135,7 +135,7 @@ def test_codas_libya():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-3)
 
 
-def test_codas_bakir_atalik_2018():
+def test_CODAS_bakir_atalik_2018():
     """
     Data From:
         BAKIR, M., & ALPTEKİN, N. (2018).
@@ -193,7 +193,7 @@ def test_codas_bakir_atalik_2018():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-3)
 
 
-def test_codas_cloud_service():
+def test_CODAS_cloud_service():
     """
     Data From:
         Baki, R. (2022).
@@ -231,7 +231,7 @@ def test_codas_cloud_service():
     assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-2)
 
 
-def test_codas_zavadaskas_turskis_2010():
+def test_CODAS_zavadaskas_turskis_2010():
     """
     Data From:
         TURSKIS, Z., & ANTUCHEVICIENE, J. (2016).
@@ -322,3 +322,27 @@ def test_codas_zavadaskas_turskis_2010():
     assert result.values_equals(expected)
     assert result.method == expected.method
     assert np.allclose(result.e_.score, expected.e_.score, atol=1.0e-3)
+
+
+def test_CODAS_tau_warning():
+    dm = skcriteria.mkdm(
+        matrix=[[0.1, 0.2, 0.3], [0.4, 0.9, 0.6]],
+        objectives=[max, max, max],
+        weights=[0.5, 0.3, 0.2],
+    )
+
+    # Test with tau < 0.01
+    ranker_low_tau = CODAS(tau=0.005)
+    with pytest.warns(
+        UserWarning,
+        match="It is suggested to set tau at a value between 0.01 and 0.05",
+    ):
+        ranker_low_tau.evaluate(dm)
+
+    # Test with tau > 0.05
+    ranker_high_tau = CODAS(tau=0.06)
+    with pytest.warns(
+        UserWarning,
+        match="It is suggested to set tau at a value between 0.01 and 0.05",
+    ):
+        ranker_high_tau.evaluate(dm)
