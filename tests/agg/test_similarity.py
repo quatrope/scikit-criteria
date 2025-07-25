@@ -9,105 +9,25 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.agg.similarity."""
+"""test for skcriteria.agg.similarity deprected module"""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
 import pytest
 
-import skcriteria
-from skcriteria.agg import RankResult
-from skcriteria.agg.similarity import TOPSIS
-from skcriteria.preprocessing.scalers import VectorScaler
-
 # =============================================================================
-# TOPSIS
+# TESTS
 # =============================================================================
 
 
-def test_TOPSIS():
-    dm = skcriteria.mkdm(
-        matrix=[[1, 0, 3], [0, 5, 6]],
-        objectives=[max, max, max],
-    )
+def test_similarity():
+    with pytest.deprecated_call():
+        from skcriteria.agg import similarity  # noqa
 
-    expected = RankResult(
-        "TOPSIS",
-        ["A0", "A1"],
-        [2, 1],
-        {
-            "ideal": [1, 5, 6],
-            "anti_ideal": [0, 0, 3],
-            "similarity": [0.14639248, 0.85360752],
-        },
-    )
+    from skcriteria.agg import topsis
 
-    ranker = TOPSIS()
-    result = ranker.evaluate(dm)
-
-    assert result.values_equals(expected)
-    assert result.method == expected.method
-    assert np.all(result.e_.ideal == expected.e_.ideal)
-    assert np.allclose(result.e_.anti_ideal, expected.e_.anti_ideal)
-    assert np.allclose(result.e_.similarity, expected.e_.similarity)
-
-
-def test_TOPSIS_invalid_metric():
-    with pytest.raises(ValueError):
-        TOPSIS(metric="foo")
-
-
-def test_TOPSIS_minimize_warning():
-    dm = skcriteria.mkdm(
-        matrix=[[1, 0, 3], [0, 5, 6]],
-        objectives=[max, min, max],
-    )
-
-    ranker = TOPSIS()
-
-    with pytest.warns(UserWarning):
-        ranker.evaluate(dm)
-
-
-def test_TOPSIS_tzeng2011multiple():
-    """
-    Data from:
-        Tzeng, G. H., & Huang, J. J. (2011).
-        Multiple attribute decision making: methods and applications.
-        CRC press.
-
-    """
-    dm = skcriteria.mkdm(
-        matrix=[
-            [5, 8, 4],
-            [7, 6, 8],
-            [8, 8, 6],
-            [7, 4, 6],
-        ],
-        objectives=[max, max, max],
-        weights=[0.3, 0.4, 0.3],
-    )
-
-    transformer = VectorScaler(target="matrix")
-    dm = transformer.transform(dm)
-
-    expected = RankResult(
-        "TOPSIS",
-        ["A0", "A1", "A2", "A3"],
-        [3, 2, 1, 4],
-        {"similarity": [0.5037, 0.6581, 0.7482, 0.3340]},
-    )
-
-    ranker = TOPSIS()
-    result = ranker.evaluate(dm)
-
-    assert result.values_equals(expected)
-    assert result.method == expected.method
-    assert np.allclose(
-        result.e_.similarity, expected.e_.similarity, atol=1.0e-4
-    )
+    assert similarity.TOPSIS is topsis.TOPSIS
+    assert similarity.topsis is topsis.topsis

@@ -22,7 +22,7 @@ import numpy as np
 import pytest
 
 import skcriteria as skc
-from skcriteria.agg.similarity import TOPSIS
+from skcriteria.agg.topsis import TOPSIS
 from skcriteria.ranksrev.rank_invariant_check import RankInvariantChecker
 from skcriteria.utils import rank
 
