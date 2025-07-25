@@ -271,8 +271,10 @@ class DMSYDiscreteHandlerV1:
     Attributes
     ----------
     dm_type : str
+        :no-index:
         The decision matrix type this handler supports.
     version : int
+        :no-index:
         The DMSY format version this handler supports.
     """
 

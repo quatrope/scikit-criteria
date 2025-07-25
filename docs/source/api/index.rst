@@ -12,6 +12,7 @@
    :maxdepth: 2
 
    core/index
+   io/index
 
 
 .. toctree::

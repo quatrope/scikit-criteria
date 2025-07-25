@@ -48,7 +48,8 @@ class FallbackTieBreaker(SKCMethodABC):
 
     This class takes a primary decision maker that may produce tied rankings
     and uses a fallback decision maker to break those ties. If the fallback
-    decision maker also produces ties and force=True, it uses the untied_rank_
+    decision maker also produces ties and force=True, it uses the
+    :py:attr:`~skcriteria.agg.RankResult.untied_rank_`
     property to ensure a complete ranking without ties.
 
     Parameters
@@ -63,7 +64,8 @@ class FallbackTieBreaker(SKCMethodABC):
 
     force : bool, default True
         If True, when the fallback decision maker also produces ties, uses
-        the untied_rank_ property to force a complete ranking without ties.
+        the :py:attr:`~skcriteria.agg.RankResult.untied_rank_` property to
+        force a complete ranking without ties.
         If False, allows the final ranking to have ties if the fallback fails
         to break them completely.
 
@@ -299,7 +301,8 @@ class FallbackTieBreaker(SKCMethodABC):
         -------
         result : RankResult
             Ranking result with ties broken using the fallback decision maker.
-            If force=True and ties still remain, uses untied_rank_ to ensure
+            If force=True and ties still remain, uses
+            :py:attr:`~skcriteria.agg.RankResult.untied_rank_` to ensure
             a complete ranking without any ties.
         """
         # Store instance variables as locals for efficiency

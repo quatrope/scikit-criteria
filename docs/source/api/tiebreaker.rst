@@ -5,3 +5,5 @@
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. py:class:: skcriteria.agg.RankResult
