@@ -204,6 +204,7 @@ def test_edas_zero_in_matrix():
     ranker = EDAS()
     result = ranker.evaluate(dm)
 
-    # Assert that the evaluation completes without errors and produces a RankResult
+    # Assert that the evaluation completes without errors
+    # and produces a RankResult
     assert isinstance(result, RankResult)
     assert len(result.alternatives) == 3

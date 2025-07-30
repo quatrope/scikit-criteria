@@ -384,8 +384,8 @@ class RankInvariantChecker(SKCMethodABC):
         """Adds information on how an alternative was "worsened" in the \
         decision matrix with respect to the original.
 
-        All aggregated information is included within the ``rrt1`` (Rank
-        Reversal Test 1) key in the ``extra_`` attribute.
+        All aggregated information is included within the ``rank_inv_check``
+        key in the ``extra_`` attribute.
 
         Parameters
         ----------
@@ -413,7 +413,8 @@ class RankInvariantChecker(SKCMethodABC):
         -------
         patched_rank : ``skcriteria.agg.Rank``
             Ranking with all the information about the worsened alternative and
-            the rank reversal test added to the `extra_.rrt1` attribute.
+            the rank reversal test added to the `extra_.rank_inv_check`
+            attribute.
 
         """
         # extract the original data
@@ -449,12 +450,12 @@ class RankInvariantChecker(SKCMethodABC):
 
         # change the method name if this is part of a mutation
         if (mutated, iteration) != (None, None):
-            method = f"{method}+RRT1+{mutated}_{iteration}"
+            method = f"{method}+RInvCheck+{mutated}_{iteration}"
             noise = noise.copy()
 
         # patch the new data
-        extra["rrt1"] = Bunch(
-            "rrt1",
+        extra["rank_inv_check"] = Bunch(
+            "rank_inv_check",
             {
                 "iteration": iteration,
                 "mutated": mutated,
@@ -462,6 +463,8 @@ class RankInvariantChecker(SKCMethodABC):
                 "missing_alternatives": alts_diff,
             },
         )
+
+        extra["rrt1"] = extra["rank_inv_check"]
 
         # return the new rank result
         patched_rank = RankResult(
@@ -486,7 +489,7 @@ class RankInvariantChecker(SKCMethodABC):
             An object containing multiple rankings of the alternatives, with
             information on any changes made to the original decision matrix in
             the `extra_` attribute. Specifically, the `extra_` attribute
-            contains a an object in the key `rrt1` that provides
+            contains a an object in the key `rank_inv_check` that provides
             information on any changes made to the original decision matrix,
             including the the noise applied to worsen any sub-optimal
             alternative.
