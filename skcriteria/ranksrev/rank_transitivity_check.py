@@ -612,7 +612,8 @@ class RankTransitivityChecker(SKCMethodABC):
 
             - Updated method name indicating RRT3 recomposition
             - Original alternatives and values preserved
-            - Extended extra information with 'rrt23' entry containing:
+            - Extended extra information with 'transitivity_check' entry \
+                containing:
                 - acyclic_graph: the resulting DAG
                 - removed_edges: edges removed during cycle breaking
         """
@@ -640,8 +641,8 @@ class RankTransitivityChecker(SKCMethodABC):
 
         extra = dict(rank.extra_.items())
 
-        extra["rrt23"] = Bunch(
-            "rrt23",
+        extra["transitivity_check"] = Bunch(
+            "transitivity_check",
             {
                 "acyclic_graph": dag,
                 "removed_edges": removed_edges,

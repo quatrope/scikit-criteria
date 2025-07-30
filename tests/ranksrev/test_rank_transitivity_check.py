@@ -250,7 +250,7 @@ def test_TransitivityCheck_missing_alternative():
     _, rank = result.ranks[1]
 
     np.testing.assert_array_equal(
-        rank.e_.rrt23.missing_alternatives, ["FX", "MM"]
+        rank.e_.transitivity_check.missing_alternatives, ["FX", "MM"]
     )
 
     assert rank.to_series()["FX"] == 5
