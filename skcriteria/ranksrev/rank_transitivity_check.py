@@ -51,6 +51,7 @@ with hidden():
         CYCLE_REMOVAL_STRATEGIES,
         generate_acyclic_graphs,
     )
+    from ..tiebreaker import FallbackTieBreaker
 
 
 # =============================================================================
@@ -390,6 +391,7 @@ class RankTransitivityChecker(SKCMethodABC):
     _skcriteria_dm_type = "rank_reversal"
     _skcriteria_parameters = [
         "dmaker",
+        "fallback",
         "random_state",
         "allow_missing_alternatives",
         "cycle_removal_strategy",
@@ -402,6 +404,7 @@ class RankTransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
+        fallback=None,
         random_state=None,
         allow_missing_alternatives=False,
         cycle_removal_strategy="random",
@@ -412,6 +415,21 @@ class RankTransitivityChecker(SKCMethodABC):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
+
+        if fallback:
+            if not (
+                hasattr(fallback, "evaluate") and callable(fallback.evaluate)
+            ):
+                raise TypeError(
+                    "'fallback' must implement 'evaluate()' method"
+                )
+
+            self._pair_evaluator = FallbackTieBreaker(dmaker, fallback)
+
+        else:
+            self._pair_evaluator = dmaker
+
+        self._fallback = fallback
 
         # ALLOW MISSING ALTERNATIVES
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
@@ -459,6 +477,11 @@ class RankTransitivityChecker(SKCMethodABC):
     def dmaker(self):
         """The MCDA method, or pipeline to evaluate."""
         return self._dmaker
+
+    @property
+    def fallback(self):
+        """The MCDA method, or pipeline to evaluate for tie breaking."""
+        return self._fallback
 
     @property
     def random_state(self):
@@ -528,7 +551,7 @@ class RankTransitivityChecker(SKCMethodABC):
         problem is decomposed into smaller two-alternative subproblems.
         """
         sub_dm = decision_matrix.loc[alternative_pair]
-        return self._dmaker.evaluate(sub_dm)
+        return self._pair_evaluator.evaluate(sub_dm)
 
     def _get_graph_edges(self, results, decision_matrix):
         """

@@ -142,6 +142,18 @@ def test_TransitivityChecker_dmaker():
     assert trans_checker.dmaker == electre2_pipe
 
 
+def test_TransitivityChecker_bad_fallback():
+    bad_pipe = "Suffering and pain 2"
+    with pytest.raises(TypeError) as ex:
+        RankTransitivityChecker(topsis_pipe, fallback=bad_pipe)
+        assert "'fallback' must implement 'evaluate()' method" in str(ex.value)
+
+
+def test_TransitivityChecker_fallback():
+    trans_checker = RankTransitivityChecker(topsis_pipe, fallback=topsis_pipe)
+    assert trans_checker.fallback == topsis_pipe
+
+
 def test_TransitivityChecker_parallell_backend_none():
     trans_checker = RankTransitivityChecker(electre2_pipe)
     assert trans_checker.parallel_backend is None
