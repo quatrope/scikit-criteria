@@ -27,7 +27,6 @@ deprecation_reason = (
     "'skcriteria.madm' module is deprecated, use 'skcriteria.agg' instead"
 )
 
-
 utils.deprecate.warn(deprecation_reason)
 
 # store the metadata to preserve

@@ -466,6 +466,42 @@ class DecisionMatrix(DiffEqualityMixin):
 
     # UTILITIES ===============================================================
 
+    def constant_criteria(self, std_kws=None, isclose_kws=None):
+        """Identifies criteria with constant values based on std deviation.
+
+        This method calculates the standard deviation of each column and
+        determines which are effectively constant (standard deviation ~ 0)
+        using numerical comparison with tolerance.
+
+        Parameters
+        ----------
+        std_kws : dict, optional
+            Additional keyword arguments for pandas.DataFrame.std().
+            Default: {}
+
+        isclose_kws : dict, optional
+            Additional keyword arguments for numpy.isclose().
+            Default: {}
+
+        Returns
+        -------
+        pandas.Series
+            Boolean series where True indicates the column is constant.
+            Index corresponds to DataFrame column names.
+            Series name is 'ConstantsCriteria'.
+
+        """
+        std_kws = {} if std_kws is None else std_kws
+        isclose_kws = {} if isclose_kws is None else isclose_kws
+
+        std = self._data_df.std(axis=0, **std_kws)
+        is_constants_enough = np.isclose(std, 0.0, **isclose_kws)
+
+        constants = pd.Series(is_constants_enough, index=self._data_df.columns)
+        constants.name = "constant_criteria"
+
+        return constants
+
     def copy(self, **kwargs):
         """Create a copy of the current DecisionMatrix instance.
 

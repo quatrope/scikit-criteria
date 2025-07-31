@@ -360,7 +360,7 @@ class RankTransitivityChecker(SKCMethodABC):
     Basic usage with an MCDM method:
 
     >>> from skcriteria.preprocessing import invert_objectives
-    >>> from skcriteria.madm import simple
+    >>> from skcriteria.agg import simple
     >>>
     >>> # Create a decision maker
     >>> dm_method = simple.WeightedSum()

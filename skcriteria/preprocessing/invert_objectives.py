@@ -19,6 +19,8 @@ maximization ones."""
 from ..utils import hidden
 
 with hidden():
+    import warnings
+
     import numpy as np
 
     from ._preprocessing_base import SKCTransformerABC
@@ -165,6 +167,16 @@ class MinimizeToMaximize(InvertMinimize):
 class MinMaxInverter(SKCObjectivesInverterABC):
     r"""Normalize and invert minimization criteria using min-max scaling.
 
+    This class implements a dual-purpose transformation that simultaneously
+    normalizes all criteria to the [0,1] range and inverts minimization
+    criteria to maximization criteria. This is particularly useful for MCDA
+    methods that require all criteria to have the same optimization direction
+    and comparable scales.
+
+    The transformation preserves the relative order of alternatives while
+    ensuring mathematical consistency across different criterion types and
+    eliminates scale differences between criteria.
+
     For minimization criteria, values are inverted by normalizing with:
 
         (x - max) / (min - max)
@@ -175,18 +187,54 @@ class MinMaxInverter(SKCObjectivesInverterABC):
 
         (x - min) / (max - min)
 
+    where the original maximum value becomes 1 (best) and the original
+    minimum value becomes 0 (worst).
+
+    After transformation, all criteria become maximization criteria with
+    values in the [0,1] range, where higher values are always better.
+
+    Parameters
+    ----------
+    constant_criteria_kws : dict, optional
+        Keyword arguments passed to the
+        :py:meth:`DecisionMatrix.constant_criteria` method to identify
+        constant criteria. Default is ``None``, which uses default detection
+        parameters.
+
+
+    Notes
+    -----
+    - This transformation is idempotent for already normalized data with
+      the same min-max bounds.
+    - Constant criteria (where all alternatives have the same value) will
+      result in NaN values after transformation due to division by zero
+      in the normalization formula.
+    - The transformation maintains the preference order within each criterion:
+      better alternatives before transformation remain better after
+      transformation.
+
     """
 
-    _skcriteria_parameters = []
+    _skcriteria_parameters = ["constant_criteria_kws"]
+
+    def __init__(self, constant_criteria_kws=None):
+        self._constant_criteria_kws = (
+            {} if constant_criteria_kws is None else constant_criteria_kws
+        )
+
+    @property
+    def constant_criteria_kws(self):
+        """Get the constant criteria keyword arguments."""
+        return self._constant_criteria_kws
 
     @doc_inherit(SKCObjectivesInverterABC._invert)
     def _invert(self, matrix, minimize_mask):
         """Apply min-max normalization that inverts minimization criteria."""
 
-        cost = minimize_mask
+        cost = np.asarray(minimize_mask, dtype=bool)
         benefit = ~cost
 
-        inverted_matrix = np.empty_like(matrix)
+        inverted_matrix = np.empty_like(matrix, dtype=float)
 
         maxs = np.max(matrix, axis=0)
         mins = np.min(matrix, axis=0)
@@ -199,6 +247,17 @@ class MinMaxInverter(SKCObjectivesInverterABC):
         )
 
         return inverted_matrix
+
+    @doc_inherit(SKCObjectivesInverterABC.transform)
+    def transform(self, dm):
+        constans = dm.constant_criteria(**self.constant_criteria_kws)
+        if np.any(constans):
+            warnings.warn(
+                "Some criteria are constant and will be transformed to NaN",
+                UserWarning,
+            )
+
+        return self._transform_dm(dm)
 
 
 # =============================================================================

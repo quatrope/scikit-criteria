@@ -310,6 +310,24 @@ def test_MinMaxInverter_no_change_original_dm(decision_matrix):
     )
 
 
+@pytest.mark.parametrize("objective", [min, max])
+def test_MinMaxInverter_constant_criterion(objective):
+    dm = skcriteria.mkdm(
+        matrix=[[1, 2], [1, 4], [1, 6]],
+        objectives=[objective, max],
+    )
+
+    inv = MinMaxInverter()
+    with pytest.warns(UserWarning):
+        dmt = inv.transform(dm)
+
+    dmdict = dmt.to_dict()
+    mtx = dmdict["matrix"]
+
+    assert np.isnan(mtx[:, 0]).all()
+    assert np.all(dmdict["objectives"] == 1)
+
+
 # =============================================================================
 # BENEFIT-COST INVERT
 # =============================================================================
