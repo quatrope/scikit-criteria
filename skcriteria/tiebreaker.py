@@ -148,10 +148,10 @@ class FallbackTieBreaker(SKCMethodABC):
 
     @property
     def force(self):
-        """Whether to force complete untying using untied_rank_.
+        """Whether to force complete untying using :py:attr:`~skcriteria.agg.RankResult.untied_rank_`.
 
         Returns
-        -------
+        ------
         bool
             True if forced untying is enabled, False otherwise.
         """
@@ -299,7 +299,7 @@ class FallbackTieBreaker(SKCMethodABC):
 
         Returns
         -------
-        result : RankResult
+        result : skcriteria.agg.RankResult
             Ranking result with ties broken using the fallback decision maker.
             If force=True and ties still remain, uses
             :py:attr:`~skcriteria.agg.RankResult.untied_rank_` to ensure
