@@ -268,14 +268,13 @@ def _register_dmsy_reader(reader_cls):
 class DMSYDiscreteHandlerV1:
     """Handler for discrete decision matrices in DMSY format version 1.
 
-    Attributes
+    Parameters
     ----------
     dm_type : str
-        :no-index:
         The decision matrix type this handler supports.
     version : int
-        :no-index:
         The DMSY format version this handler supports.
+
     """
 
     dm_type = "discrete-dm"
