@@ -285,6 +285,19 @@ def test_DecisionMatrix_dominance(decision_matrix):
 # =============================================================================
 
 
+def test_DecisionMatrix_constant_criteria():
+    dm = data.mkdm(
+        matrix=np.array([[1, 2], [1, 4]]),
+        objectives=[min, max],
+    )
+    ccriteria = dm.constant_criteria()
+
+    expected = pd.Series(
+        [True, False], index=["C0", "C1"], name="constant_criteria"
+    )
+    pd.testing.assert_series_equal(ccriteria, expected)
+
+
 def test_DecisionMatrix_copy(data_values):
     mtx, objectives, weights, alternatives, criteria = data_values(seed=42)
 

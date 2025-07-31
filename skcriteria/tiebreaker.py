@@ -72,7 +72,7 @@ class FallbackTieBreaker(SKCMethodABC):
     Examples
     --------
     >>> from skcriteria import mkdm
-    >>> from skcriteria.madm import simple
+    >>> from skcriteria.agg import simple
     >>>
     >>> # Create a decision matrix
     >>> dm = mkdm([[1, 2], [3, 4]], [1, 1], ["max", "max"])
