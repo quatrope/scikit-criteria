@@ -201,44 +201,6 @@ class ELECTRE1(SKCDecisionMakerABC):
 # =============================================================================
 
 
-def weights_outrank(matrix, weights, objectives):
-    """Calculate a matrix of comparison of alternatives where the value of \
-    each cell determines how many times the value of the criteria weights of \
-    the row alternative exceeds those of the column alternative.
-
-    Notes
-    -----
-    For more information about this matrix please check  "Tomada de decisões em
-    cenários complexos" :cite:p:`gomez2004tomada`, p. 100
-
-    """
-    alt_n = len(matrix)
-    alt_combs = it.combinations(range(alt_n), 2)
-    outrank = np.full((alt_n, alt_n), False, dtype=bool)
-
-    for a0_idx, a1_idx in alt_combs:
-        # select the two alternatives to compare
-        a0, a1 = matrix[[a0_idx, a1_idx]]
-
-        # we see where there are strict maximums and minimums
-        maxs, mins = (a0 > a1), (a0 < a1)
-
-        # we assemble the vectors of a \succ b taking the
-        # objectives into account
-        a0_s_a1 = np.where(objectives == Objective.MAX.value, maxs, mins)
-        a1_s_a0 = np.where(objectives == Objective.MAX.value, mins, maxs)
-
-        # we now draw out the criteria
-        outrank[a0_idx, a1_idx] = np.sum(weights * a0_s_a1) >= np.sum(
-            weights * a1_s_a0
-        )
-        outrank[a1_idx, a0_idx] = np.sum(weights * a1_s_a0) >= np.sum(
-            weights * a0_s_a1
-        )
-
-    return outrank
-
-
 def _electre2_ranker(
     alt_n, original_outrank_s, original_outrank_w, invert_ranking
 ):
@@ -259,8 +221,8 @@ def _electre2_ranker(
         kernel_s = ~outrank_s.any(axis=0)
         kernel_w = ~outrank_w.any(axis=0)
 
-        # kernel strong - kernel weak
-        kernel_smw = kernel_s & ~kernel_w
+        # kernel strong intersection kernel weak
+        kernel_smw = kernel_s & kernel_w
 
         # if there is no kernel, all are on equal footing and we need to assign
         # the current rank to the not evaluated alternatives.
@@ -306,16 +268,24 @@ def electre2_gomez2004tomada(
     :cite:p:`gomez2004tomada` without any validation."""
     matrix_concordance = concordance(matrix, objectives, weights)
     matrix_discordance = discordance(matrix, objectives)
-    matrix_wor = weights_outrank(matrix, objectives, weights)
+    matrix_conc_or = matrix_concordance > matrix_concordance.T
 
     # weak and strong graphs
     outrank_s = (
-        (matrix_concordance >= p0) & (matrix_discordance <= q0) & matrix_wor
-    ) | ((matrix_concordance >= p1) & (matrix_discordance <= q1) & matrix_wor)
+        (matrix_concordance >= p0)
+        & (matrix_discordance <= q0)
+        & matrix_conc_or
+    ) | (
+        (matrix_concordance >= p1)
+        & (matrix_discordance <= q1)
+        & matrix_conc_or
+    )
 
     outrank_w = (
-        (matrix_concordance >= p2) & (matrix_discordance <= q0) & matrix_wor
-    )
+        (matrix_concordance >= p2)
+        & (matrix_discordance <= q0)
+        & matrix_conc_or
+    ) & (~outrank_s)
 
     # number of alternatives
     alt_n = len(matrix)
@@ -341,7 +311,7 @@ def electre2_gomez2004tomada(
         ranking_inverted,
         matrix_concordance,
         matrix_discordance,
-        matrix_wor,
+        matrix_conc_or,
         outrank_s,
         outrank_w,
         score,
