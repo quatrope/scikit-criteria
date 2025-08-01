@@ -30,6 +30,7 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 from ..utils import hidden
 
 with hidden():
+    import functools
     import itertools as it
 
     import numpy as np
@@ -38,7 +39,7 @@ with hidden():
 
     from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
     from ..core import Objective
-    from ..utils import doc_inherit, will_change
+    from ..utils import doc_inherit, deprecated
 
 
 # =============================================================================
@@ -200,44 +201,6 @@ class ELECTRE1(SKCDecisionMakerABC):
 # =============================================================================
 
 
-def weights_outrank(matrix, weights, objectives):
-    """Calculate a matrix of comparison of alternatives where the value of \
-    each cell determines how many times the value of the criteria weights of \
-    the row alternative exceeds those of the column alternative.
-
-    Notes
-    -----
-    For more information about this matrix please check  "Tomada de decisões em
-    cenários complexos" :cite:p:`gomez2004tomada`, p. 100
-
-    """
-    alt_n = len(matrix)
-    alt_combs = it.combinations(range(alt_n), 2)
-    outrank = np.full((alt_n, alt_n), False, dtype=bool)
-
-    for a0_idx, a1_idx in alt_combs:
-        # select the two alternatives to compare
-        a0, a1 = matrix[[a0_idx, a1_idx]]
-
-        # we see where there are strict maximums and minimums
-        maxs, mins = (a0 > a1), (a0 < a1)
-
-        # we assemble the vectors of a \succ b taking the
-        # objectives into account
-        a0_s_a1 = np.where(objectives == Objective.MAX.value, maxs, mins)
-        a1_s_a0 = np.where(objectives == Objective.MAX.value, mins, maxs)
-
-        # we now draw out the criteria
-        outrank[a0_idx, a1_idx] = np.sum(weights * a0_s_a1) >= np.sum(
-            weights * a1_s_a0
-        )
-        outrank[a1_idx, a0_idx] = np.sum(weights * a1_s_a0) >= np.sum(
-            weights * a0_s_a1
-        )
-
-    return outrank
-
-
 def _electre2_ranker(
     alt_n, original_outrank_s, original_outrank_w, invert_ranking
 ):
@@ -258,8 +221,8 @@ def _electre2_ranker(
         kernel_s = ~outrank_s.any(axis=0)
         kernel_w = ~outrank_w.any(axis=0)
 
-        # kernel strong - kernel weak
-        kernel_smw = kernel_s & ~kernel_w
+        # kernel strong intersection kernel weak
+        kernel_smw = kernel_s & kernel_w
 
         # if there is no kernel, all are on equal footing and we need to assign
         # the current rank to the not evaluated alternatives.
@@ -298,26 +261,31 @@ def _electre2_ranker(
     return ranking
 
 
-@will_change(
-    reason="electre2 implementation will change in version after 0.8",
-    version=0.8,
-)
-def electre2(
+def electre2_gomez2004tomada(
     matrix, objectives, weights, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35
 ):
-    """Execute ELECTRE2 without any validation."""
+    """Execute ELECTRE2 from "Tomada de decisões em cenários complexos" \
+    :cite:p:`gomez2004tomada` without any validation."""
     matrix_concordance = concordance(matrix, objectives, weights)
     matrix_discordance = discordance(matrix, objectives)
-    matrix_wor = weights_outrank(matrix, objectives, weights)
+    matrix_conc_or = matrix_concordance > matrix_concordance.T
 
     # weak and strong graphs
     outrank_s = (
-        (matrix_concordance >= p0) & (matrix_discordance <= q0) & matrix_wor
-    ) | ((matrix_concordance >= p1) & (matrix_discordance <= q1) & matrix_wor)
+        (matrix_concordance >= p0)
+        & (matrix_discordance <= q0)
+        & matrix_conc_or
+    ) | (
+        (matrix_concordance >= p1)
+        & (matrix_discordance <= q1)
+        & matrix_conc_or
+    )
 
     outrank_w = (
-        (matrix_concordance >= p2) & (matrix_discordance <= q0) & matrix_wor
-    )
+        (matrix_concordance >= p2)
+        & (matrix_discordance <= q0)
+        & matrix_conc_or
+    ) & (~outrank_s)
 
     # number of alternatives
     alt_n = len(matrix)
@@ -343,17 +311,21 @@ def electre2(
         ranking_inverted,
         matrix_concordance,
         matrix_discordance,
-        matrix_wor,
+        matrix_conc_or,
         outrank_s,
         outrank_w,
         score,
     )
 
 
-@will_change(
-    reason="ELECTRE2 implementation will change in version after 0.8",
-    version=0.8,
-)
+@deprecated(reason="Use ``electre2_gomez2004tomada`` instead.", version=0.8)
+@functools.wraps(electre2_gomez2004tomada)
+def electre2(*args, **kwargs):
+    """Execute ELECTRE2 from "Tomada de decisões em cenários complexos" \
+    :cite:p:`gomez2004tomada`without any validation."""
+    return electre2_gomez2004tomada(*args, **kwargs)
+
+
 class ELECTRE2(SKCDecisionMakerABC):
     """Find the ranking solution through ELECTRE-2.
 
@@ -361,11 +333,6 @@ class ELECTRE2(SKCDecisionMakerABC):
     I's inability to produce a ranking of alternatives. Instead of simply
     finding  the kernel set, ELECTRE II can order alternatives by introducing
     the strong and the weak outranking relations.
-
-    Notes
-    -----
-    This implementation is based on the one presented in the book
-    "Tomada de decisões em cenários complexos" :cite:p:`gomez2004tomada`.
 
     Parameters
     ----------
@@ -381,6 +348,31 @@ class ELECTRE2(SKCDecisionMakerABC):
         is equivalent, preferred or strictly preferred to another alternative.
 
         These thresholds must meet the condition "1 >= q0 >= q1 >= 0".
+
+
+    Notes
+    -----
+    There are many 'Electre II' methods in the literature with different
+    amount of parameters :cite:p:`maystre00` and different ways of defining
+    discordance :cite:p:`liu21`.
+
+    This implementation is based on the one presented in the books
+    "Tomada de decisões em cenários complexos" :cite:p:`gomez2004tomada` and
+    "ELECTRE and Decision Support":cite:p:`maystre00`.
+
+    In this version 5 parameters are chosen, concordance thresholds
+    :math:`1 >= p_0 >= p_1 >= p_2 >= 0` and discordance thresholds
+    :math:`1 >= q_0 >= q_1 >= 0`, after calculating Concordance and
+    Discordance Matrices (:math:`C` and :math:`D` recpectively)
+    the two type of outranking relations between alternatives are defined as:
+
+    If :math:`C(a,b) > C(b,a)` then
+
+    - Alternative :math:`a` strongly outranks alternative :math:`b` if
+      (:math:`C(a,b)>p_0` and :math:`D(a,b)<q_0`)
+      or (:math:`C(a,b)>p_1` and :math:`D(a,b)<q_1`)
+    - Alternative :math:`a` weakly outranks :math:`b` if
+      :math:`C(a,b)>p_2` and :math:`D(a,b)<q_0`
 
     References
     ----------
@@ -445,7 +437,7 @@ class ELECTRE2(SKCDecisionMakerABC):
             outrank_s,
             outrank_w,
             score,
-        ) = electre2(
+        ) = electre2_gomez2004tomada(
             matrix,
             objectives,
             weights,
