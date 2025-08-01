@@ -30,6 +30,7 @@ can apply another MCDA with a restricted set of alternatives saving much time.
 from ..utils import hidden
 
 with hidden():
+    import functools
     import itertools as it
 
     import numpy as np
@@ -38,7 +39,7 @@ with hidden():
 
     from ._agg_base import KernelResult, RankResult, SKCDecisionMakerABC
     from ..core import Objective
-    from ..utils import doc_inherit, will_change
+    from ..utils import doc_inherit, deprecated
 
 
 # =============================================================================
@@ -298,14 +299,11 @@ def _electre2_ranker(
     return ranking
 
 
-@will_change(
-    reason="electre2 implementation will change in version after 0.8",
-    version=0.8,
-)
-def electre2(
+def electre2_gomez2004tomada(
     matrix, objectives, weights, p0=0.65, p1=0.5, p2=0.35, q0=0.65, q1=0.35
 ):
-    """Execute ELECTRE2 without any validation."""
+    """Execute ELECTRE2 from "Tomada de decisões em cenários complexos" \
+    :cite:p:`gomez2004tomada` without any validation."""
     matrix_concordance = concordance(matrix, objectives, weights)
     matrix_discordance = discordance(matrix, objectives)
     matrix_wor = weights_outrank(matrix, objectives, weights)
@@ -350,10 +348,14 @@ def electre2(
     )
 
 
-@will_change(
-    reason="ELECTRE2 implementation will change in version after 0.8",
-    version=0.8,
-)
+@deprecated(reason="Use ``electre2_gomez2004tomada`` instead.", version=0.8)
+@functools.wraps(electre2_gomez2004tomada)
+def electre2(*args, **kwargs):
+    """Execute ELECTRE2 from "Tomada de decisões em cenários complexos" \
+    :cite:p:`gomez2004tomada`without any validation."""
+    return electre2_gomez2004tomada(*args, **kwargs)
+
+
 class ELECTRE2(SKCDecisionMakerABC):
     """Find the ranking solution through ELECTRE-2.
 
@@ -361,11 +363,6 @@ class ELECTRE2(SKCDecisionMakerABC):
     I's inability to produce a ranking of alternatives. Instead of simply
     finding  the kernel set, ELECTRE II can order alternatives by introducing
     the strong and the weak outranking relations.
-
-    Notes
-    -----
-    This implementation is based on the one presented in the book
-    "Tomada de decisões em cenários complexos" :cite:p:`gomez2004tomada`.
 
     Parameters
     ----------
@@ -381,6 +378,31 @@ class ELECTRE2(SKCDecisionMakerABC):
         is equivalent, preferred or strictly preferred to another alternative.
 
         These thresholds must meet the condition "1 >= q0 >= q1 >= 0".
+
+
+    Notes
+    -----
+    There are many 'Electre II' methods in the literature with different
+    amount of parameters :cite:p:`maystre00` and different ways of defining
+    discordance :cite:p:`liu21`.
+
+    This implementation is based on the one presented in the books
+    "Tomada de decisões em cenários complexos" :cite:p:`gomez2004tomada` and
+    "ELECTRE and Decision Support":cite:p:`maystre00`.
+
+    In this version 5 parameters are chosen, concordance thresholds
+    :math:`1 >= p_0 >= p_1 >= p_2 >= 0` and discordance thresholds
+    :math:`1 >= q_0 >= q_1 >= 0`, after calculating Concordance and
+    Discordance Matrices (:math:`C` and :math:`D` recpectively)
+    the two type of outranking relations between alternatives are defined as:
+
+    If :math:`C(a,b) > C(b,a)` then
+
+    - Alternative :math:`a` strongly outranks alternative :math:`b` if
+      (:math:`C(a,b)>p_0` and :math:`D(a,b)<q_0`)
+      or (:math:`C(a,b)>p_1` and :math:`D(a,b)<q_1`)
+    - Alternative :math:`a` weakly outranks :math:`b` if
+      :math:`C(a,b)>p_2` and :math:`D(a,b)<q_0`
 
     References
     ----------
@@ -445,7 +467,7 @@ class ELECTRE2(SKCDecisionMakerABC):
             outrank_s,
             outrank_w,
             score,
-        ) = electre2(
+        ) = electre2_gomez2004tomada(
             matrix,
             objectives,
             weights,

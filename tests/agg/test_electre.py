@@ -26,6 +26,7 @@ from skcriteria.agg.electre import (
     ELECTRE2,
     concordance,
     discordance,
+    electre2,
     weights_outrank,
 )
 from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
@@ -278,3 +279,22 @@ def test_ELECTRE2_invalid_ps(p0, p1, p2):
 def test_ELECTRE2_invalid_qs(q0, q1):
     with pytest.raises(ValueError):
         ELECTRE2(q0=q0, q1=q1)
+
+
+def test_electre2_deprecation():
+    matrix = np.array(
+        [
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8],
+        ],
+        dtype=float,
+    )
+    objectives = np.array([1, 1, -1, 1, 1])
+    weights = np.array([0.25, 0.25, 0.1, 0.2, 0.2])
+
+    with pytest.warns(DeprecationWarning):
+        electre2(matrix, objectives, weights)
