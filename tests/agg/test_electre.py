@@ -27,6 +27,7 @@ from skcriteria.agg.electre import (
     concordance,
     discordance,
     electre2,
+    weights_outrank,
     _electre2_ranker,
 )
 from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
@@ -206,6 +207,33 @@ def test_ELECTRE1_invalid_p_and_q():
 # =============================================================================
 
 
+def test_weight_outrank():
+    matrix = scale_by_sum(
+        [
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8],
+        ],
+        axis=0,
+    )
+    objectives = [1, 1, -1, 1, 1]
+    weights = [0.25, 0.25, 0.1, 0.2, 0.2]
+    expected = [
+        [False, True, True, True, True, True],
+        [False, False, False, False, True, False],
+        [False, True, False, True, True, True],
+        [False, True, False, False, True, True],
+        [False, True, False, False, False, False],
+        [False, True, True, False, True, False],
+    ]
+
+    results = weights_outrank(matrix, objectives, weights)
+    np.testing.assert_array_equal(results, expected)
+
+
 def test_electre_2_ranker_empty_kernel():
     outrank_s = np.array(
         [
@@ -334,3 +362,22 @@ def test_electre2_deprecation():
 
     with pytest.warns(DeprecationWarning):
         electre2(matrix, objectives, weights)
+
+
+def test_weights_outrank_deprecation():
+    matrix = np.array(
+        [
+            [6, 5, 28, 5, 5],
+            [4, 2, 25, 10, 9],
+            [5, 7, 35, 9, 6],
+            [6, 1, 27, 6, 7],
+            [6, 8, 30, 7, 9],
+            [5, 6, 26, 4, 8],
+        ],
+        dtype=float,
+    )
+    objectives = np.array([1, 1, -1, 1, 1])
+    weights = np.array([0.25, 0.25, 0.1, 0.2, 0.2])
+
+    with pytest.warns(DeprecationWarning):
+        weights_outrank(matrix, objectives, weights)

@@ -201,6 +201,48 @@ class ELECTRE1(SKCDecisionMakerABC):
 # =============================================================================
 
 
+@deprecated(
+    reason=f"The ELECTRE II implementation now handle this internally. The method will be removed in v1.0",
+    version="0.8.7",
+)
+def weights_outrank(matrix, weights, objectives):
+    """Calculate a matrix of comparison of alternatives where the value of \
+    each cell determines how many times the value of the criteria weights of \
+    the row alternative exceeds those of the column alternative.
+
+    Notes
+    -----
+    For more information about this matrix please check  "Tomada de decisões em
+    cenários complexos" :cite:p:`gomez2004tomada`, p. 100
+
+    """
+    alt_n = len(matrix)
+    alt_combs = it.combinations(range(alt_n), 2)
+    outrank = np.full((alt_n, alt_n), False, dtype=bool)
+
+    for a0_idx, a1_idx in alt_combs:
+        # select the two alternatives to compare
+        a0, a1 = matrix[[a0_idx, a1_idx]]
+
+        # we see where there are strict maximums and minimums
+        maxs, mins = (a0 > a1), (a0 < a1)
+
+        # we assemble the vectors of a \succ b taking the
+        # objectives into account
+        a0_s_a1 = np.where(objectives == Objective.MAX.value, maxs, mins)
+        a1_s_a0 = np.where(objectives == Objective.MAX.value, mins, maxs)
+
+        # we now draw out the criteria
+        outrank[a0_idx, a1_idx] = np.sum(weights * a0_s_a1) >= np.sum(
+            weights * a1_s_a0
+        )
+        outrank[a1_idx, a0_idx] = np.sum(weights * a1_s_a0) >= np.sum(
+            weights * a0_s_a1
+        )
+
+    return outrank
+
+
 def _electre2_ranker(
     alt_n, original_outrank_s, original_outrank_w, invert_ranking
 ):
