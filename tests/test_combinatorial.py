@@ -126,6 +126,7 @@ def test_CombinatorialPipeline_properties():
     assert isinstance(pipeline.named_pipelines, Bunch)
     assert len(pipeline.named_pipelines) == 1
 
+
 def test_mkcombinatorial():
     """Test the mkcombinatorial function."""
     pipeline = mkcombinatorial(

@@ -149,9 +149,11 @@ class CombinatorialPipeline(SKCMethodABC):
 
         return RanksComparator(ranks, {})
 
+
 # =============================================================================
 # FACTORY
 # =============================================================================
+
 
 def mkcombinatorial(*steps):
     """Construct a CombinatorialPipeline from the given transformers and \
