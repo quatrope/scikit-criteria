@@ -62,8 +62,8 @@ class SKCPipeline(SKCMethodABC):
     # INTERNALS ===============================================================
 
     def _validate_steps(self, steps):
-        if not steps:
-            raise ValueError("Pipeline must have at least one step.")
+        if len(steps) < 2:
+            raise ValueError("Pipeline must have at least two step.")
 
         for name, step in steps[:-1]:
             if not isinstance(name, str):

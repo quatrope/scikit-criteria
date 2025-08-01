@@ -88,8 +88,14 @@ def test_pipeline_not_transformer_fail():
 
 
 def test_pipeline_not_dmaker_fail():
-    steps = [CRITIC()]
+    steps = [CRITIC(), CRITIC()]
     with pytest.raises(TypeError):
+        pipeline.mkpipe(*steps)
+
+
+def test_pipeline_not_steps():
+    steps = []
+    with pytest.raises(ValueError):
         pipeline.mkpipe(*steps)
 
 

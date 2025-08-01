@@ -324,7 +324,7 @@ def test_MinMaxInverter_constant_criterion(objective):
     dmdict = dmt.to_dict()
     mtx = dmdict["matrix"]
 
-    assert np.isnan(mtx[:, 0]).all()
+    assert (mtx[:, 0] == 0).all()
     assert np.all(dmdict["objectives"] == 1)
 
 
