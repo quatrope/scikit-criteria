@@ -312,6 +312,11 @@ class RankTransitivityChecker(SKCMethodABC):
         This represents the MCDM method or pipeline to be evaluated for
         robustness.
 
+    fallback : object
+        Optional fallback decision maker for tie-breaking in pairwise
+        comparisons. Must also implement an ``evaluate(dm)`` method.
+        If not provided, lexicographical tie breaking is used.
+
     random_state : int, numpy.random.Generator, or None, default=None
         Controls randomization in cycle-breaking strategies and alternative
         ranking generation. Ensures reproducible results when set to a
