@@ -13,7 +13,7 @@ import pytest
 
 import skcriteria as skc
 from skcriteria.agg import simple
-from skcriteria.combinatorial import CombinatorialPipeline
+from skcriteria.combinatorial import CombinatorialPipeline, mkcombinatorial
 from skcriteria.preprocessing import invert_objectives, scalers
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.utils import Bunch
@@ -125,3 +125,21 @@ def test_CombinatorialPipeline_properties():
 
     assert isinstance(pipeline.named_pipelines, Bunch)
     assert len(pipeline.named_pipelines) == 1
+
+def test_mkcombinatorial():
+    """Test the mkcombinatorial function."""
+    pipeline = mkcombinatorial(
+        invert_objectives.InvertMinimize(),
+        [
+            scalers.SumScaler(target="matrix"),
+            scalers.VectorScaler(target="matrix"),
+        ],
+        simple.WeightedSumModel(),
+    )
+
+    assert isinstance(pipeline, CombinatorialPipeline)
+    assert len(pipeline.pipelines) == 2
+
+    ranks_names = [p[0].lower() for p in pipeline.pipelines]
+    assert "invertminimize_sumscaler_weightedsummodel" in ranks_names
+    assert "invertminimize_vectorscaler_weightedsummodel" in ranks_names

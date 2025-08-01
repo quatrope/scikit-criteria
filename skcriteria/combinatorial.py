@@ -148,3 +148,38 @@ class CombinatorialPipeline(SKCMethodABC):
             ranks.append((pipeline_name, pipeline.evaluate(dm)))
 
         return RanksComparator(ranks, {})
+
+# =============================================================================
+# FACTORY
+# =============================================================================
+
+def mkcombinatorial(*steps):
+    """Construct a CombinatorialPipeline from the given transformers and \
+    decision-maker.
+
+    This is a shorthand for the CombinatorialPipeline constructor; it does not
+    require, and does not permit, naming the estimators. Instead, their names
+    will be set to the lowercase of their types automatically.
+
+    Parameters
+    ----------
+    *steps: list of transformers and decision-maker object
+        List of the scikit-criteria transformers and decision-maker
+        that are chained together.
+
+    Returns
+    -------
+    p : CombinatorialPipeline
+        Returns a scikit-criteria :class:`CombinatorialPipeline` object.
+
+    """
+    names = []
+    for step in steps:
+        if isinstance(step, list):
+            name = "_".join([type(s).__name__.lower() for s in step])
+        else:
+            name = type(step).__name__.lower()
+        names.append(name)
+
+    named_steps = unique_names(names=names, elements=steps)
+    return CombinatorialPipeline(named_steps)
