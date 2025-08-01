@@ -126,7 +126,7 @@ class CombinatorialPipeline(SKCMethodABC):
     @property
     def named_pipelines(self):
         """A dict-like of all generated pipelines."""
-        return Bunch("pipelines", self.pipelines)
+        return Bunch("pipelines", dict(self.pipelines))
 
     def evaluate(self, dm):
         """Evaluates all generated pipelines with the given DecisionMatrix.

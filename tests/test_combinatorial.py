@@ -16,21 +16,7 @@ from skcriteria.agg import simple
 from skcriteria.combinatorial import CombinatorialPipeline
 from skcriteria.preprocessing import invert_objectives, scalers
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
-
-
-# =============================================================================
-# FIXTURES
-# =============================================================================
-
-
-@pytest.fixture
-def decision_matrix():
-    dm = skc.mkdm(
-        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
-        objectives=[min, max, min],
-        weights=[1, 1, 1],
-    )
-    return dm
+from skcriteria.utils import Bunch
 
 
 # =============================================================================
@@ -56,7 +42,13 @@ def test_CombinatorialPipeline_creation():
     assert len(pipeline.pipelines) == 2
 
 
-def test_SKCCombinatorialPipeline_evaluate(decision_matrix):
+def test_CombinatorialPipeline_evaluate():
+
+    dm = skc.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[1, 1, 1],
+    )
 
     steps = [
         ("inverter", InvertMinimize()),
@@ -71,9 +63,65 @@ def test_SKCCombinatorialPipeline_evaluate(decision_matrix):
     ]
 
     pipeline = CombinatorialPipeline(steps)
-    result = pipeline.evaluate(decision_matrix)
+    result = pipeline.evaluate(dm)
 
     assert len(result) == 2
     ranks_names = [r[0] for r in result.ranks]
     assert "InvertMinimize_SumScaler_WeightedSumModel" in ranks_names
     assert "InvertMinimize_VectorScaler_WeightedSumModel" in ranks_names
+
+
+def test_CombinatorialPipeline_invalid_steps():
+    with pytest.raises(ValueError):
+        CombinatorialPipeline([("scaler", scalers.SumScaler(target="matrix"))])
+
+
+def test_CombinatorialPipeline_evaluate2():
+    """Test the evaluate method of CombinatorialPipeline."""
+    dm = skc.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[1, 1, 1],
+    )
+
+    steps = [
+        ("inverter", invert_objectives.InvertMinimize()),
+        (
+            "scaler",
+            [
+                scalers.SumScaler(target="matrix"),
+                scalers.VectorScaler(target="matrix"),
+            ],
+        ),
+        ("agg", simple.WeightedSumModel()),
+    ]
+
+    pipeline = CombinatorialPipeline(steps)
+
+    # The evaluate method should return a RanksComparator object
+    result = pipeline.evaluate(dm)
+
+    # Check that the result has the expected number of ranks
+    assert len(result) == 2
+
+
+def test_CombinatorialPipeline_properties():
+    """Test the properties of the CombinatorialPipeline."""
+    steps = [
+        ("inverter", invert_objectives.InvertMinimize()),
+        ("scaler", scalers.SumScaler(target="matrix")),
+        ("agg", simple.WeightedSumModel()),
+    ]
+    pipeline = CombinatorialPipeline(steps)
+
+    assert isinstance(pipeline.steps, list)
+    assert len(pipeline.steps) == 3
+
+    assert isinstance(pipeline.named_steps, Bunch)
+    assert len(pipeline.named_steps) == 3
+
+    assert isinstance(pipeline.pipelines, list)
+    assert len(pipeline.pipelines) == 1
+
+    assert isinstance(pipeline.named_pipelines, Bunch)
+    assert len(pipeline.named_pipelines) == 1
