@@ -74,6 +74,38 @@ def test_SKCCombinatorialPipeline_evaluate():
     assert "InvertMinimize_VectorScaler_WeightedSumModel" in ranks_names
 
 
+def test_SKCCombinatorialPipeline_transform():
+    dm = skc.mkdm(
+        matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
+        objectives=[min, max, min],
+        weights=[1, 1, 1],
+    )
+
+    steps = [
+        ("inverter", InvertMinimize()),
+        (
+            "scaler",
+            [
+                scalers.SumScaler(target="matrix"),
+                scalers.VectorScaler(target="matrix"),
+            ],
+        ),
+        ("agg", simple.WeightedSumModel()),
+    ]
+
+    pipeline = SKCCombinatorialPipeline(steps)
+    transformed_dms = pipeline.transform(dm)
+
+    assert isinstance(transformed_dms, Bunch)
+    assert len(transformed_dms) == 2
+
+    transformed_dms_names = list(transformed_dms.keys())
+    assert "InvertMinimize_SumScaler_WeightedSumModel" in transformed_dms_names
+    assert (
+        "InvertMinimize_VectorScaler_WeightedSumModel" in transformed_dms_names
+    )
+
+
 def test_SKCCombinatorialPipeline_invalid_steps():
     with pytest.raises(ValueError):
         SKCCombinatorialPipeline(
@@ -130,6 +162,7 @@ def test_SKCCombinatorialPipeline_properties():
 
     assert isinstance(pipeline.named_pipelines, Bunch)
     assert len(pipeline.named_pipelines) == 1
+    assert len(pipeline) == 3
 
 
 def test_mkcombinatorial():

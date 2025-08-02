@@ -125,6 +125,51 @@ class SKCCombinatorialPipeline(SKCMethodABC):
         """A dict-like of all generated pipelines."""
         return Bunch("pipelines", dict(self.pipelines))
 
+    def __len__(self):
+        """Return the length of the Pipeline (the sum of all pipelines)."""
+        return sum(map(len, self.named_pipelines.values()))
+
+    def transform(self, dm):
+        """Transform the data, without applying the final evaluator.
+
+        This method applies the transformation steps (such as inverters and
+        scalers) of each individual pipeline to the input decision matrix.
+        It does not execute the final aggregation step (the evaluator),
+        behaving analogously to the `transform` method of a standard
+        `SKCPipeline`.
+
+        Since multiple pipelines are generated, this method does not return a
+        single transformed decision matrix, but rather a dictionary-like
+        containing all transformed matrices, each associated with the unique
+        name of the pipeline that generated it.
+
+        Parameters
+        ----------
+        dm : :py:class:`skcriteria.core.DecisionMatrix`
+            The decision matrix to transform.
+
+        Returns
+        -------
+        dict-like
+            A dictionary mapping the name of each pipeline (str) to its
+            corresponding transformed
+            :py:class:`skcriteria.core.DecisionMatrix`.
+
+        See Also
+        --------
+        SKCCombinatorialPipeline.evaluate : Evaluate all pipelines and
+            compare their final rankings.
+        SKCCombinatorialPipeline.pipelines : Access the list of individual
+            generated pipelines.
+        SKCPipeline.transform : Transforms the data using a single
+            pipeline.
+
+        """
+        dmts = []
+        for pipeline_name, pipeline in self._pipelines:
+            dmts.append((pipeline_name, pipeline.transform(dm)))
+        return Bunch("transformed_dm", dict(dmts))
+
     def evaluate(self, dm):
         """Evaluates all generated pipelines with the given DecisionMatrix.
 
