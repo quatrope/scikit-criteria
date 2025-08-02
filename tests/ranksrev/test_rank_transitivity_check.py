@@ -28,7 +28,7 @@ import skcriteria as skc
 from skcriteria.agg.electre import ELECTRE2
 from skcriteria.agg.moora import ReferencePointMOORA
 from skcriteria.agg.topsis import TOPSIS
-from skcriteria.pipeline import mkpipe
+from skcriteria.pipelines import mkpipe
 from skcriteria.preprocessing.filters import FilterNonDominated
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler, VectorScaler

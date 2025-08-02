@@ -9,22 +9,16 @@
 # DOCS
 # =============================================================================
 
-"""test for the deprecated module skcriteria.pipeline"""
-
+"""The Module implements utilities to build a composite decision-maker."""
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import pytest
+from skcriteria.pipelines.combinatorial import (
+    CombinatorialPipeline,
+    mkcombinatorial,
+)
+from skcriteria.pipelines.simple_pipeline import SKCPipeline, mkpipe
 
-
-# =============================================================================
-# TEST MADM
-# =============================================================================
-
-
-def test_deprecated_module_pipeline():
-    with pytest.deprecated_call():
-        from skcriteria import pipeline
-    del pipeline
+__all__ = ["SKCPipeline", "mkpipe", "CombinatorialPipeline", "mkcombinatorial"]

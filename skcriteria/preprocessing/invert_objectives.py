@@ -208,7 +208,8 @@ class MinMaxInverter(SKCObjectivesInverterABC):
       the same min-max bounds.
     - Constant criteria (where all alternatives have the same value) will
       result in NaN values after transformation due to division by zero
-      in the normalization formula.
+      in the normalization formula. In such cases, the constant criteria
+      will be transformed to 0.
     - The transformation maintains the preference order within each criterion:
       better alternatives before transformation remain better after
       transformation.
@@ -246,14 +247,14 @@ class MinMaxInverter(SKCObjectivesInverterABC):
             maxs[benefit] - mins[benefit]
         )
 
-        return inverted_matrix
+        return np.nan_to_num(inverted_matrix, nan=0.0)
 
     @doc_inherit(SKCObjectivesInverterABC.transform)
     def transform(self, dm):
         constans = dm.constant_criteria(**self.constant_criteria_kws)
         if np.any(constans):
             warnings.warn(
-                "Some criteria are constant and will be transformed to NaN",
+                "Some criteria are constant and will be transformed to 0",
                 UserWarning,
             )
 

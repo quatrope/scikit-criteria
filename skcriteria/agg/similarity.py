@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""The module 'skcriteria.agg.similarity' is deprecated since v0.9.0 and will \
+"""The module 'skcriteria.agg.similarity' is deprecated since v0.9 and will \
 be removed in v1.0. Please use 'skcriteria.agg.topsis' instead."""
 
 # =============================================================================
@@ -25,7 +25,7 @@ from ..utils import deprecate
 # =============================================================================
 
 deprecate.warn(
-    "The module 'skcriteria.agg.similarity' is deprecated since v0.9.0 and "
+    "The module 'skcriteria.agg.similarity' is deprecated since v0.9 and "
     "will be removed in v1.0. Please use 'skcriteria.agg.topsis' instead."
 )
 

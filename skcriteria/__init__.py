@@ -35,6 +35,7 @@ __all__ = [
     "datasets",
     "read_dmsy",
     "to_dmsy",
+    "CombinatorialPipeline",
 ]
 
 
