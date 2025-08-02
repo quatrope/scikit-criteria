@@ -20,8 +20,8 @@
     *   **WASPAS:** Weighted Aggregated Sum Product Assessment.
 
 *   **New Criteria Inverters:** The
-    *   **`MinMaxInverter`:** A new inverter that normalizes all criteria to the [0,1] range and inverts minimization criteria to maximization. This is particularly useful for MCDA methods that require all criteria to have the same optimization direction and comparable scales.
-    *   **`BenefitCostInverter`:** A new inverter that uses ratios based on the criterion type. For benefit criteria, values are normalized by dividing by the maximum value of the criterion. For cost criteria, the minimum value of the criterion is divided by the value of the criterion
+    *   **MinMaxInverter:** A new inverter that normalizes all criteria to the [0,1] range and inverts minimization criteria to maximization. This is particularly useful for MCDA methods that require all criteria to have the same optimization direction and comparable scales.
+    *   **BenefitCostInverter:** A new inverter that uses ratios based on the criterion type. For benefit criteria, values are normalized by dividing by the maximum value of the criterion. For cost criteria, the minimum value of the criterion is divided by the value of the criterion
 
 *   **New Criteria Weighers:** New methods have been added to objectively calculate criteria weights:
     *   **MEREC:** Method based on the Removal Effects of Criteria.

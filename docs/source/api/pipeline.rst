@@ -2,7 +2,7 @@
 ==============================
 
 
-.. deprecated:: 0.9.0
+.. deprecated:: 0.9
    The ``skcriteria.pipeline`` module is deprecated and will be removed in a future version.
    Please use :mod:`skcriteria.pipelines` instead.
 

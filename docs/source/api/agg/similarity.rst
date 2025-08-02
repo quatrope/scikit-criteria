@@ -1,7 +1,7 @@
 ``skcriteria.agg.similarity`` module (DEPRECATED)
 =================================================
 
-.. deprecated:: 0.7.0
+.. deprecated:: 0.9
    The ``skcriteria.agg.similarity`` module is deprecated and will be removed in a future version.
    Please use :mod:`skcriteria.agg.topsis` instead.
 
