@@ -11,6 +11,6 @@
 
 .. toctree::
    :maxdepth: 2
+   :glob:
 
-   pipeline
-   combinatorial
+   *

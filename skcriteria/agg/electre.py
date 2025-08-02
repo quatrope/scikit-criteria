@@ -206,7 +206,7 @@ class ELECTRE1(SKCDecisionMakerABC):
         "The ELECTRE II implementation now handle this internally. "
         "The method will be removed in v1.0"
     ),
-    version="0.8.7",
+    version="0.9",
 )
 def weights_outrank(matrix, weights, objectives):
     """Calculate a matrix of comparison of alternatives where the value of \
@@ -363,7 +363,7 @@ def electre2_gomez2004tomada(
     )
 
 
-@deprecated(reason="Use ``electre2_gomez2004tomada`` instead.", version=0.8)
+@deprecated(reason="Use ``electre2_gomez2004tomada`` instead.", version=0.9)
 @functools.wraps(electre2_gomez2004tomada)
 def electre2(*args, **kwargs):
     """Execute ELECTRE2 from "Tomada de decisões em cenários complexos" \

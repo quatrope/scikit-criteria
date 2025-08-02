@@ -20,6 +20,7 @@ import os
 import pathlib
 import sys
 import datetime as dt
+import warnings
 
 
 # add the skcriteria source to the build path
@@ -37,6 +38,13 @@ on_rtd = os.environ.get("READTHEDOCS", None) == "True"
 
 # to retrieve scikit criteria metadata
 import skcriteria
+from skcriteria.utils.deprecate import (
+    SKCriteriaDeprecationWarning,
+    SKCriteriaFutureWarning,
+)
+
+warnings.filterwarnings("ignore", category=SKCriteriaDeprecationWarning)
+warnings.filterwarnings("ignore", category=SKCriteriaFutureWarning)
 
 
 # modules to mock in readthedocs
