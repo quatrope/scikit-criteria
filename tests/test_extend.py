@@ -20,7 +20,8 @@ import numpy as np
 
 import pytest
 
-from skcriteria import extend as ext, pipeline
+from skcriteria import extend as ext
+from skcriteria.pipelines import mkpipe
 
 
 # =============================================================================
@@ -150,7 +151,7 @@ def test_mkagg_in_pipeline(decision_matrix):
         return values, {}
 
     # PIPE ====================================================================
-    pipe = pipeline.mkpipe(MyTransformer(), MyAgg())
+    pipe = mkpipe(MyTransformer(), MyAgg())
 
     assert repr(pipe) == (
         "<SKCPipeline "

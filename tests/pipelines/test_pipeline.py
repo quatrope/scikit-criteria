@@ -18,7 +18,7 @@
 
 import pytest
 
-from skcriteria import pipeline
+from skcriteria import pipelines as pipeline
 from skcriteria.agg.topsis import TOPSIS
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import StandarScaler

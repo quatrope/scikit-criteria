@@ -13,7 +13,10 @@ import pytest
 
 import skcriteria as skc
 from skcriteria.agg import simple
-from skcriteria.combinatorial import CombinatorialPipeline, mkcombinatorial
+from skcriteria.pipelines.combinatorial import (
+    CombinatorialPipeline,
+    mkcombinatorial,
+)
 from skcriteria.preprocessing import invert_objectives, scalers
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.utils import Bunch

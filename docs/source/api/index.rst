@@ -48,7 +48,8 @@
 .. toctree::
    :maxdepth: 2
 
-   pipeline
+   pipelines/index
+
 
 .. toctree::
    :maxdepth: 2
@@ -75,3 +76,4 @@
    :maxdepth: 2
 
    madm
+   pipeline
