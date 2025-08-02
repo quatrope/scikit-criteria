@@ -55,7 +55,7 @@ def _make_all_combinations_pipelines(steps):
 # =============================================================================
 
 
-class CombinatorialPipeline(SKCMethodABC):
+class SKCCombinatorialPipeline(SKCMethodABC):
     """Model that encapsulates a pipeline of MCDA methods with alternatives.
 
     This class allows you to define a sequential pipeline of data
@@ -181,4 +181,4 @@ def mkcombinatorial(*steps):
         names.append(name)
 
     named_steps = unique_names(names=names, elements=steps)
-    return CombinatorialPipeline(named_steps)
+    return SKCCombinatorialPipeline(named_steps)

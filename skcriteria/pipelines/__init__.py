@@ -16,9 +16,14 @@
 # =============================================================================
 
 from skcriteria.pipelines.combinatorial import (
-    CombinatorialPipeline,
+    SKCCombinatorialPipeline,
     mkcombinatorial,
 )
 from skcriteria.pipelines.simple_pipeline import SKCPipeline, mkpipe
 
-__all__ = ["SKCPipeline", "mkpipe", "CombinatorialPipeline", "mkcombinatorial"]
+__all__ = [
+    "SKCPipeline",
+    "mkpipe",
+    "SKCCombinatorialPipeline",
+    "mkcombinatorial",
+]

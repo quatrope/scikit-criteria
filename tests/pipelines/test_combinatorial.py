@@ -14,7 +14,7 @@ import pytest
 import skcriteria as skc
 from skcriteria.agg import simple
 from skcriteria.pipelines.combinatorial import (
-    CombinatorialPipeline,
+    SKCCombinatorialPipeline,
     mkcombinatorial,
 )
 from skcriteria.preprocessing import invert_objectives, scalers
@@ -27,7 +27,7 @@ from skcriteria.utils import Bunch
 # =============================================================================
 
 
-def test_CombinatorialPipeline_creation():
+def test_SKCCombinatorialPipeline_creation():
 
     steps = [
         ("inverter", invert_objectives.InvertMinimize()),
@@ -41,11 +41,11 @@ def test_CombinatorialPipeline_creation():
         ("agg", simple.WeightedSumModel()),
     ]
 
-    pipeline = CombinatorialPipeline(steps)
+    pipeline = SKCCombinatorialPipeline(steps)
     assert len(pipeline.pipelines) == 2
 
 
-def test_CombinatorialPipeline_evaluate():
+def test_SKCCombinatorialPipeline_evaluate():
 
     dm = skc.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
@@ -65,7 +65,7 @@ def test_CombinatorialPipeline_evaluate():
         ("agg", simple.WeightedSumModel()),
     ]
 
-    pipeline = CombinatorialPipeline(steps)
+    pipeline = SKCCombinatorialPipeline(steps)
     result = pipeline.evaluate(dm)
 
     assert len(result) == 2
@@ -74,12 +74,14 @@ def test_CombinatorialPipeline_evaluate():
     assert "InvertMinimize_VectorScaler_WeightedSumModel" in ranks_names
 
 
-def test_CombinatorialPipeline_invalid_steps():
+def test_SKCCombinatorialPipeline_invalid_steps():
     with pytest.raises(ValueError):
-        CombinatorialPipeline([("scaler", scalers.SumScaler(target="matrix"))])
+        SKCCombinatorialPipeline(
+            [("scaler", scalers.SumScaler(target="matrix"))]
+        )
 
 
-def test_CombinatorialPipeline_evaluate2():
+def test_SKCCombinatorialPipeline_evaluate2():
     """Test the evaluate method of CombinatorialPipeline."""
     dm = skc.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
@@ -99,7 +101,7 @@ def test_CombinatorialPipeline_evaluate2():
         ("agg", simple.WeightedSumModel()),
     ]
 
-    pipeline = CombinatorialPipeline(steps)
+    pipeline = SKCCombinatorialPipeline(steps)
 
     # The evaluate method should return a RanksComparator object
     result = pipeline.evaluate(dm)
@@ -108,14 +110,14 @@ def test_CombinatorialPipeline_evaluate2():
     assert len(result) == 2
 
 
-def test_CombinatorialPipeline_properties():
+def test_SKCCombinatorialPipeline_properties():
     """Test the properties of the CombinatorialPipeline."""
     steps = [
         ("inverter", invert_objectives.InvertMinimize()),
         ("scaler", scalers.SumScaler(target="matrix")),
         ("agg", simple.WeightedSumModel()),
     ]
-    pipeline = CombinatorialPipeline(steps)
+    pipeline = SKCCombinatorialPipeline(steps)
 
     assert isinstance(pipeline.steps, list)
     assert len(pipeline.steps) == 3
@@ -141,7 +143,7 @@ def test_mkcombinatorial():
         simple.WeightedSumModel(),
     )
 
-    assert isinstance(pipeline, CombinatorialPipeline)
+    assert isinstance(pipeline, SKCCombinatorialPipeline)
     assert len(pipeline.pipelines) == 2
 
     ranks_names = [p[0].lower() for p in pipeline.pipelines]
