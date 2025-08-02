@@ -61,8 +61,8 @@ urls = { Homepage = "https://scikit-criteria.quatrope.org/", Repository = "https
 dependencies = [
     "numpy>=2.0",
     "networkx>=3.2",
-    "pandas",
-    "scipy",
+    "pandas>=2.0",
+    "scipy>=1.10",
     "jinja2",
     "custom_inherit",
     "seaborn>=0.13,<0.14",
