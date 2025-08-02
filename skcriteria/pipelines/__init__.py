@@ -19,6 +19,6 @@ from skcriteria.pipelines.combinatorial import (
     CombinatorialPipeline,
     mkcombinatorial,
 )
-from skcriteria.pipelines.pipeline import SKCPipeline, mkpipe
+from skcriteria.pipelines.simple_pipeline import SKCPipeline, mkpipe
 
 __all__ = ["SKCPipeline", "mkpipe", "CombinatorialPipeline", "mkcombinatorial"]

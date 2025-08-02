@@ -17,10 +17,10 @@
 
 import itertools
 
-from skcriteria.core import SKCMethodABC
-from skcriteria.cmp import RanksComparator
-from skcriteria.pipelines.pipeline import SKCPipeline
-from skcriteria.utils import Bunch, unique_names
+from ..core import SKCMethodABC
+from ..cmp import RanksComparator
+from .simple_pipeline import SKCPipeline
+from ..utils import Bunch, unique_names
 
 # =============================================================================
 # HELPER FUNCTIONS

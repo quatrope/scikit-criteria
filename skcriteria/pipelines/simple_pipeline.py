@@ -15,8 +15,8 @@
 # IMPORTS
 # =============================================================================
 
-from skcriteria.core import SKCMethodABC
-from skcriteria.utils import Bunch, unique_names
+from ..core import SKCMethodABC
+from ..utils import Bunch, unique_names
 
 
 # =============================================================================

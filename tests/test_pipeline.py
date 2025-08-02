@@ -9,28 +9,22 @@
 # DOCS
 # =============================================================================
 
-"""The 'skcriteria.pipeline' module is deprecated since 0. and will be \
-removed in 1.0 Use 'skcriteria.pipelines' instead."""
+"""test for the deprecated module skcriteria.pipeline"""
+
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-from ..utils import deprecate
-from .pipelines import SKCPipeline, mkpipe
+import pytest
 
 
 # =============================================================================
-# WARNINGS
+# TEST MADM
 # =============================================================================
 
-deprecate.warn(
-    "The 'skcriteria.pipeline' module is deprecated since 0.9 and will be "
-    "removed in 1.0 Use 'skcriteria.pipelines' instead.",
-)
 
-# =============================================================================
-# ALL
-# =============================================================================
-
-__all__ = ["SKCPipeline", "mkpipe"]
+def test_deprecated_module_pipeline():
+    with pytest.deprecated_call():
+        from skcriteria import pipeline
+    del pipeline

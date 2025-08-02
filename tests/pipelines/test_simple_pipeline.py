@@ -18,7 +18,7 @@
 
 import pytest
 
-from skcriteria import pipelines as pipeline
+from skcriteria import pipelines
 from skcriteria.agg.topsis import TOPSIS
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import StandarScaler
@@ -45,7 +45,7 @@ def test_pipeline_mkpipe(decision_matrix):
         expected = step.transform(expected)
     expected = steps[-1].evaluate(expected)
 
-    pipe = pipeline.mkpipe(*steps)
+    pipe = pipelines.mkpipe(*steps)
     result = pipe.evaluate(dm)
 
     assert result.values_equals(expected)
@@ -64,7 +64,7 @@ def test_pipeline_slicing():
         TOPSIS(),
     ]
 
-    pipe = pipeline.mkpipe(*steps)
+    pipe = pipelines.mkpipe(*steps)
 
     for idx, step in enumerate(steps):
         assert pipe[idx] == step
@@ -84,23 +84,23 @@ def test_pipeline_slicing():
 def test_pipeline_not_transformer_fail():
     steps = [TOPSIS(), TOPSIS()]
     with pytest.raises(TypeError):
-        pipeline.mkpipe(*steps)
+        pipelines.mkpipe(*steps)
 
 
 def test_pipeline_not_dmaker_fail():
     steps = [CRITIC(), CRITIC()]
     with pytest.raises(TypeError):
-        pipeline.mkpipe(*steps)
+        pipelines.mkpipe(*steps)
 
 
 def test_pipeline_not_steps():
     steps = []
     with pytest.raises(ValueError):
-        pipeline.mkpipe(*steps)
+        pipelines.mkpipe(*steps)
 
 
 def test_pipeline_name_not_str():
     with pytest.raises(TypeError):
-        pipeline.SKCPipeline(steps=[(..., CRITIC()), ("final", TOPSIS())])
+        pipelines.SKCPipeline(steps=[(..., CRITIC()), ("final", TOPSIS())])
     with pytest.raises(TypeError):
-        pipeline.SKCPipeline(steps=[("first", CRITIC()), (..., TOPSIS())])
+        pipelines.SKCPipeline(steps=[("first", CRITIC()), (..., TOPSIS())])
