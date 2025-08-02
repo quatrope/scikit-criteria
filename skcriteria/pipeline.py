@@ -16,8 +16,8 @@ removed in 1.0 Use 'skcriteria.pipelines' instead."""
 # IMPORTS
 # =============================================================================
 
-from ..utils import deprecate
 from .pipelines import SKCPipeline, mkpipe
+from .utils import deprecate
 
 
 # =============================================================================
