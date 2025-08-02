@@ -17,9 +17,9 @@
 
 import itertools
 
+from .simple_pipeline import SKCPipeline
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
-from .simple_pipeline import SKCPipeline
 from ..utils import Bunch, unique_names
 
 # =============================================================================

@@ -24,11 +24,11 @@ import skcriteria
 from skcriteria.agg.electre import (
     ELECTRE1,
     ELECTRE2,
+    _electre2_ranker,
     concordance,
     discordance,
     electre2,
     weights_outrank,
-    _electre2_ranker,
 )
 from skcriteria.preprocessing.scalers import SumScaler, scale_by_sum
 
@@ -305,7 +305,8 @@ def test_ELECTRE2_wang2006():
     """
     Data From:
         Xiaoting Wang, Evangelos Triantaphyllou,
-        Ranking irregularities when evaluating alternatives by using some ELECTRE methods,
+            Ranking irregularities when evaluating alternatives by using
+            some ELECTRE methods,
         Omega,
         Volume 36, Issue 1,
         2008,
