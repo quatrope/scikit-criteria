@@ -202,7 +202,10 @@ class ELECTRE1(SKCDecisionMakerABC):
 
 
 @deprecated(
-    reason=f"The ELECTRE II implementation now handle this internally. The method will be removed in v1.0",
+    reason=(
+        "The ELECTRE II implementation now handle this internally. "
+        "The method will be removed in v1.0"
+    ),
     version="0.8.7",
 )
 def weights_outrank(matrix, weights, objectives):
