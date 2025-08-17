@@ -17,6 +17,8 @@
 
 import itertools
 
+import joblib
+
 from .simple_pipeline import SKCPipeline
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
@@ -48,6 +50,11 @@ def _make_all_combinations_pipelines(steps):
         pipelines.append(pipeline)
 
     return unique_names(names=pipelines_names, elements=pipelines)
+
+
+def _run_pipeline_method(pipeline_name, pipeline_method, dm):
+    # only to use joblib
+    return pipeline_name, pipeline_method(dm)
 
 
 # =============================================================================
@@ -92,23 +99,46 @@ class SKCCombinatorialPipeline(SKCMethodABC):
                 ("agg", simple.WeightedSum()),
             ]
 
+    prefered_parallel_backend : str, optional
+        The preferred parallel backend for joblib.
+
+    n_jobs : int, optional
+        The number of jobs to run in parallel.
+
+
     """
 
     _skcriteria_dm_type = "combinatorial_pipeline"
-    _skcriteria_parameters = ["steps"]
+    _skcriteria_parameters = [
+        "steps",
+        "prefered_parallel_backend",
+        "n_jobs",
+    ]
 
-    def __init__(self, steps):
+    def __init__(self, steps, prefered_parallel_backend=None, n_jobs=None):
         steps = list(steps)
         if len(steps) < 2:
             raise ValueError("Pipeline must have at least two steps.")
 
         self._steps = steps
         self._pipelines = _make_all_combinations_pipelines(steps)
+        self._prefered_parallel_backend = prefered_parallel_backend
+        self._n_jobs = None if n_jobs is None else int(n_jobs)
 
     @property
     def steps(self):
         """The raw steps provided during initialization."""
         return list(self._steps)
+
+    @property
+    def preferred_parallel_backend(self):
+        """The preferred parallel backend for joblib."""
+        return self._prefered_parallel_backend
+
+    @property
+    def n_jobs(self):
+        """The number of jobs to run in parallel."""
+        return self._n_jobs
 
     @property
     def named_steps(self):
@@ -165,9 +195,19 @@ class SKCCombinatorialPipeline(SKCMethodABC):
             pipeline.
 
         """
-        dmts = []
-        for pipeline_name, pipeline in self._pipelines:
-            dmts.append((pipeline_name, pipeline.transform(dm)))
+        prefered_parallel_backend = self._prefered_parallel_backend
+        n_jobs = self._n_jobs
+        pipelines = self._pipelines
+
+        with joblib.Parallel(
+            prefer=prefered_parallel_backend, n_jobs=n_jobs
+        ) as P:
+            run_pipeline_method = joblib.delayed(_run_pipeline_method)
+            dmts = P(
+                run_pipeline_method(pipe_name, pipe.transform, dm)
+                for pipe_name, pipe in pipelines
+            )
+
         return Bunch("transformed_dm", dict(dmts))
 
     def evaluate(self, dm):
@@ -185,9 +225,18 @@ class SKCCombinatorialPipeline(SKCMethodABC):
             each generated pipeline.
 
         """
-        ranks = []
-        for pipeline_name, pipeline in self._pipelines:
-            ranks.append((pipeline_name, pipeline.evaluate(dm)))
+        prefered_parallel_backend = self._prefered_parallel_backend
+        n_jobs = self._n_jobs
+        pipelines = self._pipelines
+
+        with joblib.Parallel(
+            prefer=prefered_parallel_backend, n_jobs=n_jobs
+        ) as P:
+            run_pipeline_method = joblib.delayed(_run_pipeline_method)
+            ranks = P(
+                run_pipeline_method(pipe_name, pipe.evaluate, dm)
+                for pipe_name, pipe in pipelines
+            )
 
         return RanksComparator(ranks, {})
 
