@@ -98,7 +98,7 @@ def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
     dm = skc.datasets.load_simple_stock_selection()
     orank = electre2_pipe.evaluate(dm)
     trans_checker = RankTransitivityChecker(electre2_pipe)
-    graph = trans_checker._dominance_graph(dm, orank)
+    graph = trans_checker._dominance_graph(dm, orank, None, None)
     trans_break = list(nx.simple_cycles(graph, length_bound=3))
     result = _format_transitivity_cycles(trans_break)
     assert result == []
@@ -108,7 +108,7 @@ def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
     dm = skc.datasets.load_van2021evaluation(windows_size=7)
     orank = topsis_pipe_moora.evaluate(dm)
     trans_checker = RankTransitivityChecker(topsis_pipe_moora)
-    graph = trans_checker._dominance_graph(dm, orank)
+    graph = trans_checker._dominance_graph(dm, orank, None, None)
     trans_break = list(nx.simple_cycles(graph, length_bound=3))
     result = _format_transitivity_cycles(trans_break)
     assert result != []
@@ -154,16 +154,16 @@ def test_TransitivityChecker_fallback():
     assert trans_checker.fallback == topsis_pipe
 
 
-def test_TransitivityChecker_parallell_backend_none():
+def test_TransitivityChecker_prefered_parallel_backend_none():
     trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.parallel_backend is None
+    assert trans_checker.prefered_parallel_backend is None
 
 
-def test_TransitivityChecker_parallell_backend():
+def test_TransitivityChecker_prefered_parallel_backend():
     trans_checker = RankTransitivityChecker(
-        electre2_pipe, parallel_backend=electre2_pipe
+        electre2_pipe, prefered_parallel_backend=electre2_pipe
     )
-    assert trans_checker.parallel_backend == electre2_pipe
+    assert trans_checker.prefered_parallel_backend == electre2_pipe
 
 
 def test_TransitivityChecker_random_state():
@@ -280,7 +280,7 @@ def test_TransitivityCheck_test_criterion_2_pass():
     trans_check = RankTransitivityChecker(topsis_pipe)
     rank_comparator = trans_check.evaluate(dm=dm)
     orank = topsis_pipe.evaluate(dm)
-    test_criterion_2 = trans_check._test_criterion_2(dm, orank)[0]
+    test_criterion_2 = trans_check._test_criterion_2(dm, orank, None, None)[0]
     assert rank_comparator._extra.transitivity_break_rate == 0
     assert rank_comparator._extra.test_criterion_2
     assert test_criterion_2
@@ -291,7 +291,7 @@ def test_TransitivityCheck_test_criterion_2_fail():
     trans_check = RankTransitivityChecker(topsis_pipe_moora)
     rank_comparator = trans_check.evaluate(dm=dm)
     orank = topsis_pipe.evaluate(dm)
-    test_criterion_2 = trans_check._test_criterion_2(dm, orank)[0]
+    test_criterion_2 = trans_check._test_criterion_2(dm, orank, None, None)[0]
     assert rank_comparator._extra.transitivity_break_rate > 0
     assert not rank_comparator._extra.test_criterion_2
     assert not test_criterion_2

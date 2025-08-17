@@ -189,4 +189,4 @@ def mkpipe(*steps):
     """
     names = [type(step).__name__.lower() for step in steps]
     named_steps = unique_names(names=names, elements=steps)
-    return SKCPipeline(named_steps)
+    return SKCPipeline(steps=named_steps)

@@ -115,7 +115,7 @@ class SKCCombinatorialPipeline(SKCMethodABC):
         "n_jobs",
     ]
 
-    def __init__(self, steps, prefered_parallel_backend=None, n_jobs=None):
+    def __init__(self, steps, *, prefered_parallel_backend=None, n_jobs=None):
         steps = list(steps)
         if len(steps) < 2:
             raise ValueError("Pipeline must have at least two steps.")
@@ -246,7 +246,7 @@ class SKCCombinatorialPipeline(SKCMethodABC):
 # =============================================================================
 
 
-def mkcombinatorial(*steps):
+def mkcombinatorial(*steps, **kwargs):
     """Construct a CombinatorialPipeline from the given transformers and \
     decision-maker.
 
@@ -256,9 +256,13 @@ def mkcombinatorial(*steps):
 
     Parameters
     ----------
-    *steps: list of transformers and decision-maker object
+    *steps: multiple transformers and decision-maker object
         List of the scikit-criteria transformers and decision-maker
         that are chained together.
+
+    **kwargs: keyword arguments
+        Keyword arguments to be passed to the CombinatorialPipeline
+        constructor.
 
     Returns
     -------
@@ -275,4 +279,4 @@ def mkcombinatorial(*steps):
         names.append(name)
 
     named_steps = unique_names(names=names, elements=steps)
-    return SKCCombinatorialPipeline(named_steps)
+    return SKCCombinatorialPipeline(steps=named_steps, **kwargs)
