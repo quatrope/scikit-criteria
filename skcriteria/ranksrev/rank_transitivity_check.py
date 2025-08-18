@@ -46,7 +46,7 @@ with hidden():
     from ..agg import RankResult
     from ..cmp import RanksComparator
     from ..core import SKCMethodABC
-    from ..utils import Bunch, unique_names
+    from ..utils import Bunch, unique_names, deprecate
     from ..utils.cycle_removal import (
         CYCLE_REMOVAL_STRATEGIES,
         generate_acyclic_graphs,
@@ -340,7 +340,7 @@ class RankTransitivityChecker(SKCMethodABC):
         cycles. Controls computational complexity by limiting the number of
         decompositions.
 
-    prefered_parallel_backend : str or None, default=None
+    preferred_parallel_backend : str or None, default=None
         Backend for parallel computation of pairwise evaluations.
         Options include 'threading', 'multiprocessing', or None for sequential.
         Improves performance for large numbers of alternatives.
@@ -348,6 +348,9 @@ class RankTransitivityChecker(SKCMethodABC):
     n_jobs : int or None, default=None
         Number of parallel jobs for pairwise evaluation. When None, uses all
         available processors. Set to 1 for sequential processing.
+
+    parallel_backend : str or None, default=None (deprecated)
+        Use ``preferred_parallel_backend`` instead.
 
     Raises
     ------
@@ -388,7 +391,7 @@ class RankTransitivityChecker(SKCMethodABC):
     ...     allow_missing_alternatives=True,
     ...     cycle_removal_strategy="random",
     ...     max_ranks=100,
-    ...     prefered_parallel_backend="threading",
+    ...     preferred_parallel_backend="threading",
     ...     n_jobs=4
     ... )
     """
@@ -401,7 +404,7 @@ class RankTransitivityChecker(SKCMethodABC):
         "allow_missing_alternatives",
         "cycle_removal_strategy",
         "max_ranks",
-        "prefered_parallel_backend",
+        "preferred_parallel_backend",
         "n_jobs",
     ]
 
@@ -414,8 +417,9 @@ class RankTransitivityChecker(SKCMethodABC):
         allow_missing_alternatives=False,
         cycle_removal_strategy="random",
         max_ranks=50,
-        prefered_parallel_backend=None,
+        preferred_parallel_backend=None,
         n_jobs=None,
+        parallel_backend=None,
     ):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
@@ -440,7 +444,22 @@ class RankTransitivityChecker(SKCMethodABC):
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
 
         # PARALLEL BACKEND
-        self._prefered_parallel_backend = prefered_parallel_backend
+        if (
+            parallel_backend is not None
+            and preferred_parallel_backend is not None
+        ):
+            raise ValueError(
+                "Only one of 'parallel_backend' (deprecated) and "
+                "'preferred_parallel_backend' can be specified"
+            )
+        if parallel_backend is not None:
+            deprecate.warn(
+                "The 'parallel_backend' parameter is deprecated. "
+                "Use 'preferred_parallel_backend' instead."
+            )
+            preferred_parallel_backend = parallel_backend
+
+        self._preferred_parallel_backend = preferred_parallel_backend
         self._n_jobs = None if n_jobs is None else int(n_jobs)
 
         # RANDOM
@@ -511,9 +530,9 @@ class RankTransitivityChecker(SKCMethodABC):
         return self._max_ranks
 
     @property
-    def prefered_parallel_backend(self):
+    def preferred_parallel_backend(self):
         """The parallel backend used to generate all the alternatives."""
-        return self._prefered_parallel_backend
+        return self._preferred_parallel_backend
 
     @property
     def n_jobs(self):
@@ -799,7 +818,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return ranks
 
-    def _dominance_graph(self, dm, rrank, prefered_parallel_backend, n_jobs):
+    def _dominance_graph(self, dm, rrank, preferred_parallel_backend, n_jobs):
         """
         Create a directed dominance graph from pairwise alternative \
             comparisons.
@@ -816,7 +835,7 @@ class RankTransitivityChecker(SKCMethodABC):
         rrank : RankResult
             The original ranking result containing the list of alternatives to
             be compared pairwise.
-        prefered_parallel_backend : str
+        preferred_parallel_backend : str
             The preferred parallel backend for joblib.
         n_jobs : int
             The number of parallel jobs to use for parallel processing.
@@ -840,7 +859,7 @@ class RankTransitivityChecker(SKCMethodABC):
         # Each resulting sub-matrix has 2 alternatives × k original criteria
         # TODO: Probar sacar paralelismo
         with joblib.Parallel(
-            prefer=prefered_parallel_backend, n_jobs=n_jobs
+            prefer=preferred_parallel_backend, n_jobs=n_jobs
         ) as P:
             delayed_evaluation = joblib.delayed(
                 self._evaluate_pairwise_submatrix
@@ -892,7 +911,7 @@ class RankTransitivityChecker(SKCMethodABC):
         return trans_break, trans_break_rate
 
     def _generate_graph_data(
-        self, dm, rrank, prefered_parallel_backend, n_jobs
+        self, dm, rrank, preferred_parallel_backend, n_jobs
     ):
         """
         Generate dominance graph and calculate transitivity metrics.
@@ -908,7 +927,7 @@ class RankTransitivityChecker(SKCMethodABC):
             analysis.
         rrank : RankResult
             The original ranking result containing alternatives to be analyzed.
-        prefered_parallel_backend : str
+        preferred_parallel_backend : str
             The preferred parallel backend for joblib.
         n_jobs : int
             The number of parallel jobs to use for parallel processing.
@@ -926,7 +945,7 @@ class RankTransitivityChecker(SKCMethodABC):
         """
         # Create pairwise dominance graph
         graph = self._dominance_graph(
-            dm, rrank, prefered_parallel_backend, n_jobs
+            dm, rrank, preferred_parallel_backend, n_jobs
         )
 
         # Calculate transitivity break, and it's rate
@@ -936,7 +955,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return graph, trans_break, trans_break_rate
 
-    def _test_criterion_2(self, dm, orank, prefered_parallel_backend, n_jobs):
+    def _test_criterion_2(self, dm, orank, preferred_parallel_backend, n_jobs):
         """
         Perform test criterion 2: transitivity consistency check.
 
@@ -950,7 +969,7 @@ class RankTransitivityChecker(SKCMethodABC):
             Decision matrix containing the alternatives and criteria values.
         orank : array-like
             Ranking or ordering information for the alternatives.
-        prefered_parallel_backend : str
+        preferred_parallel_backend : str
             The preferred parallel backend for joblib.
         n_jobs : int
             The number of parallel jobs to use for parallel processing.
@@ -980,7 +999,7 @@ class RankTransitivityChecker(SKCMethodABC):
         """
         # make the pairwise dominance graph and calculate transitivity metrics
         graph, trans_break, trans_break_rate = self._generate_graph_data(
-            dm, orank, prefered_parallel_backend, n_jobs
+            dm, orank, preferred_parallel_backend, n_jobs
         )
 
         test_criterion_2 = trans_break_rate == 0
@@ -1045,7 +1064,7 @@ class RankTransitivityChecker(SKCMethodABC):
         """
         dmaker = self._dmaker
         full_alternatives = dm.alternatives
-        prefered_parallel_backend = self._prefered_parallel_backend
+        preferred_parallel_backend = self._preferred_parallel_backend
         n_jobs = self._n_jobs
 
         # we need a first reference ranking
@@ -1063,7 +1082,7 @@ class RankTransitivityChecker(SKCMethodABC):
             self._test_criterion_2(
                 dm,
                 rrank,
-                prefered_parallel_backend=prefered_parallel_backend,
+                preferred_parallel_backend=preferred_parallel_backend,
                 n_jobs=n_jobs,
             )
         )

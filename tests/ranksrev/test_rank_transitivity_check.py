@@ -154,16 +154,16 @@ def test_TransitivityChecker_fallback():
     assert trans_checker.fallback == topsis_pipe
 
 
-def test_TransitivityChecker_prefered_parallel_backend_none():
+def test_TransitivityChecker_preferred_parallel_backend_none():
     trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.prefered_parallel_backend is None
+    assert trans_checker.preferred_parallel_backend is None
 
 
-def test_TransitivityChecker_prefered_parallel_backend():
+def test_TransitivityChecker_preferred_parallel_backend():
     trans_checker = RankTransitivityChecker(
-        electre2_pipe, prefered_parallel_backend=electre2_pipe
+        electre2_pipe, preferred_parallel_backend=electre2_pipe
     )
-    assert trans_checker.prefered_parallel_backend == electre2_pipe
+    assert trans_checker.preferred_parallel_backend == electre2_pipe
 
 
 def test_TransitivityChecker_random_state():
