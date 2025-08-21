@@ -41,6 +41,7 @@ from skcriteria.utils.cycle_removal import (
     _select_edge_random,
     _select_edge_weighted,
 )
+from skcriteria.utils.deprecate import SKCriteriaDeprecationWarning
 
 # =============================================================================
 # SHARED OBJECTS
@@ -236,6 +237,21 @@ def test_TransitivityChecker_n_jobs_custom():
     jobs = 42
     trans_checker = RankTransitivityChecker(electre2_pipe, n_jobs=jobs)
     assert trans_checker.n_jobs == jobs
+
+
+def test_RankTransitivityChecker_parallel_backend_deprecation():
+    with pytest.raises(ValueError):
+        RankTransitivityChecker(
+            electre2_pipe,
+            parallel_backend="foo",
+            preferred_parallel_backend="bar",
+        )
+
+    with pytest.warns(SKCriteriaDeprecationWarning):
+        checker = RankTransitivityChecker(
+            electre2_pipe, parallel_backend="foo"
+        )
+        assert checker.parallel_backend == "foo"
 
 
 # =============================================================================

@@ -164,8 +164,8 @@ def test_SKCCombinatorialPipeline_properties():
     assert len(pipeline.named_pipelines) == 1
     assert len(pipeline) == 3
 
-    assert pipeline.preferred_parallel_backend == None
-    assert pipeline.n_jobs == None
+    assert pipeline.preferred_parallel_backend is None
+    assert pipeline.n_jobs is None
 
 
 def test_mkcombinatorial():
