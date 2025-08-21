@@ -64,6 +64,8 @@ def add_sphinx_deprecated_directive(doc, *, reason, version):
         the version number has the format "MAJOR.MINOR.PATCH".
 
     """
+    doc = doc or ""  # in case doc is None
+
     # first let split the text in lines
     lines = doc.splitlines()
 

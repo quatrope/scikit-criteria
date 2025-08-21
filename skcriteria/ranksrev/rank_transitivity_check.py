@@ -449,13 +449,13 @@ class RankTransitivityChecker(SKCMethodABC):
             and preferred_parallel_backend is not None
         ):
             raise ValueError(
-                "Only one of 'parallel_backend' (deprecated) and "
+                "Only one of 'parallel_backend' (deprecated since 0.9.1) and "
                 "'preferred_parallel_backend' can be specified"
             )
         if parallel_backend is not None:
             deprecate.warn(
-                "The 'parallel_backend' parameter is deprecated. "
-                "Use 'preferred_parallel_backend' instead."
+                "The 'parallel_backend' parameter is deprecated since 0.9.1,  "
+                "use 'preferred_parallel_backend' instead."
             )
             preferred_parallel_backend = parallel_backend
 
@@ -533,6 +533,14 @@ class RankTransitivityChecker(SKCMethodABC):
     def preferred_parallel_backend(self):
         """The parallel backend used to generate all the alternatives."""
         return self._preferred_parallel_backend
+
+    @property
+    @deprecate.deprecated(
+        reason="Use 'preferred_parallel_backend' instead", version="0.9.1"
+    )
+    def parallel_backend(self):
+        """The parallel backend used to generate all the alternatives."""
+        return self.preferred_parallel_backend
 
     @property
     def n_jobs(self):
