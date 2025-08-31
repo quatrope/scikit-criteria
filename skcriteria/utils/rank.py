@@ -66,6 +66,81 @@ def rank_values(arr, reverse=False):
         arr = np.multiply(arr, -1)
     return stats.rankdata(arr, "dense").astype(np.int64)
 
+# =============================================================================
+# IS RANK
+# =============================================================================
+
+
+def is_rank(values):
+    """Check if an array represents a valid, dense ranking.
+
+    This function validates if an array corresponds to a 1-based, dense
+    ranking. A dense ranking has no gaps between the rank values. For example,
+    if the maximum rank is 4, then ranks 1, 2, and 3 must also be present.
+
+    The input values are first converted to integers. For example, an
+    input of ``[1.0, 2.5, 3.1]`` will be evaluated as ``[1, 2, 3]``.
+
+    Parameters
+    ----------
+    values : array-like
+        Array to validate. The values will be coerced to integers.
+
+    Returns
+    -------
+    bool
+        True if ``values`` represents a valid rank, otherwise False.
+
+    Examples
+    --------
+    >>> from skcriteria.utils.rank import is_rank
+    >>> is_rank([1, 2, 3, 2])
+    True
+
+    >>> is_rank([1.0, 2.5, 3.9]) # Coerced to [1, 2, 3]
+    True
+
+    >>> is_rank([1, 4, 4])  # Fails: Gaps are present (2 and 3 are missing).
+    False
+
+    >>> is_rank([2, 3, 4])  # Fails: The ranking must be 1-based.
+    False
+
+    """
+    # if the array is empty, this is not a rank
+    if len(values) == 0:
+        return False
+
+    # convert to int
+    values = np.asarray(values, dtype=int)
+
+    # if any value is less than 1, this is not a rank
+    if np.any(values < 1):
+        return False
+
+    # if any value is greater than the length of the array, this is not a rank
+    if np.any(values > len(values)):
+        return False
+
+    # the sorted unique values of the rank!
+    # [1, 1, 1, 2, 3] >>> [1, 2, 3] <<< OK! this is consecutive
+    # [1, 1, 4, 4, 3] >>> [1, 3, 4]  <<< BAD this is not consecutive
+    cleaned_values = np.sort(np.unique(values))
+
+    # the size of the sorted unique values
+    # len([1, 2, 3]) => 3
+    # len([1, 3, 4]) => 3
+    length = len(cleaned_values)
+
+    # this create the expected rank of this length (must start in 1)
+    # [1, 2, 3] -> [1, 2, 3]
+    # [1, 3, 4] -> [1, 2, 3]
+    expected = np.arange(length) + 1
+
+    # if the sorted unique values are the expected, this is a rank
+    looks_like_rank = np.array_equal(np.sort(cleaned_values), expected)
+
+    return looks_like_rank
 
 # =============================================================================
 # DOMINANCE

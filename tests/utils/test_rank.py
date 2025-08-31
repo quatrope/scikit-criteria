@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
 # Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
-# Copyright (c) 2022-2025 QuatroPe
+# Copyright (c) 22022-2025 QuatroPe
 # All rights reserved.
 
 # =============================================================================
@@ -21,6 +21,7 @@ import numpy as np
 import pytest
 
 from skcriteria.utils import rank
+from skcriteria.utils.rank import is_rank
 
 
 # =============================================================================
@@ -88,3 +89,28 @@ def test_dominance_fail():
         rank.dominance([1], [1, 2])
     with pytest.raises(ValueError):
         rank.dominance([3, 4], [1, 2], [True])
+
+
+# =============================================================================
+# IS_RANK
+# =============================================================================
+
+
+@pytest.mark.parametrize(
+    ("rank_data", "expected"),
+    [
+        ([1, 2, 3], True),
+        ([1, 2, 2, 3], True),
+        ([3, 1, 2], True),
+        ([1], True),
+        ([1.0, 2.9, 3.1], True),  # This case tests the integer coercion
+        ([], False),
+        ([2, 3, 4], False),
+        ([1, 2, 4], False),
+        ([0, 1, 2], False),
+        ([1, 2, 5], False),
+    ],
+)
+def test_is_rank(rank_data, expected):
+    """Test the is_rank function with various cases."""
+    assert is_rank(rank_data) == expected
