@@ -9,7 +9,26 @@
 # DOCS
 # =============================================================================
 
-"""Core functionalities of scikit-criteria."""
+"""Foundational module for the creation of multi-criteria methods.
+
+This module provides the basic components for the entire library. It defines
+the abstract base classes that encapsulate the logic of the transformers and
+aggregators.
+
+- **Transformers**: These are classes in charge of pre-processing the decision
+  matrix. They take a `DecisionMatrix` and return a new, modified one.
+  Examples include data normalization, weighting, or filtering of
+  alternatives/criteria.
+
+- **Aggregators**: These classes implement the core of the multi-criteria
+  decision-making methods. They take a `DecisionMatrix` and return a result,
+  which is usually a ranking of the alternatives.
+
+By providing this common structure, it is possible to create new methods
+that are compatible with the entire `scikit-criteria` ecosystem and, at the
+same time, to assemble complex decision-making processes through pipelines.
+
+"""
 
 # =============================================================================
 # IMPORTS
