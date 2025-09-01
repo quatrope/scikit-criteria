@@ -7,19 +7,23 @@
 
 """Test for RankClonesChecker."""
 
+import pytest
+
 import skcriteria as skc
 from skcriteria.agg.topsis import TOPSIS
 from skcriteria.cmp import RanksComparator
+from skcriteria.pipelines import mkpipe
+from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.ranksrev.rank_reversal_by_clones import RankClonesChecker
 
 
 def test_RankClonesChecker_evaluate():
-    """Test the evaluate method of the RankClonesChecker."""    
+    """Test the evaluate method of the RankClonesChecker."""
     # 1. Create a base decision matrix
     dm = skc.datasets.load_simple_stock_selection()
 
     # 2. Define the decision maker
-    dmaker = TOPSIS()
+    dmaker = mkpipe(InvertMinimize(), TOPSIS())
 
     # 3. Instantiate the checker
     checker = RankClonesChecker(dmaker)
@@ -43,3 +47,10 @@ def test_RankClonesChecker_evaluate():
         assert rank.extra_.rank_clone_check.cloned_alternative is not None
         cloned_best = rank.alternatives[0]
         assert original_best == cloned_best
+
+
+def test_TransitivityChecker_bad_dmaker():
+    bad_pipe = "Suffering and pain"
+    with pytest.raises(TypeError) as ex:
+        RankClonesChecker(bad_pipe)
+        assert "'dmaker' must implement 'evaluate()' method" in str(ex.value)

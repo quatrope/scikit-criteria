@@ -66,6 +66,7 @@ def rank_values(arr, reverse=False):
         arr = np.multiply(arr, -1)
     return stats.rankdata(arr, "dense").astype(np.int64)
 
+
 # =============================================================================
 # IS RANK
 # =============================================================================
@@ -141,6 +142,7 @@ def is_rank(values):
     looks_like_rank = np.array_equal(np.sort(cleaned_values), expected)
 
     return looks_like_rank
+
 
 # =============================================================================
 # DOMINANCE

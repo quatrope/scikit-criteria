@@ -25,15 +25,17 @@ alternatives are introduced.
 # imports
 # =============================================================================
 
-import numpy as np
+from ..utils import hidden
 
-import skcriteria as skc
+with hidden():
 
-from ..agg import RankResult
-from ..cmp.ranks_cmp import RanksComparator
-from ..core import SKCMethodABC
-from ..utils import Bunch, unique_names
-from ..utils.rank import is_rank
+    import numpy as np
+
+    from ..agg import RankResult
+    from ..cmp.ranks_cmp import RanksComparator
+    from ..core import SKCMethodABC
+    from ..utils import Bunch, unique_names
+    from ..utils.rank import is_rank
 
 
 # =============================================================================
@@ -52,10 +54,18 @@ class RankClonesChecker(SKCMethodABC):
     decision maker. The result is a collection of rankings, one for each
     cloned alternative, which can be compared with the original ranking.
 
+    This test was proposed in: Belton, V., & Gear, T. (1983).
+    On a short-coming of Saaty's method of analytic hierarchies.
+    Omega, 11(3), 228-230.
+
     Parameters
     ----------
     dmaker: Decision maker - must implement the ``evaluate()`` method
         The MCDA method, or pipeline to evaluate.
+
+    References
+    ----------
+    :cite:p:`elton1983short`
 
     """
 
@@ -135,9 +145,9 @@ class RankClonesChecker(SKCMethodABC):
             values = values[preserve_alternatives]
 
             # IMPORTANT: If removing the clone creates a gap in the ranks,
-            # we need to shift all subsequent ranks down by one to keep it dense.
-            # e.g., a rank [1, 3, 4] becomes [1, 2, 3]
-            if not is_rank(values):
+            # we need to shift all subsequent ranks down by one to keep it
+            # dense. e.g., a rank [1, 3, 4] becomes [1, 2, 3]
+            if not is_rank(values):  # pragma: no cover
                 values[values > cloned_alternative_value] -= 1
                 rank_shifted = True
 
