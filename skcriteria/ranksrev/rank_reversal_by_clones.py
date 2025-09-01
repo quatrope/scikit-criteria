@@ -5,13 +5,25 @@
 # Copyright (c) 2022-2025 QuatroPe
 # All rights reserved.
 
-"""Tools for evaluating the stability of MCDA method's best alternative.
+# =============================================================================
+# DOCS
+# =============================================================================
+
+"""Implementation of the rank reversal test by cloning alternatives.
+
+This module provides the `RankClonesChecker` class, which evaluates the
+stability of an MCDA method by introducing copies of non-optimal alternatives
+and checking if the top-ranked alternative changes.
 
 According to this criterion, the indication of the best alternative should
 remain unchanged when identical or near-identical copies of non-optimal
 alternatives are introduced.
 
 """
+
+# =============================================================================
+# imports
+# =============================================================================
 
 import numpy as np
 
@@ -22,6 +34,11 @@ from ..cmp.ranks_cmp import RanksComparator
 from ..core import SKCMethodABC
 from ..utils import Bunch, unique_names
 from ..utils.rank import is_rank
+
+
+# =============================================================================
+# CHECKER
+# =============================================================================
 
 
 class RankClonesChecker(SKCMethodABC):
@@ -46,6 +63,7 @@ class RankClonesChecker(SKCMethodABC):
     _skcriteria_parameters = ["dmaker"]
 
     def __init__(self, dmaker):
+        # Validate that the dmaker has an evaluate method
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
@@ -87,7 +105,6 @@ class RankClonesChecker(SKCMethodABC):
     ):
         """Add information about the cloning process to the ranking."""
         # extract the original data
-
         method = str(rank.method)
         alternatives = rank.alternatives.copy()
         values = rank.values.copy()
@@ -95,9 +112,13 @@ class RankClonesChecker(SKCMethodABC):
         cloned_alternative_value = None
         rank_shifted = False
 
-        # change the method name if this is part of a mutation
+        # If this is a cloned rank, we proceed to remove the clone from the
+        # ranking and fix the ranks if necessary.
         if cloned_alternative is not None:
+            # Change the method name for clarity in the final comparator
             method = f"{method}+CloneCheck+{cloned_alternative}"
+
+            # Find the clone in the ranking and separate it
             preserve_alternatives = np.argwhere(
                 alternatives != cloned_alternative_name
             ).flatten()
@@ -106,15 +127,22 @@ class RankClonesChecker(SKCMethodABC):
                 alternatives == cloned_alternative_name
             ).flatten()[0]
 
+            # Store the rank value of the clone before removing it
             cloned_alternative_value = values[cloned_alternative_idx]
+
+            # Remove the clone from the alternatives and values arrays
             alternatives = alternatives[preserve_alternatives]
             values = values[preserve_alternatives]
 
+            # IMPORTANT: If removing the clone creates a gap in the ranks,
+            # we need to shift all subsequent ranks down by one to keep it dense.
+            # e.g., a rank [1, 3, 4] becomes [1, 2, 3]
             if not is_rank(values):
                 values[values > cloned_alternative_value] -= 1
                 rank_shifted = True
 
-        # patch the new data
+        # We create a new bunch with all the information of the cloning
+        # process to be able to analyze it later.
         extra["rank_clone_check"] = Bunch(
             "rank_clone_check",
             {
@@ -151,10 +179,8 @@ class RankClonesChecker(SKCMethodABC):
             the `extra_` attribute.
 
         """
-        # make all parameters locals
+        # 1. Calculate the original ranking to serve as a reference.
         dmaker = self.dmaker
-
-        # we need a first reference ranking
         original_rank = dmaker.evaluate(dm)
         patched_original_rank = self._patch_rank(
             rank=original_rank,
@@ -162,16 +188,15 @@ class RankClonesChecker(SKCMethodABC):
             cloned_alternative_name=None,
         )
 
-        # identify the suboptimal alternatives
+        # 2. Identify which alternatives are not the best.
         suboptimal_alternatives = self._get_suboptimal_alternatives(
             original_rank
         )
 
+        # 3. For each suboptimal alternative, create a clone and evaluate.
         # Here we create a containers for the rank comparator starting with
         # the reference rank
         names, results = ["Reference"], [patched_original_rank]
-
-        # for every suboptimal alternative, we create a clone and evaluate it
         for alternative_to_clone in suboptimal_alternatives:
 
             # create the new decision matrix with the clone
@@ -193,5 +218,6 @@ class RankClonesChecker(SKCMethodABC):
             names.append(cloned_alternative_name)
             results.append(patched_cloned_rank)
 
+        # 4. Collect and return all rankings in a comparator object.
         named_ranks = unique_names(names=names, elements=results)
         return RanksComparator(named_ranks, extra={})
