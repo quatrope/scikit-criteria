@@ -120,6 +120,7 @@ class RankClonesChecker(SKCMethodABC):
         values = rank.values.copy()
         extra = dict(rank.extra_.items())
         cloned_alternative_value = None
+        cloned_alternative_found = None
         rank_shifted = False
 
         # If this is a cloned rank, we proceed to remove the clone from the
@@ -133,23 +134,27 @@ class RankClonesChecker(SKCMethodABC):
                 alternatives != cloned_alternative_name
             ).flatten()
 
-            cloned_alternative_idx = np.argwhere(
-                alternatives == cloned_alternative_name
-            ).flatten()[0]
+            if cloned_alternative_name not in alternatives:
+                cloned_alternative_found = False  # pragma: no cover
+            else:
+                cloned_alternative_found = True
+                cloned_alternative_idx = np.argwhere(
+                    alternatives == cloned_alternative_name
+                ).flatten()[0]
 
-            # Store the rank value of the clone before removing it
-            cloned_alternative_value = values[cloned_alternative_idx]
+                # Store the rank value of the clone before removing it
+                cloned_alternative_value = values[cloned_alternative_idx]
 
-            # Remove the clone from the alternatives and values arrays
-            alternatives = alternatives[preserve_alternatives]
-            values = values[preserve_alternatives]
+                # Remove the clone from the alternatives and values arrays
+                alternatives = alternatives[preserve_alternatives]
+                values = values[preserve_alternatives]
 
-            # IMPORTANT: If removing the clone creates a gap in the ranks,
-            # we need to shift all subsequent ranks down by one to keep it
-            # dense. e.g., a rank [1, 3, 4] becomes [1, 2, 3]
-            if not is_rank(values):  # pragma: no cover
-                values[values > cloned_alternative_value] -= 1
-                rank_shifted = True
+                # IMPORTANT: If removing the clone creates a gap in the ranks,
+                # we need to shift all subsequent ranks down by one to keep it
+                # dense. e.g., a rank [1, 3, 4] becomes [1, 2, 3]
+                if not is_rank(values):  # pragma: no cover
+                    values[values > cloned_alternative_value] -= 1
+                    rank_shifted = True
 
         # We create a new bunch with all the information of the cloning
         # process to be able to analyze it later.
@@ -157,6 +162,7 @@ class RankClonesChecker(SKCMethodABC):
             "rank_clone_check",
             {
                 "cloned_alternative": cloned_alternative,
+                "cloned_alternative_found": cloned_alternative_found,
                 "cloned_alternative_name": cloned_alternative_name,
                 "cloned_alternative_value": cloned_alternative_value,
                 "original_rank": rank,
