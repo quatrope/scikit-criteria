@@ -9,11 +9,12 @@
 
 import skcriteria as skc
 from skcriteria.agg.topsis import TOPSIS
+from skcriteria.cmp import RanksComparator
 from skcriteria.ranksrev.rank_reversal_by_clones import RankClonesChecker
 
 
 def test_RankClonesChecker_evaluate():
-    """Test the evaluate method of the RankClonesChecker."""
+    """Test the evaluate method of the RankClonesChecker."""    
     # 1. Create a base decision matrix
     dm = skc.datasets.load_simple_stock_selection()
 
@@ -27,8 +28,7 @@ def test_RankClonesChecker_evaluate():
     result = checker.evaluate(dm)
 
     # 5. Assert the result
-    assert isinstance(result, skc.utils.Bunch)
-    assert "named_ranks" in result
+    assert isinstance(result, RanksComparator)
 
     named_ranks = dict(result.named_ranks)
 
