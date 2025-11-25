@@ -22,7 +22,7 @@ import joblib
 from .simple_pipeline import SKCPipeline
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
-from ..utils import Bunch, unique_names
+from ..utils import Bunch, deprecate, unique_names
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -99,30 +99,60 @@ class SKCCombinatorialPipeline(SKCMethodABC):
                 ("agg", simple.WeightedSum()),
             ]
 
-    prefered_parallel_backend : str, optional
+    preferred_parallel_backend : str, optional
         The preferred parallel backend for joblib.
 
     n_jobs : int, optional
         The number of jobs to run in parallel.
 
+    prefered_parallel_backend : str, optional (deprecated)
+        Use ``preferred_parallel_backend`` instead.
 
+    Raises
+    ------
+    ValueError
+        If the pipeline doesn't have at lest 2 ``steps``.
+        If both ``prefered_parallel_backend`` (deprecated) and
+        ``preferred_parallel_backend`` are set.
     """
 
     _skcriteria_dm_type = "combinatorial_pipeline"
     _skcriteria_parameters = [
         "steps",
-        "prefered_parallel_backend",
+        "preferred_parallel_backend",
         "n_jobs",
     ]
 
-    def __init__(self, steps, *, prefered_parallel_backend=None, n_jobs=None):
+    def __init__(
+        self,
+        steps,
+        *,
+        preferred_parallel_backend=None,
+        n_jobs=None,
+        prefered_parallel_backend=None,
+    ):
         steps = list(steps)
         if len(steps) < 2:
             raise ValueError("Pipeline must have at least two steps.")
 
+        if (
+            preferred_parallel_backend is not None
+            and prefered_parallel_backend is not None
+        ):
+            raise ValueError(
+                "Only one of 'prefered_parallel_backend' (deprecated since "
+                "0.9.1) and 'preferred_parallel_backend' can be specified."
+            )
+        if prefered_parallel_backend is not None:
+            deprecate.warn(
+                "The 'prefered_parallel_backend' parameter is deprecated "
+                "since 0.9.1, use 'preferred_parallel_backend' instead."
+            )
+            preferred_parallel_backend = prefered_parallel_backend
+
         self._steps = steps
         self._pipelines = _make_all_combinations_pipelines(steps)
-        self._prefered_parallel_backend = prefered_parallel_backend
+        self._preferred_parallel_backend = preferred_parallel_backend
         self._n_jobs = None if n_jobs is None else int(n_jobs)
 
     @property
@@ -133,7 +163,7 @@ class SKCCombinatorialPipeline(SKCMethodABC):
     @property
     def preferred_parallel_backend(self):
         """The preferred parallel backend for joblib."""
-        return self._prefered_parallel_backend
+        return self._preferred_parallel_backend
 
     @property
     def n_jobs(self):
@@ -195,12 +225,12 @@ class SKCCombinatorialPipeline(SKCMethodABC):
             pipeline.
 
         """
-        prefered_parallel_backend = self._prefered_parallel_backend
+        preferred_parallel_backend = self._preferred_parallel_backend
         n_jobs = self._n_jobs
         pipelines = self._pipelines
 
         with joblib.Parallel(
-            prefer=prefered_parallel_backend, n_jobs=n_jobs
+            prefer=preferred_parallel_backend, n_jobs=n_jobs
         ) as P:
             run_pipeline_method = joblib.delayed(_run_pipeline_method)
             dmts = P(
@@ -225,12 +255,12 @@ class SKCCombinatorialPipeline(SKCMethodABC):
             each generated pipeline.
 
         """
-        prefered_parallel_backend = self._prefered_parallel_backend
+        preferred_parallel_backend = self._preferred_parallel_backend
         n_jobs = self._n_jobs
         pipelines = self._pipelines
 
         with joblib.Parallel(
-            prefer=prefered_parallel_backend, n_jobs=n_jobs
+            prefer=preferred_parallel_backend, n_jobs=n_jobs
         ) as P:
             run_pipeline_method = joblib.delayed(_run_pipeline_method)
             ranks = P(
