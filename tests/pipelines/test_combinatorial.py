@@ -20,6 +20,7 @@ from skcriteria.pipelines.combinatorial import (
 from skcriteria.preprocessing import invert_objectives, scalers
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.utils import Bunch
+from skcriteria.utils.deprecate import SKCriteriaDeprecationWarning
 
 
 # =============================================================================
@@ -28,7 +29,6 @@ from skcriteria.utils import Bunch
 
 
 def test_SKCCombinatorialPipeline_creation():
-
     steps = [
         ("inverter", invert_objectives.InvertMinimize()),
         (
@@ -46,7 +46,6 @@ def test_SKCCombinatorialPipeline_creation():
 
 
 def test_SKCCombinatorialPipeline_evaluate():
-
     dm = skc.mkdm(
         matrix=[[1, 2, 3], [4, 5, 6], [7, 8, 9]],
         objectives=[min, max, min],
@@ -166,6 +165,27 @@ def test_SKCCombinatorialPipeline_properties():
 
     assert pipeline.preferred_parallel_backend is None
     assert pipeline.n_jobs is None
+
+
+def test_SKCCombinatorialPipeline_prefered_parallel_backend_deprecation():
+    steps = [
+        ("inverter", invert_objectives.InvertMinimize()),
+        ("scaler", scalers.SumScaler(target="matrix")),
+        ("agg", simple.WeightedSumModel()),
+    ]
+
+    with pytest.raises(ValueError):
+        SKCCombinatorialPipeline(
+            steps,
+            prefered_parallel_backend="foo",
+            preferred_parallel_backend="bar",
+        )
+
+    with pytest.warns(SKCriteriaDeprecationWarning):
+        checker = SKCCombinatorialPipeline(
+            steps, prefered_parallel_backend="foo"
+        )
+        assert checker.preferred_parallel_backend == "foo"
 
 
 def test_mkcombinatorial():
