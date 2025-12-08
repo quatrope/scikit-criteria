@@ -51,6 +51,7 @@ with hidden():
         CYCLE_REMOVAL_STRATEGIES,
         generate_acyclic_graphs,
     )
+    from ..utils import dag_rank
     from ..tiebreaker import FallbackTieBreaker
 
 
@@ -90,125 +91,6 @@ def _transitivity_break_bound(n):
     :cite:p:`moon2015topics`
     """
     return n * (n**2 - 4) // 24 if n % 2 == 0 else n * (n**2 - 1) // 24
-
-
-def _in_degree_sort(dag):
-    """
-    Sort nodes of a DAG into hierarchical groups based on in-degree levels.
-
-    This function performs a topological layering of a directed acyclic graph
-    by grouping nodes according to their in-degree in the graph's transitive
-    reduction. Nodes with the same in-degree level represent alternatives
-    at the same hierarchical level in the preference structure.
-
-    Parameters
-    ----------
-    dag : networkx.DiGraph
-        A directed acyclic graph (DAG) representing preference relationships
-        between alternatives.
-
-    Returns
-    -------
-    list of list
-        A list where each element is a list of nodes at the same hierarchical
-        level. The first sublist contains nodes with in-degree 0 (top level),
-        the second contains nodes with in-degree 1 after removing the first
-        level, and so on.
-
-    Notes
-    -----
-    The algorithm works iteratively:
-
-    1. Compute the transitive reduction of the input DAG to remove redundant
-        edges
-    2. Find all nodes with in-degree 0 (no incoming edges) - these form the
-        top level
-    3. Remove these nodes from the graph
-    4. Repeat until all nodes are processed
-
-    Examples
-    --------
-    >>> import networkx as nx
-    >>>
-    >>> # Create a simple DAG
-    >>> dag = nx.DiGraph([('A', 'C'), ('B', 'C'), ('C', 'D')])
-    >>> groups = _in_degree_sort(dag)
-    >>> print(groups)
-    [['A', 'B'], ['C'], ['D']]
-    >>>
-    >>> # A and B are at the top level (no predecessors)
-    >>> # C is at level 2 (depends on A and B)
-    >>> # D is at level 3 (depends on C)
-    """
-    graph_reduction = nx.transitive_reduction(dag)
-    groups_sort = []
-
-    while graph_reduction.nodes:
-        group = [
-            node
-            for node in list(graph_reduction.nodes)
-            if graph_reduction.in_degree(node) == 0
-        ]
-        groups_sort.append(group)
-        graph_reduction.remove_nodes_from(group)
-
-    return groups_sort
-
-
-def _assign_rankings(groups):
-    """
-    Assign ascending integer rankings to grouped items.
-
-    This function converts hierarchical groups of items into a ranking
-    dictionary where all items in the same group receive the same rank.
-    Rankings start from 1 for the first group and increment by 1 for
-    each subsequent group.
-
-    Parameters
-    ----------
-    groups : list of list
-        A list of groups where each group is a list of items that should
-        receive the same ranking. Groups are processed in order, with
-        earlier groups receiving better (lower) ranks.
-
-    Returns
-    -------
-    dict
-        A dictionary mapping each item to its assigned integer rank.
-        Items in the first group get rank 1, items in the second group
-        get rank 2, and so on.
-
-    Notes
-    -----
-    This function is typically used after hierarchical sorting (like
-    `_in_degree_sort`) to convert topological levels into numerical
-    rankings. The ranking scheme assigns:
-
-    - Rank 1: Best performing items (first group)
-    - Rank 2: Second best items (second group)
-    - And so on...
-
-    All items within the same group are considered tied and receive
-    identical ranks. This preserves the hierarchical structure while
-    providing a simple numerical ranking.
-
-    Examples
-    --------
-    >>> groups = [['A', 'B'], ['C'], ['D', 'E']]
-    >>> rankings = _assign_rankings(groups)
-    >>> print(rankings)
-    {'A': 1, 'B': 1, 'C': 2, 'D': 3, 'E': 3}
-    >>>
-    >>> # A and B are tied for first place (rank 1)
-    >>> # C is second (rank 2)
-    >>> # D and E are tied for third place (rank 3)
-    """
-    rankings = {}
-    for rank_number, group in enumerate(groups, start=1):
-        for item in group:
-            rankings[item] = rank_number
-
-    return rankings
 
 
 def _format_transitivity_cycles(cycles):
@@ -404,6 +286,7 @@ class RankTransitivityChecker(SKCMethodABC):
         "allow_missing_alternatives",
         "cycle_removal_strategy",
         "max_ranks",
+        "fas_method",
         "preferred_parallel_backend",
         "n_jobs",
     ]
@@ -417,6 +300,7 @@ class RankTransitivityChecker(SKCMethodABC):
         allow_missing_alternatives=False,
         cycle_removal_strategy="random",
         max_ranks=50,
+        fas_method="auto",
         preferred_parallel_backend=None,
         n_jobs=None,
         parallel_backend=None,
@@ -484,6 +368,7 @@ class RankTransitivityChecker(SKCMethodABC):
                     value {max_ranks}"
             )
         self._max_ranks = int(max_ranks)
+        self._fas_method = fas_method
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
@@ -528,6 +413,10 @@ class RankTransitivityChecker(SKCMethodABC):
     def max_ranks(self):
         """Maximum number of rankings to be generated."""
         return self._max_ranks
+
+    @property
+    def fas_method(self):
+        return self._fas_method
 
     @property
     def preferred_parallel_backend(self):
@@ -632,51 +521,13 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return edges
 
-    def _add_break_info_to_rank(
-        self, rank, dag, removed_edges, full_alternatives, iteration
-    ):
-        """
-        Add cycle-breaking information to a ranking result.
+    def _add_info_to_rank(self, rank, full_alternatives, recomposition_number):
 
-        This method enriches a RankResult object with information about the
-        cycle-breaking process performed during graph decomposition, including
-        the acyclic graph obtained and the edges that were removed to break
-        cycles.
-
-        Parameters
-        ----------
-        rank : RankResult
-            The original ranking result to be enhanced with break information.
-        dag : networkx.DiGraph
-            The directed acyclic graph obtained after removing cycles from the
-            original graph. This represents the acyclic version of the input
-            graph.
-        removed_edges : array-like
-            Collection of edges that were removed from the original graph to
-            break cycles and obtain the DAG.
-        iteration : int, default 1
-            The iteration number of the RRT3 recomposition process. Used to
-            track multiple iterations of the cycle-breaking algorithm.
-
-        Returns
-        -------
-        RankResult
-            A new RankResult object containing the original ranking data plus
-            additional information about the cycle-breaking process. The
-            returned object includes:
-
-            - Updated method name indicating RRT3 recomposition
-            - Original alternatives and values preserved
-            - Extended extra information with 'transitivity_check' entry \
-                containing:
-                - acyclic_graph: the resulting DAG
-                - removed_edges: edges removed during cycle breaking
-        """
         alternatives = rank.alternatives
         values = rank.values
         method = rank.method
-        if dag:
-            method = f"{method} + RRT3 RECOMPOSITION_{iteration}"
+        if recomposition_number:
+            method = f"{method} + RECOMPOSITION_{recomposition_number}"
 
         # we check if the decision_maker did not eliminate any alternatives
         alts_diff = np.setxor1d(alternatives, full_alternatives)
@@ -699,9 +550,8 @@ class RankTransitivityChecker(SKCMethodABC):
         extra["transitivity_check"] = Bunch(
             "transitivity_check",
             {
-                "acyclic_graph": dag,
-                "removed_edges": removed_edges,
                 "missing_alternatives": alts_diff,
+                "recomposition": recomposition_number,
             },
         )
 
@@ -712,119 +562,28 @@ class RankTransitivityChecker(SKCMethodABC):
             extra=extra,
         )
 
-    def _create_rank_from_dag(
-        self, rrank, dag, removed_edges, full_alternatives, iteration=1
-    ):
-        """
-        Create a new ranking result from a directed acyclic graph (DAG).
-
-        This method generates a new RankResult by computing rankings based on
-        the in-degree sorting of a DAG. The ranking values are calculated using
-        the topological order of nodes in the acyclic graph, and the result
-        includes information about the cycle-breaking process.
-
-        Parameters
-        ----------
-        rrank : RankResult
-            The original ranking result that serves as the base for creating
-            the new ranking. Provides the method name, alternatives list, and
-            extra information to be preserved in the new result.
-        dag : networkx.DiGraph
-            The directed acyclic graph from which to compute the new rankings.
-            The graph should be acyclic and represent the structure after
-            cycle-breaking.
-        removed_edges : list or array-like
-            Collection of edges that were removed from the original graph to
-            create the DAG. This information is stored in the result
-            for traceability.
-        iteration : int, default 1
-            The iteration number of the ranking process. Used to track multiple
-            iterations of the cycle-breaking and ranking algorithm.
-
-        Returns
-        -------
-        RankResult
-            A new RankResult object containing:
-
-            - method: Original method name from rrank
-            - alternatives: Same alternatives as in rrank
-            - values: New ranking values computed from DAG in-degree sorting
-            - extra: Enhanced extra information
-        """
-        alternative_rank_value = _assign_rankings(_in_degree_sort(dag))
-
-        rank = RankResult(
-            method=rrank.method,
-            alternatives=rrank.alternatives,
-            values=np.array(
-                [alternative_rank_value[alt] for alt in rrank.alternatives]
-            ),
-            extra=rrank.extra_,
-        )
-
-        rank = self._add_break_info_to_rank(
-            rank, dag, removed_edges, full_alternatives, iteration
-        )
-
-        return rank
-
     def _generate_reconstructed_ranks(self, graph, rrank, full_alternatives):
-        """
-        Generate ranking results from a graph.
 
-        This method produces one or more ranking results based on the input
-        graph structure. If the graph is already acyclic, it generates a single
-        ranking. If the graph contains cycles, it generates multiple rankings
-        by creating different acyclic decompositions of the original graph.
-
-        Parameters
-        ----------
-        graph : networkx.DiGraph
-            The input graph from which to generate rankings. Can be either
-            acyclic (DAG) or contain cycles.
-        rrank : RankResult
-            The original ranking result that serves as the template for
-            creating new rankings. Provides method name, alternatives, and
-            extra information to be preserved across all generated rankings.
-
-        Returns
-        -------
-        list of RankResult
-            A list containing one or more RankResult objects:
-
-            - If input graph is acyclic: Single RankResult with rankings based
-                on the graph's topological structure
-            - If input graph has cycles: Multiple RankResult objects, each
-                corresponding to a different acyclic decomposition of the
-                original graph
-        """
-        ranks = []
-
-        if nx.is_directed_acyclic_graph(graph):
-            rank = self._create_rank_from_dag(
-                rrank,
-                graph,
-                removed_edges=None,
-                full_alternatives=full_alternatives,
-            )
-            ranks.append(rank)
-
-            return ranks
-
-        acyclic_graphs = generate_acyclic_graphs(
-            graph,
-            strategy=self._cycle_removal_strategy,
-            max_graphs=self._max_ranks,
-            seed=self._random_state,
+        dag, fas, method = dag_rank.as_dag(
+            graph=graph, method=self._fas_method
         )
 
-        for iteration, (dag, removed_edges) in enumerate(acyclic_graphs):
-            rank = self._create_rank_from_dag(
-                rrank, dag, removed_edges, full_alternatives, iteration + 1
+        all_rankings = dag_rank.all_rankings(
+            full_alternatives, dag, self._max_ranks
+        )
+
+        ranks = []
+        for rnumber, rank_values in enumerate(all_rankings):
+            rank = RankResult(
+                method=rrank.method,
+                alternatives=rrank.alternatives,
+                values=rank_values,
+                extra=rrank.extra_,
             )
+            rank = self._add_info_to_rank(rank, full_alternatives, rnumber)
             ranks.append(rank)
 
-        return ranks
+        return ranks, fas, method
 
     def _dominance_graph(self, dm, rrank, preferred_parallel_backend, n_jobs):
         """
@@ -1041,7 +800,7 @@ class RankTransitivityChecker(SKCMethodABC):
             and (rrank.values == returned_ranks[0].values).all()
         )
 
-    def evaluate(self, *, dm):
+    def evaluate(self, dm):
         """
         Execute the complete transitivity test and ranking analysis.
 
@@ -1077,12 +836,8 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # we need a first reference ranking
         rrank = dmaker.evaluate(dm)
-        patched_rrank = self._add_break_info_to_rank(
-            rrank,
-            dag=None,
-            removed_edges=None,
-            full_alternatives=full_alternatives,
-            iteration=None,
+        patched_rrank = self._add_info_to_rank(
+            rrank, full_alternatives=full_alternatives
         )
 
         # make the pairwise dominance graph and calculate transitivity metrics

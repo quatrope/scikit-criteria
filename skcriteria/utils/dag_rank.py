@@ -66,6 +66,43 @@ def _resolve_method(graph, method):
     return method
 
 
+def _nx_fas(igraph, fas):
+    """Convert igraph edge IDs to NetworkX edge tuples.
+
+    Translates a feedback arc set represented as igraph edge IDs into
+    NetworkX-compatible edge tuples using the original node names.
+
+    Parameters
+    ----------
+    igraph : igraph.Graph
+        The igraph representation of the graph, where nodes have
+        "_nx_name" attributes storing their original NetworkX names.
+    fas : list of int
+        List of igraph edge IDs that form the feedback arc set.
+
+    Returns
+    -------
+    list of tuple
+        List of NetworkX edge tuples (source, target) corresponding to
+        the feedback arc set edges.
+
+    Notes
+    -----
+    This function is used internally to map between igraph's edge
+    representation (integer IDs) and NetworkX's edge representation
+    (node name tuples), preserving the original node names from the
+    NetworkX graph.
+
+    """
+    nx_edges = []
+    for edge in igraph.es[fas]:
+        nx_edge = tuple(
+            node.attributes()["_nx_name"] for node in edge.vertex_tuple
+        )
+        nx_edges.append(nx_edge)
+    return nx_edges
+
+
 def as_dag(graph, method="auto"):
     """Convert a directed graph to a Directed Acyclic Graph (DAG).
 
@@ -118,45 +155,89 @@ def as_dag(graph, method="auto"):
     # Find minimum set of edges that form cycles
     fas = igraph.feedback_arc_set(method=method)
 
+    # get the nodes between edges before removal
+    nx_fas = _nx_fas(igraph, fas)
+
     # Remove feedback arcs to break all cycles
     igraph.delete_edges(fas)
 
     # Convert back to NetworkX format
     dag = igraph.to_networkx()
 
-    return dag, fas, method
+    return dag, nx_fas, method
 
 
-def get_all_rankings(alternatives, dag):
-    """Get all possible rankings from a DAG's topological sorts.
+def all_rankings(alternatives, dag, max_rankings=None):
+    """Generate all possible rankings from a DAG's topological sorts.
 
-    Generates all possible rankings by enumerating every topological sort
-    of the DAG. Each ranking represents the position (1-indexed) of each
-    alternative in a valid topological ordering.
+    Enumerates all valid rankings by computing every possible topological
+    sort of the DAG. Each ranking represents a complete ordering of
+    alternatives that respects the preference relations encoded in the DAG.
 
     Parameters
     ----------
-    alternatives : np.ndarray
-        Array of alternative names in the original order.
+    alternatives : array-like
+        Array of alternative names/identifiers in their original order.
+        This defines the order in which ranks are returned in each ranking.
     dag : networkx.DiGraph
-        The directed acyclic graph representing preference relations.
+        A directed acyclic graph representing preference relations between
+        alternatives. Edges point from preferred to less preferred alternatives.
+    max_rankings : int, optional
+        Maximum number of rankings to generate. If None (default), all
+        possible rankings are generated. Use this parameter to limit
+        computation when the number of topological sorts is very large.
 
-    Returns
-    -------
-    tuple of np.ndarray
-        Tuple of rankings, where each ranking is a 1-indexed array containing
-        the position of each alternative in that topological sort. The order
-        of positions corresponds to the order of alternatives in the input.
+    Yields
+    ------
+    np.ndarray
+        A 1-indexed NumPy array where the i-th element is the rank (position)
+        of the i-th alternative. Lower ranks indicate better alternatives.
+        Alternatives not present in the DAG are assigned a rank of
+        len(alternatives) + 1.
+
+    Notes
+    -----
+    - The number of rankings can grow exponentially with the number of
+      alternatives, especially for DAGs with many incomparable elements.
+    - Rankings are 1-indexed (best alternative has rank 1, not 0).
+    - Alternatives missing from the DAG (e.g., filtered out) receive the
+      last possible rank position (len(alternatives) + 1).
+    - When max_rankings is specified, the function stops generating rankings
+      once the limit is reached, which can significantly reduce computation
+      time for large DAGs.
+
+    Examples
+    --------
+    >>> import networkx as nx
+    >>> import numpy as np
+    >>> dag = nx.DiGraph()
+    >>> dag.add_edges_from([('A', 'B'), ('A', 'C')])
+    >>> alternatives = ['A', 'B', 'C']
+    >>> rankings = list(all_rankings(alternatives, dag))
+    >>> for rank in rankings:
+    ...     print(rank)
+    [1 2 3]
+    [1 3 2]
+
+    >>> # Limit to first 10 rankings
+    >>> rankings = list(all_rankings(alternatives, dag, max_rankings=10))
+    >>> len(rankings) <= 10
+    True
 
     """
-    ranks = []
+    yielded = 0
+    last = len(alternatives)
     for sort in nx.all_topological_sorts(dag):
+        if max_rankings is not None and yielded >= max_rankings:
+            break
+
         # Create mapping from value to position in this sort (0-indexed)
         position_map = {value: idx for idx, value in enumerate(sort)}
 
         # Get positions for each alternative and convert to 1-indexed
-        order = np.array([position_map[alt] for alt in alternatives]) + 1
+        order = (
+            np.array([position_map.get(alt, last) for alt in alternatives]) + 1
+        )
 
-        ranks.append(order)
-
-    return tuple(ranks)
+        yield order
+        yielded += 1
