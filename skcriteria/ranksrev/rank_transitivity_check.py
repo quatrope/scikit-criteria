@@ -562,8 +562,34 @@ class RankTransitivityChecker(SKCMethodABC):
             extra=extra,
         )
 
-    def _generate_reconstructed_ranks(self, graph, rrank, full_alternatives):
+    def _reconstruct_ranks_from_dag(self, graph, rrank, full_alternatives):
+        """
+        Reconstruct rankings from a dominance graph using DAG conversion.
 
+        This method converts the dominance graph to a DAG by removing feedback
+        arcs, then generates all possible rankings from the DAG's topological
+        sorts.
+
+        Parameters
+        ----------
+        graph : networkx.DiGraph
+            The dominance graph to convert to a DAG.
+        rrank : RankResult
+            The original ranking result used as a template for reconstructed
+            rankings.
+        full_alternatives : array-like
+            Array of all alternatives that should be included in the rankings.
+
+        Returns
+        -------
+        ranks : list of RankResult
+            List of reconstructed ranking results, one for each topological
+            sort of the DAG (up to max_ranks limit).
+        fas : list of tuple
+            The feedback arc set (edges removed to make the graph acyclic).
+        method : str or None
+            The method used for feedback arc set computation.
+        """
         dag, fas, method = dag_rank.as_dag(
             graph=graph, method=self._fas_method
         )
@@ -585,14 +611,14 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return ranks, fas, method
 
-    def _dominance_graph(self, dm, rrank, preferred_parallel_backend, n_jobs):
+    def _dominance_graph(self, dm, rrank):
         """
-        Create a directed dominance graph from pairwise alternative \
-            comparisons.
+        Create a directed dominance graph from pairwise alternative comparisons.
 
         This method constructs a directed graph where nodes represent
         alternatives and edges represent dominance relationships. The graph is
-        built by evaluating all pairwise combinations of alternatives.
+        built by evaluating all pairwise combinations of alternatives using
+        the configured parallel backend.
 
         Parameters
         ----------
@@ -602,10 +628,6 @@ class RankTransitivityChecker(SKCMethodABC):
         rrank : RankResult
             The original ranking result containing the list of alternatives to
             be compared pairwise.
-        preferred_parallel_backend : str
-            The preferred parallel backend for joblib.
-        n_jobs : int
-            The number of parallel jobs to use for parallel processing.
 
         Returns
         -------
@@ -617,6 +639,9 @@ class RankTransitivityChecker(SKCMethodABC):
             - All alternatives are guaranteed to be present as nodes, even if
                 isolated
         """
+        preferred_parallel_backend = self._preferred_parallel_backend
+        n_jobs = self._n_jobs
+
         # Generate all pairwise combinations of alternatives
         pairwise_combinations = map(
             list, it.combinations(rrank.alternatives, 2)
@@ -677,11 +702,13 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return trans_break, trans_break_rate
 
-    def _generate_graph_data(
-        self, dm, rrank, preferred_parallel_backend, n_jobs
+    def _build_dominance_graph_with_metrics(
+        self,
+        dm,
+        rrank,
     ):
         """
-        Generate dominance graph and calculate transitivity metrics.
+        Build dominance graph and calculate transitivity metrics.
 
         This method combines the creation of a pairwise dominance graph with
         the calculation of transitivity break metrics, providing a
@@ -694,10 +721,6 @@ class RankTransitivityChecker(SKCMethodABC):
             analysis.
         rrank : RankResult
             The original ranking result containing alternatives to be analyzed.
-        preferred_parallel_backend : str
-            The preferred parallel backend for joblib.
-        n_jobs : int
-            The number of parallel jobs to use for parallel processing.
 
         Returns
         -------
@@ -711,9 +734,7 @@ class RankTransitivityChecker(SKCMethodABC):
             (0.0 = perfect transitivity).
         """
         # Create pairwise dominance graph
-        graph = self._dominance_graph(
-            dm, rrank, preferred_parallel_backend, n_jobs
-        )
+        graph = self._dominance_graph(dm, rrank)
 
         # Calculate transitivity break, and it's rate
         trans_break, trans_break_rate = self._calculate_transitivity_break(
@@ -722,41 +743,34 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return graph, trans_break, trans_break_rate
 
-    def _test_criterion_2(self, dm, orank, preferred_parallel_backend, n_jobs):
+    def _check_transitivity_consistency(self, dm, rrank):
         """
-        Perform test criterion 2: transitivity consistency check.
+        Check transitivity consistency (test criterion 2).
 
         This method evaluates whether the decision problem satisfies perfect
-        transitivity. It generates a pairwise dominance graph and calculates
-        transitivity metrics to assess the consistency of the MCDM.
+        transitivity. It builds a pairwise dominance graph and calculates
+        transitivity metrics to assess the consistency of the MCDM method.
 
         Parameters
         ----------
-        dm : array-like
+        dm : DecisionMatrix
             Decision matrix containing the alternatives and criteria values.
-        orank : array-like
-            Ranking or ordering information for the alternatives.
-        preferred_parallel_backend : str
-            The preferred parallel backend for joblib.
-        n_jobs : int
-            The number of parallel jobs to use for parallel processing.
+        rrank : RankResult
+            Ranking result containing the alternatives to be analyzed.
 
         Returns
         -------
-        tuple
-            A tuple containing four elements:
-            - graph : object
-                The pairwise dominance graph structure.
-            - trans_break : int or float
-                The absolute number of transitivity violations detected.
-            - trans_break_rate : float
-                The rate of transitivity violations in the dominance graph.
-                Value of 0.0 indicates perfect transitivity.
-            - test_criterion_2 : boolean
-                Test result status:
-                - True: No transitivity violations (trans_break_rate == 0)
-                - False: Transitivity violations detected
-                (trans_break_rate > 0)
+        test_criterion_2 : bool
+            Test result status:
+            - True: No transitivity violations (trans_break_rate == 0)
+            - False: Transitivity violations detected (trans_break_rate > 0)
+        graph : networkx.DiGraph
+            The pairwise dominance graph structure.
+        trans_break : list
+            List of transitivity cycles (violations) found in the graph.
+        trans_break_rate : float
+            The rate of transitivity violations in the dominance graph.
+            Value of 0.0 indicates perfect transitivity.
 
         Notes
         -----
@@ -765,35 +779,41 @@ class RankTransitivityChecker(SKCMethodABC):
         and B dominates C, then A must also dominate C.
         """
         # make the pairwise dominance graph and calculate transitivity metrics
-        graph, trans_break, trans_break_rate = self._generate_graph_data(
-            dm, orank, preferred_parallel_backend, n_jobs
+        graph, trans_break, trans_break_rate = (
+            self._build_dominance_graph_with_metrics(dm, rrank)
         )
 
         test_criterion_2 = trans_break_rate == 0
         return test_criterion_2, graph, trans_break, trans_break_rate
 
-    def _test_criterion_3(self, test_criterion_2, rrank, returned_ranks):
+    def _check_ranking_stability(
+        self, test_criterion_2, rrank, returned_ranks
+    ):
         """
-        Perform test criterion 3: ranking stability check.
+        Check ranking stability (test criterion 3).
+
+        This method verifies that the original ranking is stable by comparing
+        it with the first reconstructed ranking from the DAG. The test only
+        passes if transitivity is satisfied and rankings match.
 
         Parameters
         ----------
         test_criterion_2 : bool
-            Result of test criterion 2.
+            Result of transitivity consistency check.
             Must be True for this test to potentially pass.
         rrank : RankResult
             The original ranking result with baseline ranking values.
         returned_ranks : list of RankResult
-            List of ranking results from graph recomposition. The first element
+            List of ranking results from DAG recomposition. The first element
             is compared against the original ranking.
 
         Returns
         -------
         bool
             Test result status:
-            - True: Test criterion 2 passed AND original ranking equals
-            first recomposed ranking
-            - False: Either test criterion 2 failed OR rankings differ
+            - True: Transitivity check passed AND original ranking equals
+              first reconstructed ranking
+            - False: Either transitivity check failed OR rankings differ
         """
         return (
             test_criterion_2
@@ -830,9 +850,7 @@ class RankTransitivityChecker(SKCMethodABC):
                 - transitivity_break_rate: Normalized violation rate
         """
         dmaker = self._dmaker
-        full_alternatives = dm.alternatives
-        preferred_parallel_backend = self._preferred_parallel_backend
-        n_jobs = self._n_jobs
+        full_alternatives = np.array(dm.alternatives)
 
         # we need a first reference ranking
         rrank = dmaker.evaluate(dm)
@@ -841,21 +859,17 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
         # make the pairwise dominance graph and calculate transitivity metrics
+        # Test criterion 2
         test_criterion_2, graph, trans_break, trans_break_rate = (
-            self._test_criterion_2(
-                dm,
-                rrank,
-                preferred_parallel_backend=preferred_parallel_backend,
-                n_jobs=n_jobs,
-            )
+            self._check_transitivity_consistency(dm, rrank)
         )
 
         # get the ranks from the graph
-        reconstructed_ranks = self._generate_reconstructed_ranks(
+        reconstructed_ranks = self._reconstruct_ranks_from_dag(
             graph, rrank, full_alternatives
         )
 
-        test_criterion_3 = self._test_criterion_3(
+        test_criterion_3 = self._check_ranking_stability(
             test_criterion_2, patched_rrank, reconstructed_ranks
         )
 
