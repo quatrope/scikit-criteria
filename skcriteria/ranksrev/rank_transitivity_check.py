@@ -521,8 +521,38 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return edges
 
-    def _add_info_to_rank(self, rank, full_alternatives, recomposition_number):
+    def _add_info_to_rank(self, rank, full_alternatives, recomposition_number=None):
+        """
+        Add transitivity check metadata to a ranking result.
 
+        This method enriches a ranking result with additional information about
+        missing alternatives and recomposition status, ensuring all alternatives
+        from the original decision matrix are accounted for.
+
+        Parameters
+        ----------
+        rank : RankResult
+            The ranking result to be enriched with metadata.
+        full_alternatives : array-like
+            Complete array of all alternatives from the original decision matrix.
+        recomposition_number : int, optional
+            The recomposition iteration number. If None (default), this is the
+            original ranking. If an integer, this is a reconstructed ranking from
+            the DAG and the method name will be updated accordingly.
+
+        Returns
+        -------
+        RankResult
+            A new RankResult with updated method name (if recomposed), all
+            alternatives included (missing ones get worst rank + 1), and
+            transitivity check metadata in the extra attribute.
+
+        Raises
+        ------
+        ValueError
+            If allow_missing_alternatives is False and some alternatives are
+            missing from the ranking.
+        """
         alternatives = rank.alternatives
         values = rank.values
         method = rank.method
@@ -575,7 +605,7 @@ class RankTransitivityChecker(SKCMethodABC):
         graph : networkx.DiGraph
             The dominance graph to convert to a DAG.
         rrank : RankResult
-            The original ranking result used as a template for reconstructed
+            The reference ranking result used as a template for reconstructed
             rankings.
         full_alternatives : array-like
             Array of all alternatives that should be included in the rankings.
@@ -626,7 +656,7 @@ class RankTransitivityChecker(SKCMethodABC):
             The decision matrix containing alternatives and criteria values
             used for pairwise comparisons.
         rrank : RankResult
-            The original ranking result containing the list of alternatives to
+            The reference ranking result containing the list of alternatives to
             be compared pairwise.
 
         Returns
@@ -720,7 +750,7 @@ class RankTransitivityChecker(SKCMethodABC):
             The decision matrix containing alternatives and criteria for
             analysis.
         rrank : RankResult
-            The original ranking result containing alternatives to be analyzed.
+            The reference ranking result containing alternatives to be analyzed.
 
         Returns
         -------
@@ -756,7 +786,7 @@ class RankTransitivityChecker(SKCMethodABC):
         dm : DecisionMatrix
             Decision matrix containing the alternatives and criteria values.
         rrank : RankResult
-            Ranking result containing the alternatives to be analyzed.
+            The reference ranking result containing the alternatives to be analyzed.
 
         Returns
         -------
@@ -792,7 +822,7 @@ class RankTransitivityChecker(SKCMethodABC):
         """
         Check ranking stability (test criterion 3).
 
-        This method verifies that the original ranking is stable by comparing
+        This method verifies that the reference ranking is stable by comparing
         it with the first reconstructed ranking from the DAG. The test only
         passes if transitivity is satisfied and rankings match.
 
@@ -802,16 +832,16 @@ class RankTransitivityChecker(SKCMethodABC):
             Result of transitivity consistency check.
             Must be True for this test to potentially pass.
         rrank : RankResult
-            The original ranking result with baseline ranking values.
+            The reference ranking result with baseline ranking values.
         returned_ranks : list of RankResult
-            List of ranking results from DAG recomposition. The first element
-            is compared against the original ranking.
+            List of ranking results from DAG reconstruction. The first element
+            is compared against the reference ranking.
 
         Returns
         -------
         bool
             Test result status:
-            - True: Transitivity check passed AND original ranking equals
+            - True: Transitivity check passed AND reference ranking equals
               first reconstructed ranking
             - False: Either transitivity check failed OR rankings differ
         """
