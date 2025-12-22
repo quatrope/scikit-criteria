@@ -563,7 +563,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return ranks, fas, method
     
-    def _make_pairwise_comparisons(self, dm, rrank):
+    def _evaluate_pairwise_dominance(self, dm, rrank):
         """
         Create a directed dominance graph from pairwise alternative comparisons.
 
@@ -584,7 +584,7 @@ class RankTransitivityChecker(SKCMethodABC):
         Returns
         -------
         [claude]
-        
+
         """
         preferred_parallel_backend = self._preferred_parallel_backend
         n_jobs = self._n_jobs
@@ -609,7 +609,7 @@ class RankTransitivityChecker(SKCMethodABC):
         return results
         
 
-    def _check_transitivity_consistency(self, pairwise_comparisons):
+    def _analyze_transitivity_breaks(self, pairwise_comparisons):
         """
         Check transitivity consistency (test criterion 2).
 
@@ -750,11 +750,11 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
         # Test criterion 2
-        pair_comparisons = self._make_pairwise_comparisons(dm, rrank=rrank)
+        pair_comparisons = self._evaluate_pairwise_dominance(dm, rrank=rrank)
 
         # make the pairwise dominance graph and calculate transitivity metrics
         test_criterion_2, graph, trans_break, trans_break_rate = (
-            self._check_transitivity_consistency(pair_comparisons)
+            self._analyze_transitivity_breaks(pair_comparisons)
         )
 
         # Test criterion 3
