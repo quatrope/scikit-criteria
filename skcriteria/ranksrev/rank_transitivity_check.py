@@ -49,7 +49,6 @@ with hidden():
     from ..utils import Bunch, unique_names, deprecate
     from ..utils.cycle_removal import (
         CYCLE_REMOVAL_STRATEGIES,
-        generate_acyclic_graphs,
     )
     from ..utils import dag_rank
     from ..tiebreaker import FallbackTieBreaker
@@ -247,35 +246,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
     Examples
     --------
-    Basic usage with an MCDM method:
-
-    >>> from skcriteria.preprocessing import invert_objectives
-    >>> from skcriteria.agg import simple
-    >>>
-    >>> # Create a decision maker
-    >>> dm_method = simple.WeightedSum()
-    >>>
-    >>> # Initialize transitivity checker
-    >>> checker = RankTransitivityChecker(dm_method)
-    >>>
-    >>> # Evaluate a decision matrix
-    >>> result = checker.evaluate(dm=decision_matrix)
-    >>>
-    >>> # Check test results
-    >>> print(f"Test Criterion 2: {result.extra['test_criterion_2']}")
-    >>> print(f"Test Criterion 3: {result.extra['test_criterion_3']}")
-
-    Advanced configuration with custom parameters:
-
-    >>> checker = RankTransitivityChecker(
-    ...     dmaker=dm_method,
-    ...     random_state=42,
-    ...     allow_missing_alternatives=True,
-    ...     cycle_removal_strategy="random",
-    ...     max_ranks=100,
-    ...     preferred_parallel_backend="threading",
-    ...     n_jobs=4
-    ... )
+    [CLAUDE COMPLETE]
     """
 
     _skcriteria_dm_type = "rank_reversal"
@@ -284,7 +255,6 @@ class RankTransitivityChecker(SKCMethodABC):
         "fallback",
         "random_state",
         "allow_missing_alternatives",
-        "cycle_removal_strategy",
         "max_ranks",
         "fas_method",
         "preferred_parallel_backend",
@@ -298,7 +268,6 @@ class RankTransitivityChecker(SKCMethodABC):
         fallback=None,
         random_state=None,
         allow_missing_alternatives=False,
-        cycle_removal_strategy="random",
         max_ranks=50,
         fas_method="auto",
         preferred_parallel_backend=None,
@@ -349,18 +318,6 @@ class RankTransitivityChecker(SKCMethodABC):
         # RANDOM
         self._random_state = np.random.default_rng(random_state)
 
-        # STRATEGY FOR REMOVAL OF BREAKS IN TRANSITIVITY
-        mk_transitive = CYCLE_REMOVAL_STRATEGIES.get(
-            cycle_removal_strategy, cycle_removal_strategy
-        )
-        if not callable(mk_transitive):
-            available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
-            raise ValueError(
-                f"Unknown strategy: {cycle_removal_strategy}. \
-                Available strategies: {available_strategies}"
-            )
-        self._cycle_removal_strategy = mk_transitive
-
         # MAXIMIMUM PERMITED RANKS TO BE GENERATED
         if max_ranks < 1:
             raise ValueError(
@@ -368,16 +325,18 @@ class RankTransitivityChecker(SKCMethodABC):
                     value {max_ranks}"
             )
         self._max_ranks = int(max_ranks)
+
+        # FAS METHOD
         self._fas_method = fas_method
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
-        trs = self._cycle_removal_strategy
+        fm = self._fas_method
         mr = self._max_ranks
         return (
-            f"<{name} {dm}, " f"cycle_removal_strategy={trs}, max_ranks={mr}>"
+            f"<{name} {dm}, " f"fas_method={fm}, max_ranks={mr}>"
         )
 
     # PROPERTIES ==============================================================
@@ -405,17 +364,13 @@ class RankTransitivityChecker(SKCMethodABC):
         return self._allow_missing_alternatives
 
     @property
-    def cycle_removal_strategy(self):
-        """The strategy function used for breaking transitivity cycles."""
-        return self._cycle_removal_strategy
-
-    @property
     def max_ranks(self):
         """Maximum number of rankings to be generated."""
         return self._max_ranks
 
     @property
     def fas_method(self):
+        """[CLAUDE COMPLETE]"""
         return self._fas_method
 
     @property

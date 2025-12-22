@@ -32,38 +32,8 @@ import networkx as nx
 import numpy as np
 
 # =============================================================================
-# FUNCTIONS
+# PRIVATE HELPERS
 # =============================================================================
-
-
-def resolve_fas_method(graph, method):
-    """Resolve the feedback arc set method based on graph size.
-
-    Automatically selects the optimal method for finding feedback arc sets
-    based on the graph size. For smaller graphs (< 100 nodes), it uses the
-    exact integer programming method, otherwise defaults to the Eades
-    heuristic for better performance on larger graphs.
-
-    Parameters
-    ----------
-    graph : networkx.DiGraph
-        The directed graph for which to resolve the method.
-    method : str
-        The method to use. If "auto", the method is selected based on
-        graph size. Otherwise, the method is returned as-is.
-
-    Returns
-    -------
-    str
-        The resolved method name. Returns "ip" for graphs with less than
-        100 nodes when method is "auto", "eades" for larger graphs when
-        method is "auto", otherwise returns the input method unchanged.
-
-    """
-    # Use exact method (IP) for small graphs, heuristic (Eades) for large ones
-    if method == "auto":
-        method = "ip" if graph.number_of_nodes() < 100 else "eades"
-    return method
 
 
 def _nx_fas(igraph, fas):
@@ -101,6 +71,41 @@ def _nx_fas(igraph, fas):
         )
         nx_edges.append(nx_edge)
     return nx_edges
+
+
+# =============================================================================
+# PUBLIC FUNCTIONS
+# =============================================================================
+
+
+def resolve_fas_method(graph, method):
+    """Resolve the feedback arc set method based on graph size.
+
+    Automatically selects the optimal method for finding feedback arc sets
+    based on the graph size. For smaller graphs (< 100 nodes), it uses the
+    exact integer programming method, otherwise defaults to the Eades
+    heuristic for better performance on larger graphs.
+
+    Parameters
+    ----------
+    graph : networkx.DiGraph
+        The directed graph for which to resolve the method.
+    method : str
+        The method to use. If "auto", the method is selected based on
+        graph size. Otherwise, the method is returned as-is.
+
+    Returns
+    -------
+    str
+        The resolved method name. Returns "ip" for graphs with less than
+        100 nodes when method is "auto", "eades" for larger graphs when
+        method is "auto", otherwise returns the input method unchanged.
+
+    """
+    # Use exact method (IP) for small graphs, heuristic (Eades) for large ones
+    if method == "auto":
+        method = "ip" if graph.number_of_nodes() < 100 else "eades"
+    return method
 
 
 def as_dag(graph, method="auto"):
