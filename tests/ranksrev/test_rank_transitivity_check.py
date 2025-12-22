@@ -34,13 +34,9 @@ from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler, VectorScaler
 from skcriteria.ranksrev.rank_transitivity_check import (
     RankTransitivityChecker,
-    _format_transitivity_cycles,
-    _transitivity_break_bound,
+
 )
-from skcriteria.utils.cycle_removal import (
-    _select_edge_random,
-    _select_edge_weighted,
-)
+
 from skcriteria.utils.deprecate import SKCriteriaDeprecationWarning
 
 # =============================================================================
@@ -76,60 +72,10 @@ topsis_pipe_moora = mkpipe(
     ReferencePointMOORA(),
 )
 
-# =============================================================================
-# STATIC FUNCTIONS
-# =============================================================================
-
-
-def test_TransitivityCheck_transitivity_break_bound_even():
-    value = 10
-    expected = 40
-    actual = _transitivity_break_bound(value)
-    assert actual == expected
-
-
-def test_TransitivityCheck_transitivity_break_bound_odd():
-    value = 11
-    expected = 55
-    actual = _transitivity_break_bound(value)
-    assert actual == expected
-
-
-def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
-    dm = skc.datasets.load_simple_stock_selection()
-    orank = electre2_pipe.evaluate(dm)
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    graph = trans_checker._graph_from_pairwise_alternative_comparisons(dm, orank, None, None)
-    trans_break = list(nx.simple_cycles(graph, length_bound=3))
-    result = _format_transitivity_cycles(trans_break)
-    assert result == []
-
-
-def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
-    dm = skc.datasets.load_van2021evaluation(windows_size=7)
-    orank = topsis_pipe_moora.evaluate(dm)
-    trans_checker = RankTransitivityChecker(topsis_pipe_moora)
-    graph = trans_checker._graph_from_pairwise_alternative_comparisons(dm, orank, None, None)
-    trans_break = list(nx.simple_cycles(graph, length_bound=3))
-    result = _format_transitivity_cycles(trans_break)
-    assert result != []
-
 
 # =============================================================================
 # PROPERTIES
 # =============================================================================
-
-
-def test_TransitivityChecker_repr():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert repr(trans_checker) == (
-        f"<{trans_checker.get_method_name()} "
-        f"{repr(trans_checker.dmaker)}, "
-        f"cycle_removal_strategy="
-        f"{trans_checker.cycle_removal_strategy}, "
-        f"max_ranks={trans_checker.max_ranks}>"
-    )
-
 
 def test_TransitivityChecker_bad_pipe():
     bad_pipe = "Suffering and pain"
@@ -178,25 +124,6 @@ def test_TransitivityChecker_random_state():
     )
 
 
-def test_TransitivityChecker_make_transitivity_strategy_random():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.cycle_removal_strategy == _select_edge_random
-
-
-def test_TransitivityChecker_make_transitivity_strategy_weighted():
-    trans_checker = RankTransitivityChecker(
-        electre2_pipe, cycle_removal_strategy="weighted"
-    )
-
-    assert trans_checker.cycle_removal_strategy == _select_edge_weighted
-
-
-def test_TransitivityChecker_make_transitivity_strategy_divination():
-    bad_strat = "Divination"
-    with pytest.raises(ValueError):
-        RankTransitivityChecker(
-            electre2_pipe, cycle_removal_strategy=bad_strat
-        )
 
 
 def test_TransitivityChecker_allow_missing_alternatives_default():

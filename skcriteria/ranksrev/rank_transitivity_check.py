@@ -562,6 +562,51 @@ class RankTransitivityChecker(SKCMethodABC):
             ranks.append(rank)
 
         return ranks, fas, method
+    
+    def _pairwise_comparisons(self, dm, rrank):
+        """
+        Create a directed dominance graph from pairwise alternative comparisons.
+
+        This method constructs a directed graph where nodes represent
+        alternatives and edges represent dominance relationships. The graph is
+        built by evaluating all pairwise combinations of alternatives using
+        the configured parallel backend.
+
+        Parameters
+        ----------
+        dm : DecisionMatrix
+            The decision matrix containing alternatives and criteria values
+            used for pairwise comparisons.
+        rrank : RankResult
+            The reference ranking result containing the list of alternatives to
+            be compared pairwise.
+
+        Returns
+        -------
+        [claude]
+        
+        """
+        preferred_parallel_backend = self._preferred_parallel_backend
+        n_jobs = self._n_jobs
+
+        # Generate all pairwise combinations of alternatives
+        pairwise_combinations = map(
+            list, it.combinations(rrank.alternatives, 2)
+        )
+
+        # Parallel processing of all pairwise sub-matrices
+        # Each resulting sub-matrix has 2 alternatives × k original criteria
+        # TODO: Probar sacar paralelismo
+        with joblib.Parallel(
+            prefer=preferred_parallel_backend, n_jobs=n_jobs
+        ) as P:
+            delayed_evaluation = joblib.delayed(_evaluate_alternative_subpair)
+            results = P(
+                delayed_evaluation(self._pair_evaluator, dm, pair)
+                for pair in pairwise_combinations
+            )
+
+        return results
 
     def _graph_from_pairwise_alternative_comparisons(self, dm, rrank):
         """
@@ -591,25 +636,7 @@ class RankTransitivityChecker(SKCMethodABC):
             - All alternatives are guaranteed to be present as nodes, even if
                 isolated
         """
-        preferred_parallel_backend = self._preferred_parallel_backend
-        n_jobs = self._n_jobs
-
-        # Generate all pairwise combinations of alternatives
-        pairwise_combinations = map(
-            list, it.combinations(rrank.alternatives, 2)
-        )
-
-        # Parallel processing of all pairwise sub-matrices
-        # Each resulting sub-matrix has 2 alternatives × k original criteria
-        # TODO: Probar sacar paralelismo
-        with joblib.Parallel(
-            prefer=preferred_parallel_backend, n_jobs=n_jobs
-        ) as P:
-            delayed_evaluation = joblib.delayed(_evaluate_alternative_subpair)
-            results = P(
-                delayed_evaluation(self._pair_evaluator, dm, pair)
-                for pair in pairwise_combinations
-            )
+        results = self._pairwise_comparisons(dm, rrank=rrank)
 
         # Transform the pairwise evaluation to edges (from, to)
         edges = []
