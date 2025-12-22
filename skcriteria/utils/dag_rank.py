@@ -36,7 +36,7 @@ import numpy as np
 # =============================================================================
 
 
-def _resolve_method(graph, method):
+def resolve_fas_method(graph, method):
     """Resolve the feedback arc set method based on graph size.
 
     Automatically selects the optimal method for finding feedback arc sets
@@ -147,7 +147,7 @@ def as_dag(graph, method="auto"):
         return graph, [], None
 
     # Resolve method based on graph size for optimal performance
-    method = _resolve_method(graph, method)
+    method = resolve_fas_method(graph, method)
 
     # Convert to igraph for efficient FAS computation
     igraph = ig.Graph.from_networkx(graph)
