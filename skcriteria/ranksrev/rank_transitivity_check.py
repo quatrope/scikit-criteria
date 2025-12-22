@@ -563,7 +563,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         return ranks, fas, method
     
-    def _pairwise_comparisons(self, dm, rrank):
+    def _make_pairwise_comparisons(self, dm, rrank):
         """
         Create a directed dominance graph from pairwise alternative comparisons.
 
@@ -607,55 +607,9 @@ class RankTransitivityChecker(SKCMethodABC):
             )
 
         return results
+        
 
-    def _graph_from_pairwise_alternative_comparisons(self, dm, rrank):
-        """
-        Create a directed dominance graph from pairwise alternative comparisons.
-
-        This method constructs a directed graph where nodes represent
-        alternatives and edges represent dominance relationships. The graph is
-        built by evaluating all pairwise combinations of alternatives using
-        the configured parallel backend.
-
-        Parameters
-        ----------
-        dm : DecisionMatrix
-            The decision matrix containing alternatives and criteria values
-            used for pairwise comparisons.
-        rrank : RankResult
-            The reference ranking result containing the list of alternatives to
-            be compared pairwise.
-
-        Returns
-        -------
-        networkx.DiGraph
-            A directed graph where:
-            - Nodes represent alternatives from rrank.alternatives
-            - Edges represent dominance relationships
-                (A -> B means A dominates B)
-            - All alternatives are guaranteed to be present as nodes, even if
-                isolated
-        """
-        results = self._pairwise_comparisons(dm, rrank=rrank)
-
-        # Transform the pairwise evaluation to edges (from, to)
-        edges = []
-        for rr in results:
-            # Access the names of the compared alternatives
-            alt_names = tuple(rr.alternatives)
-
-            # Identify which one is ranked better (lower number is better)
-            step = 1 if rr.rank_[0] < rr.rank_[1] else -1
-
-            # store the order (this is a DAG)
-            edges.append(alt_names[::step])
-
-        # Create directed graph
-        graph = nx.DiGraph(edges)
-
-        return graph
-
-    def _check_transitivity_consistency(self, dm, rrank):
+    def _check_transitivity_consistency(self, pairwise_comparisons):
         """
         Check transitivity consistency (test criterion 2).
 
@@ -691,7 +645,23 @@ class RankTransitivityChecker(SKCMethodABC):
         and B dominates C, then A must also dominate C.
         """
         # Create pairwise dominance graph
-        graph = self._graph_from_pairwise_alternative_comparisons(dm, rrank)
+        results = pairwise_comparisons
+
+        # Transform the pairwise evaluation to edges (from, to)
+        edges = []
+        for rr in results:
+            # Access the names of the compared alternatives
+            alt_names = tuple(rr.alternatives)
+
+            # Identify which one is ranked better (lower number is better)
+            step = 1 if rr.rank_[0] < rr.rank_[1] else -1
+
+            # store the order (this is a DAG)
+            edges.append(alt_names[::step])
+
+        # Create directed graph
+        graph = nx.DiGraph(edges)
+
 
         # Calculate transitivity metrics
         # A formatted list of transitivity cycles found in the graph.
@@ -779,12 +749,15 @@ class RankTransitivityChecker(SKCMethodABC):
             rrank, full_alternatives=full_alternatives
         )
 
-        # make the pairwise dominance graph and calculate transitivity metrics
         # Test criterion 2
+        pair_comparisons = self._make_pairwise_comparisons(dm, rrank=rrank)
+
+        # make the pairwise dominance graph and calculate transitivity metrics
         test_criterion_2, graph, trans_break, trans_break_rate = (
-            self._check_transitivity_consistency(dm, rrank)
+            self._check_transitivity_consistency(pair_comparisons)
         )
 
+        # Test criterion 3
         # get the ranks from the graph
         reconstructed_ranks = self._extract_ranks_from_graph(
             graph, rrank, full_alternatives
