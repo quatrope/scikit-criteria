@@ -99,7 +99,7 @@ def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
     dm = skc.datasets.load_simple_stock_selection()
     orank = electre2_pipe.evaluate(dm)
     trans_checker = RankTransitivityChecker(electre2_pipe)
-    graph = trans_checker._dominance_graph(dm, orank, None, None)
+    graph = trans_checker._graph_from_pairwise_alternative_comparisons(dm, orank, None, None)
     trans_break = list(nx.simple_cycles(graph, length_bound=3))
     result = _format_transitivity_cycles(trans_break)
     assert result == []
@@ -109,7 +109,7 @@ def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
     dm = skc.datasets.load_van2021evaluation(windows_size=7)
     orank = topsis_pipe_moora.evaluate(dm)
     trans_checker = RankTransitivityChecker(topsis_pipe_moora)
-    graph = trans_checker._dominance_graph(dm, orank, None, None)
+    graph = trans_checker._graph_from_pairwise_alternative_comparisons(dm, orank, None, None)
     trans_break = list(nx.simple_cycles(graph, length_bound=3))
     result = _format_transitivity_cycles(trans_break)
     assert result != []
