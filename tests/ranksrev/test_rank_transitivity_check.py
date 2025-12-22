@@ -18,7 +18,7 @@ Tests for the functionalities in the tranistivity_check file
 # IMPORTS
 # =============================================================================
 
-import networkx as nx
+# import networkx as nx
 
 import numpy as np
 
@@ -34,9 +34,7 @@ from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler, VectorScaler
 from skcriteria.ranksrev.rank_transitivity_check import (
     RankTransitivityChecker,
-
 )
-
 from skcriteria.utils.deprecate import SKCriteriaDeprecationWarning
 
 # =============================================================================
@@ -76,6 +74,7 @@ topsis_pipe_moora = mkpipe(
 # =============================================================================
 # PROPERTIES
 # =============================================================================
+
 
 def test_TransitivityChecker_bad_pipe():
     bad_pipe = "Suffering and pain"
@@ -122,8 +121,6 @@ def test_TransitivityChecker_random_state():
         trans_checker.random_state.random()
         == np.random.default_rng(rnd_state).random()
     )
-
-
 
 
 def test_TransitivityChecker_allow_missing_alternatives_default():

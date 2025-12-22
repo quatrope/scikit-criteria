@@ -28,7 +28,9 @@ Key Features
 # =============================================================================
 
 import igraph as ig
+
 import networkx as nx
+
 import numpy as np
 
 # =============================================================================
@@ -186,7 +188,8 @@ def all_rankings(alternatives, dag, max_rankings=None):
         This defines the order in which ranks are returned in each ranking.
     dag : networkx.DiGraph
         A directed acyclic graph representing preference relations between
-        alternatives. Edges point from preferred to less preferred alternatives.
+        alternatives. Edges point from preferred to less preferred
+        alternatives.
     max_rankings : int, optional
         Maximum number of rankings to generate. If None (default), all
         possible rankings are generated. Use this parameter to limit

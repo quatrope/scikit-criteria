@@ -176,8 +176,6 @@ def _evaluate_alternative_subpair(evaluator, dm, apair):
     return evaluator.evaluate(sub_dm)
 
 
-
-
 # =============================================================================
 # CLASS
 # =============================================================================
@@ -348,7 +346,7 @@ class RankTransitivityChecker(SKCMethodABC):
             )
         if parallel_backend is not None:
             deprecate.warn(
-                "The 'parallel_backend' parameter is deprecated since 0.9.1,  "
+                "The 'parallel_backend' parameter is deprecated since 0.9.1, "
                 "use 'preferred_parallel_backend' instead."
             )
             preferred_parallel_backend = parallel_backend
@@ -426,24 +424,24 @@ class RankTransitivityChecker(SKCMethodABC):
     def _add_info_to_rank(
         self, rank, full_alternatives, recomposition_number=None
     ):
-        """
-        Enrich a ranking with metadata about missing alternatives and recomposition.
+        """Enrich a ranking with metadata.
 
-        This method augments a ranking result with information about alternatives
-        that were excluded during evaluation and assigns them the worst possible
-        rank. It also adds metadata indicating whether this is an original or
-        reconstructed ranking.
+        This method augments a ranking result with information about
+        alternatives that were excluded during evaluation and assigns them the
+        worst possible rank. It also adds metadata indicating whether this is
+        an original or reconstructed ranking.
 
         Parameters
         ----------
         rank : RankResult
             The ranking result to be enriched with metadata.
         full_alternatives : array-like
-            Complete array of all alternatives from the original decision matrix.
+            Complete array of all alternatives from the original decision
+            matrix.
         recomposition_number : int, optional
             The recomposition iteration number. If None (default), this is the
-            original ranking. If an integer, this is a reconstructed ranking from
-            the DAG and the method name will be updated accordingly.
+            original ranking. If an integer, this is a reconstructed ranking
+            from the DAG and the method name will be updated accordingly.
 
         Returns
         -------
@@ -498,8 +496,7 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
     def _extract_ranks_from_graph(self, graph, rrank, full_alternatives):
-        """
-        Generate alternative rankings from a dominance graph via DAG conversion.
+        """Generate alternative rankings from a dominance graph.
 
         This method removes cycles from the dominance graph using the Feedback
         Arc Set (FAS) algorithm to create a DAG, then enumerates all valid
@@ -548,7 +545,7 @@ class RankTransitivityChecker(SKCMethodABC):
             ranks.append(rank)
 
         return ranks, fas, method
-    
+
     def _evaluate_pairwise_dominance(self, dm, rrank):
         """
         Evaluate all pairwise dominance relationships between alternatives.
@@ -602,7 +599,6 @@ class RankTransitivityChecker(SKCMethodABC):
             )
 
         return results
-        
 
     def _analyze_transitivity_breaks(self, pairwise_comparisons):
         """
@@ -610,8 +606,8 @@ class RankTransitivityChecker(SKCMethodABC):
 
         This method constructs a directed graph from pairwise comparisons and
         identifies transitivity breaks (cycles of length 3). It calculates the
-        transitivity break rate to quantify how much the dominance relationships
-        violate perfect transitivity.
+        transitivity break rate to quantify how much the dominance
+        relationships violate perfect transitivity.
 
         Parameters
         ----------
@@ -658,13 +654,12 @@ class RankTransitivityChecker(SKCMethodABC):
         # Create directed graph
         graph = nx.DiGraph(edges)
 
-
         # Calculate transitivity metrics
         # A formatted list of transitivity cycles found in the graph.
         trans_break = list(nx.simple_cycles(graph, length_bound=3))
         trans_break = _format_transitivity_cycles(trans_break)
-        
-        # The rate of transitivity violations, 
+
+        # The rate of transitivity violations,
         # normalized by the theoretical max.
         trans_break_rate = len(trans_break) / _transitivity_break_bound(
             len(graph.nodes)
