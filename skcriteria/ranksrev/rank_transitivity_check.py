@@ -226,11 +226,6 @@ class RankTransitivityChecker(SKCMethodABC):
         comparisons. Must also implement an ``evaluate(dm)`` method.
         If not provided, lexicographical tie breaking is used.
 
-    random_state : int, numpy.random.Generator, or None, default=None
-        Controls randomization in cycle-breaking strategies and alternative
-        ranking generation. Ensures reproducible results when set to a
-        specific integer.
-
     allow_missing_alternatives : bool, default=False
         Whether to allow rankings that don't include all original alternatives
         (using a pipeline that implements a filter, for example can remove
@@ -301,7 +296,6 @@ class RankTransitivityChecker(SKCMethodABC):
     _skcriteria_parameters = [
         "dmaker",
         "fallback",
-        "random_state",
         "allow_missing_alternatives",
         "max_ranks",
         "fas_method",
@@ -314,7 +308,6 @@ class RankTransitivityChecker(SKCMethodABC):
         dmaker,
         *,
         fallback=None,
-        random_state=None,
         allow_missing_alternatives=False,
         max_ranks=50,
         fas_method="auto",
@@ -363,9 +356,6 @@ class RankTransitivityChecker(SKCMethodABC):
         self._preferred_parallel_backend = preferred_parallel_backend
         self._n_jobs = None if n_jobs is None else int(n_jobs)
 
-        # RANDOM
-        self._random_state = np.random.default_rng(random_state)
-
         # MAXIMIMUM PERMITED RANKS TO BE GENERATED
         if max_ranks < 1:
             raise ValueError(
@@ -396,12 +386,6 @@ class RankTransitivityChecker(SKCMethodABC):
     def fallback(self):
         """The MCDA method, or pipeline to evaluate for tie breaking."""
         return self._fallback
-
-    @property
-    def random_state(self):
-        """Controls the random state to generate variations in the \
-        suboptimal alternatives."""
-        return self._random_state
 
     @property
     def allow_missing_alternatives(self):
