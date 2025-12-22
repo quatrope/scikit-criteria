@@ -148,30 +148,28 @@ def _format_transitivity_cycles(cycles):
 
 def _evaluate_alternative_subpair(evaluator, dm, apair):
     """
-    Apply the MCDM pipeline to a sub-problem of two alternatives.
+    Evaluate a pairwise comparison between two alternatives.
 
-    This method extracts a submatrix containing only the specified pair of
-    alternatives from the decision matrix and evaluates it using the
-    configured decision maker.
+    This function extracts a 2-alternative submatrix from the decision matrix
+    and evaluates it using the provided MCDM evaluator to determine the
+    dominance relationship between the pair.
 
     Parameters
     ----------
-    decision_matrix : pandas.DataFrame
-        The complete decision matrix with alternatives as rows and criteria
-        as columns. Must contain the alternatives specified in
-        alternative_pair.
-    alternative_pair : list, tuple, or array-like
-        Collection of exactly two alternative identifiers/names that exist
-        as row indices in the decision_matrix. These alternatives will be
-        extracted for pairwise comparison.
+    evaluator : SKCMethodABC
+        The MCDM method or pipeline used to evaluate the pairwise comparison.
+        Must implement the ``evaluate()`` method.
+    dm : DecisionMatrix
+        The complete decision matrix containing all alternatives and criteria.
+    apair : list or tuple
+        Pair of alternative identifiers to compare. Must contain exactly two
+        alternative names that exist in the decision matrix.
 
     Returns
     -------
     RankResult
-        The result of applying the MCDM evaluation method to the submatrix
-        containing only the two specified alternatives. The exact type and
-        structure depends on the specific decision maker (self._dmaker)
-        being used.
+        Ranking result for the two-alternative subproblem, indicating which
+        alternative dominates in this pairwise comparison.
 
     """
     sub_dm = dm.loc[apair]
@@ -445,11 +443,12 @@ class RankTransitivityChecker(SKCMethodABC):
         self, rank, full_alternatives, recomposition_number=None
     ):
         """
-        Add transitivity check metadata to a ranking result.
+        Enrich a ranking with metadata about missing alternatives and recomposition.
 
-        This method enriches a ranking result with additional information about
-        missing alternatives and recomposition status, ensuring all alternatives
-        from the original decision matrix are accounted for.
+        This method augments a ranking result with information about alternatives
+        that were excluded during evaluation and assigns them the worst possible
+        rank. It also adds metadata indicating whether this is an original or
+        reconstructed ranking.
 
         Parameters
         ----------
@@ -516,11 +515,12 @@ class RankTransitivityChecker(SKCMethodABC):
 
     def _extract_ranks_from_graph(self, graph, rrank, full_alternatives):
         """
-        Reconstruct rankings from a dominance graph using DAG conversion.
+        Generate alternative rankings from a dominance graph via DAG conversion.
 
-        This method converts the dominance graph to a DAG by removing feedback
-        arcs, then generates all possible rankings from the DAG's topological
-        sorts.
+        This method removes cycles from the dominance graph using the Feedback
+        Arc Set (FAS) algorithm to create a DAG, then enumerates all valid
+        topological orderings to generate alternative rankings that respect the
+        dominance relationships.
 
         Parameters
         ----------
@@ -565,12 +565,12 @@ class RankTransitivityChecker(SKCMethodABC):
     
     def _evaluate_pairwise_dominance(self, dm, rrank):
         """
-        Create a directed dominance graph from pairwise alternative comparisons.
+        Evaluate all pairwise dominance relationships between alternatives.
 
-        This method constructs a directed graph where nodes represent
-        alternatives and edges represent dominance relationships. The graph is
-        built by evaluating all pairwise combinations of alternatives using
-        the configured parallel backend.
+        This method performs pairwise comparisons by evaluating the decision
+        maker on all 2-alternative subproblems. Each comparison determines the
+        dominance relationship between a pair of alternatives using the
+        configured MCDM method.
 
         Parameters
         ----------
@@ -583,7 +583,16 @@ class RankTransitivityChecker(SKCMethodABC):
 
         Returns
         -------
-        [claude]
+        list of RankResult
+            List of ranking results for each pairwise comparison. Each result
+            contains the ranking of exactly two alternatives, indicating which
+            alternative dominates the other in the pairwise evaluation.
+
+        Notes
+        -----
+        The pairwise evaluations are performed in parallel using the configured
+        parallel backend (threading, multiprocessing, or sequential) to improve
+        performance for large numbers of alternatives.
 
         """
         preferred_parallel_backend = self._preferred_parallel_backend
@@ -611,18 +620,19 @@ class RankTransitivityChecker(SKCMethodABC):
 
     def _analyze_transitivity_breaks(self, pairwise_comparisons):
         """
-        Check transitivity consistency (test criterion 2).
+        Analyze transitivity violations in pairwise dominance relationships.
 
-        This method evaluates whether the decision problem satisfies perfect
-        transitivity. It builds a pairwise dominance graph and calculates
-        transitivity metrics to assess the consistency of the MCDM method.
+        This method constructs a directed graph from pairwise comparisons and
+        identifies transitivity breaks (cycles of length 3). It calculates the
+        transitivity break rate to quantify how much the dominance relationships
+        violate perfect transitivity.
 
         Parameters
         ----------
-        dm : DecisionMatrix
-            Decision matrix containing the alternatives and criteria values.
-        rrank : RankResult
-            The reference ranking result containing the alternatives to be analyzed.
+        pairwise_comparisons : list of RankResult
+            List of pairwise comparison results from evaluating all pairs of
+            alternatives. Each result indicates which alternative dominates in
+            that specific pair.
 
         Returns
         -------
@@ -743,13 +753,13 @@ class RankTransitivityChecker(SKCMethodABC):
         dmaker = self._dmaker
         full_alternatives = np.array(dm.alternatives)
 
-        # we need a first reference ranking
+        # we need a first reference ranking ===================================
         rrank = dmaker.evaluate(dm)
         patched_rrank = self._add_info_to_rank(
             rrank, full_alternatives=full_alternatives
         )
 
-        # Test criterion 2
+        # Test criterion 2 ====================================================
         pair_comparisons = self._evaluate_pairwise_dominance(dm, rrank=rrank)
 
         # make the pairwise dominance graph and calculate transitivity metrics
@@ -757,16 +767,19 @@ class RankTransitivityChecker(SKCMethodABC):
             self._analyze_transitivity_breaks(pair_comparisons)
         )
 
-        # Test criterion 3
+        # Test criterion 3 ====================================================
         # get the ranks from the graph
         reconstructed_ranks = self._extract_ranks_from_graph(
             graph, rrank, full_alternatives
         )
 
+        # Check if the original ranking is stable and consistent with
+        # reconstructed rankings from the dominance graph
         test_criterion_3 = self._check_ranking_stability(
             test_criterion_2, patched_rrank, reconstructed_ranks
         )
 
+        # Create the rank comparison sobject ==================================
         names = ["Original"] + [
             f"Recomposition{i+1}" for i in range(len(reconstructed_ranks))
         ]
@@ -775,7 +788,7 @@ class RankTransitivityChecker(SKCMethodABC):
             names=names, elements=[patched_rrank] + reconstructed_ranks
         )
 
-        return RanksComparator(
+        rcmp = RanksComparator(
             named_ranks,
             extra={
                 "test_criterion_2": test_criterion_2,
@@ -785,3 +798,5 @@ class RankTransitivityChecker(SKCMethodABC):
                 "transitivity_break_rate": trans_break_rate,
             },
         )
+
+        return rcmp
