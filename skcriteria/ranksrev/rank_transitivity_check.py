@@ -551,14 +551,16 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
         ranks = []
-        for rnumber, rank_values in enumerate(all_rankings):
+        for recomposition_number, rank_values in enumerate(all_rankings):
             rank = RankResult(
                 method=rrank.method,
                 alternatives=rrank.alternatives,
                 values=rank_values,
                 extra=rrank.extra_,
             )
-            rank = self._add_info_to_rank(rank, full_alternatives, rnumber)
+            rank = self._add_info_to_rank(
+                rank, full_alternatives, recomposition_number
+            )
             ranks.append(rank)
 
         return ranks, fas, method
@@ -749,6 +751,9 @@ class RankTransitivityChecker(SKCMethodABC):
                 - pairwise_dominance_graph: The constructed dominance graph
                 - transitivity_break: List of transitivity violations
                 - transitivity_break_rate: Normalized violation rate
+                - feedback_arc_set: Edges removed to convert graph to DAG
+                - fas_method: Method used for feedback arc set computation
+                - pairwise_comparisons: All pairwise comparison results
         """
         dmaker = self._dmaker
         full_alternatives = np.array(dm.alternatives)
@@ -769,7 +774,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # Test criterion 3 ====================================================
         # get the ranks from the graph
-        reconstructed_ranks = self._extract_ranks_from_graph(
+        reconstructed_ranks, fas, fas_method = self._extract_ranks_from_graph(
             graph, rrank, full_alternatives
         )
 
@@ -779,7 +784,7 @@ class RankTransitivityChecker(SKCMethodABC):
             test_criterion_2, patched_rrank, reconstructed_ranks
         )
 
-        # Create the rank comparison sobject ==================================
+        # Create the rank comparison object ===================================
         names = ["Original"] + [
             f"Recomposition{i+1}" for i in range(len(reconstructed_ranks))
         ]
@@ -796,6 +801,9 @@ class RankTransitivityChecker(SKCMethodABC):
                 "test_criterion_3": test_criterion_3,
                 "transitivity_break": trans_break,
                 "transitivity_break_rate": trans_break_rate,
+                "feedback_arc_set": fas,
+                "fas_method": fas_method,
+                "pairwise_comparisons": pair_comparisons,
             },
         )
 
