@@ -31,7 +31,6 @@ print()
 # Create RankTransitivityChecker
 trans_checker = RankTransitivityChecker(
     topsis_pipe,
-    cycle_removal_strategy="random",
     max_ranks=50,
 )
 
@@ -41,6 +40,8 @@ print()
 
 # Evaluate using the transitivity checker
 result = trans_checker.evaluate(dm)
+
+import ipdb; ipdb.set_trace()
 
 print("Evaluation result:")
 print(result)

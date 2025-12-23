@@ -110,7 +110,7 @@ def resolve_fas_method(graph, method):
     return method
 
 
-def as_dag(graph, method="auto"):
+def as_dag(graph, *, method="auto"):
     """Convert a directed graph to a Directed Acyclic Graph (DAG).
 
     Transforms any directed graph into a DAG by identifying and removing
@@ -174,7 +174,7 @@ def as_dag(graph, method="auto"):
     return dag, nx_fas, method
 
 
-def all_rankings(alternatives, dag, max_rankings=None):
+def all_rankings(alternatives, dag, *, max_rankings=None):
     """Generate all possible rankings from a DAG's topological sorts.
 
     Enumerates all valid rankings by computing every possible topological
