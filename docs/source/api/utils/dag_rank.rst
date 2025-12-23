@@ -1,7 +1,7 @@
-``skcriteria.utils.cycle_removal`` module
+``skcriteria.utils.dag_rank`` module
 ==========================================
 
-.. automodule:: skcriteria.utils.cycle_removal
+.. automodule:: skcriteria.utils.dag_rank
     :members:
     :undoc-members:
     :show-inheritance:

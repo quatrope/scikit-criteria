@@ -1,12 +1,35 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# License: BSD-3 (https://tldrlegal.com/license/bsd-3-clause-license-(revised))
+# Copyright (c) 2016-2021, Cabral, Juan; Luczywo, Nadia
+# Copyright (c) 2022-2025 QuatroPe
+# All rights reserved.
+
+# =============================================================================
+# DOCS
+# =============================================================================
+
+"""test for skcriteria.utils.dag_rank"""
+
+
+# =============================================================================
+# IMPORTS
+# =============================================================================
+
 import networkx as nx
 
-from skcriteria.utils import dag_rank
-
-import pytest
+import numpy as np
 
 import pandas as pd
 
-import numpy as np
+import pytest
+
+from skcriteria.utils import dag_rank
+
+
+# =============================================================================
+# TESTS
+# =============================================================================
 
 
 @pytest.mark.parametrize(
@@ -69,7 +92,7 @@ def test_as_dag_is_dag():
 
     assert nx.is_directed_acyclic_graph(r_graph)
     assert r_fas == []
-    assert r_method == None
+    assert r_method is None
 
 
 def test_all_rankings():
@@ -108,7 +131,9 @@ def test_all_rankings_max1():
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
-    result = dag_rank.all_rankings(["A", "B", "C", "D", "E"], graph, max_rankings=1)
+    result = dag_rank.all_rankings(
+        ["A", "B", "C", "D", "E"], graph, max_rankings=1
+    )
 
     np.testing.assert_array_equal(next(result), [1, 5, 2, 4, 3])
 
