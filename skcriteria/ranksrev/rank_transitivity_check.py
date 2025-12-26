@@ -46,7 +46,6 @@ with hidden():
     from ..agg import RankResult
     from ..cmp import RanksComparator
     from ..core import SKCMethodABC
-    from ..tiebreaker import FallbackTieBreaker
     from ..utils import Bunch, dag_rank, deprecate, unique_names
 
 
@@ -57,7 +56,7 @@ with hidden():
 
 def _transitivity_break_bound(n):
     """
-    Calculate the maximum number of transitivity violations possible in a \
+    Calculate the maximum number of transitivity violations possible in an \
         n-tournament.
 
     This function computes the theoretical upper bound for the number of
@@ -219,11 +218,6 @@ class RankTransitivityChecker(SKCMethodABC):
         This represents the MCDM method or pipeline to be evaluated for
         robustness.
 
-    fallback : object
-        Optional fallback decision maker for tie-breaking in pairwise
-        comparisons. Must also implement an ``evaluate(dm)`` method.
-        If not provided, lexicographical tie breaking is used.
-
     allow_missing_alternatives : bool, default=False
         Whether to allow rankings that don't include all original alternatives
         (using a pipeline that implements a filter, for example can remove
@@ -293,7 +287,6 @@ class RankTransitivityChecker(SKCMethodABC):
     _skcriteria_dm_type = "rank_reversal"
     _skcriteria_parameters = [
         "dmaker",
-        "fallback",
         "allow_missing_alternatives",
         "max_ranks",
         "fas_method",
@@ -305,7 +298,6 @@ class RankTransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
-        fallback=None,
         allow_missing_alternatives=False,
         max_ranks=50,
         fas_method="auto",
@@ -317,25 +309,10 @@ class RankTransitivityChecker(SKCMethodABC):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
 
-        if fallback:
-            if not (
-                hasattr(fallback, "evaluate") and callable(fallback.evaluate)
-            ):
-                raise TypeError(
-                    "'fallback' must implement 'evaluate()' method"
-                )
-
-            self._pair_evaluator = FallbackTieBreaker(dmaker, fallback)
-
-        else:
-            self._pair_evaluator = dmaker
-
-        self._fallback = fallback
-
-        # ALLOW MISSING ALTERNATIVES
+        # Allow missing alternatives
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
 
-        # PARALLEL BACKEND
+        # Parallel backend
         if (
             parallel_backend is not None
             and preferred_parallel_backend is not None
@@ -354,15 +331,15 @@ class RankTransitivityChecker(SKCMethodABC):
         self._preferred_parallel_backend = preferred_parallel_backend
         self._n_jobs = None if n_jobs is None else int(n_jobs)
 
-        # MAXIMIMUM PERMITED RANKS TO BE GENERATED
+        # Maximum permitted ranks to be generated
         if max_ranks < 1:
             raise ValueError(
-                f"max_ranks should be greater than zero, current \
-                    value {max_ranks}"
+                f"max_ranks should be greater than zero, "
+                f"current value {max_ranks}"
             )
         self._max_ranks = int(max_ranks)
 
-        # FAS METHOD
+        # FAS method
         self._fas_method = fas_method
 
     def __repr__(self):
@@ -373,17 +350,12 @@ class RankTransitivityChecker(SKCMethodABC):
         mr = self._max_ranks
         return f"<{name} {dm}, " f"fas_method={fm}, max_ranks={mr}>"
 
-    # PROPERTIES ==============================================================
+    # Properties
 
     @property
     def dmaker(self):
         """The MCDA method, or pipeline to evaluate."""
         return self._dmaker
-
-    @property
-    def fallback(self):
-        """The MCDA method, or pipeline to evaluate for tie breaking."""
-        return self._fallback
 
     @property
     def allow_missing_alternatives(self):
@@ -419,7 +391,7 @@ class RankTransitivityChecker(SKCMethodABC):
         """The number of parallel jobs used in the pairwise evaluations."""
         return self._n_jobs
 
-    # LOGIC ===================================================================
+    # Logic
 
     def _add_info_to_rank(
         self, rank, full_alternatives, recomposition_number=None
@@ -462,19 +434,19 @@ class RankTransitivityChecker(SKCMethodABC):
         if recomposition_number:
             method = f"{method} + RECOMPOSITION_{recomposition_number}"
 
-        # we check if the decision_maker did not eliminate any alternatives
+        # Check if the decision maker did not eliminate any alternatives
         alts_diff = np.setxor1d(alternatives, full_alternatives)
         has_missing_alternatives = len(alts_diff) > 0
 
         if has_missing_alternatives:
-            # if a missing alternative are not allowed must raise an error
+            # If missing alternatives are not allowed, raise an error
             if not self._allow_missing_alternatives:
                 raise ValueError(f"Missing alternative/s {set(alts_diff)!r}")
 
-            # add missing alternatives with the  worst ranking + 1
+            # Add missing alternatives with the worst ranking + 1
             fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
 
-            # concatenate the missing alternatives and the new rankings
+            # Concatenate the missing alternatives and the new rankings
             alternatives = np.concatenate((alternatives, alts_diff))
             values = np.concatenate((values, fill_values))
 
@@ -578,6 +550,7 @@ class RankTransitivityChecker(SKCMethodABC):
         performance for large numbers of alternatives.
 
         """
+        dmaker = self._dmaker
         preferred_parallel_backend = self._preferred_parallel_backend
         n_jobs = self._n_jobs
 
@@ -588,13 +561,12 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
-        # TODO: Probar sacar paralelismo
         with joblib.Parallel(
             prefer=preferred_parallel_backend, n_jobs=n_jobs
         ) as P:
             delayed_evaluation = joblib.delayed(_evaluate_alternative_subpair)
             results = P(
-                delayed_evaluation(self._pair_evaluator, dm, pair)
+                delayed_evaluation(dmaker, dm, pair)
                 for pair in pairwise_combinations
             )
 
@@ -737,22 +709,22 @@ class RankTransitivityChecker(SKCMethodABC):
         dmaker = self._dmaker
         full_alternatives = np.array(dm.alternatives)
 
-        # we need a first reference ranking ===================================
+        # We need a first reference ranking
         rrank = dmaker.evaluate(dm)
         patched_rrank = self._add_info_to_rank(
             rrank, full_alternatives=full_alternatives
         )
 
-        # Test criterion 2 ====================================================
+        # Test criterion 2: Transitivity validation
         pair_comparisons = self._evaluate_pairwise_dominance(dm, rrank=rrank)
 
-        # make the pairwise dominance graph and calculate transitivity metrics
+        # Make the pairwise dominance graph and calculate transitivity metrics
         test_criterion_2, graph, trans_break, trans_break_rate = (
             self._analyze_transitivity_breaks(pair_comparisons)
         )
 
-        # Test criterion 3 ====================================================
-        # get the ranks from the graph
+        # Test criterion 3: Ranking stability assessment
+        # Get the ranks from the graph
         reconstructed_ranks, fas, fas_method = self._extract_ranks_from_graph(
             graph, rrank, full_alternatives
         )
@@ -763,7 +735,7 @@ class RankTransitivityChecker(SKCMethodABC):
             test_criterion_2, patched_rrank, reconstructed_ranks
         )
 
-        # Create the rank comparison object ===================================
+        # Create the rank comparison object
         names = ["Original"] + [
             f"Recomposition{i+1}" for i in range(len(reconstructed_ranks))
         ]
