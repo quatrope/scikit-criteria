@@ -110,7 +110,7 @@ def resolve_fas_method(graph, method):
     return method
 
 
-def as_dag(graph, *, method="auto"):
+def as_dag(graph, *, method="auto") -> list[nx.DiGraph, list, str | None]:
     """Convert a directed graph to a Directed Acyclic Graph (DAG).
 
     Transforms any directed graph into a DAG by identifying and removing

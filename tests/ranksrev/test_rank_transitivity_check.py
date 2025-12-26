@@ -88,18 +88,6 @@ def test_TransitivityChecker_dmaker():
     assert trans_checker.dmaker == electre2_pipe
 
 
-def test_TransitivityChecker_bad_fallback():
-    bad_pipe = "Suffering and pain 2"
-    with pytest.raises(TypeError) as ex:
-        RankTransitivityChecker(topsis_pipe, fallback=bad_pipe)
-        assert "'fallback' must implement 'evaluate()' method" in str(ex.value)
-
-
-def test_TransitivityChecker_fallback():
-    trans_checker = RankTransitivityChecker(topsis_pipe, fallback=topsis_pipe)
-    assert trans_checker.fallback == topsis_pipe
-
-
 def test_TransitivityChecker_preferred_parallel_backend_none():
     trans_checker = RankTransitivityChecker(electre2_pipe)
     assert trans_checker.preferred_parallel_backend is None
@@ -110,17 +98,6 @@ def test_TransitivityChecker_preferred_parallel_backend():
         electre2_pipe, preferred_parallel_backend=electre2_pipe
     )
     assert trans_checker.preferred_parallel_backend == electre2_pipe
-
-
-def test_TransitivityChecker_random_state():
-    rnd_state = 42
-    trans_checker = RankTransitivityChecker(
-        electre2_pipe, random_state=rnd_state
-    )
-    assert (
-        trans_checker.random_state.random()
-        == np.random.default_rng(rnd_state).random()
-    )
 
 
 def test_TransitivityChecker_allow_missing_alternatives_default():
@@ -186,7 +163,7 @@ def test_RankTransitivityChecker_parallel_backend_deprecation():
 def test_TransitivityCheck_missing_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
     trans_check = RankTransitivityChecker(
-        topsis_pipe, random_state=42, allow_missing_alternatives=False
+        topsis_pipe, allow_missing_alternatives=False
     )
     with pytest.raises(ValueError):
         trans_check.evaluate(dm=dm)
@@ -195,7 +172,7 @@ def test_TransitivityCheck_missing_alternative_forbidden():
 def test_TransitivityCheck_missing_alternative():
     dm = skc.datasets.load_simple_stock_selection()
     trans_check = RankTransitivityChecker(
-        topsis_pipe, random_state=42, allow_missing_alternatives=True
+        topsis_pipe, allow_missing_alternatives=True
     )
     result = trans_check.evaluate(dm=dm)
 
