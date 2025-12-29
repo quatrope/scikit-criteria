@@ -9,50 +9,45 @@
 # DOCS
 # =============================================================================
 
-"""
-Tests for the functionalities in the tranistivity_check file
-"""
+"""Tests for the functionalities in the transitivity_check file."""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-# import networkx as nx
-
 import numpy as np
 
 import pytest
 
 import skcriteria as skc
+from skcriteria.agg import RankResult
 from skcriteria.agg.simple import WeightedSumModel
 from skcriteria.agg.topsis import TOPSIS
-from skcriteria.agg import RankResult
+from skcriteria.cmp import RanksComparator
 from skcriteria.pipelines import mkpipe
-from skcriteria.preprocessing import invert_objectives
-from skcriteria.preprocessing import weighters
 from skcriteria.preprocessing.filters import FilterGE, FilterNonDominated
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.preprocessing.scalers import SumScaler
+from skcriteria.preprocessing.weighters import EntropyWeighter
 from skcriteria.ranksrev.rank_transitivity_check import (
     RankTransitivityChecker,
 )
-from skcriteria.cmp import RanksComparator, mkrank_cmp
 
 
 # =============================================================================
-# PROPERTIES
+# TESTS
 # =============================================================================
 
 
 def test_RankTransitivityChecker():
     pipe = mkpipe(
-        FilterGE({"ROE": 2}),  # Almenos rendir 2%,
-        FilterNonDominated(),  # chau dominadas!
-        InvertMinimize(),  # no más minimización!
-        SumScaler(target="weights"),  # normalizamos los pesos
-        SumScaler(target="matrix"),  # normalizamos la matriz
-        WeightedSumModel(),  # Función de agregación
+        FilterGE({"ROE": 2}),
+        FilterNonDominated(),
+        InvertMinimize(),
+        SumScaler(target="weights"),
+        SumScaler(target="matrix"),
+        WeightedSumModel(),
     )
     dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
 
@@ -89,26 +84,25 @@ def test_RankTransitivityChecker():
 
 def test_RankTransitivityChecker_allow_missing_alternative_false():
     pipe = mkpipe(
-        FilterGE({"ROE": 2}),  # Almenos rendir 2%,
-        FilterNonDominated(),  # chau dominadas!
-        InvertMinimize(),  # no más minimización!
-        SumScaler(target="weights"),  # normalizamos los pesos
-        SumScaler(target="matrix"),  # normalizamos la matriz
-        WeightedSumModel(),  # Función de agregación
+        FilterGE({"ROE": 2}),
+        FilterNonDominated(),
+        InvertMinimize(),
+        SumScaler(target="weights"),
+        SumScaler(target="matrix"),
+        WeightedSumModel(),
     )
     dec = RankTransitivityChecker(pipe, allow_missing_alternatives=False)
 
     dm = skc.datasets.load_simple_stock_selection()
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Missing alternative/s"):
         dec.evaluate(dm)
 
 
 def test_RankTransitivityChecker_vanheerden():
-    # pipeline de la tesis entera
     pipe = mkpipe(
-        invert_objectives.InvertMinimize(),
-        weighters.EntropyWeighter(),
+        InvertMinimize(),
+        EntropyWeighter(),
         SumScaler(target="matrix"),
         TOPSIS(),
     )
@@ -118,10 +112,22 @@ def test_RankTransitivityChecker_vanheerden():
 
     result = dec.evaluate(dm)
 
-    
+    # Basic assertions to verify the result structure
+    assert isinstance(result, RanksComparator)
+    assert len(result) >= 1  # At least one rank (Original)
+
+    # Check that all ranks have the same alternatives
+    first_alternatives = result.ranks[0][1].alternatives
+    for name, rank in result.ranks:
+        np.testing.assert_array_equal(rank.alternatives, first_alternatives)
+        assert rank.method == "TOPSIS"
+        assert len(rank.values) == len(first_alternatives)
 
 
 def test_RankTransitivityChecker_bad_pipe():
     bad_pipe = "Suffering and pain"
-    with pytest.raises(TypeError) as ex:
+
+    with pytest.raises(
+        TypeError, match="'dmaker' must implement 'evaluate\\(\\)' method"
+    ):
         RankTransitivityChecker(bad_pipe)
