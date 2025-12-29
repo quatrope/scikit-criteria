@@ -360,6 +360,23 @@ def test_assert_rcmp_equals_skip_extra():
     # Should not raise when skip_extra=True
     testing.assert_rcmp_equals(left, right, skip_extra=True)
 
+    # Test with different extra_ in RanksComparator itself
+    left_rcmp_extra = cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 2], {}),
+        extra={"rcmp_meta": "left_data"},
+    )
+    right_rcmp_extra = cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {}),
+        agg.RankResult("test", ["a", "b"], [1, 2], {}),
+        extra={"rcmp_meta": "right_data"},
+    )
+
+    # Should not raise when skip_extra=True (skips RanksComparator extra_ too)
+    testing.assert_rcmp_equals(
+        left_rcmp_extra, right_rcmp_extra, skip_extra=True
+    )
+
     # Should still fail if core attributes differ
     left_diff = cmp.mkrank_cmp(
         agg.RankResult("test", ["a", "b"], [1, 1], {"meta": "left"}),

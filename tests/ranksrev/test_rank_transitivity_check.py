@@ -26,6 +26,7 @@ import pytest
 
 import skcriteria as skc
 from skcriteria.agg.simple import WeightedSumModel
+from skcriteria.agg import RankResult
 from skcriteria.pipelines import mkpipe
 from skcriteria.preprocessing.filters import FilterGE, FilterNonDominated
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
@@ -33,11 +34,7 @@ from skcriteria.preprocessing.scalers import SumScaler
 from skcriteria.ranksrev.rank_transitivity_check import (
     RankTransitivityChecker,
 )
-
-
-# =============================================================================
-# SHARED OBJECTS
-# =============================================================================
+from skcriteria.cmp import RanksComparator, mkrank_cmp
 
 
 # =============================================================================
@@ -60,7 +57,26 @@ def test_TransitivityChecker():
 
     result = dec.evaluate(dm)
 
-    import ipdb; ipdb.set_trace()
+    # expected = RanksComparator(
+    ranks = mkrank_cmp(
+        RankResult(
+            method="Original",
+            alternatives=list(dm.alternatives),
+            values=[3, 4, 2, 1, 5, 5],
+            extra={},
+        ),
+        RankResult(
+            method="Original",
+            alternatives=list(dm.alternatives),
+            values=[3, 4, 2, 1, 5, 5],
+            extra={},
+        ),
+    )
+    import ipdb
+
+    ipdb.set_trace()
+
+    # CLAUDe
 
 
 # def test_TransitivityChecker_bad_pipe():

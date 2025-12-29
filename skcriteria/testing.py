@@ -156,7 +156,7 @@ def assert_result_equals(left, right, skip_extra=False, **diff_kws):
         f"but got {right.method!r}.",
     )
     _assert("values" not in diff.members_diff, "'values' are not equal")
-    
+
     if not skip_extra:
         _assert("extra_" not in diff.members_diff, "'extra_' are not equal")
 
@@ -191,36 +191,40 @@ def assert_rcmp_equals(left, right, skip_extra=False, **diff_kws):
         equal.
 
     """
-    # check if left is a RanksComparator
+    # Check if left is a RanksComparator
     _assert(
         isinstance(left, RanksComparator),
         f"'left' is not a RanksComparator instance. Found {type(left)!r}",
     )
 
-    # check if left and right has some difference
+    # Check if left and right are equal
     diff = left.diff(right, **diff_kws)
-    if not diff.has_differences:  # if there are no differences end the test
+    if not diff.has_differences:
         return
 
-    # check if right is a RanksComparator
+    # Check if right is a RanksComparator
     _assert(
         diff.different_types is False,
-        "'right' is not a RanksComparator instance. "
-        f"Found {diff.right_type!r}",
+        f"'right' is not a RanksComparator instance. Found {diff.right_type!r}",
     )
 
-    # check if left and right have the same length
+    # Check if left and right have the same length
     llen, rlen = len(left), len(right)
     _assert(
         llen == rlen,
         f"RanksComparator instances have different lengths: {llen} != {rlen}",
     )
 
-    # check if left and right have the same ranks
-    enum_zip_ranks = enumerate(zip(left.ranks, right.ranks))
-    for idx, ((lrank_name, lrank), (rrank_name, rrank)) in enum_zip_ranks:
-        try:
-            _assert(lrank_name == rrank_name, "Name missmatch")
-            assert_result_equals(lrank, rrank, skip_extra=skip_extra)
-        except AssertionError as err:
-            raise AssertionError(f"Mismatch at index {idx}") from err
+    # Check individual ranks if they differ
+    if "ranks" in diff.members_diff:
+        enum_zip_ranks = enumerate(zip(left.ranks, right.ranks))
+        for idx, ((lrank_name, lrank), (rrank_name, rrank)) in enum_zip_ranks:
+            try:
+                _assert(lrank_name == rrank_name, "Name mismatch")
+                assert_result_equals(lrank, rrank, skip_extra=skip_extra)
+            except AssertionError as err:
+                raise AssertionError(f"Mismatch at index {idx}") from err
+
+    # Check extra_ attribute if not skipping
+    if not skip_extra:
+        _assert("extra_" not in diff.members_diff, "'extra_' are not equal")
