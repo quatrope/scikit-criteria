@@ -444,7 +444,9 @@ class RankTransitivityChecker(SKCMethodABC):
                 raise ValueError(f"Missing alternative/s {set(alts_diff)!r}")
 
             # Add missing alternatives with the worst ranking + 1
-            fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
+            fill_values = np.full(
+                len(alts_diff), rank.rank_.max() + 1, dtype=int
+            )
 
             # Concatenate the missing alternatives and the new rankings
             alternatives = np.concatenate((alternatives, alts_diff))

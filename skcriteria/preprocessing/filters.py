@@ -256,7 +256,7 @@ class SKCArithmeticFilterABC(SKCByCriteriaFilterABC):
         return tuple(criteria), tuple(criteria_filters)
 
     def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
-        idxs = np.in1d(criteria, criteria_to_use)
+        idxs = np.isin(criteria, criteria_to_use)
         matrix = matrix[:, idxs]
         mask = np.all(self._filter(matrix, criteria_filters), axis=1)
 
