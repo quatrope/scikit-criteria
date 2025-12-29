@@ -56,8 +56,7 @@ def test_TransitivityChecker():
     dm = skc.datasets.load_simple_stock_selection()
 
     result = dec.evaluate(dm)
-
-    # expected = RanksComparator(
+    
     expected = RanksComparator(
         [
             (
@@ -65,7 +64,7 @@ def test_TransitivityChecker():
                 RankResult(
                     method="WeightedSumModel",
                     alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
-                    values=np.array([3, 4, 2, 1, 5, 5]),
+                    values=np.array([3, 4, 2, 1, 5, 5], dtype=int),
                     extra={},
                 ),
             ),
@@ -74,7 +73,7 @@ def test_TransitivityChecker():
                 RankResult(
                     method="WeightedSumModel",
                     alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
-                    values=np.array([3, 4, 2, 1, 5, 5]),
+                    values=np.array([3, 4, 2, 1, 5, 5], dtype=int),
                     extra={},
                 ),
             ),

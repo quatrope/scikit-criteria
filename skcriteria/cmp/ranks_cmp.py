@@ -174,7 +174,7 @@ class RanksComparator(Sequence, DiffEqualityMixin):
                 if radiff.has_differences:
                     return False
             return True
-
+        
         members = {"ranks": rank_allclose}
         the_diff = diff(self, other, **members)
         return the_diff

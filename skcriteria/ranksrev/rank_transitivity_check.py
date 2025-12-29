@@ -747,7 +747,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # Create the rank comparison object
         names = ["Original"] + [
-            f"Recomposition{i+1}" for i in range(len(reconstructed_ranks))
+            f"Recomposition.{i+1}" for i in range(len(reconstructed_ranks))
         ]
 
         named_ranks = unique_names(
