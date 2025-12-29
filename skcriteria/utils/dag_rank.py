@@ -214,38 +214,24 @@ def all_rankings(alternatives, dag, *, max_rankings=None):
       once the limit is reached, which can significantly reduce computation
       time for large DAGs.
 
-    Examples
-    --------
-    >>> import networkx as nx
-    >>> import numpy as np
-    >>> dag = nx.DiGraph()
-    >>> dag.add_edges_from([('A', 'B'), ('A', 'C')])
-    >>> alternatives = ['A', 'B', 'C']
-    >>> rankings = list(all_rankings(alternatives, dag))
-    >>> for rank in rankings:
-    ...     print(rank)
-    [1 2 3]
-    [1 3 2]
-
-    >>> # Limit to first 10 rankings
-    >>> rankings = list(all_rankings(alternatives, dag, max_rankings=10))
-    >>> len(rankings) <= 10
-    True
-
     """
-    yielded = 0
-    last = len(alternatives)
-    for sort in nx.all_topological_sorts(dag):
-        if max_rankings is not None and yielded >= max_rankings:
+    rankings_generated = 0
+
+    for topological_order in nx.all_topological_sorts(dag):
+        if max_rankings is not None and rankings_generated >= max_rankings:
             break
 
-        # Create mapping from value to position in this sort (0-indexed)
-        position_map = {value: idx for idx, value in enumerate(sort)}
+        # Map each alternative to its 1-indexed position in this topological sort
+        alternative_to_rank = {
+            alt: rank for rank, alt in enumerate(topological_order, start=1)
+        }
 
-        # Get positions for each alternative and convert to 1-indexed
-        order = (
-            np.array([position_map.get(alt, last) for alt in alternatives]) + 1
+        # Build rank array for all alternatives in original order
+
+        ranking = np.array(
+            [alternative_to_rank[alt] for alt in alternatives],
+            dtype=int,
         )
 
-        yield order
-        yielded += 1
+        yield ranking
+        rankings_generated += 1

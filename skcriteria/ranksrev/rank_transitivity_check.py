@@ -500,7 +500,7 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
         all_rankings = dag_rank.all_rankings(
-            full_alternatives, dag, max_rankings=self._max_ranks
+            rrank.alternatives, dag, max_rankings=self._max_ranks
         )
 
         ranks = []

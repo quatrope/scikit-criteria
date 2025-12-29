@@ -238,6 +238,36 @@ def test_assert_result_equals_not_same_extra():
         testing.assert_result_equals(kresult_left, kresult_right)
 
 
+def test_assert_result_equals_skip_extra():
+    # Test that skip_extra=True allows different extra_ attributes
+    rresult_left = agg.RankResult("test", ["a", "b"], [1, 1], {})
+    rresult_right = agg.RankResult("test", ["a", "b"], [1, 1], {"foo": 1})
+
+    # Should not raise when skip_extra=True
+    testing.assert_result_equals(rresult_left, rresult_right, skip_extra=True)
+
+    kresult_left = agg.KernelResult("test", ["a", "b"], [True, False], {})
+    kresult_right = agg.KernelResult(
+        "test", ["a", "b"], [True, False], {"foo": 1}
+    )
+
+    # Should not raise when skip_extra=True
+    testing.assert_result_equals(kresult_left, kresult_right, skip_extra=True)
+
+    # Test with more complex extra_ differences
+    rresult_left_complex = agg.RankResult(
+        "test", ["a", "b"], [1, 2], {"meta": "data1", "value": 42}
+    )
+    rresult_right_complex = agg.RankResult(
+        "test", ["a", "b"], [1, 2], {"meta": "data2", "value": 100}
+    )
+
+    # Should not raise when skip_extra=True
+    testing.assert_result_equals(
+        rresult_left_complex, rresult_right_complex, skip_extra=True
+    )
+
+
 # =============================================================================
 # assert_rcmp_equals
 # =============================================================================
@@ -314,3 +344,32 @@ def test_assert_rcmp_equals_not_same_ranks():
     )
     with pytest.raises(AssertionError):
         testing.assert_rcmp_equals(left, right)
+
+
+def test_assert_rcmp_equals_skip_extra():
+    # Test that skip_extra=True allows different extra_ attributes in ranks
+    left = cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {"meta": "left"}),
+        agg.RankResult("test", ["a", "b"], [1, 2], {"info": "foo"}),
+    )
+    right = cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {"meta": "right"}),
+        agg.RankResult("test", ["a", "b"], [1, 2], {"info": "bar"}),
+    )
+
+    # Should not raise when skip_extra=True
+    testing.assert_rcmp_equals(left, right, skip_extra=True)
+
+    # Should still fail if core attributes differ
+    left_diff = cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {"meta": "left"}),
+        agg.RankResult("test", ["a", "b"], [1, 2], {"info": "foo"}),
+    )
+    right_diff = cmp.mkrank_cmp(
+        agg.RankResult("test", ["a", "b"], [1, 1], {"meta": "right"}),
+        agg.RankResult("test", ["a", "b"], [2, 1], {"info": "bar"}),
+    )
+
+    # Should raise even with skip_extra=True because values differ
+    with pytest.raises(AssertionError):
+        testing.assert_rcmp_equals(left_diff, right_diff, skip_extra=True)

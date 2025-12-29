@@ -106,7 +106,7 @@ def assert_dmatrix_equals(left, right, **diff_kws):
     _assert("dtypes" not in diff.members_diff, "'dtypes' are not equal")
 
 
-def assert_result_equals(left, right, **diff_kws):
+def assert_result_equals(left, right, skip_extra=False, **diff_kws):
     """Asserts that two results objects are equal by comparing their \
     attributes with some tolerance.
 
@@ -116,12 +116,17 @@ def assert_result_equals(left, right, **diff_kws):
         The left result to compare.
     right : skcriteria.agg.ResultABC
         The right result to compare.
+    skip_extra : bool, default=False
+        If True, skip comparison of the `extra_` attribute. Useful when
+        comparing results where extra metadata may differ but core results
+        are expected to be identical.
     **diff_kws : dict
         Optional keyword arguments to pass to the result `diff` method.
 
     Raises
     ------
-    AssertionError if the two results are not equal.
+    AssertionError
+        If the two results are not equal.
 
     """
     # Check if left is a ResultABC
@@ -151,10 +156,12 @@ def assert_result_equals(left, right, **diff_kws):
         f"but got {right.method!r}.",
     )
     _assert("values" not in diff.members_diff, "'values' are not equal")
-    _assert("extra_" not in diff.members_diff, "'extra_' are not equal")
+    
+    if not skip_extra:
+        _assert("extra_" not in diff.members_diff, "'extra_' are not equal")
 
 
-def assert_rcmp_equals(left, right, **diff_kws):
+def assert_rcmp_equals(left, right, skip_extra=False, **diff_kws):
     """Asserts that the left and right RankComparator objects are equal \
     by comparing their attributes with some tolerance.
 
@@ -162,9 +169,13 @@ def assert_rcmp_equals(left, right, **diff_kws):
     ----------
     left : RanksComparator
         The left object to compare.
-    right : Any
+    right : RanksComparator
         The right object to compare.
-    **diff_kws : keyword arguments
+    skip_extra : bool, default=False
+        If True, skip comparison of the `extra_` attribute in all contained
+        rank results. Useful when comparing results where extra metadata may
+        differ but core rankings are expected to be identical.
+    **diff_kws : dict
         Additional keyword arguments to pass to the `diff` method.
 
     Raises
@@ -210,6 +221,6 @@ def assert_rcmp_equals(left, right, **diff_kws):
     for idx, ((lrank_name, lrank), (rrank_name, rrank)) in enum_zip_ranks:
         try:
             _assert(lrank_name == rrank_name, "Name missmatch")
-            assert_result_equals(lrank, rrank)
+            assert_result_equals(lrank, rrank, skip_extra=skip_extra)
         except AssertionError as err:
             raise AssertionError(f"Mismatch at index {idx}") from err
