@@ -163,6 +163,7 @@ class RanksComparator(Sequence, DiffEqualityMixin):
             for (ra_name, ra), (rb_name, rb) in zip(ranks_a, ranks_b):
                 if ra_name != rb_name:
                     return False
+
                 radiff = ra.diff(
                     rb,
                     rtol=rtol,
@@ -867,7 +868,6 @@ def mkrank_cmp(*ranks, extra=None):
     names = [r.method for r in ranks]
     named_ranks = unique_names(names=names, elements=ranks)
 
-    if extra is None:
-        extra = {}
+    extra = {} if extra is None else dict(extra)
 
     return RanksComparator(named_ranks, extra)

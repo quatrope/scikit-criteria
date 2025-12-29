@@ -448,6 +448,15 @@ class RankInvariantChecker(SKCMethodABC):
             alternatives = np.concatenate((alternatives, alts_diff))
             values = np.concatenate((values, fill_values))
 
+            # Restore original order of alternatives as in full_alternatives
+            # Create mapping from alternative to its original position
+            order = {alt: i for i, alt in enumerate(full_alternatives)}
+            indices = np.argsort([order[alt] for alt in alternatives])
+
+            # Reorder both alternatives and values to match original order
+            alternatives = alternatives[indices]
+            values = values[indices]
+
         # change the method name if this is part of a mutation
         if (mutated, iteration) != (None, None):
             method = f"{method}+RInvCheck+{mutated}_{iteration}"
@@ -504,7 +513,7 @@ class RankInvariantChecker(SKCMethodABC):
         random = self.random_state
 
         # all alternatives to be used to check consistency
-        full_alternatives = dm.alternatives
+        full_alternatives = np.array(dm.alternatives)
 
         # we need a first reference ranking
         rrank = dmaker.evaluate(dm)

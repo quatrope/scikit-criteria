@@ -450,6 +450,16 @@ class RankTransitivityChecker(SKCMethodABC):
             alternatives = np.concatenate((alternatives, alts_diff))
             values = np.concatenate((values, fill_values))
 
+            # Restore original order of alternatives as in full_alternatives
+            # Create mapping from alternative to its original position
+            order = {alt: i for i, alt in enumerate(full_alternatives)}
+            indices = np.argsort([order[alt] for alt in alternatives])
+
+            # Reorder both alternatives and values to match original order
+            alternatives = alternatives[indices]
+            values = values[indices]
+
+
         extra = dict(rank.extra_.items())
 
         extra["transitivity_check"] = Bunch(

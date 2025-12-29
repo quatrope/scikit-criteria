@@ -58,23 +58,30 @@ def test_TransitivityChecker():
     result = dec.evaluate(dm)
 
     # expected = RanksComparator(
-    ranks = mkrank_cmp(
-        RankResult(
-            method="Original",
-            alternatives=list(dm.alternatives),
-            values=[3, 4, 2, 1, 5, 5],
-            extra={},
-        ),
-        RankResult(
-            method="Original",
-            alternatives=list(dm.alternatives),
-            values=[3, 4, 2, 1, 5, 5],
-            extra={},
-        ),
+    expected = RanksComparator(
+        [
+            (
+                "Original",
+                RankResult(
+                    method="WeightedSumModel",
+                    alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
+                    values=np.array([3, 4, 2, 1, 5, 5]),
+                    extra={},
+                ),
+            ),
+            (
+                "Recomposition.1",
+                RankResult(
+                    method="WeightedSumModel",
+                    alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
+                    values=np.array([3, 4, 2, 1, 5, 5]),
+                    extra={},
+                ),
+            ),
+        ], extra={}
     )
-    import ipdb
 
-    ipdb.set_trace()
+    skc.testing.assert_rcmp_equals(expected, result, skip_extra=True)
 
     # CLAUDe
 
