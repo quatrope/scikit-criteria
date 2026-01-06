@@ -432,8 +432,8 @@ class RankTransitivityChecker(SKCMethodABC):
         alternatives = rank.alternatives
         values = rank.values
         method = rank.method
-        if recomposition_number:
-            method = f"{method} + RECOMPOSITION_{recomposition_number}"
+        if recomposition_number is not None:
+            method = f"Recomposition.{recomposition_number}"
 
         # Check if the decision maker did not eliminate any alternatives
         alts_diff = np.setxor1d(alternatives, full_alternatives)
@@ -748,9 +748,7 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
         # Create the rank comparison object
-        names = ["Original"] + [
-            f"Recomposition.{i+1}" for i in range(len(reconstructed_ranks))
-        ]
+        names = ["Original"] + [r.method for r in reconstructed_ranks]
 
         named_ranks = unique_names(
             names=names, elements=[patched_rrank] + reconstructed_ranks
