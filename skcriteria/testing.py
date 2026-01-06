@@ -205,7 +205,8 @@ def assert_rcmp_equals(left, right, skip_extra=False, **diff_kws):
     # Check if right is a RanksComparator
     _assert(
         diff.different_types is False,
-        f"'right' is not a RanksComparator instance. Found {diff.right_type!r}",
+        "'right' is not a RanksComparator instance."
+        f" Found {diff.right_type!r}",
     )
 
     # Check if left and right have the same length

@@ -40,7 +40,28 @@ from skcriteria.ranksrev.rank_transitivity_check import (
 # =============================================================================
 
 
-def test_RankTransitivityChecker():
+def test_RankTransitivityChecker_creation():
+    pipe = mkpipe(
+        FilterGE({"ROE": 2}),
+        FilterNonDominated(),
+        InvertMinimize(),
+        SumScaler(target="weights"),
+        SumScaler(target="matrix"),
+        WeightedSumModel(),
+    )
+    dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
+
+    assert dec.allow_missing_alternatives is True
+    assert dec.max_ranks == 50
+    assert dec.fas_method == "auto"
+    assert dec.preferred_parallel_backend is None
+    assert dec.n_jobs is None
+
+    with pytest.deprecated_call():
+        assert dec.parallel_backend is None
+
+
+def test_RankTransitivityChecker_simple_stock_selection():
     pipe = mkpipe(
         FilterGE({"ROE": 2}),
         FilterNonDominated(),
@@ -131,3 +152,49 @@ def test_RankTransitivityChecker_bad_pipe():
         TypeError, match="'dmaker' must implement 'evaluate\\(\\)' method"
     ):
         RankTransitivityChecker(bad_pipe)
+
+
+def test_RankTransitivityChecker_parallel_backend():
+    pipe = mkpipe(
+        InvertMinimize(),
+        EntropyWeighter(),
+        SumScaler(target="matrix"),
+        TOPSIS(),
+    )
+    with pytest.deprecated_call():
+        RankTransitivityChecker(pipe, parallel_backend="pika")
+
+    with pytest.raises(ValueError):
+        RankTransitivityChecker(
+            pipe, parallel_backend="pika", preferred_parallel_backend="pika"
+        )
+
+
+def test_RankTransitivityChecker_max_rank_lt_1():
+    pipe = mkpipe(
+        InvertMinimize(),
+        EntropyWeighter(),
+        SumScaler(target="matrix"),
+        TOPSIS(),
+    )
+
+    with pytest.raises(ValueError):
+        RankTransitivityChecker(pipe, max_ranks=0)
+
+
+def test_RankTransitivityChecker_repr():
+    pipe = mkpipe(
+        InvertMinimize(),
+        TOPSIS(),
+    )
+
+    expected = (
+        "<RankTransitivityChecker "
+        "<SKCPipeline [steps=[('invertminimize', <InvertMinimize []>), "
+        "('topsis', <TOPSIS [metric='euclidean']>)]]>, "
+        "fas_method=auto, max_ranks=50>"
+    )
+
+    dec = RankTransitivityChecker(pipe)
+
+    assert repr(dec) == expected

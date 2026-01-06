@@ -221,7 +221,8 @@ def all_rankings(alternatives, dag, *, max_rankings=None):
         if max_rankings is not None and rankings_generated >= max_rankings:
             break
 
-        # Map each alternative to its 1-indexed position in this topological sort
+        # Map each alternative to its 1-indexed position in
+        # this topological sort
         alternative_to_rank = {
             alt: rank for rank, alt in enumerate(topological_order, start=1)
         }

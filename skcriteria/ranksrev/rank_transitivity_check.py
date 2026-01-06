@@ -226,10 +226,10 @@ class RankTransitivityChecker(SKCMethodABC):
         results. When True, missing alternatives are assigned the worst
         ranking + 1.
 
-    max_ranks : int, default=50
+    max_ranks : int or None, default=50
         Maximum number of alternative rankings to generate when breaking
         cycles. Controls computational complexity by limiting the number of
-        decompositions.
+        decompositions. If None, all possible rankings will be generated.
 
     fas_method : str, default="auto"
         Method for computing the Feedback Arc Set when converting graphs to
@@ -257,7 +257,7 @@ class RankTransitivityChecker(SKCMethodABC):
     ValueError
         If ``allow_missing_alternatives=False`` and alternatives are missing \
             from results.
-        If ``max_ranks`` is less than 1.
+        If ``max_ranks`` is less than 1 (when not None).
 
     Examples
     --------
@@ -332,12 +332,12 @@ class RankTransitivityChecker(SKCMethodABC):
         self._n_jobs = None if n_jobs is None else int(n_jobs)
 
         # Maximum permitted ranks to be generated
-        if max_ranks < 1:
+        if max_ranks is not None and max_ranks < 1:
             raise ValueError(
-                f"max_ranks should be greater than zero, "
+                f"max_ranks should be greater than zero or None, "
                 f"current value {max_ranks}"
             )
-        self._max_ranks = int(max_ranks)
+        self._max_ranks = None if max_ranks is None else int(max_ranks)
 
         # FAS method
         self._fas_method = fas_method
@@ -365,7 +365,8 @@ class RankTransitivityChecker(SKCMethodABC):
 
     @property
     def max_ranks(self):
-        """Maximum number of rankings to be generated."""
+        """Maximum number of rankings to be generated \
+        (None means unlimited)."""
         return self._max_ranks
 
     @property
@@ -460,7 +461,6 @@ class RankTransitivityChecker(SKCMethodABC):
             # Reorder both alternatives and values to match original order
             alternatives = alternatives[indices]
             values = values[indices]
-
 
         extra = dict(rank.extra_.items())
 
