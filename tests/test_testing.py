@@ -372,7 +372,8 @@ def test_assert_rcmp_equals_skip_extra():
     #     extra={"rcmp_meta": "right_data"},
     # )
 
-    # # Should not raise when skip_extra=True (skips RanksComparator extra_ too)
+    # # Should not raise when skip_extra=True
+    # (skips RanksComparator extra_ too)
     # testing.assert_rcmp_equals(
     #     left_rcmp_extra, right_rcmp_extra, skip_extra=True
     # )
@@ -391,16 +392,15 @@ def test_assert_rcmp_equals_skip_extra():
     with pytest.raises(AssertionError):
         testing.assert_rcmp_equals(left_diff, right_diff, skip_extra=True)
 
-
     left_diff = cmp.mkrank_cmp(
         agg.RankResult("test", ["a", "b"], [1, 1], {}),
         agg.RankResult("test", ["a", "b"], [1, 2], {}),
-        extra = {"meta": "left"}
+        extra={"meta": "left"},
     )
     right_diff = cmp.mkrank_cmp(
         agg.RankResult("test", ["a", "b"], [1, 1], {}),
         agg.RankResult("test", ["a", "b"], [1, 2], {}),
-        extra = {"meta": "right"}
+        extra={"meta": "right"},
     )
 
     # Should raise even with skip_extra=True because values differ
