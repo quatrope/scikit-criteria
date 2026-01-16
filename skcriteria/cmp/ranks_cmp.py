@@ -18,6 +18,7 @@
 import itertools as it
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
+from functools import partial
 
 import matplotlib.pyplot as plt
 
@@ -36,6 +37,7 @@ from ..utils import (
     AccessorABC,
     Bunch,
     DiffEqualityMixin,
+    dict_allclose,
     diff,
     doc_inherit,
     unique_names,
@@ -175,7 +177,12 @@ class RanksComparator(Sequence, DiffEqualityMixin):
                     return False
             return True
 
-        members = {"ranks": rank_allclose}
+        members = {
+            "ranks": rank_allclose,
+            "extra_": partial(
+                dict_allclose, rtol=rtol, atol=atol, equal_nan=equal_nan
+            ),
+        }
         the_diff = diff(self, other, **members)
         return the_diff
 

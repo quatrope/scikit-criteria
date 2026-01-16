@@ -227,6 +227,5 @@ def assert_rcmp_equals(left, right, skip_extra=False, **diff_kws):
                 raise AssertionError(f"Mismatch at index {idx}") from err
 
     # Check extra_ attribute if not skipping
-    import ipdb; ipdb.set_trace()
     if not skip_extra:
         _assert("extra_" not in diff.members_diff, "'extra_' are not equal")
