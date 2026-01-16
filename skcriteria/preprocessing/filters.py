@@ -201,7 +201,7 @@ class Filter(SKCByCriteriaFilterABC):
     def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
         mask_list = []
         for crit_name, crit_filter in zip(criteria_to_use, criteria_filters):
-            crit_idx = np.in1d(criteria, crit_name, assume_unique=False)
+            crit_idx = np.isin(criteria, crit_name, assume_unique=False)
             crit_array = matrix[:, crit_idx].flatten()
             crit_mask = np.apply_along_axis(
                 crit_filter, axis=0, arr=crit_array
@@ -523,7 +523,7 @@ class SKCSetFilterABC(SKCByCriteriaFilterABC):
     def _make_mask(self, matrix, criteria, criteria_to_use, criteria_filters):
         mask_list = []
         for fname, fset in zip(criteria_to_use, criteria_filters):
-            crit_idx = np.in1d(criteria, fname, assume_unique=False)
+            crit_idx = np.isin(criteria, fname, assume_unique=False)
             crit_array = matrix[:, crit_idx].flatten()
             crit_mask = self._set_filter(crit_array, fset)
             mask_list.append(crit_mask)
