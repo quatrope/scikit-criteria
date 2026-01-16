@@ -22,14 +22,14 @@
 analysis ([MCDA](https://en.wikipedia.org/wiki/Multiple-criteria_decision_analysis))
 methods integrated into scientific python stack. Is Open source and commercially usable.
 
-## Help & discussion mailing list
+## 💬 Help & discussion mailing list
 
 Our Google Groups mailing list is [here](https://groups.google.com/forum/#!forum/scikit-criteria).
 
 **You can contact me at:** <jbcabral@unc.edu.ar> (if you have a support
 question, try the mailing list first)
 
-## Support
+## ☕ Support
 
 This project is completely free of charge and open source. If you find it useful in your work or simply want to support us, you can buy us a coffee:
 
@@ -37,11 +37,11 @@ This project is completely free of charge and open source. If you find it useful
 
 
 
-## Code Repository & Issues
+## 📦 Code Repository & Issues
 
 <https://github.com/quatrope/scikit-criteria>
 
-## License
+## 📜 License
 
 Scikit-Criteria is under
 [The 3-Clause BSD License](https://raw.githubusercontent.com/quatrope/scikit-criteria/master/LICENSE.txt)
@@ -50,7 +50,7 @@ This license allows unlimited redistribution for any purpose as long as
 its copyright notices and the license's disclaimers of warranty are
 maintained.
 
-## Citation
+## 📚 Citation
 
 If you are using Scikit-Criteria in your research, please cite:
 
@@ -86,3 +86,7 @@ Bibtex entry:
 ```
 
 **Full Publication:** http://sedici.unlp.edu.ar/handle/10915/58577
+
+## 🤖 AI Agent Configuration
+
+For AI coding assistants and agents working on this project, please refer to [AGENT.md](AGENT.md) for project structure, key patterns, and coding standards.

@@ -9,6 +9,7 @@ recursive-include skcriteria *.dmsy
 exclude tox.ini
 exclude requirements_dev.txt
 exclude CODE_OF_CONDUCT.md
+exclude AGENT.md
 exclude .header-template
 exclude .readthedocs.yml
 

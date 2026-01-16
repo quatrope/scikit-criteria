@@ -56,4 +56,4 @@ __dir__ = ondemand_importer.list_available_modules
 
 
 # delete the unused modules and variables
-del importlib.metadata, ondemand_importer
+del importlib, ondemand_importer

@@ -46,12 +46,7 @@ with hidden():
     from ..agg import RankResult
     from ..cmp import RanksComparator
     from ..core import SKCMethodABC
-    from ..utils import Bunch, unique_names, deprecate
-    from ..utils.cycle_removal import (
-        CYCLE_REMOVAL_STRATEGIES,
-        generate_acyclic_graphs,
-    )
-    from ..tiebreaker import FallbackTieBreaker
+    from ..utils import Bunch, dag_rank, deprecate, unique_names
 
 
 # =============================================================================
@@ -61,7 +56,7 @@ with hidden():
 
 def _transitivity_break_bound(n):
     """
-    Calculate the maximum number of transitivity violations possible in a \
+    Calculate the maximum number of transitivity violations possible in an \
         n-tournament.
 
     This function computes the theoretical upper bound for the number of
@@ -90,125 +85,6 @@ def _transitivity_break_bound(n):
     :cite:p:`moon2015topics`
     """
     return n * (n**2 - 4) // 24 if n % 2 == 0 else n * (n**2 - 1) // 24
-
-
-def _in_degree_sort(dag):
-    """
-    Sort nodes of a DAG into hierarchical groups based on in-degree levels.
-
-    This function performs a topological layering of a directed acyclic graph
-    by grouping nodes according to their in-degree in the graph's transitive
-    reduction. Nodes with the same in-degree level represent alternatives
-    at the same hierarchical level in the preference structure.
-
-    Parameters
-    ----------
-    dag : networkx.DiGraph
-        A directed acyclic graph (DAG) representing preference relationships
-        between alternatives.
-
-    Returns
-    -------
-    list of list
-        A list where each element is a list of nodes at the same hierarchical
-        level. The first sublist contains nodes with in-degree 0 (top level),
-        the second contains nodes with in-degree 1 after removing the first
-        level, and so on.
-
-    Notes
-    -----
-    The algorithm works iteratively:
-
-    1. Compute the transitive reduction of the input DAG to remove redundant
-        edges
-    2. Find all nodes with in-degree 0 (no incoming edges) - these form the
-        top level
-    3. Remove these nodes from the graph
-    4. Repeat until all nodes are processed
-
-    Examples
-    --------
-    >>> import networkx as nx
-    >>>
-    >>> # Create a simple DAG
-    >>> dag = nx.DiGraph([('A', 'C'), ('B', 'C'), ('C', 'D')])
-    >>> groups = _in_degree_sort(dag)
-    >>> print(groups)
-    [['A', 'B'], ['C'], ['D']]
-    >>>
-    >>> # A and B are at the top level (no predecessors)
-    >>> # C is at level 2 (depends on A and B)
-    >>> # D is at level 3 (depends on C)
-    """
-    graph_reduction = nx.transitive_reduction(dag)
-    groups_sort = []
-
-    while graph_reduction.nodes:
-        group = [
-            node
-            for node in list(graph_reduction.nodes)
-            if graph_reduction.in_degree(node) == 0
-        ]
-        groups_sort.append(group)
-        graph_reduction.remove_nodes_from(group)
-
-    return groups_sort
-
-
-def _assign_rankings(groups):
-    """
-    Assign ascending integer rankings to grouped items.
-
-    This function converts hierarchical groups of items into a ranking
-    dictionary where all items in the same group receive the same rank.
-    Rankings start from 1 for the first group and increment by 1 for
-    each subsequent group.
-
-    Parameters
-    ----------
-    groups : list of list
-        A list of groups where each group is a list of items that should
-        receive the same ranking. Groups are processed in order, with
-        earlier groups receiving better (lower) ranks.
-
-    Returns
-    -------
-    dict
-        A dictionary mapping each item to its assigned integer rank.
-        Items in the first group get rank 1, items in the second group
-        get rank 2, and so on.
-
-    Notes
-    -----
-    This function is typically used after hierarchical sorting (like
-    `_in_degree_sort`) to convert topological levels into numerical
-    rankings. The ranking scheme assigns:
-
-    - Rank 1: Best performing items (first group)
-    - Rank 2: Second best items (second group)
-    - And so on...
-
-    All items within the same group are considered tied and receive
-    identical ranks. This preserves the hierarchical structure while
-    providing a simple numerical ranking.
-
-    Examples
-    --------
-    >>> groups = [['A', 'B'], ['C'], ['D', 'E']]
-    >>> rankings = _assign_rankings(groups)
-    >>> print(rankings)
-    {'A': 1, 'B': 1, 'C': 2, 'D': 3, 'E': 3}
-    >>>
-    >>> # A and B are tied for first place (rank 1)
-    >>> # C is second (rank 2)
-    >>> # D and E are tied for third place (rank 3)
-    """
-    rankings = {}
-    for rank_number, group in enumerate(groups, start=1):
-        for item in group:
-            rankings[item] = rank_number
-
-    return rankings
 
 
 def _format_transitivity_cycles(cycles):
@@ -269,6 +145,36 @@ def _format_transitivity_cycles(cycles):
     return result
 
 
+def _evaluate_alternative_subpair(evaluator, dm, apair):
+    """
+    Evaluate a pairwise comparison between two alternatives.
+
+    This function extracts a 2-alternative submatrix from the decision matrix
+    and evaluates it using the provided MCDM evaluator to determine the
+    dominance relationship between the pair.
+
+    Parameters
+    ----------
+    evaluator : SKCMethodABC
+        The MCDM method or pipeline used to evaluate the pairwise comparison.
+        Must implement the ``evaluate()`` method.
+    dm : DecisionMatrix
+        The complete decision matrix containing all alternatives and criteria.
+    apair : list or tuple
+        Pair of alternative identifiers to compare. Must contain exactly two
+        alternative names that exist in the decision matrix.
+
+    Returns
+    -------
+    RankResult
+        Ranking result for the two-alternative subproblem, indicating which
+        alternative dominates in this pairwise comparison.
+
+    """
+    sub_dm = dm.loc[apair]
+    return evaluator.evaluate(sub_dm)
+
+
 # =============================================================================
 # CLASS
 # =============================================================================
@@ -312,16 +218,6 @@ class RankTransitivityChecker(SKCMethodABC):
         This represents the MCDM method or pipeline to be evaluated for
         robustness.
 
-    fallback : object
-        Optional fallback decision maker for tie-breaking in pairwise
-        comparisons. Must also implement an ``evaluate(dm)`` method.
-        If not provided, lexicographical tie breaking is used.
-
-    random_state : int, numpy.random.Generator, or None, default=None
-        Controls randomization in cycle-breaking strategies and alternative
-        ranking generation. Ensures reproducible results when set to a
-        specific integer.
-
     allow_missing_alternatives : bool, default=False
         Whether to allow rankings that don't include all original alternatives
         (using a pipeline that implements a filter, for example can remove
@@ -330,15 +226,16 @@ class RankTransitivityChecker(SKCMethodABC):
         results. When True, missing alternatives are assigned the worst
         ranking + 1.
 
-    cycle_removal_strategy : str or callable, default="random"
-        Strategy for breaking cycles in non-transitive dominance graphs.
-        Available built-in strategies include cycle removal heuristics.
-        Can also accept custom callable functions for specialized approaches.
-
-    max_ranks : int, default=50
+    max_ranks : int or None, default=50
         Maximum number of alternative rankings to generate when breaking
         cycles. Controls computational complexity by limiting the number of
-        decompositions.
+        decompositions. If None, all possible rankings will be generated.
+
+    fas_method : str, default="auto"
+        Method for computing the Feedback Arc Set when converting graphs to
+        DAGs. Options are "auto" (selects based on graph size), "ip" (integer
+        programming for optimal solution), or "eades" (heuristic for faster
+        computation).
 
     preferred_parallel_backend : str or None, default=None
         Backend for parallel computation of pairwise evaluations.
@@ -358,52 +255,41 @@ class RankTransitivityChecker(SKCMethodABC):
         If ``dmaker`` doesn't implement the required ``evaluate()`` method.
 
     ValueError
-        If ``cycle_removal_strategy`` is not a valid strategy name or \
-            callable.
         If ``allow_missing_alternatives=False`` and alternatives are missing \
             from results.
+        If ``max_ranks`` is less than 1 (when not None).
 
     Examples
     --------
-    Basic usage with an MCDM method:
+    Basic usage evaluating transitivity of a decision maker:
 
-    >>> from skcriteria.preprocessing import invert_objectives
     >>> from skcriteria.agg import simple
+    >>> from skcriteria import mkdm
     >>>
-    >>> # Create a decision maker
-    >>> dm_method = simple.WeightedSum()
-    >>>
-    >>> # Initialize transitivity checker
-    >>> checker = RankTransitivityChecker(dm_method)
-    >>>
-    >>> # Evaluate a decision matrix
-    >>> result = checker.evaluate(dm=decision_matrix)
-    >>>
-    >>> # Check test results
-    >>> print(f"Test Criterion 2: {result.extra['test_criterion_2']}")
-    >>> print(f"Test Criterion 3: {result.extra['test_criterion_3']}")
-
-    Advanced configuration with custom parameters:
-
-    >>> checker = RankTransitivityChecker(
-    ...     dmaker=dm_method,
-    ...     random_state=42,
-    ...     allow_missing_alternatives=True,
-    ...     cycle_removal_strategy="random",
-    ...     max_ranks=100,
-    ...     preferred_parallel_backend="threading",
-    ...     n_jobs=4
+    >>> # Create a decision matrix
+    >>> dm = mkdm(
+    ...     matrix=[[1, 2], [3, 4], [5, 6]],
+    ...     objectives=[max, max],
+    ...     alternatives=["A", "B", "C"]
     ... )
+    >>>
+    >>> # Create checker with a decision maker
+    >>> dmaker = simple.WeightedSum()
+    >>> checker = RankTransitivityChecker(dmaker)
+    >>>
+    >>> # Evaluate transitivity
+    >>> result = checker.evaluate(dm)
+    >>> print(result.extra_["test_criterion_2"])  # Transitivity test
+    >>> print(result.extra_["test_criterion_3"])  # Stability test
+
     """
 
     _skcriteria_dm_type = "rank_reversal"
     _skcriteria_parameters = [
         "dmaker",
-        "fallback",
-        "random_state",
         "allow_missing_alternatives",
-        "cycle_removal_strategy",
         "max_ranks",
+        "fas_method",
         "preferred_parallel_backend",
         "n_jobs",
     ]
@@ -412,11 +298,9 @@ class RankTransitivityChecker(SKCMethodABC):
         self,
         dmaker,
         *,
-        fallback=None,
-        random_state=None,
         allow_missing_alternatives=False,
-        cycle_removal_strategy="random",
         max_ranks=50,
+        fas_method="auto",
         preferred_parallel_backend=None,
         n_jobs=None,
         parallel_backend=None,
@@ -425,25 +309,10 @@ class RankTransitivityChecker(SKCMethodABC):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
         self._dmaker = dmaker
 
-        if fallback:
-            if not (
-                hasattr(fallback, "evaluate") and callable(fallback.evaluate)
-            ):
-                raise TypeError(
-                    "'fallback' must implement 'evaluate()' method"
-                )
-
-            self._pair_evaluator = FallbackTieBreaker(dmaker, fallback)
-
-        else:
-            self._pair_evaluator = dmaker
-
-        self._fallback = fallback
-
-        # ALLOW MISSING ALTERNATIVES
+        # Allow missing alternatives
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
 
-        # PARALLEL BACKEND
+        # Parallel backend
         if (
             parallel_backend is not None
             and preferred_parallel_backend is not None
@@ -454,7 +323,7 @@ class RankTransitivityChecker(SKCMethodABC):
             )
         if parallel_backend is not None:
             deprecate.warn(
-                "The 'parallel_backend' parameter is deprecated since 0.9.1,  "
+                "The 'parallel_backend' parameter is deprecated since 0.9.1, "
                 "use 'preferred_parallel_backend' instead."
             )
             preferred_parallel_backend = parallel_backend
@@ -462,56 +331,31 @@ class RankTransitivityChecker(SKCMethodABC):
         self._preferred_parallel_backend = preferred_parallel_backend
         self._n_jobs = None if n_jobs is None else int(n_jobs)
 
-        # RANDOM
-        self._random_state = np.random.default_rng(random_state)
-
-        # STRATEGY FOR REMOVAL OF BREAKS IN TRANSITIVITY
-        mk_transitive = CYCLE_REMOVAL_STRATEGIES.get(
-            cycle_removal_strategy, cycle_removal_strategy
-        )
-        if not callable(mk_transitive):
-            available_strategies = list(CYCLE_REMOVAL_STRATEGIES.keys())
+        # Maximum permitted ranks to be generated
+        if max_ranks is not None and max_ranks < 1:
             raise ValueError(
-                f"Unknown strategy: {cycle_removal_strategy}. \
-                Available strategies: {available_strategies}"
+                f"max_ranks should be greater than zero or None, "
+                f"current value {max_ranks}"
             )
-        self._cycle_removal_strategy = mk_transitive
+        self._max_ranks = None if max_ranks is None else int(max_ranks)
 
-        # MAXIMIMUM PERMITED RANKS TO BE GENERATED
-        if max_ranks < 1:
-            raise ValueError(
-                f"max_ranks should be greater than zero, current \
-                    value {max_ranks}"
-            )
-        self._max_ranks = int(max_ranks)
+        # FAS method
+        self._fas_method = fas_method
 
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
-        trs = self._cycle_removal_strategy
+        fm = self._fas_method
         mr = self._max_ranks
-        return (
-            f"<{name} {dm}, " f"cycle_removal_strategy={trs}, max_ranks={mr}>"
-        )
+        return f"<{name} {dm}, " f"fas_method={fm}, max_ranks={mr}>"
 
-    # PROPERTIES ==============================================================
+    # Properties
 
     @property
     def dmaker(self):
         """The MCDA method, or pipeline to evaluate."""
         return self._dmaker
-
-    @property
-    def fallback(self):
-        """The MCDA method, or pipeline to evaluate for tie breaking."""
-        return self._fallback
-
-    @property
-    def random_state(self):
-        """Controls the random state to generate variations in the \
-        suboptimal alternatives."""
-        return self._random_state
 
     @property
     def allow_missing_alternatives(self):
@@ -520,14 +364,15 @@ class RankTransitivityChecker(SKCMethodABC):
         return self._allow_missing_alternatives
 
     @property
-    def cycle_removal_strategy(self):
-        """The strategy function used for breaking transitivity cycles."""
-        return self._cycle_removal_strategy
+    def max_ranks(self):
+        """Maximum number of rankings to be generated \
+        (None means unlimited)."""
+        return self._max_ranks
 
     @property
-    def max_ranks(self):
-        """Maximum number of rankings to be generated."""
-        return self._max_ranks
+    def fas_method(self):
+        """The feedback arc set method used for DAG conversion."""
+        return self._fas_method
 
     @property
     def preferred_parallel_backend(self):
@@ -547,161 +392,83 @@ class RankTransitivityChecker(SKCMethodABC):
         """The number of parallel jobs used in the pairwise evaluations."""
         return self._n_jobs
 
-    # LOGIC ===================================================================
+    # Logic
 
-    def _evaluate_pairwise_submatrix(self, decision_matrix, alternative_pair):
-        """
-        Apply the MCDM pipeline to a sub-problem of two alternatives.
-
-        This method extracts a submatrix containing only the specified pair of
-        alternatives from the decision matrix and evaluates it using the
-        configured decision maker.
-
-        Parameters
-        ----------
-        decision_matrix : pandas.DataFrame
-            The complete decision matrix with alternatives as rows and criteria
-            as columns. Must contain the alternatives specified in
-            alternative_pair.
-        alternative_pair : list, tuple, or array-like
-            Collection of exactly two alternative identifiers/names that exist
-            as row indices in the decision_matrix. These alternatives will be
-            extracted for pairwise comparison.
-
-        Returns
-        -------
-        RankResult
-            The result of applying the MCDM evaluation method to the submatrix
-            containing only the two specified alternatives. The exact type and
-            structure depends on the specific decision maker (self._dmaker)
-            being used.
-
-        Notes
-        -----
-        This method is typically used internally for pairwise comparison
-        approaches in multi-criteria decision making, where the overall
-        problem is decomposed into smaller two-alternative subproblems.
-        """
-        sub_dm = decision_matrix.loc[alternative_pair]
-        return self._pair_evaluator.evaluate(sub_dm)
-
-    def _get_graph_edges(self, results, decision_matrix):
-        """
-        Generate directed graph edges from pairwise comparison results.
-
-        Parameters
-        ----------
-        results : iterable
-            Collection of comparison result objects. Each result must contain:
-            - alternatives : list or tuple
-                Names/identifiers of the two compared alternatives
-            - rank_ : list or array-like
-                Ranking values for each alternative \
-                (lower values indicate better ranking)
-
-        Returns
-        -------
-        list
-            List of tuples (winner, loser) representing directed edges in the
-            preference graph. Each tuple indicates that the first alternative
-            is preferred over the second. For tied rankings, applies
-            tie-breaking logic via dominance.
-
-        Notes
-        -----
-        - Uses lower-is-better ranking system (rank 1 > rank 2 > rank 3)
-        - Automatically handles tied rankings through internal tie-breaking \
-            mechanism
-        - Output format is suitable for constructing preference graphs
-        """
-        edges = []
-
-        # Get the rank untier strategy
-        for rr in results:
-            # Access the names of the compared alternatives
-            alt_names = rr.alternatives
-
-            # Access the ranking assigned by the model
-            ranks = rr.rank_
-
-            # Identify which one is ranked better (lower number is better)
-            if ranks[0] < ranks[1]:
-                edges.append((alt_names[0], alt_names[1]))
-            else:
-                edges.append((alt_names[1], alt_names[0]))
-
-        return edges
-
-    def _add_break_info_to_rank(
-        self, rank, dag, removed_edges, full_alternatives, iteration
+    def _add_info_to_rank(
+        self, rank, full_alternatives, recomposition_number=None
     ):
-        """
-        Add cycle-breaking information to a ranking result.
+        """Enrich a ranking with metadata.
 
-        This method enriches a RankResult object with information about the
-        cycle-breaking process performed during graph decomposition, including
-        the acyclic graph obtained and the edges that were removed to break
-        cycles.
+        This method augments a ranking result with information about
+        alternatives that were excluded during evaluation and assigns them the
+        worst possible rank. It also adds metadata indicating whether this is
+        an original or reconstructed ranking.
 
         Parameters
         ----------
         rank : RankResult
-            The original ranking result to be enhanced with break information.
-        dag : networkx.DiGraph
-            The directed acyclic graph obtained after removing cycles from the
-            original graph. This represents the acyclic version of the input
-            graph.
-        removed_edges : array-like
-            Collection of edges that were removed from the original graph to
-            break cycles and obtain the DAG.
-        iteration : int, default 1
-            The iteration number of the RRT3 recomposition process. Used to
-            track multiple iterations of the cycle-breaking algorithm.
+            The ranking result to be enriched with metadata.
+        full_alternatives : array-like
+            Complete array of all alternatives from the original decision
+            matrix.
+        recomposition_number : int, optional
+            The recomposition iteration number. If None (default), this is the
+            original ranking. If an integer, this is a reconstructed ranking
+            from the DAG and the method name will be updated accordingly.
 
         Returns
         -------
         RankResult
-            A new RankResult object containing the original ranking data plus
-            additional information about the cycle-breaking process. The
-            returned object includes:
+            A new RankResult with updated method name (if recomposed), all
+            alternatives included (missing ones get worst rank + 1), and
+            transitivity check metadata in the extra attribute.
 
-            - Updated method name indicating RRT3 recomposition
-            - Original alternatives and values preserved
-            - Extended extra information with 'transitivity_check' entry \
-                containing:
-                - acyclic_graph: the resulting DAG
-                - removed_edges: edges removed during cycle breaking
+        Raises
+        ------
+        ValueError
+            If allow_missing_alternatives is False and some alternatives are
+            missing from the ranking.
         """
         alternatives = rank.alternatives
         values = rank.values
         method = rank.method
-        if dag:
-            method = f"{method} + RRT3 RECOMPOSITION_{iteration}"
+        if recomposition_number is not None:
+            method = f"Recomposition.{recomposition_number}"
 
-        # we check if the decision_maker did not eliminate any alternatives
+        # Check if the decision maker did not eliminate any alternatives
         alts_diff = np.setxor1d(alternatives, full_alternatives)
         has_missing_alternatives = len(alts_diff) > 0
 
         if has_missing_alternatives:
-            # if a missing alternative are not allowed must raise an error
+            # If missing alternatives are not allowed, raise an error
             if not self._allow_missing_alternatives:
                 raise ValueError(f"Missing alternative/s {set(alts_diff)!r}")
 
-            # add missing alternatives with the  worst ranking + 1
-            fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
+            # Add missing alternatives with the worst ranking + 1
+            fill_values = np.full(
+                len(alts_diff), rank.rank_.max() + 1, dtype=int
+            )
 
-            # concatenate the missing alternatives and the new rankings
+            # Concatenate the missing alternatives and the new rankings
             alternatives = np.concatenate((alternatives, alts_diff))
             values = np.concatenate((values, fill_values))
+
+            # Restore original order of alternatives as in full_alternatives
+            # Create mapping from alternative to its original position
+            order = {alt: i for i, alt in enumerate(full_alternatives)}
+            indices = np.argsort([order[alt] for alt in alternatives])
+
+            # Reorder both alternatives and values to match original order
+            alternatives = alternatives[indices]
+            values = values[indices]
 
         extra = dict(rank.extra_.items())
 
         extra["transitivity_check"] = Bunch(
             "transitivity_check",
             {
-                "acyclic_graph": dag,
-                "removed_edges": removed_edges,
                 "missing_alternatives": alts_diff,
+                "recomposition": recomposition_number,
             },
         )
 
@@ -712,128 +479,65 @@ class RankTransitivityChecker(SKCMethodABC):
             extra=extra,
         )
 
-    def _create_rank_from_dag(
-        self, rrank, dag, removed_edges, full_alternatives, iteration=1
-    ):
-        """
-        Create a new ranking result from a directed acyclic graph (DAG).
+    def _extract_ranks_from_graph(self, graph, rrank, full_alternatives):
+        """Generate alternative rankings from a dominance graph.
 
-        This method generates a new RankResult by computing rankings based on
-        the in-degree sorting of a DAG. The ranking values are calculated using
-        the topological order of nodes in the acyclic graph, and the result
-        includes information about the cycle-breaking process.
-
-        Parameters
-        ----------
-        rrank : RankResult
-            The original ranking result that serves as the base for creating
-            the new ranking. Provides the method name, alternatives list, and
-            extra information to be preserved in the new result.
-        dag : networkx.DiGraph
-            The directed acyclic graph from which to compute the new rankings.
-            The graph should be acyclic and represent the structure after
-            cycle-breaking.
-        removed_edges : list or array-like
-            Collection of edges that were removed from the original graph to
-            create the DAG. This information is stored in the result
-            for traceability.
-        iteration : int, default 1
-            The iteration number of the ranking process. Used to track multiple
-            iterations of the cycle-breaking and ranking algorithm.
-
-        Returns
-        -------
-        RankResult
-            A new RankResult object containing:
-
-            - method: Original method name from rrank
-            - alternatives: Same alternatives as in rrank
-            - values: New ranking values computed from DAG in-degree sorting
-            - extra: Enhanced extra information
-        """
-        alternative_rank_value = _assign_rankings(_in_degree_sort(dag))
-
-        rank = RankResult(
-            method=rrank.method,
-            alternatives=rrank.alternatives,
-            values=np.array(
-                [alternative_rank_value[alt] for alt in rrank.alternatives]
-            ),
-            extra=rrank.extra_,
-        )
-
-        rank = self._add_break_info_to_rank(
-            rank, dag, removed_edges, full_alternatives, iteration
-        )
-
-        return rank
-
-    def _generate_reconstructed_ranks(self, graph, rrank, full_alternatives):
-        """
-        Generate ranking results from a graph.
-
-        This method produces one or more ranking results based on the input
-        graph structure. If the graph is already acyclic, it generates a single
-        ranking. If the graph contains cycles, it generates multiple rankings
-        by creating different acyclic decompositions of the original graph.
+        This method removes cycles from the dominance graph using the Feedback
+        Arc Set (FAS) algorithm to create a DAG, then enumerates all valid
+        topological orderings to generate alternative rankings that respect the
+        dominance relationships.
 
         Parameters
         ----------
         graph : networkx.DiGraph
-            The input graph from which to generate rankings. Can be either
-            acyclic (DAG) or contain cycles.
+            The dominance graph to convert to a DAG.
         rrank : RankResult
-            The original ranking result that serves as the template for
-            creating new rankings. Provides method name, alternatives, and
-            extra information to be preserved across all generated rankings.
+            The reference ranking result used as a template for reconstructed
+            rankings.
+        full_alternatives : array-like
+            Array of all alternatives that should be included in the rankings.
 
         Returns
         -------
-        list of RankResult
-            A list containing one or more RankResult objects:
-
-            - If input graph is acyclic: Single RankResult with rankings based
-                on the graph's topological structure
-            - If input graph has cycles: Multiple RankResult objects, each
-                corresponding to a different acyclic decomposition of the
-                original graph
+        ranks : list of RankResult
+            List of reconstructed ranking results, one for each topological
+            sort of the DAG (up to max_ranks limit).
+        fas : list of tuple
+            The feedback arc set (edges removed to make the graph acyclic).
+        method : str or None
+            The method used for feedback arc set computation.
         """
-        ranks = []
-
-        if nx.is_directed_acyclic_graph(graph):
-            rank = self._create_rank_from_dag(
-                rrank,
-                graph,
-                removed_edges=None,
-                full_alternatives=full_alternatives,
-            )
-            ranks.append(rank)
-
-            return ranks
-
-        acyclic_graphs = generate_acyclic_graphs(
-            graph,
-            strategy=self._cycle_removal_strategy,
-            max_graphs=self._max_ranks,
-            seed=self._random_state,
+        dag, fas, method = dag_rank.as_dag(
+            graph=graph, method=self._fas_method
         )
 
-        for iteration, (dag, removed_edges) in enumerate(acyclic_graphs):
-            rank = self._create_rank_from_dag(
-                rrank, dag, removed_edges, full_alternatives, iteration + 1
+        all_rankings = dag_rank.all_rankings(
+            rrank.alternatives, dag, max_rankings=self._max_ranks
+        )
+
+        ranks = []
+        for recomposition_number, rank_values in enumerate(all_rankings):
+            rank = RankResult(
+                method=rrank.method,
+                alternatives=rrank.alternatives,
+                values=rank_values,
+                extra=rrank.extra_,
+            )
+            rank = self._add_info_to_rank(
+                rank, full_alternatives, recomposition_number
             )
             ranks.append(rank)
 
-        return ranks
+        return ranks, fas, method
 
-    def _dominance_graph(self, dm, rrank, preferred_parallel_backend, n_jobs):
+    def _evaluate_pairwise_dominance(self, dm, rrank):
         """
-        Create a directed dominance graph from pairwise alternative \
-            comparisons.
+        Evaluate all pairwise dominance relationships between alternatives.
 
-        This method constructs a directed graph where nodes represent
-        alternatives and edges represent dominance relationships. The graph is
-        built by evaluating all pairwise combinations of alternatives.
+        This method performs pairwise comparisons by evaluating the decision
+        maker on all 2-alternative subproblems. Each comparison determines the
+        dominance relationship between a pair of alternatives using the
+        configured MCDM method.
 
         Parameters
         ----------
@@ -841,23 +545,27 @@ class RankTransitivityChecker(SKCMethodABC):
             The decision matrix containing alternatives and criteria values
             used for pairwise comparisons.
         rrank : RankResult
-            The original ranking result containing the list of alternatives to
+            The reference ranking result containing the list of alternatives to
             be compared pairwise.
-        preferred_parallel_backend : str
-            The preferred parallel backend for joblib.
-        n_jobs : int
-            The number of parallel jobs to use for parallel processing.
 
         Returns
         -------
-        networkx.DiGraph
-            A directed graph where:
-            - Nodes represent alternatives from rrank.alternatives
-            - Edges represent dominance relationships
-                (A -> B means A dominates B)
-            - All alternatives are guaranteed to be present as nodes, even if
-                isolated
+        list of RankResult
+            List of ranking results for each pairwise comparison. Each result
+            contains the ranking of exactly two alternatives, indicating which
+            alternative dominates the other in the pairwise evaluation.
+
+        Notes
+        -----
+        The pairwise evaluations are performed in parallel using the configured
+        parallel backend (threading, multiprocessing, or sequential) to improve
+        performance for large numbers of alternatives.
+
         """
+        dmaker = self._dmaker
+        preferred_parallel_backend = self._preferred_parallel_backend
+        n_jobs = self._n_jobs
+
         # Generate all pairwise combinations of alternatives
         pairwise_combinations = map(
             list, it.combinations(rrank.alternatives, 2)
@@ -865,139 +573,46 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # Parallel processing of all pairwise sub-matrices
         # Each resulting sub-matrix has 2 alternatives × k original criteria
-        # TODO: Probar sacar paralelismo
         with joblib.Parallel(
             prefer=preferred_parallel_backend, n_jobs=n_jobs
         ) as P:
-            delayed_evaluation = joblib.delayed(
-                self._evaluate_pairwise_submatrix
-            )
+            delayed_evaluation = joblib.delayed(_evaluate_alternative_subpair)
             results = P(
-                delayed_evaluation(dm, pair) for pair in pairwise_combinations
+                delayed_evaluation(dmaker, dm, pair)
+                for pair in pairwise_combinations
             )
 
-        edges = self._get_graph_edges(results, dm)
+        return results
 
-        # Create directed graph
-        graph = nx.DiGraph(edges)
-
-        return graph
-
-    def _calculate_transitivity_break(self, graph):
+    def _analyze_transitivity_breaks(self, pairwise_comparisons):
         """
-        Calculate transitivity violations and their rate in a dominance graph.
+        Analyze transitivity violations in pairwise dominance relationships.
 
-        This method identifies cycles of length 3 (triangular cycles) in the
-        graph, which represent violations of transitivity in preference
-        relationships. A transitivity break occurs when A dominates B,
-        B dominates C, but C dominates A.
+        This method constructs a directed graph from pairwise comparisons and
+        identifies transitivity breaks (cycles of length 3). It calculates the
+        transitivity break rate to quantify how much the dominance
+        relationships violate perfect transitivity.
 
         Parameters
         ----------
-        graph : networkx.DiGraph
-            The directed dominance graph to analyze for transitivity
-            violations.
+        pairwise_comparisons : list of RankResult
+            List of pairwise comparison results from evaluating all pairs of
+            alternatives. Each result indicates which alternative dominates in
+            that specific pair.
 
         Returns
         -------
-        trans_break : list
-            A formatted list of transitivity cycles found in the graph. Each
-            cycle represents a violation of the transitivity property.
-        trans_break_rate : float
-            The rate of transitivity violations, calculated as the ratio of
-            actual cycles to the theoretical maximum number of possible cycles
-            for a graph with the given number of nodes.
-        """
-        trans_break = list(nx.simple_cycles(graph, length_bound=3))
-
-        trans_break = _format_transitivity_cycles(trans_break)
-
-        trans_break_rate = len(trans_break) / _transitivity_break_bound(
-            len(graph.nodes)
-        )
-
-        return trans_break, trans_break_rate
-
-    def _generate_graph_data(
-        self, dm, rrank, preferred_parallel_backend, n_jobs
-    ):
-        """
-        Generate dominance graph and calculate transitivity metrics.
-
-        This method combines the creation of a pairwise dominance graph with
-        the calculation of transitivity break metrics, providing a
-        comprehensive analysis of the decision problem's structure.
-
-        Parameters
-        ----------
-        dm : DecisionMatrix
-            The decision matrix containing alternatives and criteria for
-            analysis.
-        rrank : RankResult
-            The original ranking result containing alternatives to be analyzed.
-        preferred_parallel_backend : str
-            The preferred parallel backend for joblib.
-        n_jobs : int
-            The number of parallel jobs to use for parallel processing.
-
-        Returns
-        -------
+        test_criterion_2 : bool
+            Test result status:
+            - True: No transitivity violations (trans_break_rate == 0)
+            - False: Transitivity violations detected (trans_break_rate > 0)
         graph : networkx.DiGraph
-            The directed dominance graph representing pairwise relationships
-            between alternatives.
+            The pairwise dominance graph structure.
         trans_break : list
             List of transitivity cycles (violations) found in the graph.
         trans_break_rate : float
-            Normalized rate of transitivity violations
-            (0.0 = perfect transitivity).
-        """
-        # Create pairwise dominance graph
-        graph = self._dominance_graph(
-            dm, rrank, preferred_parallel_backend, n_jobs
-        )
-
-        # Calculate transitivity break, and it's rate
-        trans_break, trans_break_rate = self._calculate_transitivity_break(
-            graph
-        )
-
-        return graph, trans_break, trans_break_rate
-
-    def _test_criterion_2(self, dm, orank, preferred_parallel_backend, n_jobs):
-        """
-        Perform test criterion 2: transitivity consistency check.
-
-        This method evaluates whether the decision problem satisfies perfect
-        transitivity. It generates a pairwise dominance graph and calculates
-        transitivity metrics to assess the consistency of the MCDM.
-
-        Parameters
-        ----------
-        dm : array-like
-            Decision matrix containing the alternatives and criteria values.
-        orank : array-like
-            Ranking or ordering information for the alternatives.
-        preferred_parallel_backend : str
-            The preferred parallel backend for joblib.
-        n_jobs : int
-            The number of parallel jobs to use for parallel processing.
-
-        Returns
-        -------
-        tuple
-            A tuple containing four elements:
-            - graph : object
-                The pairwise dominance graph structure.
-            - trans_break : int or float
-                The absolute number of transitivity violations detected.
-            - trans_break_rate : float
-                The rate of transitivity violations in the dominance graph.
-                Value of 0.0 indicates perfect transitivity.
-            - test_criterion_2 : boolean
-                Test result status:
-                - True: No transitivity violations (trans_break_rate == 0)
-                - False: Transitivity violations detected
-                (trans_break_rate > 0)
+            The rate of transitivity violations in the dominance graph.
+            Value of 0.0 indicates perfect transitivity.
 
         Notes
         -----
@@ -1005,43 +620,73 @@ class RankTransitivityChecker(SKCMethodABC):
         rankings. Perfect transitivity means that if alternative A dominates B
         and B dominates C, then A must also dominate C.
         """
-        # make the pairwise dominance graph and calculate transitivity metrics
-        graph, trans_break, trans_break_rate = self._generate_graph_data(
-            dm, orank, preferred_parallel_backend, n_jobs
+        # Create pairwise dominance graph
+        results = pairwise_comparisons
+
+        # Transform the pairwise evaluation to edges (from, to)
+        edges = []
+        for rr in results:
+            # Access the names of the compared alternatives
+            alt_names = tuple(rr.alternatives)
+
+            # Identify which one is ranked better (lower number is better)
+            step = 1 if rr.rank_[0] < rr.rank_[1] else -1
+
+            # store the order (this is a DAG)
+            edges.append(alt_names[::step])
+
+        # Create directed graph
+        graph = nx.DiGraph(edges)
+
+        # Calculate transitivity metrics
+        # A formatted list of transitivity cycles found in the graph.
+        trans_break = list(nx.simple_cycles(graph, length_bound=3))
+        trans_break = _format_transitivity_cycles(trans_break)
+
+        # The rate of transitivity violations,
+        # normalized by the theoretical max.
+        trans_break_rate = len(trans_break) / _transitivity_break_bound(
+            len(graph.nodes)
         )
 
         test_criterion_2 = trans_break_rate == 0
         return test_criterion_2, graph, trans_break, trans_break_rate
 
-    def _test_criterion_3(self, test_criterion_2, rrank, returned_ranks):
+    def _check_ranking_stability(
+        self, test_criterion_2, rrank, returned_ranks
+    ):
         """
-        Perform test criterion 3: ranking stability check.
+        Check ranking stability (test criterion 3).
+
+        This method verifies that the reference ranking is stable by comparing
+        it with the first reconstructed ranking from the DAG. The test only
+        passes if transitivity is satisfied and rankings match.
 
         Parameters
         ----------
         test_criterion_2 : bool
-            Result of test criterion 2.
+            Result of transitivity consistency check.
             Must be True for this test to potentially pass.
         rrank : RankResult
-            The original ranking result with baseline ranking values.
+            The reference ranking result with baseline ranking values.
         returned_ranks : list of RankResult
-            List of ranking results from graph recomposition. The first element
-            is compared against the original ranking.
+            List of ranking results from DAG reconstruction. The first element
+            is compared against the reference ranking.
 
         Returns
         -------
         bool
             Test result status:
-            - True: Test criterion 2 passed AND original ranking equals
-            first recomposed ranking
-            - False: Either test criterion 2 failed OR rankings differ
+            - True: Transitivity check passed AND reference ranking equals
+              first reconstructed ranking
+            - False: Either transitivity check failed OR rankings differ
         """
         return (
             test_criterion_2
             and (rrank.values == returned_ranks[0].values).all()
         )
 
-    def evaluate(self, *, dm):
+    def evaluate(self, dm):
         """
         Execute the complete transitivity test and ranking analysis.
 
@@ -1069,50 +714,47 @@ class RankTransitivityChecker(SKCMethodABC):
                 - pairwise_dominance_graph: The constructed dominance graph
                 - transitivity_break: List of transitivity violations
                 - transitivity_break_rate: Normalized violation rate
+                - feedback_arc_set: Edges removed to convert graph to DAG
+                - fas_method: Method used for feedback arc set computation
+                - pairwise_comparisons: All pairwise comparison results
         """
         dmaker = self._dmaker
-        full_alternatives = dm.alternatives
-        preferred_parallel_backend = self._preferred_parallel_backend
-        n_jobs = self._n_jobs
+        full_alternatives = np.array(dm.alternatives)
 
-        # we need a first reference ranking
+        # We need a first reference ranking
         rrank = dmaker.evaluate(dm)
-        patched_rrank = self._add_break_info_to_rank(
-            rrank,
-            dag=None,
-            removed_edges=None,
-            full_alternatives=full_alternatives,
-            iteration=None,
+        patched_rrank = self._add_info_to_rank(
+            rrank, full_alternatives=full_alternatives
         )
 
-        # make the pairwise dominance graph and calculate transitivity metrics
+        # Test criterion 2: Transitivity validation
+        pair_comparisons = self._evaluate_pairwise_dominance(dm, rrank=rrank)
+
+        # Make the pairwise dominance graph and calculate transitivity metrics
         test_criterion_2, graph, trans_break, trans_break_rate = (
-            self._test_criterion_2(
-                dm,
-                rrank,
-                preferred_parallel_backend=preferred_parallel_backend,
-                n_jobs=n_jobs,
-            )
+            self._analyze_transitivity_breaks(pair_comparisons)
         )
 
-        # get the ranks from the graph
-        reconstructed_ranks = self._generate_reconstructed_ranks(
+        # Test criterion 3: Ranking stability assessment
+        # Get the ranks from the graph
+        reconstructed_ranks, fas, fas_method = self._extract_ranks_from_graph(
             graph, rrank, full_alternatives
         )
 
-        test_criterion_3 = self._test_criterion_3(
+        # Check if the original ranking is stable and consistent with
+        # reconstructed rankings from the dominance graph
+        test_criterion_3 = self._check_ranking_stability(
             test_criterion_2, patched_rrank, reconstructed_ranks
         )
 
-        names = ["Original"] + [
-            f"Recomposition{i+1}" for i in range(len(reconstructed_ranks))
-        ]
+        # Create the rank comparison object
+        names = ["Original"] + [r.method for r in reconstructed_ranks]
 
         named_ranks = unique_names(
             names=names, elements=[patched_rrank] + reconstructed_ranks
         )
 
-        return RanksComparator(
+        rcmp = RanksComparator(
             named_ranks,
             extra={
                 "test_criterion_2": test_criterion_2,
@@ -1120,5 +762,10 @@ class RankTransitivityChecker(SKCMethodABC):
                 "test_criterion_3": test_criterion_3,
                 "transitivity_break": trans_break,
                 "transitivity_break_rate": trans_break_rate,
+                "feedback_arc_set": fas,
+                "fas_method": fas_method,
+                "pairwise_comparisons": pair_comparisons,
             },
         )
+
+        return rcmp

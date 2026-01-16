@@ -67,3 +67,4 @@ docs/source/_dynamic/*.rst
 .venv/
 .envrc
 .python-version
+CLAUDE.md

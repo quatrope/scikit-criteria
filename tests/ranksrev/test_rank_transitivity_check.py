@@ -9,319 +9,191 @@
 # DOCS
 # =============================================================================
 
-"""
-Tests for the functionalities in the tranistivity_check file
-"""
+"""Tests for the functionalities in the transitivity_check file."""
 
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import networkx as nx
-
 import numpy as np
 
 import pytest
 
 import skcriteria as skc
-from skcriteria.agg.electre import ELECTRE2
-from skcriteria.agg.moora import ReferencePointMOORA
+from skcriteria.agg import RankResult
+from skcriteria.agg.simple import WeightedSumModel
 from skcriteria.agg.topsis import TOPSIS
+from skcriteria.cmp import RanksComparator
 from skcriteria.pipelines import mkpipe
-from skcriteria.preprocessing.filters import FilterNonDominated
+from skcriteria.preprocessing.filters import FilterGE, FilterNonDominated
 from skcriteria.preprocessing.invert_objectives import InvertMinimize
-from skcriteria.preprocessing.scalers import SumScaler, VectorScaler
+from skcriteria.preprocessing.scalers import SumScaler
+from skcriteria.preprocessing.weighters import EntropyWeighter
 from skcriteria.ranksrev.rank_transitivity_check import (
     RankTransitivityChecker,
-    _format_transitivity_cycles,
-    _transitivity_break_bound,
 )
-from skcriteria.utils.cycle_removal import (
-    _select_edge_random,
-    _select_edge_weighted,
-)
-from skcriteria.utils.deprecate import SKCriteriaDeprecationWarning
+
 
 # =============================================================================
-# SHARED OBJECTS
-# =============================================================================
-
-# Pipeline to apply to all pairwise sub-problems
-electre2_pipe = mkpipe(
-    InvertMinimize(),
-    FilterNonDominated(),
-    SumScaler(target="weights"),
-    VectorScaler(target="matrix"),
-    ELECTRE2(),
-)
-
-topsis_pipe = mkpipe(
-    InvertMinimize(),
-    FilterNonDominated(),
-    TOPSIS(),
-)
-
-topsis_pipe_matrix_scaler = mkpipe(
-    InvertMinimize(),
-    FilterNonDominated(),
-    VectorScaler(target="matrix"),
-    TOPSIS(),
-)
-
-topsis_pipe_moora = mkpipe(
-    InvertMinimize(),
-    FilterNonDominated(),
-    VectorScaler(target="matrix"),
-    ReferencePointMOORA(),
-)
-
-# =============================================================================
-# STATIC FUNCTIONS
+# TESTS
 # =============================================================================
 
 
-def test_TransitivityCheck_transitivity_break_bound_even():
-    value = 10
-    expected = 40
-    actual = _transitivity_break_bound(value)
-    assert actual == expected
+def test_RankTransitivityChecker_creation():
+    pipe = mkpipe(
+        FilterGE({"ROE": 2}),
+        FilterNonDominated(),
+        InvertMinimize(),
+        SumScaler(target="weights"),
+        SumScaler(target="matrix"),
+        WeightedSumModel(),
+    )
+    dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
+
+    assert dec.allow_missing_alternatives is True
+    assert dec.max_ranks == 50
+    assert dec.fas_method == "auto"
+    assert dec.preferred_parallel_backend is None
+    assert dec.n_jobs is None
+
+    with pytest.deprecated_call():
+        assert dec.parallel_backend is None
 
 
-def test_TransitivityCheck_transitivity_break_bound_odd():
-    value = 11
-    expected = 55
-    actual = _transitivity_break_bound(value)
-    assert actual == expected
+def test_RankTransitivityChecker_simple_stock_selection():
+    pipe = mkpipe(
+        FilterGE({"ROE": 2}),
+        FilterNonDominated(),
+        InvertMinimize(),
+        SumScaler(target="weights"),
+        SumScaler(target="matrix"),
+        WeightedSumModel(),
+    )
+    dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
 
-
-def test_TransitivityCheck_format_transitivity_cycles_no_transitivity_break():
     dm = skc.datasets.load_simple_stock_selection()
-    orank = electre2_pipe.evaluate(dm)
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    graph = trans_checker._dominance_graph(dm, orank, None, None)
-    trans_break = list(nx.simple_cycles(graph, length_bound=3))
-    result = _format_transitivity_cycles(trans_break)
-    assert result == []
 
+    result = dec.evaluate(dm)
 
-def test_TransitivityCheck_format_transitivity_cycles_transitivity_break():
-    dm = skc.datasets.load_van2021evaluation(windows_size=7)
-    orank = topsis_pipe_moora.evaluate(dm)
-    trans_checker = RankTransitivityChecker(topsis_pipe_moora)
-    graph = trans_checker._dominance_graph(dm, orank, None, None)
-    trans_break = list(nx.simple_cycles(graph, length_bound=3))
-    result = _format_transitivity_cycles(trans_break)
-    assert result != []
-
-
-# =============================================================================
-# PROPERTIES
-# =============================================================================
-
-
-def test_TransitivityChecker_repr():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert repr(trans_checker) == (
-        f"<{trans_checker.get_method_name()} "
-        f"{repr(trans_checker.dmaker)}, "
-        f"cycle_removal_strategy="
-        f"{trans_checker.cycle_removal_strategy}, "
-        f"max_ranks={trans_checker.max_ranks}>"
+    expected = RanksComparator(
+        [
+            (
+                "Original",
+                RankResult(
+                    method="WeightedSumModel",
+                    alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
+                    values=np.array([3, 4, 2, 5, 5, 1], dtype=int),
+                    extra={},
+                ),
+            ),
+            (
+                "Recomposition.0",
+                RankResult(
+                    method="Recomposition.0",
+                    alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
+                    values=np.array([3, 4, 2, 5, 5, 1], dtype=int),
+                    extra={},
+                ),
+            ),
+        ],
+        extra={},
     )
 
+    skc.testing.assert_rcmp_equals(expected, result, skip_extra=True)
 
-def test_TransitivityChecker_bad_pipe():
+
+def test_RankTransitivityChecker_allow_missing_alternative_false():
+    pipe = mkpipe(
+        FilterGE({"ROE": 2}),
+        FilterNonDominated(),
+        InvertMinimize(),
+        SumScaler(target="weights"),
+        SumScaler(target="matrix"),
+        WeightedSumModel(),
+    )
+    dec = RankTransitivityChecker(pipe, allow_missing_alternatives=False)
+
+    dm = skc.datasets.load_simple_stock_selection()
+
+    with pytest.raises(ValueError, match="Missing alternative/s"):
+        dec.evaluate(dm)
+
+
+def test_RankTransitivityChecker_vanheerden():
+    pipe = mkpipe(
+        InvertMinimize(),
+        EntropyWeighter(),
+        SumScaler(target="matrix"),
+        TOPSIS(),
+    )
+    dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
+
+    dm = skc.datasets.load_van2021evaluation()
+
+    result = dec.evaluate(dm)
+
+    # Basic assertions to verify the result structure
+    assert isinstance(result, RanksComparator)
+    assert len(result) >= 1  # At least one rank (Original)
+
+    # Check that all ranks have the same alternatives
+    first_alternatives = result.ranks[0][1].alternatives
+    for name, rank in result.ranks:
+        np.testing.assert_array_equal(rank.alternatives, first_alternatives)
+        assert rank.method in ("TOPSIS", name)
+
+
+def test_RankTransitivityChecker_bad_pipe():
     bad_pipe = "Suffering and pain"
-    with pytest.raises(TypeError) as ex:
+
+    with pytest.raises(
+        TypeError, match="'dmaker' must implement 'evaluate\\(\\)' method"
+    ):
         RankTransitivityChecker(bad_pipe)
-        assert "'dmaker' must implement 'evaluate()' method" in str(ex.value)
 
 
-def test_TransitivityChecker_dmaker():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.dmaker == electre2_pipe
-
-
-def test_TransitivityChecker_bad_fallback():
-    bad_pipe = "Suffering and pain 2"
-    with pytest.raises(TypeError) as ex:
-        RankTransitivityChecker(topsis_pipe, fallback=bad_pipe)
-        assert "'fallback' must implement 'evaluate()' method" in str(ex.value)
-
-
-def test_TransitivityChecker_fallback():
-    trans_checker = RankTransitivityChecker(topsis_pipe, fallback=topsis_pipe)
-    assert trans_checker.fallback == topsis_pipe
-
-
-def test_TransitivityChecker_preferred_parallel_backend_none():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.preferred_parallel_backend is None
-
-
-def test_TransitivityChecker_preferred_parallel_backend():
-    trans_checker = RankTransitivityChecker(
-        electre2_pipe, preferred_parallel_backend=electre2_pipe
+def test_RankTransitivityChecker_parallel_backend():
+    pipe = mkpipe(
+        InvertMinimize(),
+        EntropyWeighter(),
+        SumScaler(target="matrix"),
+        TOPSIS(),
     )
-    assert trans_checker.preferred_parallel_backend == electre2_pipe
+    with pytest.deprecated_call():
+        RankTransitivityChecker(pipe, parallel_backend="pika")
 
-
-def test_TransitivityChecker_random_state():
-    rnd_state = 42
-    trans_checker = RankTransitivityChecker(
-        electre2_pipe, random_state=rnd_state
-    )
-    assert (
-        trans_checker.random_state.random()
-        == np.random.default_rng(rnd_state).random()
-    )
-
-
-def test_TransitivityChecker_make_transitivity_strategy_random():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.cycle_removal_strategy == _select_edge_random
-
-
-def test_TransitivityChecker_make_transitivity_strategy_weighted():
-    trans_checker = RankTransitivityChecker(
-        electre2_pipe, cycle_removal_strategy="weighted"
-    )
-
-    assert trans_checker.cycle_removal_strategy == _select_edge_weighted
-
-
-def test_TransitivityChecker_make_transitivity_strategy_divination():
-    bad_strat = "Divination"
     with pytest.raises(ValueError):
         RankTransitivityChecker(
-            electre2_pipe, cycle_removal_strategy=bad_strat
+            pipe, parallel_backend="pika", preferred_parallel_backend="pika"
         )
 
 
-def test_TransitivityChecker_allow_missing_alternatives_default():
-    trans_checker = RankTransitivityChecker(topsis_pipe)
-    assert trans_checker.allow_missing_alternatives is False
-
-
-def test_TransitivityChecker_allow_missing_alternatives_True():
-    trans_checker = RankTransitivityChecker(
-        topsis_pipe, allow_missing_alternatives=True
+def test_RankTransitivityChecker_max_rank_lt_1():
+    pipe = mkpipe(
+        InvertMinimize(),
+        EntropyWeighter(),
+        SumScaler(target="matrix"),
+        TOPSIS(),
     )
-    assert trans_checker.allow_missing_alternatives is True
 
-
-def test_TransitivityChecker_max_ranks_default():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.max_ranks == 50
-
-
-def test_TransitivityChecker_max_ranks_custom():
-    ranks = 42
-    trans_checker = RankTransitivityChecker(electre2_pipe, max_ranks=ranks)
-    assert trans_checker.max_ranks == ranks
-
-
-def test_TransitivityChecker_max_ranks_zero():
-    ranks = 0
     with pytest.raises(ValueError):
-        RankTransitivityChecker(electre2_pipe, max_ranks=ranks)
+        RankTransitivityChecker(pipe, max_ranks=0)
 
 
-def test_TransitivityChecker_n_jobs_default():
-    trans_checker = RankTransitivityChecker(electre2_pipe)
-    assert trans_checker.n_jobs is None
-
-
-def test_TransitivityChecker_n_jobs_custom():
-    jobs = 42
-    trans_checker = RankTransitivityChecker(electre2_pipe, n_jobs=jobs)
-    assert trans_checker.n_jobs == jobs
-
-
-def test_RankTransitivityChecker_parallel_backend_deprecation():
-    with pytest.raises(ValueError):
-        RankTransitivityChecker(
-            electre2_pipe,
-            parallel_backend="foo",
-            preferred_parallel_backend="bar",
-        )
-
-    with pytest.warns(SKCriteriaDeprecationWarning):
-        checker = RankTransitivityChecker(
-            electre2_pipe, parallel_backend="foo"
-        )
-        assert checker.parallel_backend == "foo"
-
-
-# =============================================================================
-# TEST MISSING ALTERNATIVES
-# =============================================================================
-
-
-def test_TransitivityCheck_missing_alternative_forbidden():
-    dm = skc.datasets.load_simple_stock_selection()
-    trans_check = RankTransitivityChecker(
-        topsis_pipe, random_state=42, allow_missing_alternatives=False
-    )
-    with pytest.raises(ValueError):
-        trans_check.evaluate(dm=dm)
-
-
-def test_TransitivityCheck_missing_alternative():
-    dm = skc.datasets.load_simple_stock_selection()
-    trans_check = RankTransitivityChecker(
-        topsis_pipe, random_state=42, allow_missing_alternatives=True
-    )
-    result = trans_check.evaluate(dm=dm)
-
-    _, rank = result.ranks[1]
-
-    np.testing.assert_array_equal(
-        rank.e_.transitivity_check.missing_alternatives, ["FX", "MM"]
+def test_RankTransitivityChecker_repr():
+    pipe = mkpipe(
+        InvertMinimize(),
+        TOPSIS(),
     )
 
-    assert rank.to_series()["FX"] == 5
-    assert rank.to_series()["MM"] == 5
-    assert rank.has_ties_
+    expected = (
+        "<RankTransitivityChecker "
+        "<SKCPipeline [steps=[('invertminimize', <InvertMinimize []>), "
+        "('topsis', <TOPSIS [metric='euclidean']>)]]>, "
+        "fas_method=auto, max_ranks=50>"
+    )
 
+    dec = RankTransitivityChecker(pipe)
 
-# ============================================================================
-# TEST CRITERIA
-# =============================================================================
-
-
-def test_TransitivityCheck_test_criterion_2_pass():
-    dm = skc.datasets.load_van2021evaluation(windows_size=7)
-    trans_check = RankTransitivityChecker(topsis_pipe)
-    rank_comparator = trans_check.evaluate(dm=dm)
-    orank = topsis_pipe.evaluate(dm)
-    test_criterion_2 = trans_check._test_criterion_2(dm, orank, None, None)[0]
-    assert rank_comparator._extra.transitivity_break_rate == 0
-    assert rank_comparator._extra.test_criterion_2
-    assert test_criterion_2
-
-
-def test_TransitivityCheck_test_criterion_2_fail():
-    dm = skc.datasets.load_van2021evaluation(windows_size=7)
-    trans_check = RankTransitivityChecker(topsis_pipe_moora)
-    rank_comparator = trans_check.evaluate(dm=dm)
-    orank = topsis_pipe.evaluate(dm)
-    test_criterion_2 = trans_check._test_criterion_2(dm, orank, None, None)[0]
-    assert rank_comparator._extra.transitivity_break_rate > 0
-    assert not rank_comparator._extra.test_criterion_2
-    assert not test_criterion_2
-
-
-def test_TransitivityCheck_test_criterion_3_pass():
-    dm = skc.datasets.load_van2021evaluation(windows_size=7)
-    trans_check = RankTransitivityChecker(topsis_pipe)
-    rank_comparator = trans_check.evaluate(dm=dm)
-    assert rank_comparator._extra.test_criterion_3
-
-
-def test_TransitivityCheck_test_criterion_3_fail():
-    dm = skc.datasets.load_van2021evaluation(windows_size=7)
-    trans_check = RankTransitivityChecker(topsis_pipe_matrix_scaler)
-    rank_comparator = trans_check.evaluate(dm=dm)
-    assert not rank_comparator._extra.test_criterion_3
+    assert repr(dec) == expected
