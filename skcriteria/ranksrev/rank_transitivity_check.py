@@ -318,12 +318,12 @@ class RankTransitivityChecker(SKCMethodABC):
             and preferred_parallel_backend is not None
         ):
             raise ValueError(
-                "Only one of 'parallel_backend' (deprecated since 0.9.1) and "
+                "Only one of 'parallel_backend' (deprecated since 0.10.0) and"
                 "'preferred_parallel_backend' can be specified"
             )
         if parallel_backend is not None:
             deprecate.warn(
-                "The 'parallel_backend' parameter is deprecated since 0.9.1, "
+                "The 'parallel_backend' parameter is deprecated since 0.10.0,"
                 "use 'preferred_parallel_backend' instead."
             )
             preferred_parallel_backend = parallel_backend
@@ -381,7 +381,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
     @property
     @deprecate.deprecated(
-        reason="Use 'preferred_parallel_backend' instead", version="0.9.1"
+        reason="Use 'preferred_parallel_backend' instead", version="0.10.0"
     )
     def parallel_backend(self):
         """The parallel backend used to generate all the alternatives."""

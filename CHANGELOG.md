@@ -2,9 +2,7 @@
 
 <!-- BODY -->
 
-## Version 0.9.1
-
-### New Features
+## Version 0.10
 
 *   **Parallel Execution in Combinatorial Pipelines:** The `SKCCombinatorialPipeline` class now supports parallel execution of the generated pipelines using the `joblib` library. This significantly improves performance when evaluating a large number of pipeline combinations. Users can control the degree of parallelism through the `n_jobs` and `preferred_parallel_backend` parameters.
 

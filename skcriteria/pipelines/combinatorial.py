@@ -141,12 +141,12 @@ class SKCCombinatorialPipeline(SKCMethodABC):
         ):
             raise ValueError(
                 "Only one of 'prefered_parallel_backend' (deprecated since "
-                "0.9.1) and 'preferred_parallel_backend' can be specified."
+                "0.10.0) and 'preferred_parallel_backend' can be specified."
             )
         if prefered_parallel_backend is not None:
             deprecate.warn(
                 "The 'prefered_parallel_backend' parameter is deprecated "
-                "since 0.9.1, use 'preferred_parallel_backend' instead."
+                "since 0.10.0, use 'preferred_parallel_backend' instead."
             )
             preferred_parallel_backend = prefered_parallel_backend
 
