@@ -78,6 +78,10 @@ extensions = [
 
 autodoc_member_order = "bysource"
 
+# Suppress ambiguous cross-reference warnings for common attribute names
+# (e.g., 'shape' exists in both ResultABC and DecisionMatrix)
+suppress_warnings = ["ref.python"]
+
 # =============================================================================
 # BIB TEX
 # =============================================================================
