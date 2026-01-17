@@ -58,21 +58,22 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 urls = { Homepage = "https://scikit-criteria.quatrope.org/", Repository = "https://github.com/quatrope/scikit-criteria" }
-dependencies = [  # first-minor fixed, more on demand
-    "numpy>=2.2.0",
-    "networkx>=3.4.0",
-    "pandas>=2.3.0",
-    "scipy>=1.15.0",
-    "jinja2>=3.1.0",
-    "custom_inherit>=2.4.0",
+# Dependencies are pinned to the first minor version and limited to the next major version
+dependencies = [
+    "numpy>=2.2.0,<3",
+    "networkx>=3.4.0,<4",
+    "pandas>=2.3.0,<3",
+    "scipy>=1.15.0,<2",
+    "jinja2>=3.1.0,<4",
+    "custom_inherit>=2.4.0,<3",
     "seaborn>=0.13,<0.14",
-    "pulp>=3.3.0",
-    "Deprecated>=1.3.0",
-    "scikit-learn>=1.7.0",
-    "matplotlib>=3.10.0",
-    "methodtools>=0.4",
-    "pyyaml>=6.0.0",
-    "igraph>=1.0.0"
+    "pulp>=3.3.0,<4",
+    "Deprecated>=1.3.0,<2",
+    "scikit-learn>=1.7.0,<2",
+    "matplotlib>=3.10.0,<4",
+    "methodtools>=0.4,<1",
+    "pyyaml>=6.0.0,<7",
+    "igraph>=1.0.0,<2"
 ]
 
 [tool.setuptools]
