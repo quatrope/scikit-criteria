@@ -528,7 +528,7 @@ class DecisionMatrix(DiffEqualityMixin):
         if kwargs:
             cls_name = type(self).__name__
             deprecate.warn(
-                "Passing kwargs to 'copy()' is deprecated, plese use "
+                "Passing kwargs to 'copy()' is deprecated, please use"
                 f"'{cls_name}.replace()' instead."
             )
         return self.replace(**kwargs)

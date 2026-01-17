@@ -367,7 +367,7 @@ def electre2_gomez2004tomada(
 @functools.wraps(electre2_gomez2004tomada)
 def electre2(*args, **kwargs):
     """Execute ELECTRE2 from "Tomada de decisões em cenários complexos" \
-    :cite:p:`gomez2004tomada`without any validation."""
+    :cite:p:`gomez2004tomada` without any validation."""
     return electre2_gomez2004tomada(*args, **kwargs)
 
 
@@ -403,12 +403,12 @@ class ELECTRE2(SKCDecisionMakerABC):
 
     This implementation is based on the one presented in the books
     "Tomada de decisões em cenários complexos" :cite:p:`gomez2004tomada` and
-    "ELECTRE and Decision Support":cite:p:`maystre00`.
+    "ELECTRE and Decision Support" :cite:p:`maystre00`.
 
     In this version 5 parameters are chosen, concordance thresholds
     :math:`1 >= p_0 >= p_1 >= p_2 >= 0` and discordance thresholds
     :math:`1 >= q_0 >= q_1 >= 0`, after calculating Concordance and
-    Discordance Matrices (:math:`C` and :math:`D` recpectively)
+    Discordance Matrices (:math:`C` and :math:`D` respectively)
     the two type of outranking relations between alternatives are defined as:
 
     If :math:`C(a,b) > C(b,a)` then
