@@ -124,6 +124,7 @@ def as_dag(graph, *, method="auto") -> list[nx.DiGraph, list, str | None]:
         The directed graph to convert to a DAG. Can be cyclic or acyclic.
     method : str, default "auto"
         The method to use for finding the feedback arc set. Options are:
+
         - "auto": Automatically selects "ip" for graphs with < 100 nodes,
           otherwise uses "eades" for better performance on larger graphs.
         - "ip": Integer Programming - exact method that finds the minimum

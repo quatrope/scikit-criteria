@@ -65,7 +65,7 @@ class RankClonesChecker(SKCMethodABC):
 
     References
     ----------
-    :cite:p:`elton1983short`
+    :cite:p:`belton1983short`
 
     """
 
