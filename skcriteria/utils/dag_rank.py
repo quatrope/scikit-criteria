@@ -175,7 +175,7 @@ def as_dag(graph, *, method="auto") -> list[nx.DiGraph, list, str | None]:
     return dag, nx_fas, method
 
 
-def all_rankings(alternatives, dag, *, max_rankings=None):
+def generate_rankings_from_toposorts(alternatives, dag, *, max_rankings=None):
     """Generate all possible rankings from a DAG's topological sorts.
 
     Enumerates all valid rankings by computing every possible topological
@@ -237,3 +237,48 @@ def all_rankings(alternatives, dag, *, max_rankings=None):
 
         yield ranking
         rankings_generated += 1
+
+
+def ranking_from_generations(alternatives, dag):
+    """Generate a ranking based on topological generations.
+
+    Creates a single ranking where alternatives in the same topological
+    generation (incomparable elements) share the same rank. This provides
+    a compact representation when ties are acceptable.
+
+    Parameters
+    ----------
+    alternatives : array-like
+        Array of alternative names/identifiers in their original order.
+        This defines the order in which ranks are returned in the ranking.
+    dag : networkx.DiGraph
+        A directed acyclic graph representing preference relations between
+        alternatives. Edges point from preferred to less preferred
+        alternatives.
+
+    Returns
+    -------
+    np.ndarray
+        A 1-indexed NumPy array where the i-th element is the rank of the
+        i-th alternative. Alternatives in the same generation share the
+        same rank. Lower ranks indicate better alternatives.
+
+    Notes
+    -----
+    Unlike `generate_rankings_from_toposorts()` which enumerates all possible orderings,
+    this function returns a single ranking where incomparable alternatives
+    (those without a direct or transitive preference relation) are tied.
+
+    """
+    # Map each alternative to its generation number (1-indexed)
+    alt_to_rank = {}
+    for rank, generation in enumerate(nx.topological_generations(dag), start=1):
+        for alt in generation:
+            alt_to_rank[alt] = rank
+
+    # Build rank array in original alternative order
+    ranking = np.array(
+        [alt_to_rank[alt] for alt in alternatives],
+        dtype=int,
+    )
+    return ranking

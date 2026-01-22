@@ -95,7 +95,7 @@ def test_as_dag_is_dag():
     assert r_method is None
 
 
-def test_all_rankings():
+def test_generate_rankings_from_toposorts():
     adj_matrix = pd.DataFrame(
         {
             "A": [0, 0, 0, 0, 0],
@@ -108,7 +108,7 @@ def test_all_rankings():
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
-    result = dag_rank.all_rankings(["A", "B", "C", "D", "E"], graph)
+    result = dag_rank.generate_rankings_from_toposorts(["A", "B", "C", "D", "E"], graph)
 
     np.testing.assert_array_equal(next(result), [1, 5, 2, 4, 3])
     np.testing.assert_array_equal(next(result), [1, 4, 2, 5, 3])
@@ -118,7 +118,7 @@ def test_all_rankings():
         next(result)
 
 
-def test_all_rankings_max1():
+def test_generate_rankings_from_toposorts_max1():
     adj_matrix = pd.DataFrame(
         {
             "A": [0, 0, 0, 0, 0],
@@ -131,7 +131,7 @@ def test_all_rankings_max1():
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
-    result = dag_rank.all_rankings(
+    result = dag_rank.generate_rankings_from_toposorts(
         ["A", "B", "C", "D", "E"], graph, max_rankings=1
     )
 

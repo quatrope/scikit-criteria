@@ -511,12 +511,12 @@ class RankTransitivityChecker(SKCMethodABC):
             graph=graph, method=self._fas_method
         )
 
-        all_rankings = dag_rank.all_rankings(
+        rankings = dag_rank.generate_rankings_from_toposorts(
             rrank.alternatives, dag, max_rankings=self._max_ranks
         )
 
         ranks = []
-        for recomposition_number, rank_values in enumerate(all_rankings):
+        for recomposition_number, rank_values in enumerate(rankings):
             rank = RankResult(
                 method=rrank.method,
                 alternatives=rrank.alternatives,
