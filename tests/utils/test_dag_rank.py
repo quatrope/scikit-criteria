@@ -139,3 +139,55 @@ def test_generate_rankings_from_toposorts_max1():
 
     with pytest.raises(StopIteration):
         next(result)
+
+
+def test_ranking_from_generations():
+    # Same graph used in test_generate_rankings_from_toposorts
+    # Structure: A -> C, A -> E, C -> B, C -> E, E -> D
+    # Generations: [A] -> [C] -> [B, E] -> [D]
+    adj_matrix = pd.DataFrame(
+        {
+            "A": [0, 0, 0, 0, 0],
+            "B": [0, 0, 1, 0, 0],
+            "C": [1, 0, 0, 0, 0],
+            "D": [0, 0, 0, 0, 1],
+            "E": [1, 0, 1, 0, 0],
+        },
+        index=["A", "B", "C", "D", "E"],
+    )
+    graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
+
+    result = dag_rank.ranking_from_generations(["A", "B", "C", "D", "E"], graph)
+
+    # A is in generation 1 (best), C is in generation 2,
+    # B and E are tied in generation 3, D is in generation 4 (worst)
+    np.testing.assert_array_equal(result, [1, 3, 2, 4, 3])
+
+
+def test_ranking_from_generations_linear():
+    # Simple linear chain: A -> B -> C
+    adj_matrix = pd.DataFrame(
+        {
+            "A": [0, 0, 0],
+            "B": [1, 0, 0],
+            "C": [0, 1, 0],
+        },
+        index=["A", "B", "C"],
+    )
+    graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
+
+    result = dag_rank.ranking_from_generations(["A", "B", "C"], graph)
+
+    # Each element in its own generation: A=1 (best), B=2, C=3 (worst)
+    np.testing.assert_array_equal(result, [1, 2, 3])
+
+
+def test_ranking_from_generations_all_tied():
+    # No edges - all alternatives are incomparable (same generation)
+    graph = nx.DiGraph()
+    graph.add_nodes_from(["A", "B", "C"])
+
+    result = dag_rank.ranking_from_generations(["A", "B", "C"], graph)
+
+    # All in same generation, all rank 1
+    np.testing.assert_array_equal(result, [1, 1, 1])
