@@ -534,7 +534,8 @@ class RankTransitivityChecker(SKCMethodABC):
         )
         ranks.append(gen_rank)
 
-        # Generate rankings from topological sorts (if max_toposort_rankings > 0)
+        # Generate rankings from topological sorts
+        # (if max_toposort_rankings > 0)
         tsr_generator = dag_rank.generate_rankings_from_toposorts(
             rrank.alternatives, dag, max_rankings=self._max_toposort_rankings
         )
@@ -703,10 +704,8 @@ class RankTransitivityChecker(SKCMethodABC):
             - True: Transitivity check passed AND reference ranking equals
               first reconstructed ranking
             - False: Either transitivity check failed OR rankings differ
-            - None: No reconstructed rankings were generated (reconstructed_rankings=False)
+
         """
-        if not reconstructed_ranks:
-            return None
         return (
             test_criterion_2
             and (rrank.values == reconstructed_ranks[0].values).all()
