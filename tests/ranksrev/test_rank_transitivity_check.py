@@ -52,7 +52,7 @@ def test_RankTransitivityChecker_creation():
     dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
 
     assert dec.allow_missing_alternatives is True
-    assert dec.max_ranks == 50
+    assert dec.max_toposort_rankings == 50
     assert dec.fas_method == "auto"
     assert dec.preferred_parallel_backend is None
     assert dec.n_jobs is None
@@ -82,6 +82,15 @@ def test_RankTransitivityChecker_simple_stock_selection():
                 "Original",
                 RankResult(
                     method="WeightedSumModel",
+                    alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
+                    values=np.array([3, 4, 2, 5, 5, 1], dtype=int),
+                    extra={},
+                ),
+            ),
+            (
+                "Recomposition.generations",
+                RankResult(
+                    method="Recomposition.generations",
                     alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
                     values=np.array([3, 4, 2, 5, 5, 1], dtype=int),
                     extra={},
@@ -169,7 +178,7 @@ def test_RankTransitivityChecker_parallel_backend():
         )
 
 
-def test_RankTransitivityChecker_max_rank_lt_1():
+def test_RankTransitivityChecker_max_toposort_rankings_negative():
     pipe = mkpipe(
         InvertMinimize(),
         EntropyWeighter(),
@@ -178,7 +187,7 @@ def test_RankTransitivityChecker_max_rank_lt_1():
     )
 
     with pytest.raises(ValueError):
-        RankTransitivityChecker(pipe, max_ranks=0)
+        RankTransitivityChecker(pipe, max_toposort_rankings=-1)
 
 
 def test_RankTransitivityChecker_repr():
@@ -191,7 +200,7 @@ def test_RankTransitivityChecker_repr():
         "<RankTransitivityChecker "
         "<SKCPipeline [steps=[('invertminimize', <InvertMinimize []>), "
         "('topsis', <TOPSIS [metric='euclidean']>)]]>, "
-        "fas_method=auto, max_ranks=50>"
+        "fas_method=auto, max_toposort_rankings=50>"
     )
 
     dec = RankTransitivityChecker(pipe)
