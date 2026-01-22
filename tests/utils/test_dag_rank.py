@@ -108,7 +108,9 @@ def test_generate_rankings_from_toposorts():
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
-    result = dag_rank.generate_rankings_from_toposorts(["A", "B", "C", "D", "E"], graph)
+    result = dag_rank.generate_rankings_from_toposorts(
+        ["A", "B", "C", "D", "E"], graph
+    )
 
     np.testing.assert_array_equal(next(result), [1, 5, 2, 4, 3])
     np.testing.assert_array_equal(next(result), [1, 4, 2, 5, 3])
@@ -157,7 +159,9 @@ def test_ranking_from_generations():
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
-    result = dag_rank.ranking_from_generations(["A", "B", "C", "D", "E"], graph)
+    result = dag_rank.ranking_from_generations(
+        ["A", "B", "C", "D", "E"], graph
+    )
 
     # A is in generation 1 (best), C is in generation 2,
     # B and E are tied in generation 3, D is in generation 4 (worst)

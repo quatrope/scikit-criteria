@@ -265,14 +265,17 @@ def ranking_from_generations(alternatives, dag):
 
     Notes
     -----
-    Unlike `generate_rankings_from_toposorts()` which enumerates all possible orderings,
-    this function returns a single ranking where incomparable alternatives
-    (those without a direct or transitive preference relation) are tied.
+    Unlike `generate_rankings_from_toposorts()` which enumerates all possible
+    orderings, this function returns a single ranking where incomparable
+    alternatives (those without a direct or transitive preference relation)
+    are tied.
 
     """
     # Map each alternative to its generation number (1-indexed)
     alt_to_rank = {}
-    for rank, generation in enumerate(nx.topological_generations(dag), start=1):
+    for rank, generation in enumerate(
+        nx.topological_generations(dag), start=1
+    ):
         for alt in generation:
             alt_to_rank[alt] = rank
 
