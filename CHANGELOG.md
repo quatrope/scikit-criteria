@@ -6,7 +6,11 @@
 
 *   **Parallel Execution in Combinatorial Pipelines:** The `SKCCombinatorialPipeline` class now supports parallel execution of the generated pipelines using the `joblib` library. This significantly improves performance when evaluating a large number of pipeline combinations. Users can control the degree of parallelism through the `n_jobs` and `preferred_parallel_backend` parameters.
 
-*   **Enhanced `RankTransitivityChecker` with Feedback Arc Set (FAS):** The transitivity checker now uses the [Feedback Arc Set (FAS)](https://en.wikipedia.org/wiki/Feedback_arc_set) algorithm for robust handling of cyclic dominance graphs. When transitivity violations (cycles) are detected in pairwise comparisons, FAS identifies the minimum set of edges to remove, converting the graph into a Directed Acyclic Graph (DAG). Valid alternative rankings are then reconstructed through topological sorting of the DAG. Two FAS methods are available via the `fas_method` parameter:
+*   **Enhanced `RankTransitivityChecker` with Feedback Arc Set (FAS):** The transitivity checker now uses the [Feedback Arc Set (FAS)](https://en.wikipedia.org/wiki/Feedback_arc_set) algorithm for robust handling of cyclic dominance graphs. When transitivity violations (cycles) are detected in pairwise comparisons, FAS identifies the minimum set of edges to remove, converting the graph into a Directed Acyclic Graph (DAG). Two ranking strategies are then applied:
+    *   **Generations ranking**: Assigns the same rank to alternatives in the same topological generation (incomparable alternatives), always included in results.
+    *   **Toposort rankings**: Enumerates valid total orderings via topological sorting, controlled by `max_toposort_rankings` (set to `0` to disable).
+
+    Two FAS methods are available via the `fas_method` parameter:
     *   `"ip"`: Integer Programming - finds the optimal (minimum) feedback arc set. Recommended for smaller graphs.
     *   `"eades"`: Eades heuristic - faster computation but may remove more edges than strictly necessary.
     *   `"auto"` (default): Automatically selects `"ip"` for graphs with < 100 nodes, otherwise uses `"eades"`.
