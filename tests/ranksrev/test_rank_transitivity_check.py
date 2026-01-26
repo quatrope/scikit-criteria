@@ -182,8 +182,13 @@ def test_RankTransitivityChecker_max_toposort_rankings_negative():
         TOPSIS(),
     )
 
+    # Test with negative value
     with pytest.raises(ValueError):
         RankTransitivityChecker(pipe, max_toposort_rankings=-1)
+
+    # Test with zero (must be >= 1)
+    with pytest.raises(ValueError):
+        RankTransitivityChecker(pipe, max_toposort_rankings=0)
 
 
 def test_RankTransitivityChecker_repr():

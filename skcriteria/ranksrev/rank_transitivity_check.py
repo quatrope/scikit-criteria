@@ -237,8 +237,8 @@ class RankTransitivityChecker(SKCMethodABC):
 
     max_toposort_rankings : int or None, default=50
         Maximum number of rankings to generate from topological sorts.
-        Only used when ranking_strategy="toposorts". Set to 0 to generate no
-        rankings. Set to None to generate all possible rankings (no limit).
+        Only used when ranking_strategy="toposorts". Must be at least 1.
+        Set to None to generate all possible rankings (no limit).
         Controls computational complexity by limiting the number of
         decompositions. Ignored when ranking_strategy="generations".
 
@@ -268,7 +268,7 @@ class RankTransitivityChecker(SKCMethodABC):
     ValueError
         If ``allow_missing_alternatives=False`` and alternatives are missing \
             from results.
-        If ``max_toposort_rankings`` is less than 0 (when not None).
+        If ``max_toposort_rankings`` is less than 1 (when not None).
         If ``ranking_strategy`` is not "generations" or "toposorts".
 
     Examples
@@ -362,10 +362,10 @@ class RankTransitivityChecker(SKCMethodABC):
         self._n_jobs = None if n_jobs is None else int(n_jobs)
 
         # Maximum permitted toposort ranks to be generated
-        # 0 means no toposort rankings, None means unlimited
-        if max_toposort_rankings is not None and max_toposort_rankings < 0:
+        # Must be >= 1, None means unlimited
+        if max_toposort_rankings is not None and max_toposort_rankings < 1:
             raise ValueError(
-                f"max_toposort_rankings should be >= 0 or None, "
+                f"max_toposort_rankings should be >= 1 or None, "
                 f"current value {max_toposort_rankings}"
             )
         self._max_toposort_rankings = (
@@ -418,7 +418,7 @@ class RankTransitivityChecker(SKCMethodABC):
     @property
     def max_toposort_rankings(self):
         """Maximum number of toposort rankings to generate \
-        (0 disables, None means unlimited)."""
+        (must be >= 1, None means unlimited)."""
         return self._max_toposort_rankings
 
     @property
