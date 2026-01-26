@@ -229,6 +229,7 @@ class RankTransitivityChecker(SKCMethodABC):
     ranking_strategy : str, default="generations"
         Strategy for generating reconstructed rankings from
         the dominance graph:
+
         - "generations": Generate a single ranking based on topological layers
           (alternatives in the same layer receive the same rank,
           producing ties)
