@@ -52,6 +52,7 @@ def test_RankTransitivityChecker_creation():
     dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
 
     assert dec.allow_missing_alternatives is True
+    assert dec.ranking_strategy == "generations"
     assert dec.max_toposort_rankings == 50
     assert dec.fas_method == "auto"
     assert dec.preferred_parallel_backend is None
@@ -70,7 +71,11 @@ def test_RankTransitivityChecker_simple_stock_selection():
         SumScaler(target="matrix"),
         WeightedSumModel(),
     )
-    dec = RankTransitivityChecker(pipe, allow_missing_alternatives=True)
+    dec = RankTransitivityChecker(
+        pipe,
+        allow_missing_alternatives=True,
+        ranking_strategy="toposorts",
+    )
 
     dm = skc.datasets.load_simple_stock_selection()
 
@@ -82,15 +87,6 @@ def test_RankTransitivityChecker_simple_stock_selection():
                 "Original",
                 RankResult(
                     method="WeightedSumModel",
-                    alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
-                    values=np.array([3, 4, 2, 5, 5, 1], dtype=int),
-                    extra={},
-                ),
-            ),
-            (
-                "Recomposition.generations",
-                RankResult(
-                    method="Recomposition.generations",
                     alternatives=["PE", "JN", "AA", "FX", "MM", "GN"],
                     values=np.array([3, 4, 2, 5, 5, 1], dtype=int),
                     extra={},
@@ -200,9 +196,88 @@ def test_RankTransitivityChecker_repr():
         "<RankTransitivityChecker "
         "<SKCPipeline [steps=[('invertminimize', <InvertMinimize []>), "
         "('topsis', <TOPSIS [metric='euclidean']>)]]>, "
-        "fas_method=auto, max_toposort_rankings=50>"
+        "ranking_strategy='generations', fas_method=auto, "
+        "max_toposort_rankings=50>"
     )
 
     dec = RankTransitivityChecker(pipe)
 
     assert repr(dec) == expected
+
+
+def test_RankTransitivityChecker_invalid_ranking_strategy():
+    pipe = mkpipe(
+        InvertMinimize(),
+        TOPSIS(),
+    )
+
+    with pytest.raises(ValueError, match="ranking_strategy must be one of"):
+        RankTransitivityChecker(pipe, ranking_strategy="invalid")
+
+
+def test_RankTransitivityChecker_generations_with_max_toposort_warning():
+    pipe = mkpipe(
+        InvertMinimize(),
+        TOPSIS(),
+    )
+
+    # Should warn when max_toposort_rankings != 50 with generations
+    with pytest.warns(
+        DeprecationWarning, match="max_toposort_rankings is ignored"
+    ):
+        RankTransitivityChecker(
+            pipe, ranking_strategy="generations", max_toposort_rankings=10
+        )
+
+    # Should NOT warn when max_toposort_rankings == 50 (default)
+    import warnings
+
+    with warnings.catch_warnings(record=True) as warning_list:
+        warnings.simplefilter("always")
+        RankTransitivityChecker(
+            pipe, ranking_strategy="generations", max_toposort_rankings=50
+        )
+        # Filter warnings about max_toposort_rankings
+        relevant_warnings = [
+            w
+            for w in warning_list
+            if "max_toposort_rankings" in str(w.message)
+        ]
+        assert len(relevant_warnings) == 0
+
+
+def test_RankTransitivityChecker_generations_strategy():
+    pipe = mkpipe(
+        InvertMinimize(),
+        WeightedSumModel(),
+    )
+    dec = RankTransitivityChecker(pipe, ranking_strategy="generations")
+
+    dm = skc.datasets.load_simple_stock_selection()
+    result = dec.evaluate(dm)
+
+    # Should have only 2 rankings: Original + Recomposition.generations
+    assert len(result) == 2
+    assert result.ranks[0][0] == "Original"
+    assert result.ranks[1][0] == "Recomposition.generations"
+
+
+def test_RankTransitivityChecker_toposorts_strategy():
+    pipe = mkpipe(
+        InvertMinimize(),
+        WeightedSumModel(),
+    )
+    dec = RankTransitivityChecker(
+        pipe, ranking_strategy="toposorts", max_toposort_rankings=2
+    )
+
+    dm = skc.datasets.load_simple_stock_selection()
+    result = dec.evaluate(dm)
+
+    # Should have Original + up to 2 toposort rankings
+    assert len(result) >= 2  # At least Original + 1 toposort
+    assert len(result) <= 3  # At most Original + 2 toposorts
+    assert result.ranks[0][0] == "Original"
+    # Subsequent rankings should be Recomposition.0, Recomposition.1, etc.
+    for i, (name, _) in enumerate(result.ranks[1:]):
+        assert name == f"Recomposition.{i}"

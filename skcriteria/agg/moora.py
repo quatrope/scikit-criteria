@@ -12,7 +12,6 @@
 """Implementation of a family of Multi-objective optimization on the basis of \
 ratio analysis (MOORA) methods."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================

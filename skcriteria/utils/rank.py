@@ -11,7 +11,6 @@
 
 """Functions for calculate and compare ranks (ordinal series)."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -21,7 +20,6 @@ from collections import namedtuple
 import numpy as np
 
 from scipy import stats
-
 
 # =============================================================================
 # RANKER

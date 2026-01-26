@@ -25,7 +25,6 @@ from .doctools import doc_inherit
 from .object_diff import DiffEqualityMixin, diff
 from .unames import unique_names
 
-
 # =============================================================================
 # ALL
 # =============================================================================

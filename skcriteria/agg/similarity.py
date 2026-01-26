@@ -19,7 +19,6 @@ be removed in v1.0. Please use 'skcriteria.agg.topsis' instead."""
 from .topsis import TOPSIS, topsis
 from ..utils import deprecate
 
-
 # =============================================================================
 # WARNINGS
 # =============================================================================

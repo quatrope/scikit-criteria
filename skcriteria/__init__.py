@@ -23,7 +23,6 @@ from .core import DecisionMatrix, Objective, mkdm
 from .io import read_dmsy, to_dmsy
 from .utils.ondemand_import import mk_ondemand_importer_for
 
-
 # =============================================================================
 # CONSTANTS
 # =============================================================================

@@ -226,11 +226,21 @@ class RankTransitivityChecker(SKCMethodABC):
         results. When True, missing alternatives are assigned the worst
         ranking + 1.
 
+    ranking_strategy : str, default="generations"
+        Strategy for generating reconstructed rankings from
+        the dominance graph:
+        - "generations": Generate a single ranking based on topological layers
+          (alternatives in the same layer receive the same rank,
+          producing ties)
+        - "toposorts": Generate multiple rankings from topological sorts
+          (number controlled by max_toposort_rankings parameter)
+
     max_toposort_rankings : int or None, default=50
         Maximum number of rankings to generate from topological sorts.
-        Set to 0 to disable toposort rankings generation. Set to None to
-        generate all possible rankings (no limit). Controls computational
-        complexity by limiting the number of decompositions.
+        Only used when ranking_strategy="toposorts". Set to 0 to generate no
+        rankings. Set to None to generate all possible rankings (no limit).
+        Controls computational complexity by limiting the number of
+        decompositions. Ignored when ranking_strategy="generations".
 
     fas_method : str, default="auto"
         Method for computing the Feedback Arc Set when converting graphs to
@@ -258,7 +268,8 @@ class RankTransitivityChecker(SKCMethodABC):
     ValueError
         If ``allow_missing_alternatives=False`` and alternatives are missing \
             from results.
-        If ``max_toposort_rankings`` is less than 1 (when not None).
+        If ``max_toposort_rankings`` is less than 0 (when not None).
+        If ``ranking_strategy`` is not "generations" or "toposorts".
 
     Examples
     --------
@@ -274,14 +285,21 @@ class RankTransitivityChecker(SKCMethodABC):
     ...     alternatives=["A", "B", "C"]
     ... )
     >>>
-    >>> # Create checker with a decision maker
+    >>> # Create checker with generations strategy
     >>> dmaker = simple.WeightedSum()
-    >>> checker = RankTransitivityChecker(dmaker)
+    >>> checker = RankTransitivityChecker(
+    ...     dmaker, ranking_strategy="generations")
     >>>
     >>> # Evaluate transitivity
     >>> result = checker.evaluate(dm)
     >>> print(result.extra_["test_criterion_2"])  # Transitivity test
     >>> print(result.extra_["test_criterion_3"])  # Stability test
+    >>>
+    >>> # Or use toposorts strategy for multiple rankings
+    >>> checker2 = RankTransitivityChecker(
+    ...     dmaker, ranking_strategy="toposorts", max_toposort_rankings=10
+    ... )
+    >>> result2 = checker2.evaluate(dm)
 
     """
 
@@ -289,6 +307,7 @@ class RankTransitivityChecker(SKCMethodABC):
     _skcriteria_parameters = [
         "dmaker",
         "allow_missing_alternatives",
+        "ranking_strategy",
         "max_toposort_rankings",
         "fas_method",
         "preferred_parallel_backend",
@@ -300,6 +319,7 @@ class RankTransitivityChecker(SKCMethodABC):
         dmaker,
         *,
         allow_missing_alternatives=False,
+        ranking_strategy="generations",
         max_toposort_rankings=50,
         fas_method="auto",
         preferred_parallel_backend=None,
@@ -312,6 +332,15 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # Allow missing alternatives
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
+
+        # Ranking strategy validation
+        valid_strategies = {"generations", "toposorts"}
+        if ranking_strategy not in valid_strategies:
+            raise ValueError(
+                f"ranking_strategy must be one of {valid_strategies}, "
+                f"got {ranking_strategy!r}"
+            )
+        self._ranking_strategy = ranking_strategy
 
         # Parallel backend
         if (
@@ -345,6 +374,13 @@ class RankTransitivityChecker(SKCMethodABC):
             else int(max_toposort_rankings)
         )
 
+        # Warn if max_toposort_rankings is specified with generations strategy
+        if ranking_strategy == "generations" and max_toposort_rankings != 50:
+            deprecate.warn(
+                "max_toposort_rankings is ignored when "
+                "ranking_strategy='generations'"
+            )
+
         # FAS method
         self._fas_method = fas_method
 
@@ -352,10 +388,12 @@ class RankTransitivityChecker(SKCMethodABC):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
+        rs = self._ranking_strategy
         fm = self._fas_method
         mr = self._max_toposort_rankings
         return (
-            f"<{name} {dm}, " f"fas_method={fm}, max_toposort_rankings={mr}>"
+            f"<{name} {dm}, ranking_strategy={rs!r}, "
+            f"fas_method={fm}, max_toposort_rankings={mr}>"
         )
 
     # Properties
@@ -370,6 +408,12 @@ class RankTransitivityChecker(SKCMethodABC):
         """Whether rankings are allowed that don't contain all original \
         alternatives."""
         return self._allow_missing_alternatives
+
+    @property
+    def ranking_strategy(self):
+        """Strategy for generating reconstructed rankings \
+        ('generations' or 'toposorts')."""
+        return self._ranking_strategy
 
     @property
     def max_toposort_rankings(self):
@@ -492,7 +536,7 @@ class RankTransitivityChecker(SKCMethodABC):
 
         This method removes cycles from the dominance graph using the Feedback
         Arc Set (FAS) algorithm to create a DAG, then generates rankings based
-        on the configured strategies (generations and/or topological sorts).
+        on the configured ranking_strategy.
 
         Parameters
         ----------
@@ -507,9 +551,10 @@ class RankTransitivityChecker(SKCMethodABC):
         Returns
         -------
         ranks : list of RankResult
-            List of reconstructed ranking results. Always contains the
-            generations ranking first, followed by toposort rankings
-            (if max_toposort_rankings > 0).
+            List of reconstructed ranking results. Content depends on
+            ranking_strategy:
+            - "generations": Single ranking with tied ranks for same layer
+            - "toposorts": Multiple rankings from topological sorts
         fas : list of tuple
             The feedback arc set (edges removed to make the graph acyclic).
         fas_method : str or None
@@ -521,35 +566,41 @@ class RankTransitivityChecker(SKCMethodABC):
 
         ranks = []
 
-        # Generate ranking from generations (tied ranks for same generation)
-        gen_values = dag_rank.ranking_from_generations(rrank.alternatives, dag)
-        gen_rank = RankResult(
-            method="Generations",
-            alternatives=rrank.alternatives,
-            values=gen_values,
-            extra=rrank.extra_,
-        )
-        gen_rank = self._add_info_to_rank(
-            gen_rank, full_alternatives, recomposition_number="generations"
-        )
-        ranks.append(gen_rank)
-
-        # Generate rankings from topological sorts
-        # (if max_toposort_rankings > 0)
-        tsr_generator = dag_rank.generate_rankings_from_toposorts(
-            rrank.alternatives, dag, max_rankings=self._max_toposort_rankings
-        )
-        for recomposition_number, rank_values in enumerate(tsr_generator):
-            rank = RankResult(
-                method=rrank.method,
+        if self._ranking_strategy == "generations":
+            # Generate ranking from generations
+            # (tied ranks for same generation)
+            gen_values = dag_rank.ranking_from_generations(
+                rrank.alternatives, dag
+            )
+            gen_rank = RankResult(
+                method="Generations",
                 alternatives=rrank.alternatives,
-                values=rank_values,
+                values=gen_values,
                 extra=rrank.extra_,
             )
-            rank = self._add_info_to_rank(
-                rank, full_alternatives, recomposition_number
+            gen_rank = self._add_info_to_rank(
+                gen_rank, full_alternatives, recomposition_number="generations"
             )
-            ranks.append(rank)
+            ranks.append(gen_rank)
+
+        elif self._ranking_strategy == "toposorts":
+            # Generate rankings from topological sorts
+            tsr_generator = dag_rank.generate_rankings_from_toposorts(
+                rrank.alternatives,
+                dag,
+                max_rankings=self._max_toposort_rankings,
+            )
+            for recomposition_number, rank_values in enumerate(tsr_generator):
+                rank = RankResult(
+                    method=rrank.method,
+                    alternatives=rrank.alternatives,
+                    values=rank_values,
+                    extra=rrank.extra_,
+                )
+                rank = self._add_info_to_rank(
+                    rank, full_alternatives, recomposition_number
+                )
+                ranks.append(rank)
 
         return ranks, fas, fas_method
 

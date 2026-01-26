@@ -21,7 +21,6 @@ from deprecated import deprecated as _deprecated
 
 from packaging.version import parse as _vparse
 
-
 # =============================================================================
 # WARNINGS
 # =============================================================================

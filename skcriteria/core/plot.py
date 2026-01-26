@@ -22,7 +22,6 @@ import seaborn as sns
 from .objectives import Objective
 from ..utils import AccessorABC
 
-
 # =============================================================================
 # PLOTTER OBJECT
 # =============================================================================

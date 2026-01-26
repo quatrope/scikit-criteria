@@ -24,7 +24,6 @@ This module provides functions for reading and writing DecisionMatrix objects.
 
 from .dmsy import read_dmsy, to_dmsy
 
-
 # =============================================================================
 # EXPORTS
 # =============================================================================

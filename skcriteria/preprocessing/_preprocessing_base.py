@@ -20,7 +20,6 @@ import abc
 from ..core import DecisionMatrix, SKCMethodABC
 from ..utils import doc_inherit
 
-
 # =============================================================================
 # SKCTransformer ABC
 # =============================================================================

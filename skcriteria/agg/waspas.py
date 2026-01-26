@@ -111,7 +111,7 @@ class WASPAS(SKCDecisionMakerABC):
         if np.any(matrix <= 0):
             raise ValueError("WASPAS can't operate with values <= 0")
 
-        (rank, wsm_scores, log10_wpm_scores, score) = waspas(
+        rank, wsm_scores, log10_wpm_scores, score = waspas(
             matrix, weights, self.lambda_value
         )
         return rank, {

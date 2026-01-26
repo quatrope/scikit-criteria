@@ -35,7 +35,6 @@ from .rank_invariant_check import RankInvariantChecker
 from .rank_reversal_by_clones import RankClonesChecker
 from .rank_transitivity_check import RankTransitivityChecker
 
-
 # =============================================================================
 # ALL
 # =============================================================================
