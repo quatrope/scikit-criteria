@@ -715,13 +715,15 @@ class RankTransitivityChecker(SKCMethodABC):
 
         # Calculate transitivity metrics
         # A formatted list of transitivity cycles found in the graph.
+        # A "simple cycle", or "elementary circuit", is a closed path where
+        # no node appears twice.
         trans_break = list(nx.simple_cycles(graph, length_bound=3))
         trans_break = _format_transitivity_cycles(trans_break)
 
         # The rate of transitivity violations,
         # normalized by the theoretical max.
         trans_break_rate = len(trans_break) / _transitivity_break_bound(
-            len(graph.nodes)
+            len(graph.nodes)  # number of alternatives
         )
 
         test_criterion_2 = trans_break_rate == 0
