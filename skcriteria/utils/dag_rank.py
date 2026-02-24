@@ -88,6 +88,12 @@ def resolve_fas_method(graph, method):
     exact integer programming method, otherwise defaults to the Eades
     heuristic for better performance on larger graphs.
 
+    The threshold of 100 nodes is based on computational complexity analysis:
+    the IP formulation with triangle inequalities generates O(n²) binary
+    variables and O(n³) constraints, becoming intractable for n ≥ 100.
+    In contrast, the Eades heuristic runs in O(n+m) time and guarantees a
+    feedback arc set of size at most m/2 - n/6
+
     Parameters
     ----------
     graph : networkx.DiGraph
@@ -102,6 +108,11 @@ def resolve_fas_method(graph, method):
         The resolved method name. Returns "ip" for graphs with less than
         100 nodes when method is "auto", "eades" for larger graphs when
         method is "auto", otherwise returns the input method unchanged.
+
+    References
+    ----------
+    :cite:p:`baharev2021exact`
+    :cite:p:`eades1993fast`
 
     """
     # Use exact method (IP) for small graphs, heuristic (Eades) for large ones
@@ -127,17 +138,23 @@ def as_dag(graph, *, method="auto") -> list[nx.DiGraph, list, str | None]:
 
         - "auto": Automatically selects "ip" for graphs with < 100 nodes,
           otherwise uses "eades" for better performance on larger graphs.
+          This threshold is based on the computational complexity of the
+          IP formulation, which becomes intractable for n ≥ 100 due to
+          O(n³) constraints.
         - "ip": Integer Programming - exact method that finds the minimum
-          feedback arc set. Slower but optimal.
-        - "eades": Heuristic method by Eades et al. Faster but may remove
-          more edges than strictly necessary.
+          feedback arc set. Generates O(n²) variables and O(n³) constraints.
+          Optimal but computationally expensive for large graphs.
+        - "eades": Heuristic method by Eades et al.
+          Runs in O(n+m) time with solution size bounded by m/2 - n/6.
+          Faster but may remove more edges than strictly necessary.
 
     Returns
     -------
     dag : networkx.DiGraph
         The resulting directed acyclic graph with feedback arcs removed.
-    fas : list of int
-        The indices of edges that were removed to break all cycles.
+    fas : list of tuple
+        The edges that were removed to break all cycles, as (source, target)
+        tuples.
     method : str or None
         The method that was actually used. None if the graph was already
         a DAG, otherwise the resolved method name.
@@ -148,6 +165,15 @@ def as_dag(graph, *, method="auto") -> list[nx.DiGraph, list, str | None]:
     all edges that participate in cycles. The feedback arc set theorem
     ensures that removing these edges is both necessary and sufficient to
     eliminate all cycles.
+
+    The Feedback Arc Set problem is, which motivates the use of heuristics for
+    larger instances.
+
+    References
+    ----------
+    :cite:p:`baharev2021exact`
+    :cite:p:`eades1993fast`
+    :cite:p:`karp2009reducibility`
 
     """
     # Check if already a DAG - no processing needed
@@ -229,7 +255,6 @@ def generate_rankings_from_toposorts(alternatives, dag, *, max_rankings=None):
         }
 
         # Build rank array for all alternatives in original order
-
         ranking = np.array(
             [alternative_to_rank[alt] for alt in alternatives],
             dtype=int,
@@ -273,9 +298,8 @@ def ranking_from_generations(alternatives, dag):
     """
     # Map each alternative to its generation number (1-indexed)
     alt_to_rank = {}
-    for rank, generation in enumerate(
-        nx.topological_generations(dag), start=1
-    ):
+    generations = nx.topological_generations(dag)
+    for rank, generation in enumerate(generations, start=1):
         for alt in generation:
             alt_to_rank[alt] = rank
 
