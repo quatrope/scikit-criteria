@@ -54,7 +54,6 @@ class DecisionMatrixStatsAccessor(AccessorABC):
 
     # The list of methods that can be accessed of the subjacent dataframe.
     _DF_WHITELIST = (
-        "corr",
         "cov",
         "describe",
         "kurtosis",
@@ -86,6 +85,37 @@ class DecisionMatrixStatsAccessor(AccessorABC):
         return super().__dir__() + [
             e for e in dir(self._dm._data_df) if e in self._DF_WHITELIST
         ]
+    
+    def corr(self, method="kendall", **kwargs):
+        """Compute pairwise correlation of criteria columns.
+
+        By default the Kendall rank correlation coefficient (tau) is used,
+        which is appropriate for ordinal or non-normally distributed data.
+
+        Parameters
+        ----------
+        method : str or callable, default ``"kendall"``
+            Method of correlation. Accepted values are ``"pearson"``,
+            ``"kendall"``, ``"spearman"``, or a callable with signature
+            ``(Series, Series) -> float``. See ``pandas.DataFrame.corr()``
+            for details.
+        kwargs:
+            Other keyword arguments are passed to the underlying
+            ``pandas.DataFrame.corr()`` method.
+
+        Returns
+        -------
+        :py:class:`pd.DataFrame`
+            Symmetric DataFrame of shape ``(n_criteria, n_criteria)`` with the
+            pairwise correlation coefficients between criteria. Diagonal
+            entries are 1.0.
+
+        See Also
+        --------
+        DecisionMatrixStatsAccessor.cov : Pairwise covariance of criteria.
+
+        """
+        return self._dm.corr(method=method, **kwargs)
 
     def mad(self, axis=0, skipna=True):
         """Return the mean absolute deviation of the values over a given axis.

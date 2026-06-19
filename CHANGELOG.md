@@ -4,6 +4,10 @@
 
 ## Version 0.10
 
+### Improvements and Behavioral Changes
+
+*   **Kendall as default correlation method:** The default correlation method in `RanksComparator.corr()` and `DecisionMatrixStatsAccessor.corr()` has been changed from Pearson to Kendall tau, which is more appropriate for ordinal data such as rankings. The `method` parameter is now explicit in both methods, making it easier to switch to `"pearson"` or `"spearman"` when needed.
+
 *   **Parallel Execution in Combinatorial Pipelines:** The `SKCCombinatorialPipeline` class now supports parallel execution of the generated pipelines using the `joblib` library. This significantly improves performance when evaluating a large number of pipeline combinations. Users can control the degree of parallelism through the `n_jobs` and `preferred_parallel_backend` parameters.
 
 *   **Enhanced `RankTransitivityChecker` with Feedback Arc Set (FAS):** The transitivity checker now uses the [Feedback Arc Set (FAS)](https://en.wikipedia.org/wiki/Feedback_arc_set) algorithm for robust handling of cyclic dominance graphs. When transitivity violations (cycles) are detected in pairwise comparisons, FAS identifies the minimum set of edges to remove, converting the graph into a Directed Acyclic Graph (DAG). Two ranking strategies are then applied:

@@ -256,13 +256,11 @@ class RanksComparator(Sequence, DiffEqualityMixin):
 
     # STATISTICALS ============================================================
 
-    def corr(self, *, untied=False, **kwargs):
+    def corr(self, *, untied=False, method="kendall", **kwargs):
         """Compute pairwise correlation of rankings, excluding NA/null values.
 
-        By default the pearson correlation coefficient is used.
-
-        Please check the full documentation of a ``pandas.DataFrame.corr()``
-        method for details about the implementation.
+        By default the Kendall rank correlation coefficient (tau) is used,
+        which is suitable for ordinal data such as rankings.
 
         Parameters
         ----------
@@ -271,6 +269,11 @@ class RanksComparator(Sequence, DiffEqualityMixin):
             ``RankResult.untied_rank_`` property is used to assign each
             alternative a single ranked order. On the other hand, if it is
             ``False`` the rankings are used as they are.
+        method: str or callable, default ``"kendall"``
+            Method of correlation. Accepted values are ``"pearson"``,
+            ``"kendall"``, ``"spearman"``, or a callable with signature
+            ``(Series, Series) -> float``. See ``pandas.DataFrame.corr()``
+            for details.
         kwargs:
             Other keyword arguments are passed to the
             ``pandas.DataFrame.corr()`` method.
@@ -278,10 +281,17 @@ class RanksComparator(Sequence, DiffEqualityMixin):
         Returns
         -------
         :py:class:`pd.DataFrame`
-            A DataFrame with the correlation between rankings.
+            Symmetric DataFrame of shape ``(n_methods, n_methods)`` with the
+            pairwise correlation coefficients between rankings. Diagonal
+            entries are 1.0.
+
+        See Also
+        --------
+        RanksComparator.cov : Pairwise covariance of rankings.
+        RanksComparator.r2_score : Pairwise R² score between rankings.
 
         """
-        return self.to_dataframe(untied=untied).corr(**kwargs)
+        return self.to_dataframe(untied=untied).corr(method=method, **kwargs)
 
     def cov(self, *, untied=False, **kwargs):
         """Compute pairwise covariance of rankings, excluding NA/null values.
@@ -628,7 +638,7 @@ class RanksComparatorPlotter(AccessorABC):
     def corr(self, *, untied=False, corr_kws=None, **kwargs):
         """Plot the pairwise correlation of rankings as a color-encoded matrix.
 
-        By default the pearson correlation coefficient is used.
+        By default the kendall correlation coefficient is used.
 
         Parameters
         ----------
