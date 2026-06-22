@@ -205,12 +205,12 @@ def test_RanksComparator_corr(untied):
             "test_1": (
                 {"test_1": 1.0, "test_2": 1.0}
                 if untied
-                else {"test_1": np.nan, "test_2": np.nan}
+                else {"test_1": 1.0, "test_2": np.nan}
             ),
             "test_2": (
                 {"test_1": 1.0, "test_2": 1.0}
                 if untied
-                else {"test_1": np.nan, "test_2": np.nan}
+                else {"test_1": np.nan, "test_2": 1.0}
             ),
         },
     )
@@ -455,7 +455,7 @@ def test_RanksComparatorPlotter_corr(fig_test, fig_ref, untied):
     expected.index.name = "Alternatives"
 
     sns.heatmap(
-        expected.corr(),
+        expected.corr(method="kendall"),
         annot=True,
         cbar_kws={"label": "Correlation"},
         ax=exp_ax,

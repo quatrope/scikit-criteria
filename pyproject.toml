@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 79
-target-version = ["py310", "py311", "py312", "py313", "py314"]
+target-version = ["py311", "py312", "py313", "py314"]
 
 
 [tool.pytest.ini_options]
@@ -49,7 +49,6 @@ classifiers = [
     "Operating System :: OS Independent",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -60,10 +59,10 @@ classifiers = [
 urls = { Homepage = "https://scikit-criteria.quatrope.org/", Repository = "https://github.com/quatrope/scikit-criteria" }
 # Dependencies are pinned to the first minor version and limited to the next major version
 dependencies = [
-    "numpy>=2.2.0,<3",
+    "numpy>=2.4.0,<3",
     "networkx>=3.4.0,<4",
-    "pandas>=2.3.0,<3",
-    "scipy>=1.15.0,<2",
+    "pandas>=3.0.0,<4",
+    "scipy>=1.17.0,<2",
     "jinja2>=3.1.0,<4",
     "custom_inherit>=2.4.0,<3",
     "seaborn>=0.13,<0.14",

@@ -866,7 +866,7 @@ class DecisionMatrix(DiffEqualityMixin):
             objectives = objectives[mask][only]
             weights = weights[mask][only]
 
-        weights = pd_fmt.format_array(weights, None)
+        weights = pd_fmt.format_array(weights.to_numpy(), None)
 
         headers = []
         for crit, obj, weight in zip(criteria, objectives, weights):
