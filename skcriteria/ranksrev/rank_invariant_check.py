@@ -484,6 +484,74 @@ class RankInvariantChecker(SKCMethodABC):
         )
         return patched_rank
 
+    def _opr(self, results):
+        r"""Compute the Optimal Preservation Rate (OPR).
+
+        The proportion of mutations in which the optimal alternative
+        :math:`a^*` retains its top position (rank = 1).
+
+        .. math::
+
+            \text{OPR} = \frac{|\mathcal{M}^*|}{|\mathcal{M}|}
+
+        where :math:`\mathcal{M}^* = \{m \in \mathcal{M} : r_m(a^*) = 1\}`.
+
+        A value of 1 indicates perfect stability; 0 indicates that :math:`a^*`
+        is displaced in every mutation.
+
+        Parameters
+        ----------
+        results : list of RankResult
+            List where the first element is the reference ranking and the
+            remaining elements are the mutation rankings.
+
+        Returns
+        -------
+        float
+            OPR value in [0, 1].
+
+        """
+        reference = results[0]
+        best_alt = reference.alternatives[reference.values == 1][0]
+        mutations = results[1:]
+        count = sum(
+            1
+            for r in mutations
+            if r.values[r.alternatives == best_alt][0] == 1
+        )
+        return count / len(mutations)
+
+    def _rank_displacement(self, results):
+        r"""Compute the Rank Displacement (RD).
+
+        The average magnitude of displacement of the optimal alternative
+        :math:`a^*` across all mutations:
+
+        .. math::
+
+            \text{RD} = \frac{1}{|\mathcal{M}|} \sum_{m \in \mathcal{M}}
+            (r_m(a^*) - 1)
+
+        Parameters
+        ----------
+        results : list of RankResult
+            List where the first element is the reference ranking and the
+            remaining elements are the mutation rankings.
+
+        Returns
+        -------
+        float
+            Average rank displacement (>= 0).
+
+        """
+        reference = results[0]
+        best_alt = reference.alternatives[reference.values == 1][0]
+        mutations = results[1:]
+        displacements = [
+            r.values[r.alternatives == best_alt][0] - 1 for r in mutations
+        ]
+        return np.mean(displacements)
+
     def evaluate(self, dm):
         """Executes a the invariance test.
 
@@ -555,6 +623,14 @@ class RankInvariantChecker(SKCMethodABC):
             names.append(f"M.{mutated}")
             results.append(patched_mrank)
 
+        # Lets calculate the metrics
+        opr = self._opr(results)
+        rd = self._rank_displacement(results)
+
         # manually creates a new RankComparator
         named_ranks = unique_names(names=names, elements=results)
-        return RanksComparator(named_ranks, extra={})
+        extra = {"opr": opr, "rd": rd}
+        rank_cmp = RanksComparator(named_ranks, extra=extra)
+
+        # bye!
+        return rank_cmp
