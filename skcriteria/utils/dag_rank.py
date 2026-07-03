@@ -10,203 +10,102 @@
 # =============================================================================
 
 """
-DAG conversion and topological sorting utilities.
+DAG conversion and ranking-reconstruction utilities.
 
-This module provides utilities for converting directed graphs to Directed
-Acyclic Graphs (DAGs) using the Feedback Arc Set (FAS) algorithm and
-generating all possible rankings from topological sorts.
+This module provides utilities for converting a directed graph (typically
+a pairwise dominance graph / tournament) into a Directed Acyclic Graph,
+and for reconstructing a ranking from it.
+
+:func:`as_condensed_dag` collapses each strongly connected component
+(dominance cycle) into a single supernode via graph condensation, which
+is always exact and acyclic -- no heuristic or arbitrary cycle-breaking
+choice is involved. :func:`ranking_from_generations` then builds a
+ranking from that DAG, where every alternative that was part of the same
+dominance cycle ends up tied at the same rank.
 
 Key Features
 ------------
-- Optimal cycle removal using Integer Programming or Eades heuristic
-- Complete enumeration of all valid topological orderings
-- Automatic method selection based on graph size
+- Exact, deterministic cycle handling via strongly connected components
+- No approximation or arbitrary choices: every dominance cycle in the
+  original graph is reported as an explicit tie in the resulting ranking
 """
 
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
-import igraph as ig
-
 import networkx as nx
 
 import numpy as np
-
-# =============================================================================
-# PRIVATE HELPERS
-# =============================================================================
-
-
-def _nx_fas(igraph, fas):
-    """Convert igraph edge IDs to NetworkX edge tuples.
-
-    Translates a feedback arc set represented as igraph edge IDs into
-    NetworkX-compatible edge tuples using the original node names.
-
-    Parameters
-    ----------
-    igraph : igraph.Graph
-        The igraph representation of the graph, where nodes have
-        "_nx_name" attributes storing their original NetworkX names.
-    fas : list of int
-        List of igraph edge IDs that form the feedback arc set.
-
-    Returns
-    -------
-    list of tuple
-        List of NetworkX edge tuples (source, target) corresponding to
-        the feedback arc set edges.
-
-    Notes
-    -----
-    This function is used internally to map between igraph's edge
-    representation (integer IDs) and NetworkX's edge representation
-    (node name tuples), preserving the original node names from the
-    NetworkX graph.
-
-    """
-    nx_edges = []
-    for edge in igraph.es[fas]:
-        nx_edge = tuple(
-            node.attributes()["_nx_name"] for node in edge.vertex_tuple
-        )
-        nx_edges.append(nx_edge)
-    return nx_edges
-
 
 # =============================================================================
 # PUBLIC FUNCTIONS
 # =============================================================================
 
 
-def resolve_fas_method(graph, method):
-    """Resolve the feedback arc set method based on graph size.
+def as_condensed_dag(graph):
+    """Collapse every strongly connected component into a single node.
 
-    Automatically selects the optimal method for finding feedback arc sets
-    based on the graph size. For smaller graphs (< 100 nodes), it uses the
-    exact integer programming method, otherwise defaults to the Eades
-    heuristic for better performance on larger graphs.
+    Produces a DAG where each node represents either a single
+    alternative or, if it was part of a dominance cycle (a strongly
+    connected component of size greater than one), the whole group of
+    alternatives tied together by that cycle.
 
-    The threshold of 100 nodes is based on computational complexity analysis:
-    the IP formulation with triangle inequalities generates O(n²) binary
-    variables and O(n³) constraints, becoming intractable for n ≥ 100.
-    In contrast, the Eades heuristic runs in O(n+m) time and guarantees a
-    feedback arc set of size at most m/2 - n/6
-
-    Parameters
-    ----------
-    graph : networkx.DiGraph
-        The directed graph for which to resolve the method.
-    method : str
-        The method to use. If "auto", the method is selected based on
-        graph size. Otherwise, the method is returned as-is.
-
-    Returns
-    -------
-    str
-        The resolved method name. Returns "ip" for graphs with less than
-        100 nodes when method is "auto", "eades" for larger graphs when
-        method is "auto", otherwise returns the input method unchanged.
-
-    References
-    ----------
-    :cite:p:`baharev2021exact`
-    :cite:p:`eades1993fast`
-
-    """
-    # Use exact method (IP) for small graphs, heuristic (Eades) for large ones
-    if method == "auto":
-        method = "ip" if graph.number_of_nodes() < 100 else "eades"
-    return method
-
-
-def as_dag(graph, *, method="auto") -> list[nx.DiGraph, list, str | None]:
-    """Convert a directed graph to a Directed Acyclic Graph (DAG).
-
-    Transforms any directed graph into a DAG by identifying and removing
-    the minimum set of edges that form cycles (feedback arc set). The
-    algorithm guarantees the result is acyclic by breaking all cycles
-    in the graph.
+    Graph condensation is a direct mathematical construction, always
+    exact and always acyclic, with no heuristic involved and no
+    arbitrary choice to make about which edge to remove to break a
+    cycle. Use this when the goal is to *report* where the pairwise
+    comparisons fail to determine a strict order, instead of forcing
+    one anyway.
 
     Parameters
     ----------
     graph : networkx.DiGraph
-        The directed graph to convert to a DAG. Can be cyclic or acyclic.
-    method : str, default "auto"
-        The method to use for finding the feedback arc set. Options are:
-
-        - "auto": Automatically selects "ip" for graphs with < 100 nodes,
-          otherwise uses "eades" for better performance on larger graphs.
-          This threshold is based on the computational complexity of the
-          IP formulation, which becomes intractable for n ≥ 100 due to
-          O(n³) constraints.
-        - "ip": Integer Programming - exact method that finds the minimum
-          feedback arc set. Generates O(n²) variables and O(n³) constraints.
-          Optimal but computationally expensive for large graphs.
-        - "eades": Heuristic method by Eades et al.
-          Runs in O(n+m) time with solution size bounded by m/2 - n/6.
-          Faster but may remove more edges than strictly necessary.
+        The (possibly cyclic) graph to condense.
 
     Returns
     -------
     dag : networkx.DiGraph
-        The resulting directed acyclic graph with feedback arcs removed.
-    fas : list of tuple
-        The edges that were removed to break all cycles, as (source, target)
-        tuples.
-    method : str or None
-        The method that was actually used. None if the graph was already
-        a DAG, otherwise the resolved method name.
+        The condensation of ``graph``: one node per strongly connected
+        component, with an edge between two supernodes if there was an
+        edge between any of their members in the original graph.
+    members : dict
+        Maps each node of ``dag`` to the set of original alternatives it
+        represents. Nodes coming from a size-one component map to a
+        singleton set; nodes coming from a dominance cycle map to all
+        the alternatives tied together by that cycle. Meant to be passed
+        as the ``members`` argument of :func:`ranking_from_generations`.
 
     Notes
     -----
-    The function guarantees that the returned graph is acyclic by removing
-    all edges that participate in cycles. The feedback arc set theorem
-    ensures that removing these edges is both necessary and sufficient to
-    eliminate all cycles.
-
-    The Feedback Arc Set problem is, which motivates the use of heuristics for
-    larger instances.
-
-    References
-    ----------
-    :cite:p:`baharev2021exact`
-    :cite:p:`eades1993fast`
-    :cite:p:`karp2009reducibility`
+    ``nx.transitive_reduction`` does not preserve node attributes, so
+    the ``members`` mapping has to be rebuilt after calling it -- this
+    is handled internally, callers do not need to worry about it.
 
     """
-    # Check if already a DAG - no processing needed
-    if nx.is_directed_acyclic_graph(graph):
-        return graph, [], None
-
-    # Resolve method based on graph size for optimal performance
-    method = resolve_fas_method(graph, method)
-
-    # Convert to igraph for efficient FAS computation
-    igraph = ig.Graph.from_networkx(graph)
-
-    # Find minimum set of edges that form cycles
-    fas = igraph.feedback_arc_set(method=method)
-
-    # get the nodes between edges before removal
-    nx_fas = _nx_fas(igraph, fas)
-
-    # Remove feedback arcs to break all cycles
-    igraph.delete_edges(fas)
-
-    # Convert back to NetworkX format
-    dag = igraph.to_networkx()
-
-    return dag, nx_fas, method
+    condensed = nx.condensation(graph)
+    dag = nx.transitive_reduction(condensed)
+    dag.add_nodes_from(condensed.nodes(data=True))
+    members = {
+        node: data["members"] for node, data in dag.nodes(data=True)
+    }
+    return dag, members
 
 
-def generate_rankings_from_toposorts(alternatives, dag, *, max_rankings=None):
+def generate_rankings_from_toposorts(
+    alternatives, dag, members, *, max_rankings=None
+):
     """Generate all possible rankings from a DAG's topological sorts.
 
     Enumerates all valid rankings by computing every possible topological
     sort of the DAG. Each ranking represents a complete ordering of
     alternatives that respects the preference relations encoded in the DAG.
+
+    Meant to be used with the condensed DAG from :func:`as_condensed_dag`,
+    where a node may represent several alternatives tied together by a
+    dominance cycle: all alternatives belonging to the same supernode
+    always receive the same rank in every generated ranking, since there
+    is no data to order them relative to each other.
 
     Parameters
     ----------
@@ -214,9 +113,11 @@ def generate_rankings_from_toposorts(alternatives, dag, *, max_rankings=None):
         Array of alternative names/identifiers in their original order.
         This defines the order in which ranks are returned in each ranking.
     dag : networkx.DiGraph
-        A directed acyclic graph representing preference relations between
-        alternatives. Edges point from preferred to less preferred
-        alternatives.
+        A directed acyclic graph representing preference relations, as
+        returned by :func:`as_condensed_dag`.
+    members : dict
+        Maps each node of ``dag`` to the set of alternatives it
+        represents, as returned by :func:`as_condensed_dag`.
     max_rankings : int, optional
         Maximum number of rankings to generate. If None (default), all
         possible rankings are generated. Use this parameter to limit
@@ -225,21 +126,21 @@ def generate_rankings_from_toposorts(alternatives, dag, *, max_rankings=None):
     Yields
     ------
     np.ndarray
-        A 1-indexed NumPy array where the i-th element is the rank (position)
-        of the i-th alternative. Lower ranks indicate better alternatives.
-        Alternatives not present in the DAG are assigned a rank of
-        len(alternatives) + 1.
+        A 1-indexed NumPy array where the i-th element is the rank
+        (position) of the i-th alternative. Lower ranks indicate better
+        alternatives. Alternatives tied together in the same supernode
+        (dominance cycle) always share the same rank across every
+        yielded ranking.
 
     Notes
     -----
     - The number of rankings can grow exponentially with the number of
-      alternatives, especially for DAGs with many incomparable elements.
+      supernodes, especially for DAGs with many incomparable elements.
     - Rankings are 1-indexed (best alternative has rank 1, not 0).
-    - Alternatives missing from the DAG (e.g., filtered out) receive the
-      last possible rank position (len(alternatives) + 1).
-    - When max_rankings is specified, the function stops generating rankings
-      once the limit is reached, which can significantly reduce computation
-      time for large DAGs.
+    - This enumerates orderings of the DAG's nodes (supernodes) -- it
+      never invents an order *within* a supernode, since a dominance
+      cycle means the pairwise comparisons genuinely do not determine
+      one.
 
     """
     rankings_generated = 0
@@ -248,15 +149,22 @@ def generate_rankings_from_toposorts(alternatives, dag, *, max_rankings=None):
         if max_rankings is not None and rankings_generated >= max_rankings:
             break
 
-        # Map each alternative to its 1-indexed position in
-        # this topological sort
-        alternative_to_rank = {
-            alt: rank for rank, alt in enumerate(topological_order, start=1)
+        # Map each node to its 1-indexed position in this topological sort
+        node_to_rank = {
+            node: rank for rank, node in enumerate(topological_order, start=1)
+        }
+
+        # Expand each node into every alternative it represents, all
+        # sharing that node's rank
+        alt_to_rank = {
+            alt: node_to_rank[node]
+            for node in topological_order
+            for alt in members[node]
         }
 
         # Build rank array for all alternatives in original order
         ranking = np.array(
-            [alternative_to_rank[alt] for alt in alternatives],
+            [alt_to_rank[alt] for alt in alternatives],
             dtype=int,
         )
 
@@ -264,12 +172,16 @@ def generate_rankings_from_toposorts(alternatives, dag, *, max_rankings=None):
         rankings_generated += 1
 
 
-def ranking_from_generations(alternatives, dag):
+def ranking_from_generations(alternatives, dag, members):
     """Generate a ranking based on topological generations.
 
     Creates a single ranking where alternatives in the same topological
     generation (incomparable elements) share the same rank. This provides
     a compact representation when ties are acceptable.
+
+    Meant to be used with the condensed DAG from :func:`as_condensed_dag`,
+    where a node may represent several alternatives tied together by a
+    dominance cycle.
 
     Parameters
     ----------
@@ -277,31 +189,29 @@ def ranking_from_generations(alternatives, dag):
         Array of alternative names/identifiers in their original order.
         This defines the order in which ranks are returned in the ranking.
     dag : networkx.DiGraph
-        A directed acyclic graph representing preference relations between
-        alternatives. Edges point from preferred to less preferred
-        alternatives.
+        A directed acyclic graph representing preference relations, as
+        returned by :func:`as_condensed_dag`.
+    members : dict
+        Maps each node of ``dag`` to the set of alternatives it
+        represents, as returned by :func:`as_condensed_dag`.
 
     Returns
     -------
     np.ndarray
         A 1-indexed NumPy array where the i-th element is the rank of the
-        i-th alternative. Alternatives in the same generation share the
-        same rank. Lower ranks indicate better alternatives.
-
-    Notes
-    -----
-    Unlike `generate_rankings_from_toposorts()` which enumerates all possible
-    orderings, this function returns a single ranking where incomparable
-    alternatives (those without a direct or transitive preference relation)
-    are tied.
+        i-th alternative. Alternatives in the same generation (i.e. in
+        the same dominance cycle) share the same rank. Lower ranks
+        indicate better alternatives.
 
     """
     # Map each alternative to its generation number (1-indexed)
     alt_to_rank = {}
-    generations = nx.topological_generations(dag)
-    for rank, generation in enumerate(generations, start=1):
-        for alt in generation:
-            alt_to_rank[alt] = rank
+    for rank, generation in enumerate(
+        nx.topological_generations(dag), start=1
+    ):
+        for c_node in generation:
+            for alt in members[c_node]:
+                alt_to_rank[alt] = rank
 
     # Build rank array in original alternative order
     ranking = np.array(
