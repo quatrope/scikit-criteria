@@ -72,7 +72,6 @@ dependencies = [
     "matplotlib>=3.10.0,<4",
     "methodtools>=0.4,<1",
     "pyyaml>=6.0.0,<7",
-    "igraph>=1.0.0,<2"
 ]
 
 [tool.setuptools]

@@ -16,7 +16,7 @@ This module provides utilities for converting a directed graph (typically
 a pairwise dominance graph / tournament) into a Directed Acyclic Graph,
 and for reconstructing a ranking from it.
 
-:func:`as_condensed_dag` collapses each strongly connected component
+:func:`as_condensed_reduced_dag` collapses each strongly connected component
 (dominance cycle) into a single supernode via graph condensation, which
 is always exact and acyclic -- no heuristic or arbitrary cycle-breaking
 choice is involved. :func:`ranking_from_generations` then builds a
@@ -43,13 +43,15 @@ import numpy as np
 # =============================================================================
 
 
-def as_condensed_dag(graph):
+def as_condensed_reduced_dag(graph):
     """Collapse every strongly connected component into a single node.
 
     Produces a DAG where each node represents either a single
     alternative or, if it was part of a dominance cycle (a strongly
     connected component of size greater than one), the whole group of
-    alternatives tied together by that cycle.
+    alternatives tied together by that cycle. The condensation is then
+    transitively reduced, dropping edges implied by other paths so only
+    the minimal set of edges needed to preserve reachability remains.
 
     Graph condensation is a direct mathematical construction, always
     exact and always acyclic, with no heuristic involved and no
@@ -66,9 +68,10 @@ def as_condensed_dag(graph):
     Returns
     -------
     dag : networkx.DiGraph
-        The condensation of ``graph``: one node per strongly connected
-        component, with an edge between two supernodes if there was an
-        edge between any of their members in the original graph.
+        The transitive reduction of the condensation of ``graph``: one
+        node per strongly connected component, with an edge between two
+        supernodes only where required to preserve the reachability
+        relation implied by the original graph.
     members : dict
         Maps each node of ``dag`` to the set of original alternatives it
         represents. Nodes coming from a size-one component map to a
@@ -83,93 +86,30 @@ def as_condensed_dag(graph):
     is handled internally, callers do not need to worry about it.
 
     """
+
+    # collapse each strongly connected component (dominance cycle)
+    # into a single supernode, then drop transitively redundant edges
     condensed = nx.condensation(graph)
     dag = nx.transitive_reduction(condensed)
-    dag.add_nodes_from(condensed.nodes(data=True))
-    members = {
-        node: data["members"] for node, data in dag.nodes(data=True)
-    }
+
+    # transitive_reduction discards node attributes, so rebuild the
+    # members mapping and give each supernode a readable label
+    members, labels, collapsed = {}, {}, False
+    for node, data in dag.nodes(data=True):
+
+        # alternatives condensed into this supernode
+        node_members = data["members"]
+        node_name = "+\n".join(node_members)
+
+        # keyed by the new label, since nodes are relabeled below
+        members[node_name] = node_members
+        labels[node] = node_name
+
+    # swap the integer SCC ids for the readable labels built above
+    nx.relabel_nodes(dag, labels, copy=False)
+
     return dag, members
 
-
-def generate_rankings_from_toposorts(
-    alternatives, dag, members, *, max_rankings=None
-):
-    """Generate all possible rankings from a DAG's topological sorts.
-
-    Enumerates all valid rankings by computing every possible topological
-    sort of the DAG. Each ranking represents a complete ordering of
-    alternatives that respects the preference relations encoded in the DAG.
-
-    Meant to be used with the condensed DAG from :func:`as_condensed_dag`,
-    where a node may represent several alternatives tied together by a
-    dominance cycle: all alternatives belonging to the same supernode
-    always receive the same rank in every generated ranking, since there
-    is no data to order them relative to each other.
-
-    Parameters
-    ----------
-    alternatives : array-like
-        Array of alternative names/identifiers in their original order.
-        This defines the order in which ranks are returned in each ranking.
-    dag : networkx.DiGraph
-        A directed acyclic graph representing preference relations, as
-        returned by :func:`as_condensed_dag`.
-    members : dict
-        Maps each node of ``dag`` to the set of alternatives it
-        represents, as returned by :func:`as_condensed_dag`.
-    max_rankings : int, optional
-        Maximum number of rankings to generate. If None (default), all
-        possible rankings are generated. Use this parameter to limit
-        computation when the number of topological sorts is very large.
-
-    Yields
-    ------
-    np.ndarray
-        A 1-indexed NumPy array where the i-th element is the rank
-        (position) of the i-th alternative. Lower ranks indicate better
-        alternatives. Alternatives tied together in the same supernode
-        (dominance cycle) always share the same rank across every
-        yielded ranking.
-
-    Notes
-    -----
-    - The number of rankings can grow exponentially with the number of
-      supernodes, especially for DAGs with many incomparable elements.
-    - Rankings are 1-indexed (best alternative has rank 1, not 0).
-    - This enumerates orderings of the DAG's nodes (supernodes) -- it
-      never invents an order *within* a supernode, since a dominance
-      cycle means the pairwise comparisons genuinely do not determine
-      one.
-
-    """
-    rankings_generated = 0
-
-    for topological_order in nx.all_topological_sorts(dag):
-        if max_rankings is not None and rankings_generated >= max_rankings:
-            break
-
-        # Map each node to its 1-indexed position in this topological sort
-        node_to_rank = {
-            node: rank for rank, node in enumerate(topological_order, start=1)
-        }
-
-        # Expand each node into every alternative it represents, all
-        # sharing that node's rank
-        alt_to_rank = {
-            alt: node_to_rank[node]
-            for node in topological_order
-            for alt in members[node]
-        }
-
-        # Build rank array for all alternatives in original order
-        ranking = np.array(
-            [alt_to_rank[alt] for alt in alternatives],
-            dtype=int,
-        )
-
-        yield ranking
-        rankings_generated += 1
 
 
 def ranking_from_generations(alternatives, dag, members):
@@ -179,7 +119,7 @@ def ranking_from_generations(alternatives, dag, members):
     generation (incomparable elements) share the same rank. This provides
     a compact representation when ties are acceptable.
 
-    Meant to be used with the condensed DAG from :func:`as_condensed_dag`,
+    Meant to be used with the condensed DAG from :func:`as_condensed_reduced_dag`,
     where a node may represent several alternatives tied together by a
     dominance cycle.
 
@@ -190,10 +130,10 @@ def ranking_from_generations(alternatives, dag, members):
         This defines the order in which ranks are returned in the ranking.
     dag : networkx.DiGraph
         A directed acyclic graph representing preference relations, as
-        returned by :func:`as_condensed_dag`.
+        returned by :func:`as_condensed_reduced_dag`.
     members : dict
         Maps each node of ``dag`` to the set of alternatives it
-        represents, as returned by :func:`as_condensed_dag`.
+        represents, as returned by :func:`as_condensed_reduced_dag`.
 
     Returns
     -------
