@@ -34,6 +34,8 @@ Key Features
 # IMPORTS
 # =============================================================================
 
+import itertools as it
+
 import networkx as nx
 
 import numpy as np
@@ -159,3 +161,38 @@ def ranking_from_generations(alternatives, dag, members):
         dtype=int,
     )
     return ranking
+
+
+# [CLAUDE cambia el nombre de la funcion]
+def generate_rankings_from_x(alternatives, dag, members, *, max_ranks=None):
+    """[CLAUDE COMPLETA]
+    """
+    # [CLAUDE COMPLETA]
+    all_permutations = []
+    for generation in nx.topological_generations(dag):
+
+        # [CLAUDE COMPLETA]
+        gen_members = members[generation[0]]
+
+        # [CLAUDE COMPLETA]
+        generation_permutations = it.permutations(gen_members)
+        all_permutations.append(generation_permutations)
+
+    # [CLAUDE COMPLETA]
+    generated_rankins = 0
+    for permutation in it.product(*all_permutations):
+        if max_ranks is not None and generated_rankins >= max_ranks:
+            break
+
+        # [CLAUDE no me gusta el nombre plain_permutation]
+        plain_permutation = it.chain(*permutation)
+
+        alt_to_rank = {alternative: rank for rank, alternative in enumerate(plain_permutation, start=1)}
+
+        ranking = np.array(
+            [alt_to_rank[alt] for alt in alternatives],
+            dtype=int,
+        )
+
+        yield ranking
+        generated_rankins += 1
