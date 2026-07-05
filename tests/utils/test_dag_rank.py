@@ -22,8 +22,6 @@ import numpy as np
 
 import pandas as pd
 
-import pytest
-
 from skcriteria.utils import dag_rank
 
 
@@ -32,119 +30,47 @@ from skcriteria.utils import dag_rank
 # =============================================================================
 
 
-@pytest.mark.parametrize(
-    "nodes, method, expected",
-    [
-        (10, "auto", "ip"),
-        (99, "auto", "ip"),
-        (99, "eades", "eades"),
-        (100, "auto", "eades"),
-        (100, "ip", "ip"),
-    ],
-)
-def test_resolve_fas_method(nodes, method, expected):
-    graph = nx.erdos_renyi_graph(n=nodes, p=0.3)
-    result = dag_rank.resolve_fas_method(graph, method)
-    assert result == expected
-
-
-def test_as_dag_not_dag():
-
-    # Crear la matriz de adyacencia como DataFrame
-    # Basándome en el diagrama que subiste
+def test_as_condensed_reduced_dag_is_dag():
+    # Simple linear chain: A -> B -> C, no cycles
     adj_matrix = pd.DataFrame(
         {
-            "A": [0, 0, 1, 0, 1],
-            "B": [0, 0, 0, 0, 0],
-            "C": [1, 1, 0, 0, 1],
-            "D": [0, 0, 0, 0, 0],
-            "E": [0, 0, 1, 1, 0],
+            "A": [0, 0, 0],
+            "B": [1, 0, 0],
+            "C": [0, 1, 0],
         },
-        index=["A", "B", "C", "D", "E"],
-    )
-
-    # Crear el grafo dirigido desde el DataFrame
-    graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
-
-    r_graph, r_fas, r_method = dag_rank.as_dag(graph, method="auto")
-
-    assert nx.is_directed_acyclic_graph(r_graph)
-    assert r_fas == [("A", "C"), ("C", "E")]
-    assert r_method == "ip"
-
-
-def test_as_dag_is_dag():
-
-    # Crear la matriz de adyacencia como DataFrame
-    # Basándome en el diagrama que subiste
-    adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 1],
-            "B": [0, 0],
-        },
-        index=["A", "B"],
-    )
-
-    # Crear el grafo dirigido desde el DataFrame
-    graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
-
-    r_graph, r_fas, r_method = dag_rank.as_dag(graph, method="auto")
-
-    assert nx.is_directed_acyclic_graph(r_graph)
-    assert r_fas == []
-    assert r_method is None
-
-
-def test_generate_rankings_from_toposorts():
-    adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 0, 0, 0],
-            "B": [0, 0, 1, 0, 0],
-            "C": [1, 0, 0, 0, 0],
-            "D": [0, 0, 0, 0, 1],
-            "E": [1, 0, 1, 0, 0],
-        },
-        index=["A", "B", "C", "D", "E"],
+        index=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
-    result = dag_rank.generate_rankings_from_toposorts(
-        ["A", "B", "C", "D", "E"], graph
-    )
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
 
-    np.testing.assert_array_equal(next(result), [1, 5, 2, 4, 3])
-    np.testing.assert_array_equal(next(result), [1, 4, 2, 5, 3])
-    np.testing.assert_array_equal(next(result), [1, 3, 2, 5, 4])
-
-    with pytest.raises(StopIteration):
-        next(result)
+    assert nx.is_directed_acyclic_graph(dag)
+    assert dag.number_of_nodes() == 3
+    assert all(len(m) == 1 for m in members.values())
 
 
-def test_generate_rankings_from_toposorts_max1():
+def test_as_condensed_reduced_dag_with_cycle():
+    # A -> B -> C -> A forms a dominance cycle, all tied into one supernode
     adj_matrix = pd.DataFrame(
         {
-            "A": [0, 0, 0, 0, 0],
-            "B": [0, 0, 1, 0, 0],
-            "C": [1, 0, 0, 0, 0],
-            "D": [0, 0, 0, 0, 1],
-            "E": [1, 0, 1, 0, 0],
+            "A": [0, 0, 1],
+            "B": [1, 0, 0],
+            "C": [0, 1, 0],
         },
-        index=["A", "B", "C", "D", "E"],
+        index=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
-    result = dag_rank.generate_rankings_from_toposorts(
-        ["A", "B", "C", "D", "E"], graph, max_rankings=1
-    )
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
 
-    np.testing.assert_array_equal(next(result), [1, 5, 2, 4, 3])
+    assert nx.is_directed_acyclic_graph(dag)
+    assert dag.number_of_nodes() == 1
 
-    with pytest.raises(StopIteration):
-        next(result)
+    (node_members,) = members.values()
+    assert set(node_members) == {"A", "B", "C"}
 
 
 def test_ranking_from_generations():
-    # Same graph used in test_generate_rankings_from_toposorts
     # Structure: A -> C, A -> E, C -> B, C -> E, E -> D
     # Generations: [A] -> [C] -> [B, E] -> [D]
     adj_matrix = pd.DataFrame(
@@ -158,9 +84,10 @@ def test_ranking_from_generations():
         index=["A", "B", "C", "D", "E"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
 
     result = dag_rank.ranking_from_generations(
-        ["A", "B", "C", "D", "E"], graph
+        ["A", "B", "C", "D", "E"], dag, members
     )
 
     # A is in generation 1 (best), C is in generation 2,
@@ -179,8 +106,9 @@ def test_ranking_from_generations_linear():
         index=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
 
-    result = dag_rank.ranking_from_generations(["A", "B", "C"], graph)
+    result = dag_rank.ranking_from_generations(["A", "B", "C"], dag, members)
 
     # Each element in its own generation: A=1 (best), B=2, C=3 (worst)
     np.testing.assert_array_equal(result, [1, 2, 3])
@@ -190,8 +118,68 @@ def test_ranking_from_generations_all_tied():
     # No edges - all alternatives are incomparable (same generation)
     graph = nx.DiGraph()
     graph.add_nodes_from(["A", "B", "C"])
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
 
-    result = dag_rank.ranking_from_generations(["A", "B", "C"], graph)
+    result = dag_rank.ranking_from_generations(["A", "B", "C"], dag, members)
 
     # All in same generation, all rank 1
     np.testing.assert_array_equal(result, [1, 1, 1])
+
+
+def test_ranking_from_generations_cycle_tied():
+    # A -> B -> C -> A forms a cycle: all tied at rank 1
+    adj_matrix = pd.DataFrame(
+        {
+            "A": [0, 0, 1],
+            "B": [1, 0, 0],
+            "C": [0, 1, 0],
+        },
+        index=["A", "B", "C"],
+    )
+    graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
+
+    result = dag_rank.ranking_from_generations(["A", "B", "C"], dag, members)
+
+    np.testing.assert_array_equal(result, [1, 1, 1])
+
+
+def test_generate_rankings_with_cycle_permutations():
+    # A -> {B, C} tournament with B, C tied (cycle B<->C), A always best
+    adj_matrix = pd.DataFrame(
+        {
+            "A": [0, 0, 0],
+            "B": [1, 0, 1],
+            "C": [1, 1, 0],
+        },
+        index=["A", "B", "C"],
+    )
+    graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
+
+    result = dag_rank.generate_rankings_with_cycle_permutations(
+        ["A", "B", "C"], dag, members
+    )
+
+    rankings = {tuple(r) for r in result}
+    assert rankings == {(1, 2, 3), (1, 3, 2)}
+
+
+def test_generate_rankings_with_cycle_permutations_max_ranks():
+    adj_matrix = pd.DataFrame(
+        {
+            "A": [0, 0, 0],
+            "B": [1, 0, 1],
+            "C": [1, 1, 0],
+        },
+        index=["A", "B", "C"],
+    )
+    graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
+    dag, members = dag_rank.as_condensed_reduced_dag(graph)
+
+    result = dag_rank.generate_rankings_with_cycle_permutations(
+        ["A", "B", "C"], dag, members, max_ranks=1
+    )
+
+    rankings = list(result)
+    assert len(rankings) == 1

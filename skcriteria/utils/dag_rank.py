@@ -93,6 +93,7 @@ def as_condensed_reduced_dag(graph):
     # into a single supernode, then drop transitively redundant edges
     condensed = nx.condensation(graph)
     dag = nx.transitive_reduction(condensed)
+    dag.add_nodes_from(condensed.nodes(data=True))
 
     # transitive_reduction discards node attributes, so rebuild the
     # members mapping and give each supernode a readable label
