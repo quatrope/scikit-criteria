@@ -163,31 +163,86 @@ def ranking_from_generations(alternatives, dag, members):
     return ranking
 
 
-# [CLAUDE cambia el nombre de la funcion]
-def generate_rankings_from_x(alternatives, dag, members, *, max_ranks=None):
-    """[CLAUDE COMPLETA]
+def generate_rankings_with_cycle_permutations(
+    alternatives, dag, members, *, max_ranks=None
+):
+    """Generate rankings by permuting the alternatives within each cycle.
+
+    Unlike a ranking that ties together every alternative belonging to
+    the same dominance cycle, this function enumerates every possible
+    internal ordering of each cycle's members as a separate candidate
+    ranking. Inside a genuine dominance cycle no internal order is more
+    justified than another -- every ordering violates at least one
+    pairwise comparison -- so instead of hiding that ambiguity behind a
+    tie, this exposes every equally plausible strict ranking for the
+    decision-maker to inspect.
+
+    This relies on ``dag`` being the condensation of a tournament (see
+    ``as_condensed_dag``): for a tournament, the condensation is always
+    a strict total order of its supernodes (no two supernodes are ever
+    incomparable), which means every topological generation contains
+    exactly one supernode. That is what lets this function iterate
+    ``nx.topological_generations`` directly instead of enumerating every
+    topological sort -- there is only one order between supernodes to
+    begin with, so all the combinatorial variation comes exclusively
+    from permuting the members within each cycle.
+
+    Parameters
+    ----------
+    alternatives : array-like
+        Array of alternative names/identifiers in their original order.
+        This defines the order in which ranks are returned in each
+        ranking.
+    dag : networkx.DiGraph
+        The condensation of a tournament, as returned by
+        ``as_condensed_dag``.
+    members : dict
+        Maps each node of ``dag`` to the set of alternatives it
+        represents, as returned by ``as_condensed_dag``.
+    max_ranks : int, optional
+        Maximum number of rankings to generate. If None (default), all
+        possible rankings are generated.
+
+    Yields
+    ------
+    np.ndarray
+        A 1-indexed NumPy array where the i-th element is the rank
+        (position) of the i-th alternative. Every yielded ranking is a
+        strict total order -- no ties.
+
+    Notes
+    -----
+    The total number of rankings generated is the product, over every
+    supernode with more than one member, of the factorial of its size
+    (e.g. a single cycle of 3 alternatives yields 3! = 6 rankings).
+    This grows very fast with cycle size, so ``max_ranks`` is worth
+    setting for anything but small cycles.
+
     """
-    # [CLAUDE COMPLETA]
+    # each generation has exactly one supernode (tournament condensation),
+    # so this collects, per generation, an iterator over all internal
+    # orderings of that supernode's members
     all_permutations = []
     for generation in nx.topological_generations(dag):
-
-        # [CLAUDE COMPLETA]
         gen_members = members[generation[0]]
-
-        # [CLAUDE COMPLETA]
         generation_permutations = it.permutations(gen_members)
         all_permutations.append(generation_permutations)
 
-    # [CLAUDE COMPLETA]
-    generated_rankins = 0
-    for permutation in it.product(*all_permutations):
-        if max_ranks is not None and generated_rankins >= max_ranks:
+    # the cartesian product combines one internal ordering per generation,
+    # covering every ranking consistent with the supernode order
+    generated_ranks = 0
+    for permutation_per_generation in it.product(*all_permutations):
+        if max_ranks is not None and generated_ranks >= max_ranks:
             break
 
-        # [CLAUDE no me gusta el nombre plain_permutation]
-        plain_permutation = it.chain(*permutation)
+        # concatenate the generations in order to get the full alternative
+        # order for this ranking
+        full_order = it.chain(*permutation_per_generation)
 
-        alt_to_rank = {alternative: rank for rank, alternative in enumerate(plain_permutation, start=1)}
+        alt_to_rank = {
+            alternative: rank
+            for rank, alternative in enumerate(full_order, start=1)
+        }
 
         ranking = np.array(
             [alt_to_rank[alt] for alt in alternatives],
@@ -195,4 +250,4 @@ def generate_rankings_from_x(alternatives, dag, members, *, max_ranks=None):
         )
 
         yield ranking
-        generated_rankins += 1
+        generated_ranks += 1
