@@ -10,14 +10,9 @@
 
 *   **Parallel Execution in Combinatorial Pipelines:** The `SKCCombinatorialPipeline` class now supports parallel execution of the generated pipelines using the `joblib` library. This significantly improves performance when evaluating a large number of pipeline combinations. Users can control the degree of parallelism through the `n_jobs` and `preferred_parallel_backend` parameters.
 
-*   **Enhanced `RankTransitivityChecker` with Feedback Arc Set (FAS):** The transitivity checker now uses the [Feedback Arc Set (FAS)](https://en.wikipedia.org/wiki/Feedback_arc_set) algorithm for robust handling of cyclic dominance graphs. When transitivity violations (cycles) are detected in pairwise comparisons, FAS identifies the minimum set of edges to remove, converting the graph into a Directed Acyclic Graph (DAG). Two ranking strategies are then applied:
-    *   **Generations ranking**: Assigns the same rank to alternatives in the same topological generation (incomparable alternatives), always included in results.
-    *   **Toposort rankings**: Enumerates valid total orderings via topological sorting, controlled by `max_toposort_rankings` (set to `0` to disable).
-
-    Two FAS methods are available via the `fas_method` parameter:
-    *   `"ip"`: Integer Programming - finds the optimal (minimum) feedback arc set. Recommended for smaller graphs.
-    *   `"eades"`: Eades heuristic - faster computation but may remove more edges than strictly necessary.
-    *   `"auto"` (default): Automatically selects `"ip"` for graphs with < 100 nodes, otherwise uses `"eades"`.
+*   **Enhanced `RankTransitivityChecker` with condensed DAG reconstruction:** The transitivity checker now converts the pairwise dominance graph into a condensed reduced DAG (graph condensation followed by transitive reduction), where each node represents a strongly connected component. Two ranking strategies are available via the `ranking_strategy` parameter:
+    *   **`"generations"` (default)**: Assigns the same rank to all alternatives in the same topological generation (i.e. incomparable alternatives receive tied ranks). Always produces a single recomposed ranking.
+    *   **`"cycle_permutations"`**: Enumerates all valid strict total orderings by permuting alternatives within each strongly connected component, controlled by `max_toposort_rankings`.
 
 
 ---
