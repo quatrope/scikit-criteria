@@ -18,7 +18,6 @@ This Deprecated backward compatibility layer around skcriteria.agg.
 # =============================================================================
 # IMPORT AND PATCH
 # =============================================================================
-
 # import the real agg package
 from . import agg, utils
 

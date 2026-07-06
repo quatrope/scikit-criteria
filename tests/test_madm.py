@@ -25,6 +25,9 @@ import pytest
 
 
 def test_deprecated_module_madm():
+    import importlib
+    import sys
+
+    sys.modules.pop("skcriteria.madm", None)
     with pytest.deprecated_call():
-        from skcriteria import madm
-    del madm
+        importlib.import_module("skcriteria.madm")
