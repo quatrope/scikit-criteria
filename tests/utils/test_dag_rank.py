@@ -33,12 +33,13 @@ from skcriteria.utils import dag_rank
 def test_as_condensed_reduced_dag_is_dag():
     # Simple linear chain: A -> B -> C, no cycles
     adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 0],
-            "B": [1, 0, 0],
-            "C": [0, 1, 0],
-        },
+        [
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0, 0],
+        ],
         index=["A", "B", "C"],
+        columns=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
@@ -52,12 +53,13 @@ def test_as_condensed_reduced_dag_is_dag():
 def test_as_condensed_reduced_dag_with_cycle():
     # A -> B -> C -> A forms a dominance cycle, all tied into one supernode
     adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 1],
-            "B": [1, 0, 0],
-            "C": [0, 1, 0],
-        },
+        [
+            [0, 1, 0],
+            [0, 0, 1],
+            [1, 0, 0],
+        ],
         index=["A", "B", "C"],
+        columns=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
 
@@ -74,14 +76,15 @@ def test_ranking_from_generations():
     # Structure: A -> C, A -> E, C -> B, C -> E, E -> D
     # Generations: [A] -> [C] -> [B, E] -> [D]
     adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 0, 0, 0],
-            "B": [0, 0, 1, 0, 0],
-            "C": [1, 0, 0, 0, 0],
-            "D": [0, 0, 0, 0, 1],
-            "E": [1, 0, 1, 0, 0],
-        },
+        [
+            [0, 0, 1, 0, 1],
+            [0, 0, 0, 0, 0],
+            [0, 1, 0, 0, 1],
+            [0, 0, 0, 0, 0],
+            [0, 0, 0, 1, 0],
+        ],
         index=["A", "B", "C", "D", "E"],
+        columns=["A", "B", "C", "D", "E"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
     dag, members = dag_rank.as_condensed_reduced_dag(graph)
@@ -98,12 +101,13 @@ def test_ranking_from_generations():
 def test_ranking_from_generations_linear():
     # Simple linear chain: A -> B -> C
     adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 0],
-            "B": [1, 0, 0],
-            "C": [0, 1, 0],
-        },
+        [
+            [0, 1, 0],
+            [0, 0, 1],
+            [0, 0, 0],
+        ],
         index=["A", "B", "C"],
+        columns=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
     dag, members = dag_rank.as_condensed_reduced_dag(graph)
@@ -129,12 +133,13 @@ def test_ranking_from_generations_all_tied():
 def test_ranking_from_generations_cycle_tied():
     # A -> B -> C -> A forms a cycle: all tied at rank 1
     adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 1],
-            "B": [1, 0, 0],
-            "C": [0, 1, 0],
-        },
+        [
+            [0, 1, 0],
+            [0, 0, 1],
+            [1, 0, 0],
+        ],
         index=["A", "B", "C"],
+        columns=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
     dag, members = dag_rank.as_condensed_reduced_dag(graph)
@@ -147,12 +152,13 @@ def test_ranking_from_generations_cycle_tied():
 def test_generate_rankings_with_cycle_permutations():
     # A -> {B, C} tournament with B, C tied (cycle B<->C), A always best
     adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 0],
-            "B": [1, 0, 1],
-            "C": [1, 1, 0],
-        },
+        [
+            [0, 1, 1],
+            [0, 0, 1],
+            [0, 1, 0],
+        ],
         index=["A", "B", "C"],
+        columns=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
     dag, members = dag_rank.as_condensed_reduced_dag(graph)
@@ -167,12 +173,13 @@ def test_generate_rankings_with_cycle_permutations():
 
 def test_generate_rankings_with_cycle_permutations_max_ranks():
     adj_matrix = pd.DataFrame(
-        {
-            "A": [0, 0, 0],
-            "B": [1, 0, 1],
-            "C": [1, 1, 0],
-        },
+        [
+            [0, 1, 1],
+            [0, 0, 1],
+            [0, 1, 0],
+        ],
         index=["A", "B", "C"],
+        columns=["A", "B", "C"],
     )
     graph = nx.from_pandas_adjacency(adj_matrix, create_using=nx.DiGraph())
     dag, members = dag_rank.as_condensed_reduced_dag(graph)
