@@ -185,7 +185,7 @@ def test_generate_rankings_with_cycle_permutations_max_ranks():
     dag, members = dag_rank.as_condensed_reduced_dag(graph)
 
     result = dag_rank.generate_rankings_with_cycle_permutations(
-        ["A", "B", "C"], dag, members, max_ranks=1
+        ["A", "B", "C"], dag, members, max_rankings=1
     )
 
     rankings = list(result)

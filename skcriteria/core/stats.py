@@ -85,7 +85,7 @@ class DecisionMatrixStatsAccessor(AccessorABC):
         return super().__dir__() + [
             e for e in dir(self._dm._data_df) if e in self._DF_WHITELIST
         ]
-    
+
     def corr(self, method="kendall", **kwargs):
         """Compute pairwise correlation of criteria columns.
 
