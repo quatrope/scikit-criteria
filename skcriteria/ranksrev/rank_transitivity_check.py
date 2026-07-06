@@ -243,12 +243,6 @@ class RankTransitivityChecker(SKCMethodABC):
         Controls computational complexity by limiting the number of
         decompositions. Ignored when ranking_strategy="generations".
 
-    fas_method : str, default="auto"
-        Method for computing the Feedback Arc Set when converting graphs to
-        DAGs. Options are "auto" (selects based on graph size), "ip" (integer
-        programming for optimal solution), or "eades" (heuristic for faster
-        computation).
-
     preferred_parallel_backend : str or None, default=None
         Backend for parallel computation of pairwise evaluations.
         Options include 'threading', 'multiprocessing', or None for sequential.
@@ -624,14 +618,14 @@ class RankTransitivityChecker(SKCMethodABC):
         Returns
         -------
         ranks : list of RankResult
-            List of reconstructed ranking results. Content depends on
+            Reconstructed ranking results. Content depends on
             ranking_strategy:
             - "generations": Single ranking with tied ranks for same layer
-            - "cycle_permutations": Multiple rankings from topological sorts
-        fas : list of tuple
-            The feedback arc set (edges removed to make the graph acyclic).
-        fas_method : str or None
-            The method used for feedback arc set computation.
+            - "cycle_permutations": Multiple rankings, one per cycle permutation
+        dag : networkx.DiGraph
+            Condensed reduced DAG derived from the dominance graph, where each
+            node represents a strongly connected component and edges encode the
+            strict dominance order.
         """
         dag, members = dag_rank.as_condensed_reduced_dag(graph=graph)
 
@@ -729,8 +723,7 @@ class RankTransitivityChecker(SKCMethodABC):
                 - pairwise_dominance_graph: The constructed dominance graph
                 - transitivity_break: List of transitivity violations
                 - transitivity_break_rate: Normalized violation rate
-                - feedback_arc_set: Edges removed to convert graph to DAG
-                - fas_method: Method used for feedback arc set computation
+                - dag: Condensed reduced DAG used to reconstruct rankings
                 - pairwise_comparisons: All pairwise comparison results
         """
         dmaker = self._dmaker

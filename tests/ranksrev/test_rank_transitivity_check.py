@@ -54,7 +54,6 @@ def test_RankTransitivityChecker_creation():
     assert dec.allow_missing_alternatives is True
     assert dec.ranking_strategy == "generations"
     assert dec.max_toposort_rankings == 50
-    assert dec.fas_method == "auto"
     assert dec.preferred_parallel_backend is None
     assert dec.n_jobs is None
 
@@ -74,7 +73,7 @@ def test_RankTransitivityChecker_simple_stock_selection():
     dec = RankTransitivityChecker(
         pipe,
         allow_missing_alternatives=True,
-        ranking_strategy="toposorts",
+        ranking_strategy="cycle_permutations",
     )
 
     dm = skc.datasets.load_simple_stock_selection()
@@ -201,7 +200,7 @@ def test_RankTransitivityChecker_repr():
         "<RankTransitivityChecker "
         "<SKCPipeline [steps=[('invertminimize', <InvertMinimize []>), "
         "('topsis', <TOPSIS [metric='euclidean']>)]]>, "
-        "ranking_strategy='generations', fas_method=auto, "
+        "ranking_strategy='generations', "
         "max_toposort_rankings=50>"
     )
 
@@ -267,21 +266,21 @@ def test_RankTransitivityChecker_generations_strategy():
     assert result.ranks[1][0] == "Recomposition.generations"
 
 
-def test_RankTransitivityChecker_toposorts_strategy():
+def test_RankTransitivityChecker_cycle_permutations_strategy():
     pipe = mkpipe(
         InvertMinimize(),
         WeightedSumModel(),
     )
     dec = RankTransitivityChecker(
-        pipe, ranking_strategy="toposorts", max_toposort_rankings=2
+        pipe, ranking_strategy="cycle_permutations", max_toposort_rankings=2
     )
 
     dm = skc.datasets.load_simple_stock_selection()
     result = dec.evaluate(dm)
 
-    # Should have Original + up to 2 toposort rankings
-    assert len(result) >= 2  # At least Original + 1 toposort
-    assert len(result) <= 3  # At most Original + 2 toposorts
+    # Should have Original + up to 2 cycle_permutations rankings
+    assert len(result) >= 2  # At least Original + 1
+    assert len(result) <= 3  # At most Original + 2
     assert result.ranks[0][0] == "Original"
     # Subsequent rankings should be Recomposition.0, Recomposition.1, etc.
     for i, (name, _) in enumerate(result.ranks[1:]):
