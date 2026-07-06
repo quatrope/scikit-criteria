@@ -68,3 +68,5 @@ docs/source/_dynamic/*.rst
 .envrc
 .python-version
 CLAUDE.md
+.claude/*
+.virtual_documents/*
