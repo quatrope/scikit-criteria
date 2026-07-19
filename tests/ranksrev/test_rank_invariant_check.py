@@ -22,8 +22,13 @@ import numpy as np
 import pytest
 
 import skcriteria as skc
+from skcriteria.agg import RankResult
 from skcriteria.agg.topsis import TOPSIS
-from skcriteria.ranksrev.rank_invariant_check import RankInvariantChecker
+from skcriteria.ranksrev.rank_invariant_check import (
+    RankInvariantChecker,
+    maximum_abs_noises,
+    mutate_dm,
+)
 from skcriteria.utils import rank
 
 
@@ -99,6 +104,63 @@ def test_RankInvariantChecker_van2021evaluation(windows_size):
     assert original_dominates_mutated(dm, result, "LINK")
     assert original_dominates_mutated(dm, result, "XRP")
     assert original_dominates_mutated(dm, result, "DOGE")
+
+
+# MUTATION NOISE MUST NOT CROSS ZERO =========================================
+
+
+@pytest.mark.parametrize("seed", range(50))
+def test_RankInvariantChecker_mutation_noise_does_not_cross_zero(seed):
+    """A criterion with a huge gap between two consecutively-ranked \
+    alternatives must not let the worsening noise flip the sign of the \
+    mutated value, for any draw of the underlying RNG.
+
+    Regression test for the scenario found in ``van2021evaluation``: the
+    ``xVV`` criterion of "BNB" (rank 2) is tiny (1.316e10) compared to that
+    of "ETH" (rank 3, its "next worse" alternative in the ranking:
+    2.145e11). Before the fix, ``mutate_dm`` bounded the noise only by
+    ``|BNB - ETH|`` (~2.01e11), so a random draw could push BNB's value
+    into negative territory even though the criterion is a physically
+    non-negative, maximize-type quantity. A negative value later breaks
+    ``scipy.stats.entropy`` inside ``EntropyWeighter``, producing NaN
+    weights and, eventually, the ``ValueError: ... doesn't look like a
+    ranking``.
+
+    Uses the public, module-level ``maximum_abs_noises``/``mutate_dm``
+    functions directly, without going through ``RankInvariantChecker``.
+    Parametrized over many seeds instead of a single hand-picked one, so
+    the test does not depend on one RNG draw happening to land past the
+    old, unbounded threshold.
+    """
+    dm = skc.mkdm(
+        matrix=[[5.0e11], [1.316e10], [2.145e11]],
+        objectives=[max],
+        alternatives=["BEST", "BNB", "ETH"],
+    )
+    fake_rank = RankResult(
+        "Fake", alternatives=["BEST", "BNB", "ETH"], values=[1, 2, 3], extra={}
+    )
+
+    noises = maximum_abs_noises(
+        dm=dm, rank=fake_rank, last_diff_strategy=np.median
+    )
+    bnb_noise_bound = noises.loc[("BNB", "ETH")]
+    original_value = dm.matrix.loc["BNB"].iloc[0]
+
+    # sanity check: the bound is indeed much bigger than BNB's own value,
+    # which is exactly what makes crossing zero possible without the fix
+    assert bnb_noise_bound.iloc[0] > original_value
+
+    mutated_dm, noise = mutate_dm(
+        dm=dm,
+        mutate="BNB",
+        alternative_max_abs_noise=bnb_noise_bound,
+        random=np.random.default_rng(seed),
+    )
+
+    mutated_value = mutated_dm.matrix.loc["BNB"].iloc[0]
+    assert np.sign(mutated_value) == np.sign(original_value)
+    assert abs(noise.iloc[0]) <= original_value
 
 
 # REMOVE AN ALTERNATIVE =======================================================

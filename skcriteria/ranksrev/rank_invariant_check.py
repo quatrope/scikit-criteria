@@ -42,6 +42,157 @@ _LAST_DIFF_STRATEGIES = {
 
 
 # =============================================================================
+# FUNCTIONS
+# =============================================================================
+
+
+def maximum_abs_noises(*, dm, rank, last_diff_strategy):
+    """Calculate the absolute difference between the alternatives in order.
+
+    This difference is used as a maximum possible noise to worsen an
+    alternative.
+
+    The last alternative in the ranking has no next alternative to compare,
+    so the value calculated by ``last_diff_strategy`` is applied as the
+    abs difference (the default is the ``np.nanmedian``).
+
+    Parameters
+    ----------
+    dm : ``skcriteria.core.data.DecisionMatrix``
+        The decision matrix from which the maximum possible absolute noises
+        of each alternative are to be extracted.
+    rank : ``skcriteria.agg.Rank``
+        Ranking of alternatives.
+    last_diff_strategy: callable
+        Function applied, column-wise, to the noise bounds of every
+        alternative but the worst one, to obtain the bound of the worst
+        alternative (which has no "next worse" alternative to compare
+        against). ``RankInvariantChecker.last_diff_strategy`` resolves the
+        ``"median"``/``"mean"`` aliases to this callable.
+
+    Returns
+    -------
+    Maximum absolute noise: pandas.DataFrame
+        Each row contains the maximum possible absolute noise to worsen
+        the current alternative (``mutate``) with respect to the next
+        (``mute_next``).
+
+    """
+    # TODO: room for improvement: pandas to numpy
+
+    # Here we generate a pandas Series of alternatives in order of ranking
+    alts = rank.to_series().sort_values().index.to_numpy(copy=True)
+
+    # We only need all but the best one.
+    not_best = alts[1:]
+
+    # we only need the rows without the best alternative
+    not_best_df = dm.matrix.loc[not_best]
+
+    # we need to create the index
+    not_best_and_next = dict(zip(not_best, np.roll(not_best, -1)))
+    not_best_and_next[not_best[-1]] = np.nan
+    not_best_and_next = list(not_best_and_next.items())
+    index = pd.MultiIndex.from_tuples(
+        not_best_and_next, names=["mutate", "mutate_next"]
+    )
+
+    # cleanup
+    del alts, not_best, not_best_and_next
+
+    # we create the differences
+    noises_df = not_best_df.diff(-1).abs()
+    noises_df.set_index(index, inplace=True)
+
+    # we apply the median as last
+    noises_df.iloc[-1] = noises_df.iloc[:-1].apply(last_diff_strategy)
+
+    return noises_df
+
+
+def mutate_dm(*, dm, mutate, alternative_max_abs_noise, random):
+    """Create a new decision matrix by replacing a suboptimal alternative \
+    with a slightly worse one.
+
+    The algorithm operates as follows:
+
+        - A random uniform noise [0, b] is generated, where b is the
+          absolute difference in value of the criterion to be modified
+          with respect to the immediately worse alternative.
+        - Negative sign is assigned to criteria to be maximized.
+        - The noise is applied to the alternative to be worsened
+          ('mutated').
+
+    This algorithm is designed in such a way that the 'worsened'
+    alternative is not worse than the immediately worse one in the
+    reference ranking.
+
+    Notes
+    -----
+    Without capping, ``b`` can be larger than the value being worsened
+    (e.g. when the ``last_diff_strategy`` median is used for the
+    worst-ranked alternative in a criterion with heavy-tailed/outlier
+    values, or when two consecutively-ranked alternatives differ wildly
+    in a single criterion). That would let the noise push the value
+    through zero and flip its sign, which most MCDA methods (e.g.
+    entropy-based weighters) do not expect. Capping ``b`` at
+    ``abs(current_value)`` keeps the noised value on the same side of
+    zero.
+
+    Parameters
+    ----------
+    dm : ``skcriteria.core.data.DecisionMatrix``
+        The original decision matrix.
+    mutate : str
+        The alternative to mutate.
+    alternative_max_abs_noise: pandas.Series
+        The maximum possible noise with which the alternative to mutate can
+        be made worse, without being worse than the immediately worse
+        alternative.
+    random: `numpy.random.default_rng`
+        Random number generator.
+
+    Returns
+    -------
+    mutated_dm: ``skcriteria.DecisionMatrix``
+        Decision matrix with the 'mutate' alternative "worsened".
+    noise: ``pandas.Series``
+        Noise used to worsen the alternative.
+
+    """
+    # TODO: room for improvement: pandas to numpy
+
+    # matrix with alternatives
+    # we need all the matrix as float for the noise
+    df = dm.matrix.astype(float)
+
+    # cap the noise bound so it can approach but never cross zero for
+    # the alternative being worsened (a criterion value should not
+    # flip sign just because it was made "worse")
+    max_abs_noise_without_sign_flip = df.loc[mutate].abs()
+    bounded_max_abs_noise = alternative_max_abs_noise.clip(
+        upper=max_abs_noise_without_sign_flip
+    )
+
+    noise = 0  # all noises == 0
+    while np.all(noise == 0):  # at least we need one noise > 0
+        # calculate the noises without sign
+        noise = bounded_max_abs_noise.apply(lambda b: random.uniform(0, b))
+
+    # negate when the objective is to maximize
+    # onwards the noise is no longer absolute
+    noise[dm.maxwhere] *= -1
+
+    # apply the noise
+    df.loc[mutate] += noise
+
+    # transform the noised matrix into a dm
+    mutated_dm = dm.replace(matrix=df.to_numpy(copy=True), dtypes=None)
+
+    return mutated_dm, noise
+
+
+# =============================================================================
 # CLASS
 # =============================================================================
 
@@ -201,126 +352,20 @@ class RankInvariantChecker(SKCMethodABC):
     # LOGIC ===================================================================
 
     def _maximum_abs_noises(self, *, dm, rank):
-        """Calculate the absolute difference between the alternatives in order.
-
-        This difference is used as a maximum possible noise to worsen an
-        alternative.
-
-        The last alternative in the ranking has no next alternative to compare,
-        so the value calculated by ``last_diff_strategy`` is applied as the
-        abs difference (the default is the ``np.nanmedian``).
-
-        Parameters
-        ----------
-        dm : ``skcriteria.core.data.DecisionMatrix``
-            The decision matrix from which the maximum possible absolute noises
-            of each alternative are to be extracted.
-        rank : ``skcriteria.agg.Rank``
-            Ranking of alternatives.
-
-        Returns
-        -------
-        Maximum absolute noise: pandas.DataFrame
-            Each row contains the maximum possible absolute noise to worsen
-            the current alternative (``mutate``) with respect to the next
-            (``mute_next``).
-
-        """
-        # TODO: room for improvement: pandas to numpy
-
-        # Here we generate a pandas Series of alternatives in order of ranking
-        alts = rank.to_series().sort_values().index.to_numpy(copy=True)
-
-        # We only need all but the best one.
-        not_best = alts[1:]
-
-        # we only need the rows without the best alternative
-        not_best_df = dm.matrix.loc[not_best]
-
-        # we need to create the index
-        not_best_and_next = dict(zip(not_best, np.roll(not_best, -1)))
-        not_best_and_next[not_best[-1]] = np.nan
-        not_best_and_next = list(not_best_and_next.items())
-        index = pd.MultiIndex.from_tuples(
-            not_best_and_next, names=["mutate", "mutate_next"]
+        """Thin wrapper around the module-level ``maximum_abs_noises``, \
+        binding ``last_diff_strategy`` to this instance's configuration."""
+        return maximum_abs_noises(
+            dm=dm, rank=rank, last_diff_strategy=self.last_diff_strategy
         )
-
-        # cleanup
-        del alts, not_best, not_best_and_next
-
-        # we create the differences
-        maximum_abs_noises = not_best_df.diff(-1).abs()
-        maximum_abs_noises.set_index(index, inplace=True)
-
-        # we apply the median as last
-        maximum_abs_noises.iloc[-1] = maximum_abs_noises.iloc[:-1].apply(
-            self.last_diff_strategy
-        )
-
-        return maximum_abs_noises
 
     def _mutate_dm(self, *, dm, mutate, alternative_max_abs_noise, random):
-        """Create a new decision matrix by replacing a suboptimal alternative \
-        with a slightly worse one.
-
-        The algorithm operates as follows:
-
-            - A random uniform noise [0, b] is generated, where b is the
-              absolute difference in value of the criterion to be modified
-              with respect to the immediately worse alternative.
-            - Negative sign is assigned to criteria to be maximized.
-            - The noise is applied to the alternative to be worsened
-              ('mutated').
-
-        This algorithm is designed in such a way that the 'worsened'
-        alternative is not worse than the immediately worse one in the
-        reference ranking.
-
-        Parameters
-        ----------
-        dm : ``skcriteria.core.data.DecisionMatrix``
-            The original decision matrix.
-        mutate : str
-            The alternative to mutate.
-        alternative_max_abs_noise: pandas.Series
-            The maximum possible noise with which the alternative to mutate can
-            be made worse, without being worse than the immediately worse
-            alternative.
-        random: `numpy.random.default_rng`
-            Random number generator.
-
-        Returns
-        -------
-        mutated_dm: ``skcriteria.DecisionMatrix``
-            Decision matrix with the 'mutate' alternative "worsened".
-        noise: ``pandas.Series``
-            Noise used to worsen the alternative.
-
-        """
-        # TODO: room for improvement: pandas to numpy
-
-        # matrix with alternatives
-        # we need all the matrix as float for the noise
-        df = dm.matrix.astype(float)
-
-        noise = 0  # all noises == 0
-        while np.all(noise == 0):  # at least we need one noise > 0
-            # calculate the noises without sign
-            noise = alternative_max_abs_noise.apply(
-                lambda b: random.uniform(0, b)
-            )
-
-        # negate when the objective is to maximize
-        # onwards the noise is no longer absolute
-        noise[dm.maxwhere] *= -1
-
-        # apply the noise
-        df.loc[mutate] += noise
-
-        # transform the noised matrix into a dm
-        mutated_dm = dm.replace(matrix=df.to_numpy(copy=True), dtypes=None)
-
-        return mutated_dm, noise
+        """Thin wrapper around the module-level ``mutate_dm``."""
+        return mutate_dm(
+            dm=dm,
+            mutate=mutate,
+            alternative_max_abs_noise=alternative_max_abs_noise,
+            random=random,
+        )
 
     def _generate_mutations(self, *, dm, rrank, repeat, random):
         """Generate all experiments data.
@@ -356,12 +401,12 @@ class RankInvariantChecker(SKCMethodABC):
         """
         # check the maximum absolute difference between any alternative and
         # the next one in the ranking to establish a worse-limit
-        maximum_abs_noises = self._maximum_abs_noises(dm=dm, rank=rrank)
+        noises_table = self._maximum_abs_noises(dm=dm, rank=rrank)
 
         # we repeat the experiment _repeats time
         for iteration in range(repeat):
             # we iterate over every sub optimal alternative
-            for (mutated, _), alt_max_anoise in maximum_abs_noises.iterrows():
+            for (mutated, _), alt_max_anoise in noises_table.iterrows():
                 # create the new matrix with a worse alternative than mutate
                 mutated_dm, noise = self._mutate_dm(
                     dm=dm,
