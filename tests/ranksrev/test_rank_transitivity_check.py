@@ -11,7 +11,6 @@
 
 """Tests for the functionalities in the transitivity_check file."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -33,7 +32,6 @@ from skcriteria.preprocessing.weighters import EntropyWeighter
 from skcriteria.ranksrev.rank_transitivity_check import (
     RankTransitivityChecker,
 )
-
 
 # =============================================================================
 # TESTS

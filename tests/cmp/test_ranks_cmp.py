@@ -11,7 +11,6 @@
 
 """test for skcriteria.cmp.ranks_cmp"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -29,7 +28,6 @@ import seaborn as sns
 from skcriteria import agg
 from skcriteria.cmp import ranks_cmp
 from skcriteria.utils import Bunch
-
 
 # =============================================================================
 # TESTS

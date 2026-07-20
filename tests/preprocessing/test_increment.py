@@ -11,14 +11,12 @@
 
 """test for skcriteria.preprocessing.add_value_to_zero"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
 
 import skcriteria
 from skcriteria.preprocessing.increment import AddValueToZero
-
 
 # =============================================================================
 # TEST CLASSES

@@ -11,7 +11,6 @@
 
 """test for skcriteria.extend"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -22,7 +21,6 @@ import pytest
 
 from skcriteria import extend as ext
 from skcriteria.pipelines import mkpipe
-
 
 # =============================================================================
 # RANDOM TEST

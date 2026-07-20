@@ -25,7 +25,6 @@ import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.rim import RIM, _rim_normalize
 
-
 # =============================================================================
 # TEST RIM
 # =============================================================================

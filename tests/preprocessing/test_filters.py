@@ -11,7 +11,6 @@
 
 """test for skcriteria.preprocessing.filters."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -22,7 +21,6 @@ import pytest
 
 import skcriteria as skc
 from skcriteria.preprocessing import filters
-
 
 # =============================================================================
 # TEST CLASSES

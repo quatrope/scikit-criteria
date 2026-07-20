@@ -23,7 +23,6 @@ from skcriteria.preprocessing import impute
 
 from sklearn import impute as sklimpute
 
-
 # =============================================================================
 # TEST CLASSES
 # =============================================================================

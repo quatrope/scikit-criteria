@@ -11,7 +11,6 @@
 
 """test for skcriteria.preprocessing.weighters"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -41,7 +40,6 @@ from skcriteria.preprocessing.weighters import (
     rancom_weights,
     spearman_correlation,
 )
-
 
 # =============================================================================
 # WEIGHTER

@@ -11,7 +11,6 @@
 
 """test for skcriteria.preprocessing.push_negatives"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -25,7 +24,6 @@ from skcriteria.preprocessing.push_negatives import (
     PushNegatives,
     push_negatives,
 )
-
 
 # =============================================================================
 # TEST CLASSES

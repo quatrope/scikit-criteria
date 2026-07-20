@@ -11,7 +11,6 @@
 
 """test for skcriteria.agg.codas."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -24,7 +23,6 @@ import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.codas import CODAS
 from skcriteria.preprocessing.invert_objectives import BenefitCostInverter
-
 
 # =============================================================================
 # TESTS

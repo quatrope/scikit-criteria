@@ -11,7 +11,6 @@
 
 """test for skcriteria.core.data"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -29,7 +28,6 @@ import pytest
 
 import skcriteria as skc
 from skcriteria.core import data, dominance, plot, stats
-
 
 # =============================================================================
 # HELPER
@@ -758,8 +756,7 @@ def test_mkdm_simple_html():
         weights=[0.1, 0.2, 0.3],
     )
 
-    expected = pyquery.PyQuery(
-        """
+    expected = pyquery.PyQuery("""
         <div class="decisionmatrix">
             <div>
                 <style scoped=''>
@@ -809,8 +806,7 @@ def test_mkdm_simple_html():
             <em class='decisionmatrix-dim'>3 Alternatives x 3 Criteria
             </em>
         </div>
-    """
-    )
+    """)
 
     result = pyquery.PyQuery(dm._repr_html_())
 

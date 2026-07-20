@@ -30,7 +30,6 @@ from skcriteria.agg.moora import (
 )
 from skcriteria.preprocessing.scalers import VectorScaler
 
-
 # =============================================================================
 # RATIO
 # =============================================================================

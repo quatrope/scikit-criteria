@@ -11,7 +11,6 @@
 
 """test for skcriteria.agg.cocoso."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -23,7 +22,6 @@ import pytest
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.cocoso import CoCoSo
-
 
 # =============================================================================
 # TEST CLASSES

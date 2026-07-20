@@ -20,7 +20,6 @@ import pytest
 
 from skcriteria.preprocessing.distance import CenitDistance, cenit_distance
 
-
 # =============================================================================
 # TEST CLASSES
 # =============================================================================

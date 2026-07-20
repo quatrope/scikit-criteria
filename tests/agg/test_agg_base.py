@@ -11,7 +11,6 @@
 
 """test for skcriteria.agg._base."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -324,8 +323,7 @@ def test_ResultBase_repr_html():
         )._repr_html_()
     )
 
-    expected = PyQuery(
-        """
+    expected = PyQuery("""
         <div class='skcresult skcresult-foo'>
         <table id="T_cc7f5_" >
             <thead>
@@ -349,8 +347,7 @@ def test_ResultBase_repr_html():
         </table>
         <em class='skcresult-method'>Method: test_method</em>
         </div>
-        """
-    )
+        """)
     result_html = result.remove("style").text()
     expected_html = expected.remove("style").text()
 

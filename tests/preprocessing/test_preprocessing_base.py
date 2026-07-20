@@ -11,7 +11,6 @@
 
 """test for skcriteria.methods"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -22,7 +21,6 @@ from skcriteria.preprocessing import (
     SKCMatrixAndWeightTransformerABC,
     SKCTransformerABC,
 )
-
 
 # =============================================================================
 # TRANSFORMER

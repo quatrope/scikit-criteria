@@ -11,7 +11,6 @@
 
 """test for skcriteria.utils.deprecate"""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -21,7 +20,6 @@ from inspect import cleandoc, getdoc
 import pytest
 
 from skcriteria.utils import deprecate
-
 
 # =============================================================================
 # TEST CLASSES
@@ -90,8 +88,7 @@ def test_deprecated():
         """
         pass
 
-    expected_doc = cleandoc(
-        """Zaraza.
+    expected_doc = cleandoc("""Zaraza.
 
         Foo
 
@@ -109,8 +106,7 @@ def test_deprecated():
         None:
             Nothing to return.
 
-        """
-    )
+        """)
 
     decorator = deprecate.deprecated(reason="because foo", version=0.66)
     func = decorator(func)
@@ -146,8 +142,7 @@ def test_will_change():
         """
         pass
 
-    expected_doc = cleandoc(
-        """Zaraza.
+    expected_doc = cleandoc("""Zaraza.
 
         Foo
 
@@ -165,8 +160,7 @@ def test_will_change():
         None:
             Nothing to return.
 
-        """
-    )
+        """)
 
     decorator = deprecate.will_change(reason="because foo", version=0.66)
     func = decorator(func)

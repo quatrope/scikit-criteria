@@ -22,7 +22,6 @@ import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.ocra import OCRA
 
-
 # =============================================================================
 # OCRA
 # =============================================================================

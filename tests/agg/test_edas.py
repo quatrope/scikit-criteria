@@ -11,7 +11,6 @@
 
 """test for skcriteria.agg.edas."""
 
-
 # =============================================================================
 # IMPORTS
 # =============================================================================
@@ -21,7 +20,6 @@ import numpy as np
 import skcriteria
 from skcriteria.agg import RankResult
 from skcriteria.agg.edas import EDAS
-
 
 # =============================================================================
 # TESTS

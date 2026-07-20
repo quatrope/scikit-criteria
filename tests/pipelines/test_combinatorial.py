@@ -22,7 +22,6 @@ from skcriteria.preprocessing.invert_objectives import InvertMinimize
 from skcriteria.utils import Bunch
 from skcriteria.utils.deprecate import SKCriteriaDeprecationWarning
 
-
 # =============================================================================
 # TESTS
 # =============================================================================

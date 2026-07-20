@@ -24,7 +24,6 @@ from skcriteria.agg import MABAC
 from skcriteria.agg import RankResult
 from skcriteria.preprocessing.invert_objectives import MinMaxInverter
 
-
 # =============================================================================
 # TESTS
 # =============================================================================
