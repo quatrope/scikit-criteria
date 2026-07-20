@@ -14,6 +14,8 @@
     *   **`"generations"` (default)**: Assigns the same rank to all alternatives in the same topological generation (i.e. incomparable alternatives receive tied ranks). Always produces a single recomposed ranking.
     *   **`"cycle_permutations"`**: Enumerates all valid strict total orderings by permuting alternatives within each strongly connected component, controlled by `max_toposort_rankings`.
 
+* **`RankInvariantChecker`** Fix: The mutation noise used to worsen a sub-optimal alternative could, in rare cases (very heterogeneous criteria scales), exceed the alternative's own value and flip its sign, which can change the semantic meaning of the criterion. The noise bound is now capped so it can approach but never cross zero.
+
 
 ---
 
