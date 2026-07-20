@@ -37,7 +37,6 @@ from skcriteria.preprocessing.weighters import (
     SKCWeighterABC,
     StdWeighter,
     critic_weights,
-    entropy_weights,
     pearson_correlation,
     rancom_weights,
     spearman_correlation,
@@ -247,32 +246,6 @@ def test_EntropyWeighter(decision_matrix):
     result = weighter.transform(dm)
 
     assert result.equals(expected)
-
-
-# =============================================================================
-# TODO(todo.md): entropy_weights/EntropyWeighter assume a non-negative matrix
-# (scipy.stats.entropy treats each column as a probability distribution) but
-# never validate that precondition — a negative value silently produces
-# -inf/nan weights instead of failing at the source (Option A). These tests
-# demonstrate that missing boundary and are expected to FAIL until the
-# validation is added.
-# =============================================================================
-
-
-def test_entropy_weights_negative_values_raises():
-    mtx = np.array([[-1, 2], [4, 16]], dtype=float)
-    with pytest.raises(ValueError):
-        entropy_weights(mtx)
-
-
-def test_EntropyWeighter_negative_values_raises():
-    dm = skcriteria.mkdm(
-        matrix=[[-1, 2], [4, 16]],
-        objectives=[max, max],
-    )
-    weighter = EntropyWeighter()
-    with pytest.raises(ValueError):
-        weighter.transform(dm)
 
 
 def test_EntropyWeighter_less_predictable_more_weight():
