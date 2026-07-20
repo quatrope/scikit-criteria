@@ -233,21 +233,15 @@ class RankTransitivityChecker(SKCMethodABC):
         - "generations": Generate a single ranking based on topological layers
           (alternatives in the same layer receive the same rank,
           producing ties)
-        - "toposorts": Generate multiple rankings from topological sorts
+        - "cycle_permutations": Generate multiple rankings from topological sorts
           (number controlled by max_toposort_rankings parameter)
 
     max_toposort_rankings : int or None, default=50
         Maximum number of rankings to generate from topological sorts.
-        Only used when ranking_strategy="toposorts". Must be at least 1.
+        Only used when ranking_strategy="cycle_permutations". Must be at least 1.
         Set to None to generate all possible rankings (no limit).
         Controls computational complexity by limiting the number of
         decompositions. Ignored when ranking_strategy="generations".
-
-    fas_method : str, default="auto"
-        Method for computing the Feedback Arc Set when converting graphs to
-        DAGs. Options are "auto" (selects based on graph size), "ip" (integer
-        programming for optimal solution), or "eades" (heuristic for faster
-        computation).
 
     preferred_parallel_backend : str or None, default=None
         Backend for parallel computation of pairwise evaluations.
@@ -270,7 +264,7 @@ class RankTransitivityChecker(SKCMethodABC):
         If ``allow_missing_alternatives=False`` and alternatives are missing \
             from results.
         If ``max_toposort_rankings`` is less than 1 (when not None).
-        If ``ranking_strategy`` is not "generations" or "toposorts".
+        If ``ranking_strategy`` is not "generations" or "cycle_permutations".
 
     Examples
     --------
@@ -298,7 +292,7 @@ class RankTransitivityChecker(SKCMethodABC):
     >>>
     >>> # Or use toposorts strategy for multiple rankings
     >>> checker2 = RankTransitivityChecker(
-    ...     dmaker, ranking_strategy="toposorts", max_toposort_rankings=10
+    ...     dmaker, ranking_strategy="cycle_permutations", max_toposort_rankings=10
     ... )
     >>> result2 = checker2.evaluate(dm)
 
@@ -310,7 +304,6 @@ class RankTransitivityChecker(SKCMethodABC):
         "allow_missing_alternatives",
         "ranking_strategy",
         "max_toposort_rankings",
-        "fas_method",
         "preferred_parallel_backend",
         "n_jobs",
     ]
@@ -322,7 +315,6 @@ class RankTransitivityChecker(SKCMethodABC):
         allow_missing_alternatives=False,
         ranking_strategy="generations",
         max_toposort_rankings=50,
-        fas_method="auto",
         preferred_parallel_backend=None,
         n_jobs=None,
         parallel_backend=None,
@@ -335,7 +327,7 @@ class RankTransitivityChecker(SKCMethodABC):
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
 
         # Ranking strategy validation
-        valid_strategies = {"generations", "toposorts"}
+        valid_strategies = {"generations", "cycle_permutations"}
         if ranking_strategy not in valid_strategies:
             raise ValueError(
                 f"ranking_strategy must be one of {valid_strategies}, "
@@ -382,19 +374,15 @@ class RankTransitivityChecker(SKCMethodABC):
                 "ranking_strategy='generations'"
             )
 
-        # FAS method
-        self._fas_method = fas_method
-
     def __repr__(self):
         """x.__repr__() <==> repr(x)."""
         name = self.get_method_name()
         dm = repr(self.dmaker)
         rs = self._ranking_strategy
-        fm = self._fas_method
         mr = self._max_toposort_rankings
         return (
             f"<{name} {dm}, ranking_strategy={rs!r}, "
-            f"fas_method={fm}, max_toposort_rankings={mr}>"
+            f"max_toposort_rankings={mr}>"
         )
 
     # Properties
@@ -423,11 +411,6 @@ class RankTransitivityChecker(SKCMethodABC):
         return self._max_toposort_rankings
 
     @property
-    def fas_method(self):
-        """The feedback arc set method used for DAG conversion."""
-        return self._fas_method
-
-    @property
     def preferred_parallel_backend(self):
         """The parallel backend used to generate all the alternatives."""
         return self._preferred_parallel_backend
@@ -447,7 +430,9 @@ class RankTransitivityChecker(SKCMethodABC):
 
     # Logic
 
-    def _add_info_to_rank(self, rank, full_alternatives, recomposition_number=None):
+    def _add_info_to_rank(
+        self, rank, full_alternatives, recomposition_number=None
+    ):
         """Enrich a ranking with metadata.
 
         This method augments a ranking result with information about
@@ -611,7 +596,9 @@ class RankTransitivityChecker(SKCMethodABC):
         test_criterion_2 = trans_break_rate == 0
         return test_criterion_2, trans_break, trans_break_rate
 
-    def _reconstruct_rankings_from_graph(self, graph, rrank, full_alternatives):
+    def _reconstruct_rankings_from_graph(
+        self, graph, rrank, full_alternatives
+    ):
         """Generate alternative rankings from a dominance graph.
 
         Removes cycles from the dominance graph using the Feedback Arc Set
@@ -631,24 +618,22 @@ class RankTransitivityChecker(SKCMethodABC):
         Returns
         -------
         ranks : list of RankResult
-            List of reconstructed ranking results. Content depends on
+            Reconstructed ranking results. Content depends on
             ranking_strategy:
             - "generations": Single ranking with tied ranks for same layer
-            - "toposorts": Multiple rankings from topological sorts
-        fas : list of tuple
-            The feedback arc set (edges removed to make the graph acyclic).
-        fas_method : str or None
-            The method used for feedback arc set computation.
+            - "cycle_permutations": Multiple rankings, one per cycle permutation
+        dag : networkx.DiGraph
+            Condensed reduced DAG derived from the dominance graph, where each
+            node represents a strongly connected component and edges encode the
+            strict dominance order.
         """
-        dag, fas, fas_method = dag_rank.as_dag(
-            graph=graph, method=self._fas_method
-        )
+        dag, members = dag_rank.as_condensed_reduced_dag(graph=graph)
 
         ranks = []
 
         if self._ranking_strategy == "generations":
             gen_values = dag_rank.ranking_from_generations(
-                rrank.alternatives, dag
+                rrank.alternatives, dag, members
             )
             gen_rank = RankResult(
                 method="Generations",
@@ -661,10 +646,11 @@ class RankTransitivityChecker(SKCMethodABC):
             )
             ranks.append(gen_rank)
 
-        elif self._ranking_strategy == "toposorts":
-            tsr_generator = dag_rank.generate_rankings_from_toposorts(
+        elif self._ranking_strategy == "cycle_permutations":
+            tsr_generator = dag_rank.generate_rankings_with_cycle_permutations(
                 rrank.alternatives,
                 dag,
+                members,
                 max_rankings=self._max_toposort_rankings,
             )
             for recomposition_number, rank_values in enumerate(tsr_generator):
@@ -679,9 +665,11 @@ class RankTransitivityChecker(SKCMethodABC):
                 )
                 ranks.append(rank)
 
-        return ranks, fas, fas_method
+        return ranks, dag
 
-    def _are_rankings_consistent(self, test_criterion_2, rrank, reconstructed_ranks):
+    def _are_rankings_consistent(
+        self, test_criterion_2, rrank, reconstructed_ranks
+    ):
         """Check ranking stability (test criterion 3).
 
         Verifies that the reference ranking matches the first reconstructed
@@ -735,8 +723,7 @@ class RankTransitivityChecker(SKCMethodABC):
                 - pairwise_dominance_graph: The constructed dominance graph
                 - transitivity_break: List of transitivity violations
                 - transitivity_break_rate: Normalized violation rate
-                - feedback_arc_set: Edges removed to convert graph to DAG
-                - fas_method: Method used for feedback arc set computation
+                - dag: Condensed reduced DAG used to reconstruct rankings
                 - pairwise_comparisons: All pairwise comparison results
         """
         dmaker = self._dmaker
@@ -757,7 +744,7 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
         # Reconstruct rankings from the dominance graph
-        reconstructed_ranks, fas, fas_method = self._reconstruct_rankings_from_graph(
+        reconstructed_ranks, dag = self._reconstruct_rankings_from_graph(
             graph, rrank, full_alternatives
         )
 
@@ -781,8 +768,7 @@ class RankTransitivityChecker(SKCMethodABC):
                 "test_criterion_3": test_criterion_3,
                 "transitivity_break": trans_break,
                 "transitivity_break_rate": trans_break_rate,
-                "feedback_arc_set": fas,
-                "fas_method": fas_method,
+                "dag": dag,
                 "pairwise_comparisons": pair_comparisons,
             },
         )

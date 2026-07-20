@@ -583,7 +583,7 @@ def test_RanksComparatorPlotter_box(fig_test, fig_ref, untied, orient):
     expected.columns.name = "Method"
     expected.index.name = "Alternatives"
 
-    sns.boxplot(data=expected.T, orient=orient)
+    sns.boxplot(data=expected.T, orient=orient, ax=exp_ax)
 
     ranks_label = ranks_cmp.RANKS_LABELS[untied]
     if orient in (None, "v"):

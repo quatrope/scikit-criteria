@@ -114,7 +114,6 @@ def as_condensed_reduced_dag(graph):
     return dag, members
 
 
-
 def ranking_from_generations(alternatives, dag, members):
     """Generate a ranking based on topological generations.
 
@@ -165,7 +164,7 @@ def ranking_from_generations(alternatives, dag, members):
 
 
 def generate_rankings_with_cycle_permutations(
-    alternatives, dag, members, *, max_ranks=None
+    alternatives, dag, members, *, max_rankings=None
 ):
     """Generate rankings by permuting the alternatives within each cycle.
 
@@ -179,7 +178,7 @@ def generate_rankings_with_cycle_permutations(
     decision-maker to inspect.
 
     This relies on ``dag`` being the condensation of a tournament (see
-    ``as_condensed_dag``): for a tournament, the condensation is always
+    ``as_condensed_reduced_dag``): for a tournament, the condensation is always
     a strict total order of its supernodes (no two supernodes are ever
     incomparable), which means every topological generation contains
     exactly one supernode. That is what lets this function iterate
@@ -200,7 +199,7 @@ def generate_rankings_with_cycle_permutations(
     members : dict
         Maps each node of ``dag`` to the set of alternatives it
         represents, as returned by ``as_condensed_dag``.
-    max_ranks : int, optional
+    max_rankings : int, optional
         Maximum number of rankings to generate. If None (default), all
         possible rankings are generated.
 
@@ -233,7 +232,7 @@ def generate_rankings_with_cycle_permutations(
     # covering every ranking consistent with the supernode order
     generated_ranks = 0
     for permutation_per_generation in it.product(*all_permutations):
-        if max_ranks is not None and generated_ranks >= max_ranks:
+        if max_rankings is not None and generated_ranks >= max_rankings:
             break
 
         # concatenate the generations in order to get the full alternative
