@@ -223,12 +223,23 @@ def entropy_weights(matrix):
 
     This routine will normalize the sum of the weights to 1.
 
+    Raises
+    ------
+    ValueError
+        If the matrix contains negative values.
+
     See Also
     --------
     scipy.stats.entropy :
         Calculate the entropy of a distribution for given probability values.
 
     """
+    matrix = np.asarray(matrix, dtype=float)
+    if np.any(matrix < 0):
+        raise ValueError(
+            "entropy weights requires a non-negative matrix"
+        )
+
     base = len(matrix)
     entropy = scipy.stats.entropy(matrix, base=base, axis=0)
     entropy_divergence = 1 - entropy
