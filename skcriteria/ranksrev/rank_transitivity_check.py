@@ -233,15 +233,14 @@ class RankTransitivityChecker(SKCMethodABC):
         - "generations": Generate a single ranking based on topological layers
           (alternatives in the same layer receive the same rank,
           producing ties)
-        - "cycle_permutations": Generate multiple rankings from topological sorts
-          (number controlled by max_toposort_rankings parameter)
+        - "cycle_permutations": Generate multiple rankings from topological
+          sorts (number controlled by max_toposort_rankings parameter)
 
     max_toposort_rankings : int or None, default=50
-        Maximum number of rankings to generate from topological sorts.
-        Only used when ranking_strategy="cycle_permutations". Must be at least 1.
-        Set to None to generate all possible rankings (no limit).
-        Controls computational complexity by limiting the number of
-        decompositions. Ignored when ranking_strategy="generations".
+        Cap on the number of rankings generated from topological sorts, to
+        bound computational cost. Must be at least 1, or None for no limit
+        (all possible rankings). Only used when
+        ranking_strategy="cycle_permutations"; ignored otherwise.
 
     preferred_parallel_backend : str or None, default=None
         Backend for parallel computation of pairwise evaluations.
@@ -292,7 +291,8 @@ class RankTransitivityChecker(SKCMethodABC):
     >>>
     >>> # Or use toposorts strategy for multiple rankings
     >>> checker2 = RankTransitivityChecker(
-    ...     dmaker, ranking_strategy="cycle_permutations", max_toposort_rankings=10
+    ...     dmaker, ranking_strategy="cycle_permutations",
+    ...     max_toposort_rankings=10
     ... )
     >>> result2 = checker2.evaluate(dm)
 
@@ -621,7 +621,8 @@ class RankTransitivityChecker(SKCMethodABC):
             Reconstructed ranking results. Content depends on
             ranking_strategy:
             - "generations": Single ranking with tied ranks for same layer
-            - "cycle_permutations": Multiple rankings, one per cycle permutation
+            - "cycle_permutations": Multiple rankings, one per cycle
+              permutation
         dag : networkx.DiGraph
             Condensed reduced DAG derived from the dominance graph, where each
             node represents a strongly connected component and edges encode the

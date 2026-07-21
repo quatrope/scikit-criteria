@@ -97,7 +97,7 @@ def as_condensed_reduced_dag(graph):
 
     # transitive_reduction discards node attributes, so rebuild the
     # members mapping and give each supernode a readable label
-    members, labels, collapsed = {}, {}, False
+    members, labels = {}, {}
     for node, data in dag.nodes(data=True):
 
         # alternatives condensed into this supernode
@@ -121,9 +121,9 @@ def ranking_from_generations(alternatives, dag, members):
     generation (incomparable elements) share the same rank. This provides
     a compact representation when ties are acceptable.
 
-    Meant to be used with the condensed DAG from :func:`as_condensed_reduced_dag`,
-    where a node may represent several alternatives tied together by a
-    dominance cycle.
+    Meant to be used with the condensed DAG from
+    :func:`as_condensed_reduced_dag`, where a node may represent several
+    alternatives tied together by a dominance cycle.
 
     Parameters
     ----------
