@@ -88,7 +88,6 @@ def as_condensed_reduced_dag(graph):
     is handled internally, callers do not need to worry about it.
 
     """
-
     # collapse each strongly connected component (dominance cycle)
     # into a single supernode, then drop transitively redundant edges
     condensed = nx.condensation(graph)
