@@ -627,6 +627,9 @@ class RankTransitivityChecker(SKCMethodABC):
             Condensed reduced DAG derived from the dominance graph, where each
             node represents a strongly connected component and edges encode the
             strict dominance order.
+        mpr : int
+            Maximum possible number of distinct rankings derivable from
+            ``dag`` (see :func:`~skcriteria.utils.dag_rank.max_posible_ranks`).
         """
         dag, members = dag_rank.as_condensed_reduced_dag(graph=graph)
 
@@ -666,7 +669,9 @@ class RankTransitivityChecker(SKCMethodABC):
                 )
                 ranks.append(rank)
 
-        return ranks, dag
+        mpr = dag_rank.max_posible_ranks(dag, members)
+
+        return ranks, dag, mpr
 
     def _are_rankings_consistent(
         self, test_criterion_2, rrank, reconstructed_ranks
@@ -725,6 +730,8 @@ class RankTransitivityChecker(SKCMethodABC):
                 - transitivity_break: List of transitivity violations
                 - transitivity_break_rate: Normalized violation rate
                 - dag: Condensed reduced DAG used to reconstruct rankings
+                - mpr: Maximum possible number of distinct rankings
+                  derivable from the dag
                 - pairwise_comparisons: All pairwise comparison results
         """
         dmaker = self._dmaker
@@ -745,7 +752,7 @@ class RankTransitivityChecker(SKCMethodABC):
         )
 
         # Reconstruct rankings from the dominance graph
-        reconstructed_ranks, dag = self._reconstruct_rankings_from_graph(
+        reconstructed_ranks, dag, mpr = self._reconstruct_rankings_from_graph(
             graph, rrank, full_alternatives
         )
 
@@ -770,6 +777,7 @@ class RankTransitivityChecker(SKCMethodABC):
                 "transitivity_break": trans_break,
                 "transitivity_break_rate": trans_break_rate,
                 "dag": dag,
+                "mpr": mpr,
                 "pairwise_comparisons": pair_comparisons,
             },
         )

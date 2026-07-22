@@ -40,6 +40,8 @@ import networkx as nx
 
 import numpy as np
 
+from scipy.special import factorial
+
 # =============================================================================
 # PUBLIC FUNCTIONS
 # =============================================================================
@@ -113,6 +115,49 @@ def as_condensed_reduced_dag(graph):
     return dag, members
 
 
+def max_posible_ranks(dag, members):
+    """Total number of rankings obtainable from the condensed DAG.
+
+    Counts every strict ordering consistent with ``dag``: for each
+    topological generation, the alternatives tied together (grouped by
+    supernode via ``members``) can be permuted freely among themselves,
+    contributing a factorial of their combined size; the total is the
+    product of these factorials across all generations. Meant to size or
+    bound :func:`generate_rankings_with_cycle_permutations` (e.g. deciding
+    whether ``max_rankings`` is needed) without materializing the rankings.
+
+    Parameters
+    ----------
+    dag : networkx.DiGraph
+        A directed acyclic graph representing preference relations, as
+        returned by :func:`as_condensed_reduced_dag`.
+    members : dict
+        Maps each node of ``dag`` to the set of alternatives it
+        represents, as returned by :func:`as_condensed_reduced_dag`.
+
+    Returns
+    -------
+    int
+        Maximum number of distinct rankings derivable from ``dag``.
+    """
+    # number of alternatives tied together within each topological
+    # generation (sum of the sizes of every supernode in that generation)
+    ties_by_generation = np.zeros_like(dag.nodes, dtype=int)
+
+    # walk generations in topological order, accumulating each
+    # supernode's member count into its generation's tie total
+    generations = nx.topological_generations(dag)
+    for idx, generation in enumerate(generations):
+        for c_node in generation:
+            ties_by_generation[idx] += len(members[c_node])
+
+    # each generation contributes the factorial of its tie count; the
+    # total ranking count is the product across all generations
+    mpr = np.prod(factorial(ties_by_generation)).astype(int)
+
+    return mpr
+
+
 def ranking_from_generations(alternatives, dag, members):
     """Generate a ranking based on topological generations.
 
@@ -147,9 +192,8 @@ def ranking_from_generations(alternatives, dag, members):
     """
     # Map each alternative to its generation number (1-indexed)
     alt_to_rank = {}
-    for rank, generation in enumerate(
-        nx.topological_generations(dag), start=1
-    ):
+    generations = nx.topological_generations(dag)
+    for rank, generation in enumerate(generations, start=1):
         for c_node in generation:
             for alt in members[c_node]:
                 alt_to_rank[alt] = rank

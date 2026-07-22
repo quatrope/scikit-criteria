@@ -22,7 +22,6 @@ import sys
 import datetime as dt
 import warnings
 
-
 # add the skcriteria source to the build path
 CURRENT_PATH = pathlib.Path(os.path.abspath(os.path.dirname(__file__)))
 SKCRITERIA_PATH = CURRENT_PATH.parent.parent
