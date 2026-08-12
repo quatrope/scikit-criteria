@@ -11,6 +11,7 @@ Contents:
 
    quickstart.ipynb
    sufdom.ipynb
+   scale_weight.ipynb
    rankcmp.ipynb
    rankrev.ipynb
    extend.ipynb
