@@ -25,16 +25,59 @@ all the criteria.
 
 import numpy as np
 
-from ...agg import RankResult
-from ...cmp import RanksComparator
-from ...core import SKCMethodABC
-from ...utils import Bunch, unique_names
+import joblib
+
+from ..agg import RankResult
+from ..cmp import RanksComparator
+from ..core import SKCMethodABC
+from ..preprocessing.scalers import SumScaler
+from ..utils import Bunch, unique_names
 
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
 _VALID_METRICS = frozenset(["footrule", "kendall"])
+
+#: Renormalizes weights to sum 1, reused for the reference problem and
+#: every leave-one-out sub-problem.
+_WEIGHT_SCALER = SumScaler(target="weights")
+
+
+# =============================================================================
+# FUNCTIONS
+# =============================================================================
+
+
+def _evaluate_without_criterion(dmaker, dm, criterion):
+    """Evaluate ``dmaker`` on ``dm`` after dropping ``criterion``, with \
+    the remaining weights renormalized to sum 1.
+
+    Defined at module level (instead of as a method) so it can be safely
+    parallelized with ``joblib``.
+
+    Parameters
+    ----------
+    dmaker : object
+        Decision maker instance implementing ``evaluate(dm)``.
+    dm : DecisionMatrix
+        The (already weight-normalized) full decision matrix.
+    criterion : str
+        Name of the criterion to drop.
+
+    Returns
+    -------
+    criterion : str
+        The same ``criterion`` received, to identify the result once
+        collected back.
+    RankResult
+        Ranking obtained by evaluating ``dmaker`` on the sub-problem.
+
+    """
+    keep = [c for c in dm.criteria if c != criterion]
+    dm_sub = _WEIGHT_SCALER.transform(dm[keep])
+    rank_sub = dmaker.evaluate(dm_sub)
+    return criterion, rank_sub
 
 
 # =============================================================================
@@ -83,6 +126,17 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         1. If ``False``, a ranking missing an alternative raises a
         ``ValueError``.
 
+    preferred_parallel_backend : str or None, default ``None``
+        Soft hint passed as ``joblib.Parallel(prefer=...)`` to parallelize
+        the evaluation of the leave-one-out sub-problems (one per
+        criterion). One of ``"threads"``, ``"processes"``, or ``None`` for
+        joblib's default behavior.
+
+    n_jobs : int or None, default ``None``
+        Number of parallel jobs used to evaluate the leave-one-out
+        sub-problems. ``None`` means sequential execution (joblib's
+        default of a single job); ``-1`` uses all available processors.
+
     Raises
     ------
     TypeError
@@ -112,9 +166,10 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
     :meth:`skcriteria.cmp.RanksComparator.footrule_similarity` or
     :meth:`skcriteria.cmp.RanksComparator.corr`, instead of an ad hoc
     distance function, to stay consistent with the rest of the comparison
-    ecosystem. Both are computed once over the whole set of rankings
-    (reference plus one leave-one-out ranking per criterion), and the
-    per-criterion scores are obtained by indexing that single matrix.
+    ecosystem. The full pairwise matrix is computed once over the whole set
+    of rankings (reference plus one leave-one-out ranking per criterion),
+    and the per-criterion scores are obtained by indexing the
+    ``"reference"`` row out of that single matrix.
 
     Examples
     --------
@@ -133,7 +188,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
     >>> result = checker.evaluate(dm)
     >>>
     >>> print(result.extra_["importance_scores"])
-    >>> print(result.extra_["similarity_matrix"])
+    >>> print(result.extra_["similarity_scores"])
 
     """
 
@@ -142,10 +197,18 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         "dmaker",
         "metric",
         "allow_missing_alternatives",
+        "preferred_parallel_backend",
+        "n_jobs",
     ]
 
     def __init__(
-        self, dmaker, *, metric="footrule", allow_missing_alternatives=True
+        self,
+        dmaker,
+        *,
+        metric="footrule",
+        allow_missing_alternatives=True,
+        preferred_parallel_backend=None,
+        n_jobs=None,
     ):
         if not (hasattr(dmaker, "evaluate") and callable(dmaker.evaluate)):
             raise TypeError("'dmaker' must implement 'evaluate()' method")
@@ -159,6 +222,9 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         self._metric = metric
 
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
+
+        self._preferred_parallel_backend = preferred_parallel_backend
+        self._n_jobs = None if n_jobs is None else int(n_jobs)
 
     # PROPERTIES ==============================================================
 
@@ -179,16 +245,19 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         alternatives with respect to the original decision matrix."""
         return self._allow_missing_alternatives
 
-    # INTERNALS ===============================================================
+    @property
+    def preferred_parallel_backend(self):
+        """Backend used to parallelize the evaluation of the \
+        leave-one-out sub-problems."""
+        return self._preferred_parallel_backend
 
-    def _drop_criterion(self, dm, criterion):
-        """Build the decision matrix without ``criterion``, with the \
-        remaining weights renormalized to sum 1."""
-        keep = [c for c in dm.criteria if c != criterion]
-        dm_dropped = dm[keep]
-        weights = dm_dropped.weights
-        renormalized_weights = (weights / weights.sum()).to_numpy()
-        return dm_dropped.replace(weights=renormalized_weights)
+    @property
+    def n_jobs(self):
+        """Number of parallel jobs used to evaluate the leave-one-out \
+        sub-problems."""
+        return self._n_jobs
+
+    # INTERNALS ===============================================================
 
     def _patch_missing_alternatives(self, *, rank, full_alternatives, where):
         """Fill any alternative missing from ``rank`` (with respect to \
@@ -215,8 +284,13 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
 
             missing_alternatives = alts_diff
 
-            # add missing alternatives with the worst ranking + 1
-            fill_values = np.full_like(alts_diff, rank.rank_.max() + 1)
+            # add missing alternatives with the worst ranking + 1; the fill
+            # array must match `values`' dtype (not `alts_diff`'s), or the
+            # concatenation below silently upcasts the ranks to `object`,
+            # which later breaks scipy.spatial.distance.pdist downstream
+            fill_values = np.full(
+                len(alts_diff), rank.rank_.max() + 1, dtype=values.dtype
+            )
             alternatives = np.concatenate((alternatives, alts_diff))
             values = np.concatenate((values, fill_values))
 
@@ -234,12 +308,21 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         )
         return patched_rank, missing_alternatives
 
-    def _similarity_matrix(self, rcmp):
-        """Compute the pairwise ranking-similarity matrix for ``rcmp``, \
-        reusing ``RanksComparator``'s own vectorized methods."""
+    def _similarity_score(self, named_ranks):
+        """Similarity of every ranking in ``named_ranks`` against \
+        ``"reference"``, as a ``pandas.Series`` indexed by ranking name.
+
+        Builds the temporary ``RanksComparator`` needed to compute the
+        pairwise metric and reuses its own vectorized methods (computing
+        the full matrix once), then just indexes the ``"reference"`` row
+        out of it.
+        """
+        rcmp = RanksComparator(named_ranks, extra={})
         if self._metric == "footrule":
-            return rcmp.footrule_similarity()
-        return rcmp.corr(method="kendall")
+            matrix = rcmp.footrule_similarity()
+        else:
+            matrix = rcmp.corr(method="kendall")
+        return matrix.loc["reference"]
 
     # LOGIC ===================================================================
 
@@ -265,9 +348,10 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
               ``rank``, its importance score (``delta``), and any
               ``missing_alternatives`` that had to be patched.
             - ``metric``: the metric used (``"footrule"`` or ``"kendall"``).
-            - ``similarity_matrix``: the full pairwise similarity/
-              correlation matrix (same one used to obtain every
-              ``delta``), for traceability.
+            - ``similarity_scores``: a ``pandas.Series``, indexed by ranking
+              name, with the similarity of every ranking (``"reference"``
+              and every ``"LOO(-{criterion})"``) against ``"reference"``
+              (same one used to obtain every ``delta``), for traceability.
             - ``importance_scores``: a ``{criterion: delta}`` dict with the
               headline result of this checker. As explained in the class
               Notes, this is **not** a Shapley value: it is
@@ -289,6 +373,11 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
                 "CriteriaLeaveOneOutChecker requires at least 2 criteria"
             )
 
+        # normalize the weights of the full problem first, just in case,
+        # so the reference ranking follows the same "weights sum to 1"
+        # convention applied to every leave-one-out sub-problem
+        dm = _WEIGHT_SCALER.transform(dm)
+
         full_alternatives = np.array(dm.alternatives)
 
         # reference ranking, using all the criteria
@@ -302,12 +391,23 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         names = ["reference"]
         results = [patched_full]
 
-        # one leave-one-out ranking per criterion
-        loo_info = {}
-        for criterion in criteria:
-            dm_sub = self._drop_criterion(dm, criterion)
-            rank_sub = self._dmaker.evaluate(dm_sub)
+        # one leave-one-out ranking per criterion, possibly in parallel;
+        # the sub-problem is built and evaluated by a module-level function
+        # so it can be safely handed off to joblib workers
+        dmaker = self._dmaker
+        with joblib.Parallel(
+            n_jobs=self._n_jobs, prefer=self._preferred_parallel_backend
+        ) as parallel:
+            delayed_evaluation = joblib.delayed(_evaluate_without_criterion)
+            loo_results = parallel(
+                delayed_evaluation(dmaker, dm, criterion)
+                for criterion in criteria
+            )
 
+        # patching for missing alternatives needs 'self', so it is applied
+        # sequentially once the (possibly parallel) evaluations come back
+        loo_info = {}
+        for criterion, rank_sub in loo_results:
             patched_sub, missing = self._patch_missing_alternatives(
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
@@ -325,17 +425,16 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
                 "missing_alternatives": missing,
             }
 
-        # build the single RanksComparator that holds every ranking, and
-        # compute the pairwise similarity matrix over it a single time
+        # compute the similarity-to-reference score once, over a temporary
+        # RanksComparator holding every ranking
         named_ranks = unique_names(names=names, elements=results)
-        rcmp = RanksComparator(named_ranks, extra={})
-        sim_matrix = self._similarity_matrix(rcmp)
+        sim_scores = self._similarity_score(named_ranks)
 
-        # index the point-wise (loo, reference) pair already computed above,
-        # instead of recomputing anything ranking by ranking
+        # index the point-wise (loo, reference) score already computed
+        # above, instead of recomputing anything ranking by ranking
         importance_scores = {}
         for criterion in criteria:
-            delta = sim_matrix.loc[f"LOO(-{criterion})", "reference"]
+            delta = sim_scores[f"LOO(-{criterion})"]
             importance_scores[criterion] = delta
             loo_info[criterion]["delta"] = delta
 
@@ -350,7 +449,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         extra = {
             "loo_check": loo_check,
             "metric": self._metric,
-            "similarity_matrix": sim_matrix,
+            "similarity_scores": sim_scores,
             "importance_scores": importance_scores,
         }
 
