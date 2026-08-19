@@ -8,6 +8,8 @@
 
 *   **`RanksComparator.footrule_similarity()`:** New method (with a matching `RanksComparatorPlotter.footrule_similarity()` heatmap) that computes the normalized Spearman footrule similarity between every pair of rankings in the comparator, using the exact `floor(n**2/2)` upper bound from Diaconis & Graham (1977). Supports the `untied` parameter like the rest of the comparator's methods, and warns when it detects ties, since the normalization assumes strict permutations.
 
+*   **`skcriteria.importance` module:** New module for sensitivity-based importance checkers, starting with `CriteriaLeaveOneOutChecker`. It measures each criterion's importance by dropping it entirely from the decision matrix (renormalizing the remaining weights with `SumScaler`), evaluating `dmaker` on that sub-problem, and comparing the resulting ranking against a reference ranking computed with all the criteria. The comparison reuses `RanksComparator.footrule_similarity()`/`.corr(method="kendall")` instead of an ad hoc distance function, and the importance score is always bounded in `[0, 1]` regardless of the metric chosen. Supports `untied`, `allow_missing_alternatives`, and parallel evaluation of the leave-one-out sub-problems via `n_jobs`/`preferred_parallel_backend`.
+
 ---
 
 ## Version 0.10

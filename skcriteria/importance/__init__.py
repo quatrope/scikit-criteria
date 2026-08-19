@@ -9,7 +9,20 @@
 # DOCS
 # =============================================================================
 
-"""Sensitivity-based criteria importance checkers."""
+"""Sensitivity-based importance checkers.
+
+Importance, in this context, is the effect that an element of a decision
+problem has on its outcome: how much the resulting ranking changes when
+that element is altered or removed. Depending on the checker, "element"
+can mean a criterion, an alternative, or a weight.
+
+The module offers features for automating this kind of sensitivity
+analysis and reporting a per-element importance score, without requiring
+an ad hoc distance function: every checker reuses
+:class:`skcriteria.cmp.RanksComparator`'s own pairwise comparison methods
+to compare the perturbed ranking(s) against a reference ranking.
+
+"""
 
 # =============================================================================
 # IMPORTS

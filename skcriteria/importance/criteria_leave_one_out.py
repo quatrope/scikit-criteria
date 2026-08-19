@@ -31,7 +31,7 @@ from ..agg import RankResult
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
 from ..preprocessing.scalers import SumScaler
-from ..utils import Bunch, unique_names
+from ..utils import unique_names
 
 # =============================================================================
 # CONSTANTS
@@ -117,6 +117,13 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
           :meth:`skcriteria.cmp.RanksComparator.corr` using
           ``method="kendall"``.
 
+    untied : bool, default ``False``
+        Forwarded as-is to ``RanksComparator.footrule_similarity``/
+        ``RanksComparator.corr``. If ``True`` and any ranking (reference or
+        leave-one-out) has ties, ``RankResult.untied_rank_`` is used to
+        assign each alternative a single ranked order before computing the
+        pairwise metric. If ``False``, the rankings are used as they are.
+
     allow_missing_alternatives : bool, default ``True``
         ``dmaker`` can somehow return rankings with fewer alternatives than
         the original decision matrix (using a pipeline that implements a
@@ -168,8 +175,12 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
     distance function, to stay consistent with the rest of the comparison
     ecosystem. The full pairwise matrix is computed once over the whole set
     of rankings (reference plus one leave-one-out ranking per criterion),
-    and the per-criterion scores are obtained by indexing the
-    ``"reference"`` row out of that single matrix.
+    and the per-criterion scores are obtained by taking the complement of
+    the ``"reference"`` row of that single matrix. ``footrule_similarity``
+    is already bounded in :math:`[0, 1]`, so its complement is used as is;
+    Kendall's tau is a correlation bounded in :math:`[-1, 1]`, so its
+    complement is halved instead, keeping the importance score in
+    :math:`[0, 1]` regardless of ``metric``.
 
     Examples
     --------
@@ -187,8 +198,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
     >>> checker = CriteriaLeaveOneOutChecker(dmaker)
     >>> result = checker.evaluate(dm)
     >>>
-    >>> print(result.extra_["importance_scores"])
-    >>> print(result.extra_["similarity_scores"])
+    >>> print(result.extra_["importance"])
 
     """
 
@@ -196,6 +206,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
     _skcriteria_parameters = [
         "dmaker",
         "metric",
+        "untied",
         "allow_missing_alternatives",
         "preferred_parallel_backend",
         "n_jobs",
@@ -206,6 +217,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         dmaker,
         *,
         metric="footrule",
+        untied=False,
         allow_missing_alternatives=True,
         preferred_parallel_backend=None,
         n_jobs=None,
@@ -220,6 +232,8 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
                 f"'metric' must be one of ({valid}). Found {metric!r}"
             )
         self._metric = metric
+
+        self._untied = bool(untied)
 
         self._allow_missing_alternatives = bool(allow_missing_alternatives)
 
@@ -238,6 +252,13 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         """Ranking-similarity metric used to score each criterion's \
         importance."""
         return self._metric
+
+    @property
+    def untied(self):
+        """If ``True``, ties are broken with \
+        ``RankResult.untied_rank_`` before computing the pairwise metric \
+        (same convention as ``RanksComparator``)."""
+        return self._untied
 
     @property
     def allow_missing_alternatives(self):
@@ -308,21 +329,38 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         )
         return patched_rank, missing_alternatives
 
-    def _similarity_score(self, named_ranks):
-        """Similarity of every ranking in ``named_ranks`` against \
-        ``"reference"``, as a ``pandas.Series`` indexed by ranking name.
+    def _importance_score(self, named_ranks):
+        """Importance of every ranking in ``named_ranks`` against \
+        ``"reference"``, as a ``pandas.Series`` indexed by ranking name,
+        always bounded in ``[0, 1]``.
 
         Builds the temporary ``RanksComparator`` needed to compute the
         pairwise metric and reuses its own vectorized methods (computing
-        the full matrix once), then just indexes the ``"reference"`` row
-        out of it.
+        the full matrix once), indexes the ``"reference"`` row out of it,
+        and returns how much the ranking changed, not how similar it
+        stayed. ``"reference"`` itself gets an importance of 0.
+
+        ``footrule_similarity()`` is already bounded in ``[0, 1]``, so its
+        complement (``1 - similarity``) is used directly. Kendall's tau is
+        a correlation bounded in ``[-1, 1]`` instead, so its complement is
+        rescaled by half (``(1 - correlation) / 2``) to keep importance in
+        the same ``[0, 1]`` range regardless of ``metric``.
         """
         rcmp = RanksComparator(named_ranks, extra={})
         if self._metric == "footrule":
-            matrix = rcmp.footrule_similarity()
+            similarity = rcmp.footrule_similarity(
+                untied=self._untied
+            ).loc["reference"]
+            importance = 1.0 - similarity
         else:
-            matrix = rcmp.corr(method="kendall")
-        return matrix.loc["reference"]
+            correlation = rcmp.corr(
+                method="kendall", untied=self._untied
+            ).loc["reference"]
+            importance = (1.0 - correlation) / 2.0
+
+        importance.name = "Importance"
+
+        return importance
 
     # LOGIC ===================================================================
 
@@ -343,18 +381,15 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
             ``"LOO(-{criterion})"``), obtained by evaluating ``dmaker``
             without that criterion. The ``extra_`` attribute contains:
 
-            - ``loo_check``: a mapping from criterion name to a
-              :class:`~skcriteria.utils.Bunch` with the leave-one-out
-              ``rank``, its importance score (``delta``), and any
-              ``missing_alternatives`` that had to be patched.
             - ``metric``: the metric used (``"footrule"`` or ``"kendall"``).
-            - ``similarity_scores``: a ``pandas.Series``, indexed by ranking
-              name, with the similarity of every ranking (``"reference"``
-              and every ``"LOO(-{criterion})"``) against ``"reference"``
-              (same one used to obtain every ``delta``), for traceability.
-            - ``importance_scores``: a ``{criterion: delta}`` dict with the
-              headline result of this checker. As explained in the class
-              Notes, this is **not** a Shapley value: it is
+            - ``importance``: a ``pandas.Series``, indexed by ranking
+              name (``"reference"`` and every ``"LOO(-{criterion})"``),
+              with the headline result of this checker: how much the
+              ranking changed when the criterion was removed, always
+              bounded in ``[0, 1]`` (0 means the ranking didn't change at
+              all; 1 means the maximum possible change for ``metric``;
+              ``"reference"`` itself is always 0). As explained in the
+              class Notes, this is **not** a Shapley value: it is
               :math:`v(N) - v(N \\setminus \\{i\\})` evaluated at a single
               coalition order, without any additivity/efficiency
               guarantee.
@@ -406,9 +441,8 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
 
         # patching for missing alternatives needs 'self', so it is applied
         # sequentially once the (possibly parallel) evaluations come back
-        loo_info = {}
         for criterion, rank_sub in loo_results:
-            patched_sub, missing = self._patch_missing_alternatives(
+            patched_sub, _ = self._patch_missing_alternatives(
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
                 where=(
@@ -420,37 +454,14 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
             names.append(f"LOO(-{criterion})")
             results.append(patched_sub)
 
-            loo_info[criterion] = {
-                "rank": patched_sub,
-                "missing_alternatives": missing,
-            }
-
-        # compute the similarity-to-reference score once, over a temporary
+        # compute the importance-to-reference score once, over a temporary
         # RanksComparator holding every ranking
         named_ranks = unique_names(names=names, elements=results)
-        sim_scores = self._similarity_score(named_ranks)
-
-        # index the point-wise (loo, reference) score already computed
-        # above, instead of recomputing anything ranking by ranking
-        importance_scores = {}
-        for criterion in criteria:
-            delta = sim_scores[f"LOO(-{criterion})"]
-            importance_scores[criterion] = delta
-            loo_info[criterion]["delta"] = delta
-
-        loo_check = Bunch(
-            "loo_check",
-            {
-                criterion: Bunch(f"loo_check[{criterion}]", info)
-                for criterion, info in loo_info.items()
-            },
-        )
+        importance_scores = self._importance_score(named_ranks)
 
         extra = {
-            "loo_check": loo_check,
             "metric": self._metric,
-            "similarity_scores": sim_scores,
-            "importance_scores": importance_scores,
+            "importance": importance_scores,
         }
 
         return RanksComparator(named_ranks, extra=extra)
