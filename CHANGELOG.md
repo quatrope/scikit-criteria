@@ -2,6 +2,14 @@
 
 <!-- BODY -->
 
+## Version 0.11
+
+### New Features
+
+*   **`RanksComparator.footrule_similarity()`:** New method (with a matching `RanksComparatorPlotter.footrule_similarity()` heatmap) that computes the normalized Spearman footrule similarity between every pair of rankings in the comparator, using the exact `floor(n**2/2)` upper bound from Diaconis & Graham (1977). Supports the `untied` parameter like the rest of the comparator's methods, and warns when it detects ties, since the normalization assumes strict permutations.
+
+---
+
 ## Version 0.10
 
 ### Improvements and Behavioral Changes

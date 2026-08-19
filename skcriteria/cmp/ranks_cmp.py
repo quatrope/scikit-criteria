@@ -16,6 +16,7 @@
 # =============================================================================
 
 import itertools as it
+import warnings
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from functools import partial
@@ -409,6 +410,66 @@ class RanksComparator(Sequence, DiffEqualityMixin):
         )
         return dis_df
 
+    def footrule_similarity(self, *, untied=False):
+        """
+        Normalized Spearman footrule similarity between all pairs of
+        rankings in the comparator.
+
+        For each pair of rankings (a, b), computes
+        ``1 - F(a,b) / F_max``, where ``F(a,b)`` is the Manhattan/cityblock
+        distance between the rank vectors (equivalent to the Spearman
+        footrule distance) and ``F_max = floor(n**2 / 2)`` is its exact
+        upper bound for permutations of n alternatives. 1.0 indicates
+        identical rankings; 0.0, the maximum possible distance between
+        strict permutations.
+
+        Parameters
+        ----------
+        untied: bool, default ``False``
+            If it is ``True`` and any ranking has ties, the
+            ``RankResult.untied_rank_`` property is used to assign each
+            alternative a single ranked order. On the other hand, if it is
+            ``False`` the rankings are used as they are.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Symmetric square matrix (same shape/indices as
+            ``self.distance()``), with 1.0 on the diagonal.
+
+        Notes
+        -----
+        Normalizing by ``F_max`` assumes strict permutations (no ties).
+        If any ranking in the comparator has repeated ranks, the true
+        maximum distance may be lower than ``F_max``, and the result is
+        conservative (it never overshoots, but doesn't reach exact 0 in
+        the worst case). A warning is issued if ties are detected in any
+        of the rankings involved.
+
+        References
+        ----------
+        :cite:p:`diaconis1977spearman`
+
+        """
+        df = self.to_dataframe(untied=untied)
+        n = len(df)
+        f_max = (n * n) // 2
+
+        if not untied and (df.nunique() < len(df)).any():
+            warnings.warn(
+                "footrule_similarity: ties detected in at least one of "
+                "the rankings. The normalization (F_max = "
+                "floor(n**2/2)) assumes strict permutations and is "
+                "conservative in the presence of ties.",
+                stacklevel=2,
+            )
+
+        cblock = self.distance(untied=untied, metric="cityblock")
+        if f_max == 0:
+            return cblock * 0.0 + 1.0
+
+        return 1.0 - cblock / f_max
+
     def extra_get(self, key, default=None):
         """Retrieve a specific key from each rank, returning a \
         dictionary of results.
@@ -771,6 +832,32 @@ class RanksComparatorPlotter(AccessorABC):
             "cbar_kws", {"label": f"{metric} distance".capitalize()}
         )
         return sns.heatmap(data=dis, **kwargs)
+
+    def footrule_similarity(self, *, untied=False, **kwargs):
+        """Plot the pairwise Spearman footrule similarity between rankings \
+        as a color-encoded matrix.
+
+        Parameters
+        ----------
+        untied: bool, default ``False``
+            If it is ``True`` and any ranking has ties, the
+            ``RankResult.untied_rank_`` property is used to assign each
+            alternative a single ranked order. On the other hand, if it is
+            ``False`` the rankings are used as they are.
+        kwargs:
+            Other keyword arguments are passed to the ``seaborn.heatmap()``
+            function.
+
+        Returns
+        -------
+        matplotlib.axes.Axes or numpy.ndarray of them
+
+        """
+        kwargs.setdefault("annot", True)
+        kwargs.setdefault("cbar_kws", {"label": "Footrule similarity"})
+
+        fsim = self._ranks_cmp.footrule_similarity(untied=untied)
+        return sns.heatmap(data=fsim, **kwargs)
 
     def box(self, *, untied=False, **kwargs):
         """Draw a boxplot to show rankings with respect to alternatives.
