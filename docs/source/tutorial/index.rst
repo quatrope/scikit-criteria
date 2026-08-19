@@ -12,6 +12,10 @@ Contents:
    quickstart.ipynb
    sufdom.ipynb
    scale_weight.ipynb
+   filters_impute.ipynb
+   invert_objectives.ipynb
+   agg_methods.ipynb
+   electre.ipynb
    rankcmp.ipynb
    rankrev.ipynb
    extend.ipynb

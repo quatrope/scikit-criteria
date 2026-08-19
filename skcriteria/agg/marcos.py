@@ -66,8 +66,6 @@ def marcos(matrix, objectives, weights):
         1 + (1 - f_K_plus) / f_K_plus + (1 - f_K_minus) / f_K_minus
     )
 
-    print(f_K)
-
     return K_minus, K_plus, f_K
 
 

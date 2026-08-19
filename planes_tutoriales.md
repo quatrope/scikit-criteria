@@ -98,15 +98,21 @@ Cada uno es un `SKCDecisionMakerABC` completo (24 métodos):
 | `rankcmp.ipynb` | Rankings comparison | `RanksComparator`, utilidades y gráficos de comparación |
 | `rankrev.ipynb` | Rank reversals | Test criterion 1 (invariancia), criterios 2 y 3 (transitividad/reconstrucción), ejemplos que pasan/fallan |
 | `scale_weight.ipynb` | Scaling and weighting criteria | **✅ Hecho** — scalers (MinMax/Standar/Vector/MaxAbs), weighters estadísticos (Equal/Std/Entropy/Gini) y de correlación/expertos (CRITIC/MEREC/RANCOM), combinados en pipelines y comparados con `RanksComparator` |
+| `filters_impute.ipynb` | Filters and missing data | **✅ Hecho** — recap de `Filter`/filtros aritméticos, `FilterIn`/`FilterNotIn`, `SimpleImputer`, `IterativeImputer`/`KNNImputer` comparados, caso combinado filtrar+imputar+rankear |
+| `invert_objectives.ipynb` | Inverting objectives | **✅ Hecho** — problema de mezclar MAX/MIN, `NegateMinimize` vs `InvertMinimize`, `MinMaxInverter`/`BenefitCostInverter`, `AddValueToZero`/`PushNegatives`, ejercicio integrador con matriz sucia (SPOTIS) + `FullMultiplicativeForm` |
+| `agg_methods.ipynb` | Classic aggregation methods beyond TOPSIS and ELECTRE | **✅ Hecho** — familia suma/producto ponderado (WSM/WPM/WASPAS), familia MOORA, familia distancia-a-ideal (VIKOR/CODAS/MABAC/MAIRCA), familia de comparación (ARAS/COPRAS/CoCoSo/EDAS/MARCOS/OCRA/RAM), comparación final de 18 métodos con `RanksComparator` |
+| `electre.ipynb` | ELECTRE in depth | **✅ Hecho** — concordancia/discordancia de `ELECTRE1`, diferencias con `ELECTRE2`, interpretación de kernel vs ranking total, sensibilidad a umbrales `p`/`q`, cuándo elegir ELECTRE sobre TOPSIS/WSM |
 | `extend.ipynb` | Extending Aggregation and Transformation Functions | Nuevo modelo de agregación, hiperparámetros, nuevo transformer, consideraciones de `dtype` |
 
-**Cobertura actual:** `DecisionMatrix` básico, TOPSIS, ELECTRE (mención),
-filtros de dominancia, comparación de rankings, rank reversal (los 3
-checkers), y extensión de la librería.
+**Cobertura actual:** `DecisionMatrix` básico, TOPSIS, ELECTRE (quickstart
+y en profundidad), filtros (aritméticos, de conjunto y de dominancia),
+datos faltantes, inversión de objetivos, 18 de los 24 métodos de
+agregación (falta RIM/ERVD/PROBID/SIMUS/SPOTIS), comparación de
+rankings, rank reversal (los 3 checkers), y extensión de la librería.
 
-**Sin tutorial dedicado:** el resto de los 24 métodos de agregación,
-scalers/weighters/imputers en profundidad, pipelines, combinatorial
-pipelines, tiebreaker, I/O (dmsy), y `stats`/`plot` accessors en detalle.
+**Sin tutorial dedicado:** RIM/ERVD/PROBID (planificación G), SIMUS/SPOTIS
+(planificación F), pipelines y combinatorial pipelines (H), tiebreaker
+(I), I/O (dmsy, J), y `stats`/`plot` accessors en detalle (K).
 
 ---
 
@@ -123,7 +129,7 @@ pipelines, tiebreaker, I/O (dmsy), y `stats`/`plot` accessors en detalle.
 5. Combinar scaler + weighter en un mismo flujo y comparar el impacto en
    un ranking (TOPSIS) según la combinación elegida.
 
-### B. Preprocessing: Filtros y datos faltantes
+### B. Preprocessing: Filtros y datos faltantes — ✅ Hecho (`tutorial/filters_impute.ipynb`)
 1. `Filter` genérico y filtros aritméticos (`FilterGT/GE/LT/LE/EQ/NE`).
 2. Filtros por conjunto (`FilterIn`, `FilterNotIn`) y de dominancia
    (`FilterNonDominated` — referenciar `sufdom.ipynb` para no duplicar).
@@ -131,7 +137,7 @@ pipelines, tiebreaker, I/O (dmsy), y `stats`/`plot` accessors en detalle.
 4. Imputación avanzada: `IterativeImputer`, `KNNImputer` — comparación.
 5. Caso combinado: filtrar alternativas inválidas + imputar + rankear.
 
-### C. Preprocessing: Objetivos e invertir criterios
+### C. Preprocessing: Objetivos e invertir criterios — ✅ Hecho (`tutorial/invert_objectives.ipynb`)
 1. El problema de mezclar criterios MAX/MIN en un mismo método.
 2. `NegateMinimize` vs `InvertMinimize`/`MinimizeToMaximize`: diferencia
    conceptual (negar vs invertir).
@@ -141,7 +147,7 @@ pipelines, tiebreaker, I/O (dmsy), y `stats`/`plot` accessors en detalle.
 5. Ejercicio integrador: preparar una matriz "sucia" (mixta, con ceros y
    negativos) para que sea compatible con un método sensible como MOORA.
 
-### D. Métodos de agregación clásicos (más allá de TOPSIS/ELECTRE)
+### D. Métodos de agregación clásicos (más allá de TOPSIS/ELECTRE) — ✅ Hecho (`tutorial/agg_methods.ipynb`)
 1. Repaso rápido de la familia "suma/producto ponderado":
    `WeightedSumModel`, `WeightedProductModel`, `WASPAS`.
 2. Familia MOORA: `RatioMOORA`, `ReferencePointMOORA`,
@@ -153,7 +159,7 @@ pipelines, tiebreaker, I/O (dmsy), y `stats`/`plot` accessors en detalle.
 5. Comparar los resultados de todos con `RanksComparator` sobre el mismo
    dataset (`load_simple_stock_selection`) y discutir por qué difieren.
 
-### E. ELECTRE en profundidad
+### E. ELECTRE en profundidad — ✅ Hecho (`tutorial/electre.ipynb`)
 1. Repaso del quickstart: qué hace `ELECTRE1` (concordancia/discordancia,
    relación de outranking).
 2. `ELECTRE2`: diferencias con ELECTRE1 (umbrales fuerte/débil, dos
