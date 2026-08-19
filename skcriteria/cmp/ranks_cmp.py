@@ -411,11 +411,10 @@ class RanksComparator(Sequence, DiffEqualityMixin):
         return dis_df
 
     def footrule_similarity(self, *, untied=False):
-        """
-        Normalized Spearman footrule similarity between all pairs of
-        rankings in the comparator.
+        """Normalized Spearman footrule similarity between rankings.
 
-        For each pair of rankings (a, b), computes
+        Computed between all pairs of rankings in the comparator. For each
+        pair of rankings (a, b), computes
         ``1 - F(a,b) / F_max``, where ``F(a,b)`` is the Manhattan/cityblock
         distance between the rank vectors (equivalent to the Spearman
         footrule distance) and ``F_max = floor(n**2 / 2)`` is its exact

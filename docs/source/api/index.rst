@@ -42,6 +42,12 @@
 .. toctree::
    :maxdepth: 2
 
+   importance/index
+
+
+.. toctree::
+   :maxdepth: 2
+
    datasets/index
 
 

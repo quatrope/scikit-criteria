@@ -23,9 +23,9 @@ all the criteria.
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
 import joblib
+
+import numpy as np
 
 from ..agg import RankResult
 from ..cmp import RanksComparator
@@ -86,8 +86,7 @@ def _evaluate_without_criterion(dmaker, dm, criterion):
 
 
 class CriteriaLeaveOneOutChecker(SKCMethodABC):
-    r"""Leave-one-out (LOO) importance of every criterion in a decision \
-    problem.
+    r"""Leave-one-out (LOO) importance of each decision-matrix criterion.
 
     For every criterion :math:`i` in the decision matrix, this checker
     builds a sub-problem :math:`N \setminus \{i\}` by dropping the criterion
@@ -330,15 +329,15 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         return patched_rank, missing_alternatives
 
     def _importance_score(self, named_ranks):
-        """Importance of every ranking in ``named_ranks`` against \
-        ``"reference"``, as a ``pandas.Series`` indexed by ranking name,
-        always bounded in ``[0, 1]``.
+        """Importance of every ranking in ``named_ranks`` vs ``"reference"``.
 
-        Builds the temporary ``RanksComparator`` needed to compute the
-        pairwise metric and reuses its own vectorized methods (computing
-        the full matrix once), indexes the ``"reference"`` row out of it,
-        and returns how much the ranking changed, not how similar it
-        stayed. ``"reference"`` itself gets an importance of 0.
+        Returned as a ``pandas.Series`` indexed by ranking name, always
+        bounded in ``[0, 1]``. Builds the temporary ``RanksComparator``
+        needed to compute the pairwise metric and reuses its own
+        vectorized methods (computing the full matrix once), indexes the
+        ``"reference"`` row out of it, and returns how much the ranking
+        changed, not how similar it stayed. ``"reference"`` itself gets
+        an importance of 0.
 
         ``footrule_similarity()`` is already bounded in ``[0, 1]``, so its
         complement (``1 - similarity``) is used directly. Kendall's tau is
@@ -348,14 +347,14 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         """
         rcmp = RanksComparator(named_ranks, extra={})
         if self._metric == "footrule":
-            similarity = rcmp.footrule_similarity(
-                untied=self._untied
-            ).loc["reference"]
+            similarity = rcmp.footrule_similarity(untied=self._untied).loc[
+                "reference"
+            ]
             importance = 1.0 - similarity
         else:
-            correlation = rcmp.corr(
-                method="kendall", untied=self._untied
-            ).loc["reference"]
+            correlation = rcmp.corr(method="kendall", untied=self._untied).loc[
+                "reference"
+            ]
             importance = (1.0 - correlation) / 2.0
 
         importance.name = "Importance"
@@ -365,7 +364,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
     # LOGIC ===================================================================
 
     def evaluate(self, dm):
-        """Execute the leave-one-out importance test.
+        r"""Execute the leave-one-out importance test.
 
         Parameters
         ----------
@@ -390,7 +389,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
               all; 1 means the maximum possible change for ``metric``;
               ``"reference"`` itself is always 0). As explained in the
               class Notes, this is **not** a Shapley value: it is
-              :math:`v(N) - v(N \\setminus \\{i\\})` evaluated at a single
+              :math:`v(N) - v(N \setminus \{i\})` evaluated at a single
               coalition order, without any additivity/efficiency
               guarantee.
 
@@ -446,8 +445,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
                 where=(
-                    "the leave-one-out ranking for criterion "
-                    f"{criterion!r}"
+                    "the leave-one-out ranking for criterion " f"{criterion!r}"
                 ),
             )
 
