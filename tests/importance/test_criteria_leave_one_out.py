@@ -122,8 +122,7 @@ def test_CriteriaLeaveOneOutChecker_ranks_names():
     ]
 
     importance = result.extra_["importance"]
-    assert set(importance.index) == {"reference", "LOO-C0", "LOO-C1"}
-    assert importance["reference"] == 0.0
+    assert set(importance.index) == {"C0", "C1"}
 
 
 # =============================================================================
@@ -142,10 +141,10 @@ def test_CriteriaLeaveOneOutChecker_importance_values(metric):
     importance = result.extra_["importance"]
 
     # dropping C0 fully reverses the ranking -> maximum importance
-    assert importance["LOO-C0"] == pytest.approx(1.0)
+    assert importance["C0"] == pytest.approx(1.0)
 
     # dropping C1 doesn't change the ranking at all -> zero importance
-    assert importance["LOO-C1"] == pytest.approx(0.0)
+    assert importance["C1"] == pytest.approx(0.0)
 
 
 @pytest.mark.parametrize("metric", ["footrule", "kendall"])

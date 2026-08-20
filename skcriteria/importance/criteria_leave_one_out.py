@@ -41,7 +41,11 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
     criteria, :math:`N`) using a pairwise ranking-similarity metric, and the
     similarity between the two is reported as the "importance" of the
     removed criterion: the more the ranking changes when a criterion is
-    removed, the more important that criterion was.
+    removed, the more important that criterion was. This is a
+    *necessity*-style reading of importance: a criterion is important if
+    the ranking cannot do without it (see
+    :class:`~skcriteria.importance._base_importance.CriteriaImportanceABC`
+    for the necessity/sufficiency distinction shared by every checker).
 
     See
     :class:`~skcriteria.importance._base_importance.CriteriaImportanceABC`
@@ -96,8 +100,15 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
     >>> result = checker.evaluate(dm)
     >>>
     >>> print(result.extra_["importance"])
+    C0    0.25
+    C1    0.25
+    C2    0.25
+    Name: Importance, dtype: float64
 
     """
+
+    #: necessity: important means the ranking changed a lot without it.
+    _invert_similarity = True
 
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with ``criterion`` dropped."""

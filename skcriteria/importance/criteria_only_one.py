@@ -50,21 +50,28 @@ class CriteriaOnlyOneChecker(CriteriaImportanceABC):
     Notes
     -----
     This checker uses the same pairwise-comparison machinery as
-    :class:`~skcriteria.importance.criteria_leave_one_out.CriteriaLeaveOneOutChecker`
-    (see there for the details on how the similarity is computed and
-    rescaled), reusing
-    :meth:`skcriteria.cmp.RanksComparator.footrule_similarity` or
+    :class:`~skcriteria.importance.criteria_leave_one_out.CriteriaLeaveOneOutChecker`,
+    reusing :meth:`skcriteria.cmp.RanksComparator.footrule_similarity` or
     :meth:`skcriteria.cmp.RanksComparator.corr` instead of an ad hoc
     distance function, but on the opposite sub-problem: instead of
     dropping one criterion from the full set :math:`N`, it keeps *only*
-    one criterion from the empty set :math:`\emptyset`. The reported score
-    is ``1 - similarity`` (or its Kendall-tau rescaling) between the
-    single-criterion ranking and the reference ranking, exactly as in
-    ``CriteriaLeaveOneOutChecker``; it should be read as *how different*
-    the ranking is when using only that criterion, not as a measure of how
-    well that criterion alone reproduces the reference ranking.
+    one criterion from the empty set :math:`\emptyset`.
+
+    Unlike ``CriteriaLeaveOneOutChecker`` (which reports *how different*
+    the ranking becomes), this checker reports the *similarity* between
+    the single-criterion ranking and the reference ranking directly: a
+    criterion whose ranking alone already looks like the reference gets
+    high importance (it is *sufficient* on its own), while one that alone
+    produces a very different ranking gets low importance. This is the
+    opposite orientation of ``CriteriaLeaveOneOutChecker``'s *necessity*
+    reading, but both are normalized so that, in either checker, 0 always
+    means "matters little" and 1 always means "matters a lot".
 
     """
+
+    #: sufficiency: important means this criterion alone already looks
+    #: like the reference.
+    _invert_similarity = False
 
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with only ``criterion`` kept."""

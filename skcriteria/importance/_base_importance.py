@@ -107,6 +107,28 @@ class CriteriaImportanceABC(SKCMethodABC):
         sub-problems. ``None`` means sequential execution (joblib's
         default of a single job); ``-1`` uses all available processors.
 
+    Notes
+    -----
+    Every concrete checker reads its notion of importance as either
+    *necessity* or *sufficiency*, picked via the ``_invert_similarity``
+    class attribute it must define:
+
+    - **Necessity** (``_invert_similarity = True``): importance is
+      ``1 - similarity`` to the reference. A criterion is important if
+      the ranking *cannot do without it* -- removing it changes the
+      ranking a lot. :class:`~skcriteria.importance.\
+criteria_leave_one_out.CriteriaLeaveOneOutChecker` reads importance this
+      way.
+    - **Sufficiency** (``_invert_similarity = False``): importance is
+      the similarity to the reference as is. A criterion is important if
+      it *alone is enough* -- its sub-problem ranking already looks like
+      the reference. :class:`~skcriteria.importance.criteria_only_one.\
+CriteriaOnlyOneChecker` reads importance this way.
+
+    Both orientations are normalized so that, regardless of checker or
+    ``metric``, 0 always means "matters little" and 1 always means
+    "matters a lot".
+
     Raises
     ------
     TypeError
@@ -195,14 +217,21 @@ class CriteriaImportanceABC(SKCMethodABC):
 
     # ABSTRACT ================================================================
 
+    # `_invert_similarity` is also required in every concrete subclass (no
+    # default here on purpose -- forgetting to set it should raise an
+    # AttributeError, not silently pick an orientation). See the class
+    # docstring's Notes section for the necessity/sufficiency distinction
+    # it picks between.
+
     @abc.abstractmethod
     def _evaluate_subproblem(self, dm, criterion):
         """Build the sub-problem for ``criterion`` and evaluate \
         ``self.dmaker`` on it.
 
-        This is the only method a concrete checker needs to implement; it
-        is what actually differentiates one checker from another (e.g.
-        dropping ``criterion`` vs. keeping only ``criterion``).
+        This, together with ``_invert_similarity``, is all a concrete
+        checker needs to define; it is what actually differentiates one
+        checker from another (e.g. dropping ``criterion`` vs. keeping
+        only ``criterion``).
 
         Defined as an instance method (instead of a free function) for
         simplicity; it is still safely parallelizable with ``joblib``
@@ -279,34 +308,48 @@ class CriteriaImportanceABC(SKCMethodABC):
         return patched_rank, missing_alternatives
 
     def _importance_score(self, named_ranks):
-        """Importance of every ranking in ``named_ranks`` vs ``"reference"``.
+        """Importance of every criterion behind ``named_ranks`` vs \
+        ``"reference"``.
 
-        Returned as a ``pandas.Series`` indexed by ranking name, always
-        bounded in ``[0, 1]``. Builds the temporary ``RanksComparator``
-        needed to compute the pairwise metric and reuses its own
-        vectorized methods (computing the full matrix once), indexes the
-        ``"reference"`` row out of it, and returns how much the ranking
-        changed, not how similar it stayed. ``"reference"`` itself gets
-        an importance of 0.
+        Returned as a ``pandas.Series`` indexed by criterion name, always
+        bounded in ``[0, 1]``, where 0 always means "matters little" and 1
+        always means "matters a lot" -- regardless of whether the concrete
+        checker's notion of importance is necessity (LOO: the ranking
+        changed a lot without this criterion) or sufficiency (OO: this
+        criterion alone reproduces the ranking well).
 
-        ``footrule_similarity()`` is already bounded in ``[0, 1]``, so its
-        complement (``1 - similarity``) is used directly. Kendall's tau is
-        a correlation bounded in ``[-1, 1]`` instead, so its complement is
-        rescaled by half (``(1 - correlation) / 2``) to keep importance in
-        the same ``[0, 1]`` range regardless of ``metric``.
+        Builds the temporary ``RanksComparator`` needed to compute the
+        pairwise metric once (reusing its own vectorized methods) and
+        indexes the ``"reference"`` row out of it to get a similarity
+        ``s``, normalized to ``[0, 1]`` regardless of ``metric``:
+        ``footrule_similarity()`` is already bounded in ``[0, 1]``, so it
+        is used as is; Kendall's tau is a correlation bounded in
+        ``[-1, 1]`` instead, so it is rescaled with ``(1 + correlation) /
+        2``. The subclass then picks the orientation via
+        ``_invert_similarity``: necessity-style checkers report
+        ``1 - s`` (important means *different* from the reference),
+        sufficiency-style checkers report ``s`` as is (important means
+        *similar* to the reference).
         """
         rcmp = RanksComparator(named_ranks, extra={})
         if self._metric == "footrule":
-            similarity_matrix = rcmp.footrule_similarity(untied=self._untied)
-            similarity = similarity_matrix.loc["reference"]
-            importance = 1.0 - similarity
+            similarity = rcmp.footrule_similarity(untied=self._untied)
+            s = similarity.loc["reference"]
         else:
-            correlation_matrix = rcmp.corr(
-                method="kendall", untied=self._untied
-            )
-            correlation = correlation_matrix.loc["reference"]
-            importance = (1.0 - correlation) / 2.0
+            correlation = rcmp.corr(method="kendall", untied=self._untied)
+            s = (1.0 + correlation.loc["reference"]) / 2.0
 
+        importance = (1.0 - s) if self._invert_similarity else s
+
+        # comparing "reference" to itself isn't a real per-criterion
+        # score, so drop it; what the caller cares about is the
+        # criterion, not the ranking, so re-index by criterion name,
+        # recovered from each ranking name's "<PREFIX>-<criterion>"
+        # convention (e.g. "LOO-C0" -> "C0")
+        importance = importance.drop("reference")
+        importance.index = [
+            name.split("-", 1)[1] for name in importance.index
+        ]
         importance.name = "Importance"
 
         return importance
@@ -331,11 +374,11 @@ class CriteriaImportanceABC(SKCMethodABC):
             attribute contains:
 
             - ``metric``: the metric used (``"footrule"`` or ``"kendall"``).
-            - ``importance``: a ``pandas.Series``, indexed by ranking name,
-              always bounded in ``[0, 1]`` (0 means the sub-problem ranking
-              is identical to the reference; 1 means the maximum possible
-              difference for ``metric``; ``"reference"`` itself is always
-              0).
+            - ``importance``: a ``pandas.Series``, indexed by criterion
+              name, always bounded in ``[0, 1]`` (0 means the sub-problem
+              ranking is identical to the reference; 1 means the maximum
+              possible difference for ``metric``). ``"reference"`` is not
+              included, since it isn't a criterion.
 
         Raises
         ------
