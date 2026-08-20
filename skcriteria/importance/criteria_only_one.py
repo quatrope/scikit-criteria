@@ -41,8 +41,10 @@ from ..utils import unique_names
 
 _VALID_METRICS = frozenset(["footrule", "kendall"])
 
-#: Renormalizes weights to sum 1, reused for the reference problem and
-#: every single-criterion sub-problem.
+#: Renormalizes weights to sum 1, used for the reference problem. Each
+#: single-criterion sub-problem instead sets its only weight to 1
+#: directly (see `_evaluate_only_one_criterion`), which is equivalent
+#: but avoids a 0/0 if the original weight happened to be 0.  # CHANGE!
 _WEIGHT_SCALER = SumScaler(target="weights")
 
 
@@ -75,7 +77,7 @@ def _evaluate_only_one_criterion(dmaker, dm, criterion):
         Ranking obtained by evaluating ``dmaker`` on the sub-problem.
 
     """
-    dm_sub = _WEIGHT_SCALER.transform(dm[criterion])
+    dm_sub = dm[criterion].replace(weights=[1])
     rank_sub = dmaker.evaluate(dm_sub)
     return criterion, rank_sub
 
@@ -85,7 +87,7 @@ def _evaluate_only_one_criterion(dmaker, dm, criterion):
 # =============================================================================
 
 
-class CriteriaOnlyOneChecker(SKCMethodABC):
+class CriteriaOnlyOneChecker(SKCMethodABC):  # CHANGE!
     r"""Only-one importance of each decision-matrix criterion.
 
     For every criterion :math:`i` in the decision matrix, this checker
@@ -341,13 +343,13 @@ CriteriaLeaveOneOutChecker`,
         RanksComparator
             An object containing the reference ranking (named
             ``"reference"``) plus one ranking per criterion (named
-            ``"Only({criterion})"``), obtained by evaluating ``dmaker``
+            ``"OO(+{criterion})"``), obtained by evaluating ``dmaker``
             using only that criterion, with its weight set to 1. The
             ``extra_`` attribute contains:
 
             - ``metric``: the metric used (``"footrule"`` or ``"kendall"``).
             - ``importance``: a ``pandas.Series``, indexed by ranking
-              name (``"reference"`` and every ``"Only({criterion})"``),
+              name (``"reference"`` and every ``"OO(+{criterion})"``),
               always bounded in ``[0, 1]`` (0 means the single-criterion
               ranking is identical to the reference; 1 means the maximum
               possible difference for ``metric``; ``"reference"`` itself
@@ -367,13 +369,13 @@ CriteriaLeaveOneOutChecker`,
         """
         criteria = list(dm.criteria)
         if len(criteria) < 2:
-            raise ValueError(
+            raise ValueError(  # CHANGE!
                 "CriteriaOnlyOneChecker requires at least 2 criteria"
             )
 
         # normalize the weights of the full problem first, just in case,
         # so the reference ranking follows the same "weights sum to 1"
-        # convention applied to every single-criterion sub-problem
+        # convention applied to every single-criterion sub-problem  # CHANGE!
         dm = _WEIGHT_SCALER.transform(dm)
 
         full_alternatives = np.array(dm.alternatives)
@@ -383,37 +385,39 @@ CriteriaLeaveOneOutChecker`,
         patched_full, _ = self._patch_missing_alternatives(
             rank=rank_full,
             full_alternatives=full_alternatives,
-            where="the reference ranking",
+            where="reference",  # CHANGE!
         )
 
         names = ["reference"]
         results = [patched_full]
 
-        # one single-criterion ranking per criterion, possibly in parallel;
-        # the sub-problem is built and evaluated by a module-level function
-        # so it can be safely handed off to joblib workers
+        # one single-criterion ranking per criterion, possibly in  # CHANGE!
+        # parallel; the sub-problem is built and evaluated by a
+        # module-level function so it can be safely handed off to
+        # joblib workers
         dmaker = self._dmaker
         with joblib.Parallel(
             n_jobs=self._n_jobs, prefer=self._preferred_parallel_backend
         ) as parallel:
             delayed_evaluation = joblib.delayed(_evaluate_only_one_criterion)
-            only_one_results = parallel(
+            only_one_results = parallel(  # CHANGE!
                 delayed_evaluation(dmaker, dm, criterion)
                 for criterion in criteria
             )
 
         # patching for missing alternatives needs 'self', so it is applied
         # sequentially once the (possibly parallel) evaluations come back
-        for criterion, rank_sub in only_one_results:
+        for criterion, rank_sub in only_one_results:  # CHANGE!
             patched_sub, _ = self._patch_missing_alternatives(
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
                 where=(
-                    "the only-one ranking using criterion " f"{criterion!r}"
+                    "the only-one ranking using criterion "
+                    f"{criterion!r}"
                 ),
             )
 
-            names.append(f"Only({criterion})")
+            names.append(f"OO-{criterion})")  # CHANGE!
             results.append(patched_sub)
 
         # compute the importance-to-reference score once, over a temporary

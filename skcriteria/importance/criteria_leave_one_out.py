@@ -447,7 +447,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
                 where=str(criterion),
             )
 
-            names.append(f"LOO(-{criterion})")
+            names.append(f"LOO-{criterion}")
             results.append(patched_sub)
 
         # compute the importance-to-reference score once, over a temporary
