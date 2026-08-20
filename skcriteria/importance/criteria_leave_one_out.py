@@ -377,12 +377,12 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         RanksComparator
             An object containing the reference ranking (named
             ``"reference"``) plus one ranking per criterion (named
-            ``"LOO(-{criterion})"``), obtained by evaluating ``dmaker``
+            ``"LOO-{criterion}"``), obtained by evaluating ``dmaker``
             without that criterion. The ``extra_`` attribute contains:
 
             - ``metric``: the metric used (``"footrule"`` or ``"kendall"``).
             - ``importance``: a ``pandas.Series``, indexed by ranking
-              name (``"reference"`` and every ``"LOO(-{criterion})"``),
+              name (``"reference"`` and every ``"LOO-{criterion}"``),
               with the headline result of this checker: how much the
               ranking changed when the criterion was removed, always
               bounded in ``[0, 1]`` (0 means the ranking didn't change at

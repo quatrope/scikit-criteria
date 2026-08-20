@@ -411,8 +411,7 @@ CriteriaLeaveOneOutChecker`,
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
                 where=(
-                    "the only-one ranking using criterion "
-                    f"{criterion!r}"
+                    "the only-one ranking using criterion " f"{criterion!r}"
                 ),
             )
 
