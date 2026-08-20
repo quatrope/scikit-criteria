@@ -28,6 +28,7 @@ to compare the perturbed ranking(s) against a reference ranking.
 # IMPORTS
 # =============================================================================
 
+from ._base_importance import CriteriaImportanceABC
 from .criteria_leave_one_out import CriteriaLeaveOneOutChecker
 from .criteria_only_one import CriteriaOnlyOneChecker
 
@@ -36,6 +37,7 @@ from .criteria_only_one import CriteriaOnlyOneChecker
 # =============================================================================
 
 __all__ = [
+    "CriteriaImportanceABC",
     "CriteriaLeaveOneOutChecker",
     "CriteriaOnlyOneChecker",
 ]
