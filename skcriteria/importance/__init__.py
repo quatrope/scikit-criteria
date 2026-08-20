@@ -29,6 +29,7 @@ to compare the perturbed ranking(s) against a reference ranking.
 # =============================================================================
 
 from .criteria_leave_one_out import CriteriaLeaveOneOutChecker
+from .criteria_only_one import CriteriaOnlyOneChecker
 
 # =============================================================================
 # ALL
@@ -36,4 +37,5 @@ from .criteria_leave_one_out import CriteriaLeaveOneOutChecker
 
 __all__ = [
     "CriteriaLeaveOneOutChecker",
+    "CriteriaOnlyOneChecker",
 ]
