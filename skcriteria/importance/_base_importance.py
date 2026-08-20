@@ -347,9 +347,7 @@ CriteriaOnlyOneChecker` reads importance this way.
         # recovered from each ranking name's "<PREFIX>-<criterion>"
         # convention (e.g. "LOO-C0" -> "C0")
         importance = importance.drop("reference")
-        importance.index = [
-            name.split("-", 1)[1] for name in importance.index
-        ]
+        importance.index = [name.split("-", 1)[1] for name in importance.index]
         importance.name = "Importance"
 
         return importance

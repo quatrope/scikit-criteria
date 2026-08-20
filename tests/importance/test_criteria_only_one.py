@@ -165,9 +165,7 @@ def test_CriteriaOnlyOneChecker_importance_bounded(metric):
 def test_CriteriaOnlyOneChecker_missing_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = DropAlternativeDMaker(TOPSIS(), "AA")
-    checker = CriteriaOnlyOneChecker(
-        dmaker, allow_missing_alternatives=False
-    )
+    checker = CriteriaOnlyOneChecker(dmaker, allow_missing_alternatives=False)
 
     with pytest.raises(ValueError, match="AA"):
         checker.evaluate(dm)
