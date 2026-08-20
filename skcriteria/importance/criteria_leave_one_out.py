@@ -347,14 +347,14 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         """
         rcmp = RanksComparator(named_ranks, extra={})
         if self._metric == "footrule":
-            similarity = rcmp.footrule_similarity(untied=self._untied).loc[
-                "reference"
-            ]
+            similarity_matrix = rcmp.footrule_similarity(untied=self._untied)
+            similarity = similarity_matrix.loc["reference"]
             importance = 1.0 - similarity
         else:
-            correlation = rcmp.corr(method="kendall", untied=self._untied).loc[
-                "reference"
-            ]
+            correlation_matrix = rcmp.corr(
+                method="kendall", untied=self._untied
+            )
+            correlation = correlation_matrix.loc["reference"]
             importance = (1.0 - correlation) / 2.0
 
         importance.name = "Importance"
@@ -419,7 +419,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
         patched_full, _ = self._patch_missing_alternatives(
             rank=rank_full,
             full_alternatives=full_alternatives,
-            where="the reference ranking",
+            where="<REFERENCE>",
         )
 
         names = ["reference"]
@@ -444,9 +444,7 @@ class CriteriaLeaveOneOutChecker(SKCMethodABC):
             patched_sub, _ = self._patch_missing_alternatives(
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
-                where=(
-                    "the leave-one-out ranking for criterion " f"{criterion!r}"
-                ),
+                where=str(criterion),
             )
 
             names.append(f"LOO(-{criterion})")
