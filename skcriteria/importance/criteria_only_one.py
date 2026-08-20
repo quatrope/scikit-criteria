@@ -67,6 +67,7 @@ class CriteriaOnlyOneChecker(CriteriaImportanceABC):
     """
 
     def _evaluate_subproblem(self, dm, criterion):
+        """Evaluate ``dmaker`` with only ``criterion`` kept."""
         dm_sub = dm[criterion].replace(weights=[1])
         rank_sub = self._dmaker.evaluate(dm_sub)
         return f"OO-{criterion}", rank_sub

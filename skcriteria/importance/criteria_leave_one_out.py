@@ -100,6 +100,7 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
     """
 
     def _evaluate_subproblem(self, dm, criterion):
+        """Evaluate ``dmaker`` with ``criterion`` dropped."""
         keep = [c for c in dm.criteria if c != criterion]
         dm_sub = _WEIGHT_SCALER.transform(dm[keep])
         rank_sub = self._dmaker.evaluate(dm_sub)
