@@ -217,11 +217,15 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
 
     # ABSTRACT ================================================================
 
-    # `_invert_similarity` is also required in every concrete subclass (no
-    # default here on purpose -- forgetting to set it should raise an
-    # AttributeError, not silently pick an orientation). See the class
+    # `_invert_similarity` and `_extra_key` are also required in every
+    # concrete subclass (no default here on purpose -- forgetting to set
+    # either should raise an AttributeError, not silently pick an
+    # orientation or drop the sub-problem's `extra`). See the class
     # docstring's Notes section for the necessity/sufficiency distinction
-    # it picks between.
+    # `_invert_similarity` picks between; `_extra_key` is the key under
+    # which `_patch_rank` nests each sub-problem's
+    # `extra` dict inside the patched ranking's `extra_` (e.g. `"loo"`,
+    # `"koo"`).
 
     @abc.abstractmethod
     def _evaluate_subproblem(self, dm, criterion):
@@ -265,14 +269,14 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
 
     # INTERNALS ===============================================================
 
-    def _patch_missing_alternatives(
+    def _patch_rank(
         self,
         *,
         rank,
         full_alternatives,
         where,
         allow_missing_alternatives,
-        extra=None,
+        extra,
     ):
         """Fill any alternative missing from ``rank`` (with respect to \
         ``full_alternatives``) with the worst rank + 1.
@@ -296,8 +300,8 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         alternatives = rank.alternatives.copy()
         values = rank.values.copy()
         patched_extra = dict(rank.extra_.items())
-        if extra:
-            patched_extra.update(extra)
+        if extra is not None:
+            patched_extra[self._extra_key] = extra
 
         alts_diff = np.setxor1d(alternatives, full_alternatives)
         missing_alternatives = np.array([], dtype=full_alternatives.dtype)
@@ -430,11 +434,12 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
 
         # reference ranking, using all the criteria
         rank_full = self._dmaker.evaluate(dm)
-        patched_full, _ = self._patch_missing_alternatives(
+        patched_full, _ = self._patch_rank(
             rank=rank_full,
             full_alternatives=full_alternatives,
             where="reference",
             allow_missing_alternatives=allow_missing_alternatives,
+            extra=None,
         )
 
         names = ["reference"]
@@ -455,7 +460,7 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         # come back, simply because there is nothing to parallelize: it
         # is O(n_alternatives) per ranking, dwarfed by dmaker.evaluate()
         for name, rank_sub, extra in sub_results:
-            patched_sub, _ = self._patch_missing_alternatives(
+            patched_sub, _ = self._patch_rank(
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
                 where=f"ranking {name!r}",

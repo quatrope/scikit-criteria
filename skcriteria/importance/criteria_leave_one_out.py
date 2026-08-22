@@ -110,6 +110,10 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
     #: necessity: important means the ranking changed a lot without it.
     _invert_similarity = True
 
+    #: key under which this checker's per-criterion `extra` dict is
+    #: nested inside each sub-problem ranking's `extra_`.
+    _extra_key = "loo"
+
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with ``criterion`` dropped."""
         keep = [c for c in dm.criteria if c != criterion]

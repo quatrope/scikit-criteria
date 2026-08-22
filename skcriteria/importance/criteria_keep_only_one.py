@@ -73,6 +73,10 @@ class CriteriaKeepOnlyOneChecker(CriteriaImportanceABC):
     #: like the reference.
     _invert_similarity = False
 
+    #: key under which this checker's per-criterion `extra` dict is
+    #: nested inside each sub-problem ranking's `extra_`.
+    _extra_key = "koo"
+
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with only ``criterion`` kept."""
         dm_sub = dm[criterion].replace(weights=[1])
