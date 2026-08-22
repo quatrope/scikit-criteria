@@ -70,7 +70,7 @@ def test_CriteriaImportanceABC_subclass_missing_invert_similarity():
         def _evaluate_subproblem(self, dm, criterion):
             keep = [c for c in dm.criteria if c != criterion]
             rank_sub = self._dmaker.evaluate(dm[keep])
-            return f"FOO-{criterion}", rank_sub
+            return f"FOO-{criterion}", rank_sub, {}
 
     checker = Foo(simple.WeightedSumModel())
     with pytest.raises(AttributeError):
@@ -91,7 +91,7 @@ def test_CriteriaImportanceABC_properties():
         def _evaluate_subproblem(self, dm, criterion):
             keep = [c for c in dm.criteria if c != criterion]
             rank_sub = self._dmaker.evaluate(dm[keep])
-            return f"FOO-{criterion}", rank_sub
+            return f"FOO-{criterion}", rank_sub, {}
 
     checker = Foo(
         dmaker,

@@ -56,7 +56,7 @@ class CriteriaImportanceABC(SKCMethodABC):
 
     Subclasses only need to implement :meth:`_evaluate_subproblem`, which
     builds a single criterion's sub-problem, evaluates ``self.dmaker`` on
-    it, and returns ``(rank_name, RankResult)``. Everything else --
+    it, and returns ``(rank_name, RankResult, extra)``. Everything else --
     parameter validation, the reference ranking, parallelizing the
     per-criterion sub-problems with ``joblib``, patching rankings with
     missing alternatives, and scoring importance against the reference --
@@ -122,8 +122,8 @@ criteria_leave_one_out.CriteriaLeaveOneOutChecker` reads importance this
     - **Sufficiency** (``_invert_similarity = False``): importance is
       the similarity to the reference as is. A criterion is important if
       it *alone is enough* -- its sub-problem ranking already looks like
-      the reference. :class:`~skcriteria.importance.criteria_only_one.\
-CriteriaOnlyOneChecker` reads importance this way.
+      the reference. :class:`~skcriteria.importance.criteria_keep_only_one.\
+CriteriaKeepOnlyOneChecker` reads importance this way.
 
     Both orientations are normalized so that, regardless of checker or
     ``metric``, 0 always means "matters little" and 1 always means
@@ -252,30 +252,58 @@ CriteriaOnlyOneChecker` reads importance this way.
         RankResult
             Ranking obtained by evaluating ``self.dmaker`` on the
             sub-problem.
+        extra : dict
+            What was changed to build this sub-problem, merged as-is
+            into the resulting ranking's ``extra_`` (e.g.
+            ``{"criteria": {"dropped": criterion}}``). Every
+            key is up to the concrete checker; the base class only
+            merges it in, once the ranking comes back from
+            :meth:`evaluate`'s (possibly parallel) evaluation.
 
         """
         raise NotImplementedError()
 
     # INTERNALS ===============================================================
 
-    def _patch_missing_alternatives(self, *, rank, full_alternatives, where):
+    def _patch_missing_alternatives(
+        self,
+        *,
+        rank,
+        full_alternatives,
+        where,
+        allow_missing_alternatives,
+        extra=None,
+    ):
         """Fill any alternative missing from ``rank`` (with respect to \
         ``full_alternatives``) with the worst rank + 1.
 
         Same convention used by
         ``skcriteria.ranksrev.rank_invariant_check.RankInvariantChecker``.
 
+        ``allow_missing_alternatives`` is received as an explicit
+        argument instead of read off ``self`` internally, so the
+        (sequential, since it's cheap regardless -- the expensive part
+        is ``dmaker.evaluate()``) patching loop in :meth:`evaluate`
+        pulls it from ``self`` once and threads it through explicitly.
+
+        ``extra``, if given, is merged as-is into the patched ranking's
+        ``extra_`` -- this is how the ``extra`` dict returned by
+        :meth:`_evaluate_subproblem` ends up visible on each sub-problem
+        ranking.
+
         """
         method = str(rank.method)
         alternatives = rank.alternatives.copy()
         values = rank.values.copy()
-        extra = dict(rank.extra_.items())
+        patched_extra = dict(rank.extra_.items())
+        if extra:
+            patched_extra.update(extra)
 
         alts_diff = np.setxor1d(alternatives, full_alternatives)
         missing_alternatives = np.array([], dtype=full_alternatives.dtype)
 
         if len(alts_diff):
-            if not self._allow_missing_alternatives:
+            if not allow_missing_alternatives:
                 missing_alts = set(alts_diff)
                 raise ValueError(
                     f"Missing alternative/s {missing_alts!r} in {where}"
@@ -303,7 +331,7 @@ CriteriaOnlyOneChecker` reads importance this way.
             method=method,
             alternatives=alternatives,
             values=values,
-            extra=extra,
+            extra=patched_extra,
         )
         return patched_rank, missing_alternatives
 
@@ -398,6 +426,7 @@ CriteriaOnlyOneChecker` reads importance this way.
         dm = _WEIGHT_SCALER.transform(dm)
 
         full_alternatives = np.array(dm.alternatives)
+        allow_missing_alternatives = self._allow_missing_alternatives
 
         # reference ranking, using all the criteria
         rank_full = self._dmaker.evaluate(dm)
@@ -405,6 +434,7 @@ CriteriaOnlyOneChecker` reads importance this way.
             rank=rank_full,
             full_alternatives=full_alternatives,
             where="reference",
+            allow_missing_alternatives=allow_missing_alternatives,
         )
 
         names = ["reference"]
@@ -420,13 +450,17 @@ CriteriaOnlyOneChecker` reads importance this way.
                 delayed_evaluation(dm, criterion) for criterion in criteria
             )
 
-        # patching for missing alternatives needs 'self', so it is applied
-        # sequentially once the (possibly parallel) evaluations come back
-        for name, rank_sub in sub_results:
+        # the patch itself is a cheap, self-contained function -- it is
+        # applied sequentially, once the (possibly parallel) evaluations
+        # come back, simply because there is nothing to parallelize: it
+        # is O(n_alternatives) per ranking, dwarfed by dmaker.evaluate()
+        for name, rank_sub, extra in sub_results:
             patched_sub, _ = self._patch_missing_alternatives(
                 rank=rank_sub,
                 full_alternatives=full_alternatives,
                 where=f"ranking {name!r}",
+                allow_missing_alternatives=allow_missing_alternatives,
+                extra=extra,
             )
 
             names.append(name)

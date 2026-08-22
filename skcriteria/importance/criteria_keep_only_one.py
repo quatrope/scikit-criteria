@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""Only-one criteria importance checker.
+"""Keep-only-one criteria importance checker.
 
 This module measures the importance of each criterion of a decision
 problem by keeping *only* that criterion (dropping every other one), with
@@ -32,8 +32,8 @@ from ._base_importance import CriteriaImportanceABC
 # =============================================================================
 
 
-class CriteriaOnlyOneChecker(CriteriaImportanceABC):
-    r"""Only-one importance of each decision-matrix criterion.
+class CriteriaKeepOnlyOneChecker(CriteriaImportanceABC):
+    r"""Keep-only-one importance of each decision-matrix criterion.
 
     For every criterion :math:`i` in the decision matrix, this checker
     builds a sub-problem :math:`\{i\}` keeping *only* that criterion
@@ -77,4 +77,5 @@ class CriteriaOnlyOneChecker(CriteriaImportanceABC):
         """Evaluate ``dmaker`` with only ``criterion`` kept."""
         dm_sub = dm[criterion].replace(weights=[1])
         rank_sub = self._dmaker.evaluate(dm_sub)
-        return f"OO-{criterion}", rank_sub
+        extra = {"criteria": {"kept": criterion}}
+        return f"OO-{criterion}", rank_sub, extra

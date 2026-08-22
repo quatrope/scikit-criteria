@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.importance.criteria_only_one"""
+"""test for skcriteria.importance.criteria_keep_only_one"""
 
 # =============================================================================
 # IMPORTS
@@ -23,7 +23,7 @@ import skcriteria as skc
 from skcriteria import mkdm
 from skcriteria.agg import simple
 from skcriteria.agg.topsis import TOPSIS
-from skcriteria.importance import CriteriaOnlyOneChecker
+from skcriteria.importance import CriteriaKeepOnlyOneChecker
 
 # =============================================================================
 # HELPERS
@@ -68,25 +68,25 @@ def _reversal_dm():
 # =============================================================================
 
 
-def test_CriteriaOnlyOneChecker_dmaker_no_evaluate_method():
+def test_CriteriaKeepOnlyOneChecker_dmaker_no_evaluate_method():
     class NoEvaluateMethod:
         pass
 
     with pytest.raises(TypeError):
-        CriteriaOnlyOneChecker(NoEvaluateMethod())
+        CriteriaKeepOnlyOneChecker(NoEvaluateMethod())
 
 
-def test_CriteriaOnlyOneChecker_dmaker_evaluate_not_callable():
+def test_CriteriaKeepOnlyOneChecker_dmaker_evaluate_not_callable():
     class EvaluateNotCallable:
         evaluate = None
 
     with pytest.raises(TypeError):
-        CriteriaOnlyOneChecker(EvaluateNotCallable())
+        CriteriaKeepOnlyOneChecker(EvaluateNotCallable())
 
 
-def test_CriteriaOnlyOneChecker_invalid_metric():
+def test_CriteriaKeepOnlyOneChecker_invalid_metric():
     with pytest.raises(ValueError):
-        CriteriaOnlyOneChecker(simple.WeightedSumModel(), metric="pearson")
+        CriteriaKeepOnlyOneChecker(simple.WeightedSumModel(), metric="pearson")
 
 
 # =============================================================================
@@ -94,14 +94,14 @@ def test_CriteriaOnlyOneChecker_invalid_metric():
 # =============================================================================
 
 
-def test_CriteriaOnlyOneChecker_requires_at_least_two_criteria():
+def test_CriteriaKeepOnlyOneChecker_requires_at_least_two_criteria():
     dm = mkdm(
         matrix=[[1], [2], [3]],
         objectives=[max],
         alternatives=["A", "B", "C"],
         criteria=["C0"],
     )
-    checker = CriteriaOnlyOneChecker(simple.WeightedSumModel())
+    checker = CriteriaKeepOnlyOneChecker(simple.WeightedSumModel())
     with pytest.raises(ValueError):
         checker.evaluate(dm)
 
@@ -111,9 +111,9 @@ def test_CriteriaOnlyOneChecker_requires_at_least_two_criteria():
 # =============================================================================
 
 
-def test_CriteriaOnlyOneChecker_ranks_names():
+def test_CriteriaKeepOnlyOneChecker_ranks_names():
     dm = _reversal_dm()
-    checker = CriteriaOnlyOneChecker(simple.WeightedSumModel())
+    checker = CriteriaKeepOnlyOneChecker(simple.WeightedSumModel())
     result = checker.evaluate(dm)
 
     assert [name for name, _ in result.ranks] == [
@@ -132,9 +132,11 @@ def test_CriteriaOnlyOneChecker_ranks_names():
 
 
 @pytest.mark.parametrize("metric", ["footrule", "kendall"])
-def test_CriteriaOnlyOneChecker_importance_values(metric):
+def test_CriteriaKeepOnlyOneChecker_importance_values(metric):
     dm = _reversal_dm()
-    checker = CriteriaOnlyOneChecker(simple.WeightedSumModel(), metric=metric)
+    checker = CriteriaKeepOnlyOneChecker(
+        simple.WeightedSumModel(), metric=metric
+    )
     result = checker.evaluate(dm)
 
     importance = result.extra_["importance"]
@@ -148,9 +150,9 @@ def test_CriteriaOnlyOneChecker_importance_values(metric):
 
 
 @pytest.mark.parametrize("metric", ["footrule", "kendall"])
-def test_CriteriaOnlyOneChecker_importance_bounded(metric):
+def test_CriteriaKeepOnlyOneChecker_importance_bounded(metric):
     dm = skc.datasets.load_simple_stock_selection()
-    checker = CriteriaOnlyOneChecker(TOPSIS(), metric=metric)
+    checker = CriteriaKeepOnlyOneChecker(TOPSIS(), metric=metric)
     importance = checker.evaluate(dm).extra_["importance"]
 
     assert (importance >= 0.0).all()
@@ -162,19 +164,23 @@ def test_CriteriaOnlyOneChecker_importance_bounded(metric):
 # =============================================================================
 
 
-def test_CriteriaOnlyOneChecker_missing_alternative_forbidden():
+def test_CriteriaKeepOnlyOneChecker_missing_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = DropAlternativeDMaker(TOPSIS(), "AA")
-    checker = CriteriaOnlyOneChecker(dmaker, allow_missing_alternatives=False)
+    checker = CriteriaKeepOnlyOneChecker(
+        dmaker, allow_missing_alternatives=False
+    )
 
     with pytest.raises(ValueError, match="AA"):
         checker.evaluate(dm)
 
 
-def test_CriteriaOnlyOneChecker_missing_alternative_allowed():
+def test_CriteriaKeepOnlyOneChecker_missing_alternative_allowed():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = DropAlternativeDMaker(TOPSIS(), "AA")
-    checker = CriteriaOnlyOneChecker(dmaker, allow_missing_alternatives=True)
+    checker = CriteriaKeepOnlyOneChecker(
+        dmaker, allow_missing_alternatives=True
+    )
 
     result = checker.evaluate(dm)
 
@@ -187,12 +193,12 @@ def test_CriteriaOnlyOneChecker_missing_alternative_allowed():
 # =============================================================================
 
 
-def test_CriteriaOnlyOneChecker_parallel_matches_sequential():
+def test_CriteriaKeepOnlyOneChecker_parallel_matches_sequential():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = TOPSIS()
 
-    sequential = CriteriaOnlyOneChecker(dmaker).evaluate(dm)
-    parallel = CriteriaOnlyOneChecker(
+    sequential = CriteriaKeepOnlyOneChecker(dmaker).evaluate(dm)
+    parallel = CriteriaKeepOnlyOneChecker(
         dmaker, n_jobs=2, preferred_parallel_backend="threads"
     ).evaluate(dm)
 
@@ -206,13 +212,13 @@ def test_CriteriaOnlyOneChecker_parallel_matches_sequential():
 # =============================================================================
 
 
-def test_CriteriaOnlyOneChecker_repr():
+def test_CriteriaKeepOnlyOneChecker_repr():
     dmaker = simple.WeightedSumModel()
-    checker = CriteriaOnlyOneChecker(dmaker)
+    checker = CriteriaKeepOnlyOneChecker(dmaker)
 
     result = repr(checker)
     expected = (
-        f"<CriteriaOnlyOneChecker [allow_missing_alternatives={True}, "
+        f"<CriteriaKeepOnlyOneChecker [allow_missing_alternatives={True}, "
         f"dmaker={dmaker!r}, metric={'footrule'!r}, n_jobs={None}, "
         f"preferred_parallel_backend={None}, untied={False}]>"
     )

@@ -66,7 +66,7 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
     criteria. In other words, LOO is a Shapley marginal contribution
     evaluated on a single input order, not averaged over all of them, so it
     carries no guarantee of additivity or efficiency (the LOO scores do not
-    need to add up to any particular total). ``CriteriaOnlyOneChecker`` is
+    need to add up to any particular total). ``CriteriaKeepOnlyOneChecker`` is
     its complement at the opposite end of the coalition chain, measuring
     :math:`v(\{i\}) - v(\emptyset)`.
 
@@ -115,4 +115,5 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
         keep = [c for c in dm.criteria if c != criterion]
         dm_sub = _WEIGHT_SCALER.transform(dm[keep])
         rank_sub = self._dmaker.evaluate(dm_sub)
-        return f"LOO-{criterion}", rank_sub
+        extra = {"criteria": {"dropped": criterion}}
+        return f"LOO-{criterion}", rank_sub, extra
