@@ -253,20 +253,22 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
 
         Returns
         -------
-        rank_name : str
-            Name to use for this ranking in the ``RanksComparator``
-            returned by :meth:`evaluate`.
-        RankResult
-            Ranking obtained by evaluating ``self.dmaker`` on the
-            sub-problem.
-        extra : dict
-            What was changed to build this sub-problem, merged as-is
-            into the resulting ranking's ``extra_`` under
-            ``self._prefix``. Must contain at least a ``"criterion"`` key
-            holding back the same ``criterion`` received as input --
-            :meth:`_importance_score` reads it from there to re-index its
-            result by criterion name. Any other key is up to the
-            concrete checker.
+        list of (rank_name, RankResult, extra)
+            One entry per ranking produced for this ``criterion`` --
+            normally just one, but a concrete checker may return more
+            than one sub-problem ranking per criterion. For each entry:
+
+            - ``rank_name`` (str): name to use for this ranking in the
+              ``RanksComparator`` returned by :meth:`evaluate`.
+            - ``RankResult``: ranking obtained by evaluating
+              ``self.dmaker`` on the sub-problem.
+            - ``extra`` (dict): what was changed to build this
+              sub-problem, merged as-is into the resulting ranking's
+              ``extra_`` under ``self._prefix``. Must contain at least a
+              ``"criterion"`` key holding back the same ``criterion``
+              received as input -- :meth:`_importance_score` reads it
+              from there to re-index its result by criterion name. Any
+              other key is up to the concrete checker.
 
         """
         raise NotImplementedError()
@@ -467,18 +469,21 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         # the patch itself is a cheap, self-contained function -- it is
         # applied sequentially, once the (possibly parallel) evaluations
         # come back, simply because there is nothing to parallelize: it
-        # is O(n_alternatives) per ranking, dwarfed by dmaker.evaluate()
-        for name, rank_sub, extra in sub_results:
-            patched_sub, _ = self._patch_rank(
-                rank=rank_sub,
-                full_alternatives=full_alternatives,
-                where=f"ranking {name!r}",
-                allow_missing_alternatives=allow_missing_alternatives,
-                extra=extra,
-            )
+        # is O(n_alternatives) per ranking, dwarfed by dmaker.evaluate();
+        # each criterion's call to `_evaluate_subproblem` returns a list
+        # of (name, rank_sub, extra), so it's flattened here
+        for sub_result in sub_results:
+            for name, rank_sub, extra in sub_result:
+                patched_sub, _ = self._patch_rank(
+                    rank=rank_sub,
+                    full_alternatives=full_alternatives,
+                    where=f"ranking {name!r}",
+                    allow_missing_alternatives=allow_missing_alternatives,
+                    extra=extra,
+                )
 
-            names.append(name)
-            results.append(patched_sub)
+                names.append(name)
+                results.append(patched_sub)
 
         # compute the importance-to-reference score once, over a temporary
         # RanksComparator holding every ranking

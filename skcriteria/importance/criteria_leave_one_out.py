@@ -124,4 +124,4 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
         rank_sub = self._dmaker.evaluate(dm_sub)
         extra_sub = {"criterion": criterion}
 
-        return rank_sub_name, rank_sub, extra_sub
+        return [(rank_sub_name, rank_sub, extra_sub)]
