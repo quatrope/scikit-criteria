@@ -74,12 +74,15 @@ class CriteriaKeepOnlyOneChecker(CriteriaImportanceABC):
     _invert_similarity = False
 
     #: key under which this checker's per-criterion `extra` dict is
-    #: nested inside each sub-problem ranking's `extra_`.
-    _extra_key = "koo"
+    #: nested inside each sub-problem ranking's `extra_`, and the prefix
+    #: used to name each sub-problem ranking (e.g. ``"KOO(C0)"``).
+    _prefix = "KOO"
 
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with only ``criterion`` kept."""
         dm_sub = dm[criterion].replace(weights=[1])
+
+        rank_sub_name = f"{self._prefix}({criterion})"
         rank_sub = self._dmaker.evaluate(dm_sub)
-        extra = {"criteria": {"kept": criterion}}
-        return f"OO-{criterion}", rank_sub, extra
+        extra_sub = {"criterion": criterion}
+        return rank_sub_name, rank_sub, extra_sub

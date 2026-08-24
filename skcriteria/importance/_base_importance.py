@@ -217,15 +217,18 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
 
     # ABSTRACT ================================================================
 
-    # `_invert_similarity` and `_extra_key` are also required in every
+    # `_invert_similarity` and `_prefix` are also required in every
     # concrete subclass (no default here on purpose -- forgetting to set
     # either should raise an AttributeError, not silently pick an
     # orientation or drop the sub-problem's `extra`). See the class
     # docstring's Notes section for the necessity/sufficiency distinction
-    # `_invert_similarity` picks between; `_extra_key` is the key under
-    # which `_patch_rank` nests each sub-problem's
-    # `extra` dict inside the patched ranking's `extra_` (e.g. `"loo"`,
-    # `"koo"`).
+    # `_invert_similarity` picks between; `_prefix` is both the key under
+    # which `_patch_rank` nests each sub-problem's `extra` dict inside the
+    # patched ranking's `extra_`, and the prefix each concrete checker
+    # uses to name its sub-problem rankings as `"<prefix>(<criterion>)"`
+    # (e.g. `"LOO"`, `"KOO"`) -- `_importance_score` reads the criterion
+    # back out of `extra_[self._prefix]["criterion"]`, not by parsing the
+    # ranking name.
 
     @abc.abstractmethod
     def _evaluate_subproblem(self, dm, criterion):
@@ -258,11 +261,12 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
             sub-problem.
         extra : dict
             What was changed to build this sub-problem, merged as-is
-            into the resulting ranking's ``extra_`` (e.g.
-            ``{"criteria": {"dropped": criterion}}``). Every
-            key is up to the concrete checker; the base class only
-            merges it in, once the ranking comes back from
-            :meth:`evaluate`'s (possibly parallel) evaluation.
+            into the resulting ranking's ``extra_`` under
+            ``self._prefix``. Must contain at least a ``"criterion"`` key
+            holding back the same ``criterion`` received as input --
+            :meth:`_importance_score` reads it from there to re-index its
+            result by criterion name. Any other key is up to the
+            concrete checker.
 
         """
         raise NotImplementedError()
@@ -301,7 +305,7 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         values = rank.values.copy()
         patched_extra = dict(rank.extra_.items())
         if extra is not None:
-            patched_extra[self._extra_key] = extra
+            patched_extra[self._prefix] = extra
 
         alts_diff = np.setxor1d(alternatives, full_alternatives)
         missing_alternatives = np.array([], dtype=full_alternatives.dtype)
@@ -376,10 +380,15 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         # comparing "reference" to itself isn't a real per-criterion
         # score, so drop it; what the caller cares about is the
         # criterion, not the ranking, so re-index by criterion name,
-        # recovered from each ranking name's "<PREFIX>-<criterion>"
-        # convention (e.g. "LOO-C0" -> "C0")
+        # read back from each sub-problem ranking's `extra_`, where
+        # `_evaluate_subproblem` echoed it under `self._prefix`
+        criterion_by_name = {
+            name: rank.extra_[self._prefix]["criterion"]
+            for name, rank in named_ranks
+            if name != "reference"
+        }
         importance = importance.drop("reference")
-        importance.index = [name.split("-", 1)[1] for name in importance.index]
+        importance.index = [criterion_by_name[name] for name in importance.index]
         importance.name = "Importance"
 
         return importance

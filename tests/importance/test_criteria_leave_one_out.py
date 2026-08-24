@@ -117,8 +117,8 @@ def test_CriteriaLeaveOneOutChecker_ranks_names():
 
     assert [name for name, _ in result.ranks] == [
         "reference",
-        "LOO-C0",
-        "LOO-C1",
+        "LOO(C0)",
+        "LOO(C1)",
     ]
 
     importance = result.extra_["importance"]

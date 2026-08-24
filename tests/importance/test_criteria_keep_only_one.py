@@ -118,8 +118,8 @@ def test_CriteriaKeepOnlyOneChecker_ranks_names():
 
     assert [name for name, _ in result.ranks] == [
         "reference",
-        "OO-C0",
-        "OO-C1",
+        "KOO(C0)",
+        "KOO(C1)",
     ]
 
     importance = result.extra_["importance"]

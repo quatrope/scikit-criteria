@@ -111,13 +111,17 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
     _invert_similarity = True
 
     #: key under which this checker's per-criterion `extra` dict is
-    #: nested inside each sub-problem ranking's `extra_`.
-    _extra_key = "loo"
+    #: nested inside each sub-problem ranking's `extra_`, and the prefix
+    #: used to name each sub-problem ranking (e.g. ``"LOO(C0)"``).
+    _prefix = "LOO"
 
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with ``criterion`` dropped."""
         keep = [c for c in dm.criteria if c != criterion]
         dm_sub = _WEIGHT_SCALER.transform(dm[keep])
+
+        rank_sub_name = f"{self._prefix}({criterion})"
         rank_sub = self._dmaker.evaluate(dm_sub)
-        extra = {"criteria": {"dropped": criterion}}
-        return f"LOO-{criterion}", rank_sub, extra
+        extra_sub = {"criterion": criterion}
+
+        return rank_sub_name, rank_sub, extra_sub
