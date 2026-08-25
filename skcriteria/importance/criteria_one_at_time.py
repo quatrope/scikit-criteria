@@ -65,10 +65,6 @@ CriteriaLeaveOneOutChecker`, but the perturbation here is local (a single
     on the other side, so both directions are always evaluated and the
     worse one is what gets reported.
 
-    See
-    :class:`~skcriteria.importance._base_importance.CriteriaImportanceABC`
-    for the parameters shared by every criteria-importance checker.
-
     Parameters
     ----------
     dmaker : object
@@ -79,6 +75,12 @@ CriteriaLeaveOneOutChecker`, but the perturbation here is local (a single
         :math:`w_i` to :math:`w_i \cdot (1 \pm 0.2)` before renormalizing.
         Must be in :math:`(0, 1)` (a delta of 1 would zero out or double
         the original weight before renormalization).
+
+    metric, untied, allow_missing_alternatives, preferred_parallel_backend,\
+ n_jobs
+        Inherited as-is from
+        :class:`~skcriteria.importance._base_importance.CriteriaImportanceABC`;
+        see that class for the full description of each.
 
     Notes
     -----
