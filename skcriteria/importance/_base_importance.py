@@ -368,6 +368,14 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         ``1 - s`` (important means *different* from the reference),
         sufficiency-style checkers report ``s`` as is (important means
         *similar* to the reference).
+
+        A concrete checker may return more than one sub-problem ranking
+        per criterion (e.g. a perturbation in each direction); once
+        oriented, importance only ever grows the further a ranking is
+        from the reference, so the per-criterion score is simply the
+        ``max`` across every ranking that maps back to that criterion --
+        the worst case. For a checker with a single ranking per
+        criterion, this ``max`` is a no-op.
         """
         rcmp = RanksComparator(named_ranks, extra={})
         if self._metric == "footrule":
@@ -383,7 +391,8 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         # score, so drop it; what the caller cares about is the
         # criterion, not the ranking, so re-index by criterion name,
         # read back from each sub-problem ranking's `extra_`, where
-        # `_evaluate_subproblem` echoed it under `self._prefix`
+        # `_evaluate_subproblem` echoed it under `self._prefix`, and
+        # collapse to one score per criterion by taking the worst case
         criterion_by_name = {
             name: rank.extra_[self._prefix]["criterion"]
             for name, rank in named_ranks
@@ -391,6 +400,7 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         }
         importance = importance.drop("reference")
         importance.index = [criterion_by_name[name] for name in importance.index]
+        importance = importance.groupby(level=0).max()
         importance.name = "Importance"
 
         return importance

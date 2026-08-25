@@ -31,6 +31,7 @@ to compare the perturbed ranking(s) against a reference ranking.
 from ._base_importance import CriteriaImportanceABC
 from .criteria_keep_only_one import CriteriaKeepOnlyOneChecker
 from .criteria_leave_one_out import CriteriaLeaveOneOutChecker
+from .criteria_oat import CriteriaOATChecker
 
 # =============================================================================
 # ALL
@@ -40,4 +41,5 @@ __all__ = [
     "CriteriaImportanceABC",
     "CriteriaLeaveOneOutChecker",
     "CriteriaKeepOnlyOneChecker",
+    "CriteriaOATChecker",
 ]
