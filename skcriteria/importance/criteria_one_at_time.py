@@ -36,7 +36,7 @@ from ._base_importance import CriteriaImportanceABC
 # =============================================================================
 
 
-class CriteriaOATChecker(CriteriaImportanceABC):
+class CriteriaOneAtATimeChecker(CriteriaImportanceABC):
     r"""One-at-a-time (OAT) importance of each decision-matrix criterion.
 
     For every criterion :math:`i` in the decision matrix, this checker

@@ -9,7 +9,7 @@
 # DOCS
 # =============================================================================
 
-"""test for skcriteria.importance.criteria_oat"""
+"""test for skcriteria.importance.criteria_one_at_time"""
 
 # =============================================================================
 # IMPORTS
@@ -23,7 +23,7 @@ import skcriteria as skc
 from skcriteria import mkdm
 from skcriteria.agg import simple
 from skcriteria.agg.topsis import TOPSIS
-from skcriteria.importance import CriteriaOATChecker
+from skcriteria.importance import CriteriaOneAtATimeChecker
 
 # =============================================================================
 # HELPERS
@@ -67,35 +67,35 @@ def _reversal_dm():
 # =============================================================================
 
 
-def test_CriteriaOATChecker_dmaker_no_evaluate_method():
+def test_CriteriaOneAtATimeChecker_dmaker_no_evaluate_method():
     class NoEvaluateMethod:
         pass
 
     with pytest.raises(TypeError):
-        CriteriaOATChecker(NoEvaluateMethod())
+        CriteriaOneAtATimeChecker(NoEvaluateMethod())
 
 
-def test_CriteriaOATChecker_dmaker_evaluate_not_callable():
+def test_CriteriaOneAtATimeChecker_dmaker_evaluate_not_callable():
     class EvaluateNotCallable:
         evaluate = None
 
     with pytest.raises(TypeError):
-        CriteriaOATChecker(EvaluateNotCallable())
+        CriteriaOneAtATimeChecker(EvaluateNotCallable())
 
 
-def test_CriteriaOATChecker_invalid_metric():
+def test_CriteriaOneAtATimeChecker_invalid_metric():
     with pytest.raises(ValueError):
-        CriteriaOATChecker(simple.WeightedSumModel(), metric="pearson")
+        CriteriaOneAtATimeChecker(simple.WeightedSumModel(), metric="pearson")
 
 
 @pytest.mark.parametrize("delta", [0.0, 1.0, -0.1, 1.1])
-def test_CriteriaOATChecker_invalid_delta(delta):
+def test_CriteriaOneAtATimeChecker_invalid_delta(delta):
     with pytest.raises(ValueError):
-        CriteriaOATChecker(simple.WeightedSumModel(), delta=delta)
+        CriteriaOneAtATimeChecker(simple.WeightedSumModel(), delta=delta)
 
 
-def test_CriteriaOATChecker_delta_property():
-    checker = CriteriaOATChecker(simple.WeightedSumModel(), delta=0.3)
+def test_CriteriaOneAtATimeChecker_delta_property():
+    checker = CriteriaOneAtATimeChecker(simple.WeightedSumModel(), delta=0.3)
     assert checker.delta == pytest.approx(0.3)
 
 
@@ -104,14 +104,14 @@ def test_CriteriaOATChecker_delta_property():
 # =============================================================================
 
 
-def test_CriteriaOATChecker_requires_at_least_two_criteria():
+def test_CriteriaOneAtATimeChecker_requires_at_least_two_criteria():
     dm = mkdm(
         matrix=[[1], [2], [3]],
         objectives=[max],
         alternatives=["A", "B", "C"],
         criteria=["C0"],
     )
-    checker = CriteriaOATChecker(simple.WeightedSumModel())
+    checker = CriteriaOneAtATimeChecker(simple.WeightedSumModel())
     with pytest.raises(ValueError):
         checker.evaluate(dm)
 
@@ -121,9 +121,9 @@ def test_CriteriaOATChecker_requires_at_least_two_criteria():
 # =============================================================================
 
 
-def test_CriteriaOATChecker_ranks_names():
+def test_CriteriaOneAtATimeChecker_ranks_names():
     dm = _reversal_dm()
-    checker = CriteriaOATChecker(simple.WeightedSumModel())
+    checker = CriteriaOneAtATimeChecker(simple.WeightedSumModel())
     result = checker.evaluate(dm)
 
     assert [name for name, _ in result.ranks] == [
@@ -143,9 +143,9 @@ def test_CriteriaOATChecker_ranks_names():
 # =============================================================================
 
 
-def test_CriteriaOATChecker_importance_values():
+def test_CriteriaOneAtATimeChecker_importance_values():
     dm = _reversal_dm()
-    checker = CriteriaOATChecker(simple.WeightedSumModel(), delta=0.5)
+    checker = CriteriaOneAtATimeChecker(simple.WeightedSumModel(), delta=0.5)
     result = checker.evaluate(dm)
 
     importance = result.extra_["importance"]
@@ -159,9 +159,9 @@ def test_CriteriaOATChecker_importance_values():
 
 
 @pytest.mark.parametrize("metric", ["footrule", "kendall"])
-def test_CriteriaOATChecker_importance_bounded(metric):
+def test_CriteriaOneAtATimeChecker_importance_bounded(metric):
     dm = skc.datasets.load_simple_stock_selection()
-    checker = CriteriaOATChecker(TOPSIS(), metric=metric)
+    checker = CriteriaOneAtATimeChecker(TOPSIS(), metric=metric)
     importance = checker.evaluate(dm).extra_["importance"]
 
     assert (importance >= 0.0).all()
@@ -173,19 +173,19 @@ def test_CriteriaOATChecker_importance_bounded(metric):
 # =============================================================================
 
 
-def test_CriteriaOATChecker_missing_alternative_forbidden():
+def test_CriteriaOneAtATimeChecker_missing_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = DropAlternativeDMaker(TOPSIS(), "AA")
-    checker = CriteriaOATChecker(dmaker, allow_missing_alternatives=False)
+    checker = CriteriaOneAtATimeChecker(dmaker, allow_missing_alternatives=False)
 
     with pytest.raises(ValueError, match="AA"):
         checker.evaluate(dm)
 
 
-def test_CriteriaOATChecker_missing_alternative_allowed():
+def test_CriteriaOneAtATimeChecker_missing_alternative_allowed():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = DropAlternativeDMaker(TOPSIS(), "AA")
-    checker = CriteriaOATChecker(dmaker, allow_missing_alternatives=True)
+    checker = CriteriaOneAtATimeChecker(dmaker, allow_missing_alternatives=True)
 
     result = checker.evaluate(dm)
 
@@ -198,12 +198,12 @@ def test_CriteriaOATChecker_missing_alternative_allowed():
 # =============================================================================
 
 
-def test_CriteriaOATChecker_parallel_matches_sequential():
+def test_CriteriaOneAtATimeChecker_parallel_matches_sequential():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = TOPSIS()
 
-    sequential = CriteriaOATChecker(dmaker).evaluate(dm)
-    parallel = CriteriaOATChecker(
+    sequential = CriteriaOneAtATimeChecker(dmaker).evaluate(dm)
+    parallel = CriteriaOneAtATimeChecker(
         dmaker, n_jobs=2, preferred_parallel_backend="threads"
     ).evaluate(dm)
 
@@ -217,13 +217,13 @@ def test_CriteriaOATChecker_parallel_matches_sequential():
 # =============================================================================
 
 
-def test_CriteriaOATChecker_repr():
+def test_CriteriaOneAtATimeChecker_repr():
     dmaker = simple.WeightedSumModel()
-    checker = CriteriaOATChecker(dmaker)
+    checker = CriteriaOneAtATimeChecker(dmaker)
 
     result = repr(checker)
     expected = (
-        f"<CriteriaOATChecker [allow_missing_alternatives={True}, "
+        f"<CriteriaOneAtATimeChecker [allow_missing_alternatives={True}, "
         f"delta={0.2!r}, dmaker={dmaker!r}, metric={'footrule'!r}, "
         f"n_jobs={None}, preferred_parallel_backend={None}, "
         f"untied={False}]>"
