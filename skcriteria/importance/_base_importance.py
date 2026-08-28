@@ -345,6 +345,47 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         )
         return patched_rank, missing_alternatives
 
+    def _post_process_rank_comparator(self, rank_cmp):
+        """Hook to reshape the finished ``RanksComparator`` before \
+        :meth:`evaluate` returns it.
+
+        Called once, at the very end of :meth:`evaluate`, on the fully
+        assembled result: ``"reference"`` plus every patched sub-problem
+        ranking, with ``rank_cmp.extra_`` already holding ``"metric"`` and
+        the final ``"importance"`` series. The default implementation
+        here is the identity (``return rank_cmp`` unchanged); a concrete
+        checker overrides it to prune, reorder, or otherwise post-process
+        the rankings it hands back, without having to duplicate any of
+        the reference-evaluation or scoring machinery in :meth:`evaluate`
+        / :meth:`_importance_score`.
+
+        This is the natural place for a checker that returns more than
+        one ranking per criterion from :meth:`_evaluate_subproblem` (e.g.
+        one per perturbation direction) to drop the ones it no longer
+        wants to expose once the whole run is in -- for instance, keeping
+        only the worst-of-two-directions ranking per criterion and
+        discarding the other, now that both are available side by side
+        for comparison. Note ``extra_["importance"]`` is already
+        collapsed to one worst-case score per criterion by
+        :meth:`_importance_score` (via ``groupby(level=0).max()``)
+        *before* this hook runs, so dropping rankings here changes what
+        is visible in ``rank_cmp.ranks``, not the importance numbers
+        themselves.
+
+        Parameters
+        ----------
+        rank_cmp : RanksComparator
+            The comparator :meth:`evaluate` is about to return.
+
+        Returns
+        -------
+        RanksComparator
+            The (possibly modified) comparator actually returned by
+            :meth:`evaluate`.
+
+        """
+        return rank_cmp
+
     def _importance_score(self, named_ranks):
         """Importance of every criterion behind ``named_ranks`` vs \
         ``"reference"``.
@@ -431,6 +472,10 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
               possible difference for ``metric``). ``"reference"`` is not
               included, since it isn't a criterion.
 
+            Passed through :meth:`_post_process_rank_comparator` before
+            being returned; a concrete checker may override that hook to
+            prune or otherwise reshape the rankings exposed here.
+
         Raises
         ------
         ValueError
@@ -505,4 +550,5 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
             "importance": importance_scores,
         }
 
-        return RanksComparator(named_ranks, extra=extra)
+        rank_cmp = RanksComparator(named_ranks, extra=extra)
+        return self._post_process_rank_comparator(rank_cmp)
