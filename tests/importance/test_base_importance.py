@@ -57,8 +57,8 @@ def test_CriteriaImportanceABC_evaluate_subproblem_not_implemented():
     class Foo(CriteriaImportanceABC):
         _invert_similarity = True
 
-        def _evaluate_subproblem(self, dm, criterion, reference):
-            return super()._evaluate_subproblem(dm, criterion, reference)
+        def _evaluate_subproblem(self, dm, criterion):
+            return super()._evaluate_subproblem(dm, criterion)
 
     checker = Foo(simple.WeightedSumModel())
     with pytest.raises(NotImplementedError):
@@ -67,7 +67,7 @@ def test_CriteriaImportanceABC_evaluate_subproblem_not_implemented():
 
 def test_CriteriaImportanceABC_subclass_missing_invert_similarity():
     class Foo(CriteriaImportanceABC):
-        def _evaluate_subproblem(self, dm, criterion, reference):
+        def _evaluate_subproblem(self, dm, criterion):
             keep = [c for c in dm.criteria if c != criterion]
             rank_sub = self._dmaker.evaluate(dm[keep])
             return [(f"FOO-{criterion}", rank_sub, {"criterion": criterion})]
@@ -88,7 +88,7 @@ def test_CriteriaImportanceABC_properties():
     class Foo(CriteriaImportanceABC):
         _invert_similarity = True
 
-        def _evaluate_subproblem(self, dm, criterion, reference):
+        def _evaluate_subproblem(self, dm, criterion):
             keep = [c for c in dm.criteria if c != criterion]
             rank_sub = self._dmaker.evaluate(dm[keep])
             return f"FOO-{criterion}", rank_sub, {}

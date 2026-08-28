@@ -29,8 +29,6 @@ common form of weight-sensitivity analysis reported in the MCDA literature
 # IMPORTS
 # =============================================================================
 
-import numpy as np
-
 from ._base_importance import CriteriaImportanceABC
 
 # =============================================================================
@@ -47,13 +45,13 @@ class CriteriaOneAtATimeChecker(CriteriaImportanceABC):
     :math:`w_j,\ j \neq i` so the whole vector still sums to 1 while
     preserving their relative proportions, and evaluates ``dmaker`` on
     each of the two perturbed sub-problems. Both perturbed rankings are
-    scored against the reference ranking (evaluated once with the
+    kept and scored against the reference ranking (evaluated with the
     original weights) using the same pairwise ranking-similarity metric
-    as every other checker in this module, and only the **worst case**
-    (the direction that moves the ranking furthest from the reference) is
-    kept -- the more the ranking *can* move when its weight is nudged in
-    either direction, the more important that criterion is considered to
-    be.
+    as every other checker in this module; the **worst case** (the
+    direction that moves the ranking furthest from the reference) is what
+    ends up reported as that criterion's importance -- the more the
+    ranking *can* move when its weight is nudged in either direction, the
+    more important that criterion is considered to be.
 
     This is a *necessity*-style reading of importance, like
     :class:`~skcriteria.importance.criteria_leave_one_out.\
@@ -93,16 +91,13 @@ CriteriaLeaveOneOutChecker`, but the perturbation here is local (a single
     criterion's weight is evaluated from a very different starting
     coalition.
 
-    Only the worse of the two perturbed rankings is kept for a given
-    criterion, chosen with
+    Both perturbed rankings for a criterion are kept as separate entries
+    in the :class:`~skcriteria.cmp.RanksComparator` returned by
+    :meth:`evaluate`, named ``"OAT(<criterion>+<delta>)"`` and
+    ``"OAT(<criterion>-<delta>)"``; the base class collapses them back
+    into a single worst-case importance score per criterion (see
     :meth:`~skcriteria.importance._base_importance.CriteriaImportanceABC.\
-_similarity_to_reference` against the ``reference`` ranking handed to
-    :meth:`_evaluate_subproblem` -- so the reference is evaluated once per
-    :meth:`evaluate` call, not once per direction per criterion. It shows
-    up as a single entry per criterion in the
-    :class:`~skcriteria.cmp.RanksComparator` returned by :meth:`evaluate`,
-    named ``"OAT(<criterion>+<delta>)"`` or ``"OAT(<criterion>-<delta>)"``
-    depending on which direction lost.
+_importance_score`).
 
     """
 
@@ -154,37 +149,23 @@ _similarity_to_reference` against the ``reference`` ranking handed to
         new_weights[criterion] = new_w_i
         return new_weights.reindex(dm.criteria)
 
-    def _evaluate_subproblem(self, dm, criterion, reference):
+    def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with ``criterion``'s weight perturbed by \
-        both ``+delta`` and ``-delta``, keeping only the worse of the two."""
-        # `reference` was already patched by `evaluate()` to include every
-        # alternative in `dm`; a candidate must match that same set before
-        # `_similarity_to_reference` can compare it, so patch it here too
-        # (harmless if `dmaker` never drops alternatives to begin with --
-        # `evaluate()` re-patching the returned ranking afterwards is then
-        # a no-op).
-        full_alternatives = np.array(dm.alternatives)
+        both ``+delta`` and ``-delta``, returning both rankings."""
 
-        candidates = []
-        for sign in (+1, -1):
-            weights = self._perturbed_weights(dm, criterion, sign)
-            rank_sub = self._dmaker.evaluate(dm.replace(weights=weights.values))
-            patched_sub, _ = self._patch_rank(
-                rank=rank_sub,
-                full_alternatives=full_alternatives,
-                where=f"sub-problem for {criterion!r}",
-                allow_missing_alternatives=self._allow_missing_alternatives,
-                extra=None,
-            )
-            similarity = self._similarity_to_reference(reference, patched_sub)
-            candidates.append((sign, patched_sub, similarity))
+        rank_up_name = f"{self._prefix}({criterion}+{self._delta})"
+        weights_up = self._perturbed_weights(dm, criterion, +1)
+        rank_up = self._dmaker.evaluate(dm.replace(weights=weights_up.values))
+        extra_sub_up = {"criterion": criterion, "direction": "+"}
 
-        # worst case = lowest similarity to the reference (this checker is
-        # necessity-style: importance grows the further the ranking moves)
-        sign, rank_sub, _ = min(candidates, key=lambda c: c[2])
+        rank_down_name = f"{self._prefix}({criterion}-{self._delta})"
+        weights_down = self._perturbed_weights(dm, criterion, -1)
+        rank_down = self._dmaker.evaluate(
+            dm.replace(weights=weights_down.values)
+        )
+        extra_sub_down = {"criterion": criterion, "direction": "-"}
 
-        tag = {1: "+", -1: "-"}[sign]
-        rank_sub_name = f"{self._prefix}({criterion}{tag}{self._delta})"
-        extra_sub = {"criterion": criterion, "direction": tag}
-
-        return [(rank_sub_name, rank_sub, extra_sub)]
+        return [
+            (rank_up_name, rank_up, extra_sub_up),
+            (rank_down_name, rank_down, extra_sub_down),
+        ]
