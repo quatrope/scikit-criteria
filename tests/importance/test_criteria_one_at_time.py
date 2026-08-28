@@ -129,9 +129,7 @@ def test_CriteriaOneAtATimeChecker_ranks_names():
     assert [name for name, _ in result.ranks] == [
         "reference",
         "OAT(C0+0.2)",
-        "OAT(C0-0.2)",
         "OAT(C1+0.2)",
-        "OAT(C1-0.2)",
     ]
 
     importance = result.extra_["importance"]

@@ -231,7 +231,7 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
     # ranking name.
 
     @abc.abstractmethod
-    def _evaluate_subproblem(self, dm, criterion):
+    def _evaluate_subproblem(self, dm, criterion, reference):
         """Build the sub-problem for ``criterion`` and evaluate \
         ``self.dmaker`` on it.
 
@@ -250,6 +250,15 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
             The (already weight-normalized) full decision matrix.
         criterion : str
             Name of the criterion the sub-problem is built around.
+        reference : RankResult
+            The reference ranking, already evaluated once by
+            :meth:`evaluate` over the full ``dm``. Handed to every call so
+            a concrete checker that needs to compare a candidate ranking
+            against the reference *before* deciding what to return (e.g.
+            to pick the worst of several internally-built candidates) can
+            do so with :meth:`_similarity_to_reference` instead of calling
+            ``self.dmaker.evaluate(dm)`` again -- most checkers can simply
+            ignore this parameter.
 
         Returns
         -------
@@ -345,6 +354,54 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         )
         return patched_rank, missing_alternatives
 
+    def _similarity_matrix(self, rcmp):
+        """Pairwise similarity matrix for every ranking in ``rcmp``, \
+        normalized to ``[0, 1]`` regardless of ``self._metric``.
+
+        The only place that translates a metric name (``"footrule"``,
+        ``"kendall"``) into the ``RanksComparator`` call that computes it
+        and into how the result gets normalized to ``[0, 1]``:
+        ``footrule_similarity()`` is already bounded that way, so it's
+        used as is; Kendall's tau is a correlation bounded in ``[-1, 1]``
+        instead, so it's rescaled with ``(1 + correlation) / 2``. Both
+        :meth:`_importance_score` and :meth:`_similarity_to_reference`
+        build a (differently shaped) ``RanksComparator`` and delegate the
+        actual metric computation here, so supporting a new metric is a
+        change to this one method instead of two.
+        """
+        if self._metric == "footrule":
+            return rcmp.footrule_similarity(untied=self._untied)
+        correlation = rcmp.corr(method="kendall", untied=self._untied)
+        return (1.0 + correlation) / 2.0
+
+    def _similarity_to_reference(self, reference, rank):
+        """Pairwise similarity of ``rank`` against ``reference``.
+
+        Uses the same metric and ``untied`` convention as
+        :meth:`_importance_score` (via :meth:`_similarity_matrix`), but
+        for a single candidate ranking instead of a whole batch --
+        exposed so a concrete checker can score a candidate from inside
+        :meth:`_evaluate_subproblem` (e.g. to pick the worst of several
+        internally-built candidates before returning) without
+        reimplementing the ``RanksComparator`` plumbing.
+
+        Returned as a plain, *unoriented* similarity in ``[0, 1]`` (higher
+        means more similar to ``reference``) -- unlike the importance
+        scores in ``extra_["importance"]``, this is not flipped by
+        ``_invert_similarity``; the caller already knows its own
+        orientation and picks min/max accordingly.
+
+        Note this builds a fresh two-row ``RanksComparator`` per call, so
+        it's most useful when comparing a handful of candidates for one
+        criterion at a time. Scoring every sub-problem ranking against the
+        reference at once, as :meth:`_importance_score` does, is cheaper.
+        """
+        rcmp = RanksComparator(
+            [("reference", reference), ("candidate", rank)], extra={}
+        )
+        similarity = self._similarity_matrix(rcmp)
+        return similarity.loc["reference", "candidate"]
+
     def _importance_score(self, named_ranks):
         """Importance of every criterion behind ``named_ranks`` vs \
         ``"reference"``.
@@ -359,15 +416,12 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         Builds the temporary ``RanksComparator`` needed to compute the
         pairwise metric once (reusing its own vectorized methods) and
         indexes the ``"reference"`` row out of it to get a similarity
-        ``s``, normalized to ``[0, 1]`` regardless of ``metric``:
-        ``footrule_similarity()`` is already bounded in ``[0, 1]``, so it
-        is used as is; Kendall's tau is a correlation bounded in
-        ``[-1, 1]`` instead, so it is rescaled with ``(1 + correlation) /
-        2``. The subclass then picks the orientation via
-        ``_invert_similarity``: necessity-style checkers report
-        ``1 - s`` (important means *different* from the reference),
-        sufficiency-style checkers report ``s`` as is (important means
-        *similar* to the reference).
+        ``s``, already normalized to ``[0, 1]`` by
+        :meth:`_similarity_matrix` regardless of ``metric``. The subclass
+        then picks the orientation via ``_invert_similarity``:
+        necessity-style checkers report ``1 - s`` (important means
+        *different* from the reference), sufficiency-style checkers
+        report ``s`` as is (important means *similar* to the reference).
 
         A concrete checker may return more than one sub-problem ranking
         per criterion (e.g. a perturbation in each direction); once
@@ -378,12 +432,7 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         criterion, this ``max`` is a no-op.
         """
         rcmp = RanksComparator(named_ranks, extra={})
-        if self._metric == "footrule":
-            similarity = rcmp.footrule_similarity(untied=self._untied)
-            s = similarity.loc["reference"]
-        else:
-            correlation = rcmp.corr(method="kendall", untied=self._untied)
-            s = (1.0 + correlation.loc["reference"]) / 2.0
+        s = self._similarity_matrix(rcmp).loc["reference"]
 
         importance = (1.0 - s) if self._invert_similarity else s
 
@@ -473,7 +522,8 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         ) as parallel:
             delayed_evaluation = joblib.delayed(self._evaluate_subproblem)
             sub_results = parallel(
-                delayed_evaluation(dm, criterion) for criterion in criteria
+                delayed_evaluation(dm, criterion, patched_full)
+                for criterion in criteria
             )
 
         # the patch itself is a cheap, self-contained function -- it is

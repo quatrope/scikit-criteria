@@ -115,7 +115,7 @@ class CriteriaLeaveOneOutChecker(CriteriaImportanceABC):
     #: used to name each sub-problem ranking (e.g. ``"LOO(C0)"``).
     _prefix = "LOO"
 
-    def _evaluate_subproblem(self, dm, criterion):
+    def _evaluate_subproblem(self, dm, criterion, reference):
         """Evaluate ``dmaker`` with ``criterion`` dropped."""
         keep = [c for c in dm.criteria if c != criterion]
         dm_sub = _WEIGHT_SCALER.transform(dm[keep])

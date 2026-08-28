@@ -78,7 +78,7 @@ class CriteriaKeepOnlyOneChecker(CriteriaImportanceABC):
     #: used to name each sub-problem ranking (e.g. ``"KOO(C0)"``).
     _prefix = "KOO"
 
-    def _evaluate_subproblem(self, dm, criterion):
+    def _evaluate_subproblem(self, dm, criterion, reference):
         """Evaluate ``dmaker`` with only ``criterion`` kept."""
         dm_sub = dm[criterion].replace(weights=[1])
 
