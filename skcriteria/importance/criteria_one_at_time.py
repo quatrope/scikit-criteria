@@ -29,8 +29,8 @@ common form of weight-sensitivity analysis reported in the MCDA literature
 # IMPORTS
 # =============================================================================
 
-from ..cmp import RanksComparator
 from ._base_importance import CriteriaImportanceABC
+from ..cmp import RanksComparator
 
 # =============================================================================
 # CLASS
@@ -46,25 +46,27 @@ class CriteriaOneAtATimeChecker(CriteriaImportanceABC):
     :math:`w_j,\ j \neq i` so the whole vector still sums to 1 while
     preserving their relative proportions, and evaluates ``dmaker`` on
     each of the two perturbed sub-problems. Both perturbed rankings are
-    kept and scored against the reference ranking (evaluated with the
-    original weights) using the same pairwise ranking-similarity metric
-    as every other checker in this module; the **worst case** (the
+    always evaluated and scored against the reference ranking (evaluated
+    with the original weights) using the same pairwise ranking-similarity
+    metric as every other checker in this module; the **worst case** (the
     direction that moves the ranking furthest from the reference) is what
     ends up reported as that criterion's importance -- the more the
     ranking *can* move when its weight is nudged in either direction, the
-    more important that criterion is considered to be.
+    more important that criterion is considered to be. By default, only
+    that worse-of-two-directions ranking per criterion is exposed in the
+    result's ``ranks`` (see ``drop_rank_with_worst_direction`` below).
 
     This is a *necessity*-style reading of importance, like
-    :class:`~skcriteria.importance.criteria_leave_one_out.\
-CriteriaLeaveOneOutChecker`, but the perturbation here is local (a single
-    weight moved by ``delta``) rather than total (the criterion dropped
-    entirely). It is the checker that best matches how weight-sensitivity
-    analysis is most commonly practiced in the applied MCDA literature.
-    There is deliberately no parameter to restrict the check to a single
-    direction: a sensitivity analysis that only looked at one direction
-    would silently under-report a criterion whose ranking is fragile only
-    on the other side, so both directions are always evaluated and the
-    worse one is what gets reported.
+    :class:`~skcriteria.importance.criteria_leave_one_out.CriteriaLeaveOneOutChecker`,
+    but the perturbation here is local (a single weight moved by
+    ``delta``) rather than total (the criterion dropped entirely). It is
+    the checker that best matches how weight-sensitivity analysis is most
+    commonly practiced in the applied MCDA literature. There is
+    deliberately no parameter to restrict the check to a single direction:
+    a sensitivity analysis that only looked at one direction would
+    silently under-report a criterion whose ranking is fragile only on the
+    other side, so both directions are always evaluated and the worse one
+    is what gets reported.
 
     Parameters
     ----------
@@ -76,6 +78,15 @@ CriteriaLeaveOneOutChecker`, but the perturbation here is local (a single
         :math:`w_i` to :math:`w_i \cdot (1 \pm 0.2)` before renormalizing.
         Must be in :math:`(0, 1)` (a delta of 1 would zero out or double
         the original weight before renormalization).
+
+    drop_rank_with_worst_direction : bool, default ``True``
+        If ``True``, the result's ``ranks`` only exposes the
+        worse-of-two-directions ranking per criterion, discarding the
+        other one. If ``False``, both ``"OAT(<criterion>+<delta>)"`` and
+        ``"OAT(<criterion>-<delta>)"`` are kept side by side. Either way,
+        both directions are always evaluated and scored, and
+        ``extra_["importance"]`` always reports the same per-criterion
+        worst-case score.
 
     metric, untied, allow_missing_alternatives, preferred_parallel_backend,\
  n_jobs
@@ -92,13 +103,20 @@ CriteriaLeaveOneOutChecker`, but the perturbation here is local (a single
     criterion's weight is evaluated from a very different starting
     coalition.
 
-    Both perturbed rankings for a criterion are kept as separate entries
-    in the :class:`~skcriteria.cmp.RanksComparator` returned by
-    :meth:`evaluate`, named ``"OAT(<criterion>+<delta>)"`` and
-    ``"OAT(<criterion>-<delta>)"``; the base class collapses them back
-    into a single worst-case importance score per criterion (see
+    Both perturbed rankings for a criterion are named
+    ``"OAT(<criterion>+<delta>)"`` and ``"OAT(<criterion>-<delta>)"`` in
+    the :class:`~skcriteria.cmp.RanksComparator` returned by
+    :meth:`evaluate`. Unlike every other checker in this module, this one
+    overrides
     :meth:`~skcriteria.importance._base_importance.CriteriaImportanceABC.\
-_importance_score`).
+_post_process_rank_comparator` to collapse the two directions back into a
+    single worst-case ranking per criterion (controlled by
+    ``drop_rank_with_worst_direction``), since the base class's
+    :meth:`~skcriteria.importance._base_importance.CriteriaImportanceABC.\
+_importance_score` never sees the two directions as the same criterion --
+    ``_evaluate_subproblem`` tags them ``"<criterion>+"``/``"<criterion>-"``
+    on purpose, precisely so that collapsing only happens once, in this
+    hook, without re-dispatching the ``footrule``/``kendall`` metric.
 
     """
 
@@ -173,9 +191,7 @@ _importance_score`).
 
     def _post_process_rank_comparator(self, rank_cmp):
         """Collapse the ``+delta``/``-delta`` rankings of each criterion \
-        into the single worst-case one.
-
-        """
+        into the single worst-case one."""
         importance = rank_cmp.extra_.importance
 
         # "<criterion>+"/"<criterion>-" -> keep the worse of the two per
@@ -243,9 +259,7 @@ _importance_score`).
 
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with ``criterion``'s weight perturbed by \
-        both ``+delta`` and ``-delta``, returning both rankings.
-
-        """
+        both ``+delta`` and ``-delta``, returning both rankings."""
         rank_up_name = f"{self._prefix}({criterion}+{self._delta})"
         weights_up = self._perturbed_weights(dm, criterion, +1)
         rank_up = self._dmaker.evaluate(dm.replace(weights=weights_up.values))
