@@ -126,12 +126,13 @@ def test_CriteriaOneAtATimeChecker_ranks_names():
     checker = CriteriaOneAtATimeChecker(simple.WeightedSumModel())
     result = checker.evaluate(dm)
 
+    # _post_process_rank_comparator keeps only the worst-of-two-directions
+    # ranking per criterion; here both directions tie (delta=0.2 doesn't
+    # move the ranking either way), so the "+" direction wins the tie
     assert [name for name, _ in result.ranks] == [
         "reference",
         "OAT(C0+0.2)",
-        "OAT(C0-0.2)",
         "OAT(C1+0.2)",
-        "OAT(C1-0.2)",
     ]
 
     importance = result.extra_["importance"]
@@ -176,7 +177,9 @@ def test_CriteriaOneAtATimeChecker_importance_bounded(metric):
 def test_CriteriaOneAtATimeChecker_missing_alternative_forbidden():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = DropAlternativeDMaker(TOPSIS(), "AA")
-    checker = CriteriaOneAtATimeChecker(dmaker, allow_missing_alternatives=False)
+    checker = CriteriaOneAtATimeChecker(
+        dmaker, allow_missing_alternatives=False
+    )
 
     with pytest.raises(ValueError, match="AA"):
         checker.evaluate(dm)
@@ -185,7 +188,9 @@ def test_CriteriaOneAtATimeChecker_missing_alternative_forbidden():
 def test_CriteriaOneAtATimeChecker_missing_alternative_allowed():
     dm = skc.datasets.load_simple_stock_selection()
     dmaker = DropAlternativeDMaker(TOPSIS(), "AA")
-    checker = CriteriaOneAtATimeChecker(dmaker, allow_missing_alternatives=True)
+    checker = CriteriaOneAtATimeChecker(
+        dmaker, allow_missing_alternatives=True
+    )
 
     result = checker.evaluate(dm)
 
@@ -224,7 +229,8 @@ def test_CriteriaOneAtATimeChecker_repr():
     result = repr(checker)
     expected = (
         f"<CriteriaOneAtATimeChecker [allow_missing_alternatives={True}, "
-        f"delta={0.2!r}, dmaker={dmaker!r}, metric={'footrule'!r}, "
+        f"delta={0.2!r}, dmaker={dmaker!r}, "
+        f"drop_rank_with_worst_direction={True}, metric={'footrule'!r}, "
         f"n_jobs={None}, preferred_parallel_backend={None}, "
         f"untied={False}]>"
     )

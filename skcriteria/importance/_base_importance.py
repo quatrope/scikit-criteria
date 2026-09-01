@@ -34,7 +34,7 @@ from ..agg import RankResult
 from ..cmp import RanksComparator
 from ..core import SKCMethodABC
 from ..preprocessing.scalers import SumScaler
-from ..utils import unique_names
+from ..utils import Bunch, unique_names
 
 # =============================================================================
 # CONSTANTS
@@ -307,7 +307,7 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
         values = rank.values.copy()
         patched_extra = dict(rank.extra_.items())
         if extra is not None:
-            patched_extra[self._prefix] = extra
+            patched_extra[self._prefix] = Bunch(self._prefix, extra)
 
         alts_diff = np.setxor1d(alternatives, full_alternatives)
         missing_alternatives = np.array([], dtype=full_alternatives.dtype)
@@ -440,7 +440,9 @@ CriteriaKeepOnlyOneChecker` reads importance this way.
             if name != "reference"
         }
         importance = importance.drop("reference")
-        importance.index = [criterion_by_name[name] for name in importance.index]
+        importance.index = [
+            criterion_by_name[name] for name in importance.index
+        ]
         importance = importance.groupby(level=0).max()
         importance.name = "Importance"
 

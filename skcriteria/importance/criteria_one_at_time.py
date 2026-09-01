@@ -29,6 +29,7 @@ common form of weight-sensitivity analysis reported in the MCDA literature
 # IMPORTS
 # =============================================================================
 
+from ..cmp import RanksComparator
 from ._base_importance import CriteriaImportanceABC
 
 # =============================================================================
@@ -112,9 +113,17 @@ _importance_score`).
 
     _skcriteria_parameters = CriteriaImportanceABC._skcriteria_parameters + [
         "delta",
+        "drop_rank_with_worst_direction",
     ]
 
-    def __init__(self, dmaker, *, delta=0.2, **kwargs):
+    def __init__(
+        self,
+        dmaker,
+        *,
+        delta=0.2,
+        drop_rank_with_worst_direction=True,
+        **kwargs,
+    ):
         super().__init__(dmaker, **kwargs)
 
         delta = float(delta)
@@ -122,12 +131,25 @@ _importance_score`).
             raise ValueError(f"'delta' must be in (0, 1). Found {delta!r}")
         self._delta = delta
 
+        self._drop_rank_with_worst_direction = bool(
+            drop_rank_with_worst_direction
+        )
+
     # PROPERTIES ==============================================================
 
     @property
     def delta(self):
         """Relative perturbation applied to each weight."""
         return self._delta
+
+    @property
+    def drop_rank_with_worst_direction(self):
+        """If ``True`` (default), :meth:`evaluate` only exposes the \
+        worse-of-two-directions ranking per criterion in its result's \
+        ``ranks``; if ``False``, both ``+delta`` and ``-delta`` rankings \
+        are kept side by side. Either way, ``extra_["importance"]`` is \
+        always the same per-criterion worst-case score."""
+        return self._drop_rank_with_worst_direction
 
     # INTERNALS ===============================================================
 
@@ -149,21 +171,100 @@ _importance_score`).
         new_weights[criterion] = new_w_i
         return new_weights.reindex(dm.criteria)
 
+    def _post_process_rank_comparator(self, rank_cmp):
+        """Collapse the ``+delta``/``-delta`` rankings of each criterion \
+        into the single worst-case one.
+
+        """
+        importance = rank_cmp.extra_.importance
+
+        # "<criterion>+"/"<criterion>-" -> keep the worse of the two per
+        # criterion; ``idxmax`` per group gives back the winning (suffixed)
+        # ranking name, which is what is needed to know which of the two
+        # rankings to drop below
+        by_criterion = importance.index.str[:-1]
+        worst_idx = importance.groupby(by_criterion).idxmax()
+
+        # ``worst_idx`` only has the suffixed criterion labels ("C0+"); to
+        # know which *ranking* that maps to, go back through each rank's
+        # own `extra_`, where `_evaluate_subproblem` echoed the same
+        # suffixed label under `self._prefix`
+        kept_names = {
+            rank.extra_[self._prefix].criterion: name
+            for name, rank in rank_cmp.ranks
+            if name != "reference"
+        }
+
+        # every suffixed label not picked by `idxmax` above belongs to the
+        # losing direction of some criterion -- its ranking is what gets
+        # dropped from `rank_cmp.ranks` below
+        dropped_names = {
+            kept_names[suffixed]
+            for suffixed in importance.index
+            if suffixed not in set(worst_idx)
+        }
+
+        # "reference" is never in `dropped_names` (it has no suffixed
+        # label), so it always survives this filter unchanged; when
+        # `drop_rank_with_worst_direction` is False, nothing is pruned and
+        # both directions stay in `rank_cmp.ranks` -- only `importance`
+        # below is always collapsed to one worst-case score per criterion
+        if self._drop_rank_with_worst_direction:
+            kept_ranks = [
+                (name, rank)
+                for name, rank in rank_cmp.ranks
+                if name not in dropped_names
+            ]
+        else:
+            kept_ranks = rank_cmp.ranks
+
+        kept_directions = [
+            rank.e_.OAT.direction
+            for name, rank in rank_cmp.ranks
+            if name != "reference" and name not in dropped_names
+        ]
+
+        new_importance = importance.loc[worst_idx.values]
+        new_importance.index = worst_idx.index
+        new_importance.name = importance.name
+
+        new_extra = rank_cmp.extra_.to_dict()
+        new_extra["importance"] = new_importance
+        new_extra["delta"] = self._delta
+        new_extra["worst_direction_count"] = {
+            "+": kept_directions.count("+"),
+            "-": kept_directions.count("-"),
+        }
+        new_extra["drop_rank_with_worst_direction"] = (
+            self._drop_rank_with_worst_direction
+        )
+
+        return RanksComparator(kept_ranks, extra=new_extra)
+
     def _evaluate_subproblem(self, dm, criterion):
         """Evaluate ``dmaker`` with ``criterion``'s weight perturbed by \
-        both ``+delta`` and ``-delta``, returning both rankings."""
+        both ``+delta`` and ``-delta``, returning both rankings.
 
+        """
         rank_up_name = f"{self._prefix}({criterion}+{self._delta})"
         weights_up = self._perturbed_weights(dm, criterion, +1)
         rank_up = self._dmaker.evaluate(dm.replace(weights=weights_up.values))
-        extra_sub_up = {"criterion": criterion, "direction": "+"}
+        extra_sub_up = {
+            "criterion": f"{criterion}+",
+            "clean_criterion": criterion,
+            "direction": "+",
+        }
 
         rank_down_name = f"{self._prefix}({criterion}-{self._delta})"
         weights_down = self._perturbed_weights(dm, criterion, -1)
         rank_down = self._dmaker.evaluate(
             dm.replace(weights=weights_down.values)
         )
-        extra_sub_down = {"criterion": criterion, "direction": "-"}
+        extra_sub_down = {
+            "criterion": f"{criterion}-",
+            "clean_criterion": criterion,
+            "direction": "-",
+        }
 
         return [
             (rank_up_name, rank_up, extra_sub_up),
