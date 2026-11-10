@@ -4,6 +4,10 @@
 
 ## Version 0.11
 
+### Improvements and Behavioral Changes
+
+*   **SIMUS solved with SciPy/HiGHS; PuLP and `skcriteria.utils.lp` removed:** `SIMUS` now builds each stage LP in matrix form and solves it with `scipy.optimize.linprog(method="highs")` instead of PuLP/CBC, about 2× faster. The `pulp` dependency and the `skcriteria.utils.lp` module were removed, and `SIMUS(solver=...)` now accepts the HiGHS methods of `linprog`: `"highs"` (default), `"highs-ds"` and `"highs-ipm"`. The migration also fixes two bugs that changed rankings: with 11 or more alternatives the efficient matrix had its columns permuted (PuLP sorts variables by name), and badly scaled problems (e.g. `load_van2021evaluation`) were solved suboptimally; each LP is now rescaled, so rankings on that dataset change. SIMUS now warns when a stage LP has multiple optimal solutions (the efficient matrix then depends on the vertex chosen by the solver; see `extra["multiple_optima"]` and `stages[i].lp_values_range`) or no optimal solution (e.g. unbounded). In `stages`, `lp_problem` is now a `Bunch` (`c`, `A_ub`, `b_ub`, `sense`) and `lp_status_code` uses the `linprog` status codes.
+
 ### New Features
 
 *   **`RanksComparator.footrule_similarity()`:** New method (with a matching `RanksComparatorPlotter.footrule_similarity()` heatmap) that computes the normalized Spearman footrule similarity between every pair of rankings in the comparator, using the exact `floor(n**2/2)` upper bound from Diaconis & Graham (1977). Supports the `untied` parameter like the rest of the comparator's methods, and warns when it detects ties, since the normalization assumes strict permutations.

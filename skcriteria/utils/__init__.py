@@ -15,7 +15,7 @@
 # IMPORTS
 # =============================================================================
 
-from . import lp, rank
+from . import rank
 from .accabc import AccessorABC
 from .bunch import Bunch
 from .cmanagers import df_temporal_header, hidden
@@ -37,7 +37,6 @@ __all__ = [
     "hidden",
     "rank",
     "Bunch",
-    "lp",
     "unique_names",
     "will_change",
     "diff",
